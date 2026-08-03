@@ -12,7 +12,7 @@ Version `0.2.0-alpha.1` is an architecture foundation, not a production-ready vi
 
 ## Verification gaps
 
-- Local PHP, Composer, Docker, WordPress, and browser services were unavailable in the implementation environment. PHP syntax received a secondary JavaScript-parser check; authoritative PHP/PHPCS/PHPUnit/WordPress/E2E evidence must come from CI.
+- Native PHP, Composer, Docker, WordPress, and browser services were unavailable in the implementation environment. A PHP 8.3 WebAssembly CLI linted all 21 PHP files with zero syntax errors, and a JavaScript PHP parser supplied an independent secondary parse. Authoritative native PHP 8.1–8.5, PHPCS, PHPUnit, WordPress, and E2E evidence must still come from CI.
 - Manual keyboard, screen-reader, zoom, forced-colors, RTL, touch, and real-host testing have not been performed.
 - Editor timing, save timing, CLS, and 500-block performance have not been measured.
 - Upgrade and rollback have no released-schema fixture beyond the idempotent version-one unit test.
