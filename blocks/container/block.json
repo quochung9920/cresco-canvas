@@ -1,0 +1,35 @@
+{
+  "$schema": "https://schemas.wp.org/trunk/block.json",
+  "apiVersion": 3,
+  "name": "cresco/container",
+  "version": "0.1.0",
+  "title": "Cresco Container",
+  "category": "design",
+  "icon": "layout",
+  "description": "Flexible native layout container for Cresco Canvas.",
+  "textdomain": "cresco-canvas",
+  "attributes": {
+    "layoutMode": { "type": "string", "default": "flex" },
+    "direction": { "type": "string", "default": "column" },
+    "justify": { "type": "string", "default": "flex-start" },
+    "align": { "type": "string", "default": "stretch" },
+    "gap": { "type": "number", "default": 24 },
+    "paddingTop": { "type": "number", "default": 40 },
+    "paddingRight": { "type": "number", "default": 24 },
+    "paddingBottom": { "type": "number", "default": 40 },
+    "paddingLeft": { "type": "number", "default": 24 },
+    "maxWidth": { "type": "number", "default": 1200 },
+    "background": { "type": "string", "default": "" }
+  },
+  "supports": {
+    "anchor": true,
+    "html": false,
+    "className": true,
+    "spacing": { "margin": true },
+    "color": { "text": true, "link": true },
+    "typography": { "fontSize": true }
+  },
+  "editorScript": "file:./index.js",
+  "style": "file:./style.css",
+  "editorStyle": "file:./editor.css"
+}
