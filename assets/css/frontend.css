@@ -1,1 +1,20 @@
-body{color:var(--cc-text);font-family:var(--cc-font);background:var(--cc-background)}.cc-container{box-sizing:border-box}.cc-container img{max-width:100%;height:auto}.cc-button,.wp-block-button__link{border-radius:var(--cc-radius)}
+body.cresco-canvas-page {
+	background: var(--cc-background);
+	color: var(--cc-text);
+	font-family: var(--cc-font);
+}
+
+body.cresco-canvas-page .wp-block-cresco-container.cc-container {
+	box-sizing: border-box;
+}
+
+body.cresco-canvas-page .wp-block-cresco-container.cc-container img {
+	height: auto;
+	max-width: 100%;
+}
+
+body.cresco-canvas-page .wp-block-cresco-container .cc-button,
+body.cresco-canvas-page .wp-block-cresco-container .wp-block-button__link {
+	border-radius: var(--cc-radius);
+}
+

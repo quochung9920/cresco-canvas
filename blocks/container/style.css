@@ -1,1 +1,9 @@
-.wp-block-cresco-container.cc-container{box-sizing:border-box;width:100%}.wp-block-cresco-container.cc-container>*{min-width:0}
+.wp-block-cresco-container.cc-container {
+	box-sizing: border-box;
+	width: 100%;
+}
+
+.wp-block-cresco-container.cc-container > * {
+	min-width: 0;
+}
+

@@ -1,0 +1,19 @@
+{
+  "name": "cresco/cresco-canvas",
+  "description": "A native visual website builder for WordPress.",
+  "type": "wordpress-plugin",
+  "license": "GPL-2.0-or-later",
+  "require": {
+    "php": ">=8.1"
+  },
+  "autoload": {
+    "psr-4": {
+      "CrescoCanvas\\": "includes/"
+    }
+  },
+  "config": {
+    "allow-plugins": {},
+    "optimize-autoloader": true,
+    "sort-packages": true
+  }
+}

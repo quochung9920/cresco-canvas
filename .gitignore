@@ -1,0 +1,9 @@
+/node_modules/
+/vendor/
+/dist/
+/.wp-env.json.override
+/playwright-report/
+/test-results/
+/.phpunit.cache/
+*.log
+
