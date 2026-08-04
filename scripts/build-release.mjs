@@ -14,7 +14,10 @@ const requiredFiles = [
 	'README.md',
 	'CHANGELOG.md',
 	'LICENSE',
+	'assets/css/design-system.css',
 	'assets/css/preview.css',
+	'build/design-system.js',
+	'build/design-system.asset.php',
 	'build/editor.js',
 	'build/editor.asset.php',
 	'build/editor.css',
@@ -26,6 +29,7 @@ const requiredFiles = [
 ];
 
 const allowedRoots = [
+	'assets/css/design-system.css',
 	'assets/css/frontend.css',
 	'assets/css/preview.css',
 	'blocks',
