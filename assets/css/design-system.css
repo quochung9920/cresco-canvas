@@ -1,0 +1,63 @@
+.interface-interface-skeleton__sidebar:has(.cresco-canvas-design-system) {
+	width: min(420px, 38vw);
+}
+
+.cresco-canvas-design-system .components-panel__body {
+	border-top: 1px solid #ddd;
+}
+
+.cresco-canvas-design-system .components-notice {
+	margin: 12px;
+}
+
+.cresco-canvas-design-system .cc-ds-loading {
+	display: flex;
+	justify-content: center;
+	padding: 32px;
+}
+
+.cresco-canvas-design-system .cc-ds-color-field {
+	align-items: center;
+	display: grid;
+	gap: 8px;
+	grid-template-columns: minmax(0, 1fr) 48px;
+	margin-bottom: 16px;
+}
+
+.cresco-canvas-design-system .cc-ds-color-field input[type="color"],
+.cresco-canvas-design-system .cc-ds-token-row input[type="color"] {
+	background: transparent;
+	border: 1px solid #949494;
+	border-radius: 4px;
+	height: 34px;
+	padding: 2px;
+	width: 48px;
+}
+
+.cresco-canvas-design-system .cc-ds-token-row {
+	align-items: center;
+	border-bottom: 1px solid #e0e0e0;
+	display: grid;
+	gap: 8px;
+	grid-template-columns: minmax(0, 1fr) auto auto;
+	padding: 10px 0;
+}
+
+.cresco-canvas-design-system .cc-ds-token-row code {
+	overflow-wrap: anywhere;
+}
+
+.cresco-canvas-design-system .cc-ds-actions {
+	background: #fff;
+	border-top: 1px solid #ddd;
+	bottom: 0;
+	padding: 16px;
+	position: sticky;
+	z-index: 2;
+}
+
+@media (max-width: 1100px) {
+	.interface-interface-skeleton__sidebar:has(.cresco-canvas-design-system) {
+		width: min(360px, 48vw);
+	}
+}
