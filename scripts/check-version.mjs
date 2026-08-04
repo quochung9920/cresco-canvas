@@ -1,4 +1,4 @@
-import { readFile } from 'node:fs/promises';
+import { access, readFile } from 'node:fs/promises';
 
 const packageJson = JSON.parse( await readFile( 'package.json', 'utf8' ) );
 const plugin = await readFile( 'cresco-canvas.php', 'utf8' );
@@ -7,6 +7,16 @@ const block = JSON.parse(
 );
 const changelog = await readFile( 'CHANGELOG.md', 'utf8' );
 const version = packageJson.version;
+const releaseNotePath = `docs/releases/${ version }.md`;
+let hasReleaseNote = false;
+
+try {
+	await access( releaseNotePath );
+	const releaseNote = await readFile( releaseNotePath, 'utf8' );
+	hasReleaseNote = releaseNote.includes( version );
+} catch {
+	hasReleaseNote = false;
+}
 
 const failures = [];
 
@@ -22,8 +32,8 @@ if ( block.version !== version ) {
 	failures.push( 'Container block version differs from package.json.' );
 }
 
-if ( ! changelog.includes( `## [${ version }]` ) ) {
-	failures.push( 'CHANGELOG.md has no entry for the package version.' );
+if ( ! changelog.includes( `## [${ version }]` ) && ! hasReleaseNote ) {
+	failures.push( 'No CHANGELOG entry or versioned release note exists for the package version.' );
 }
 
 if ( failures.length > 0 ) {
