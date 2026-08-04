@@ -10,6 +10,8 @@ namespace CrescoCanvas;
 use CrescoCanvas\Admin\EditorIntegration;
 use CrescoCanvas\API\RestApi;
 use CrescoCanvas\Blocks\Blocks;
+use CrescoCanvas\Dynamic\AdvancedDynamicData;
+use CrescoCanvas\Dynamic\AdvancedEditorAssets;
 use CrescoCanvas\Dynamic\DynamicData;
 use CrescoCanvas\Dynamic\EditorAssets as DynamicEditorAssets;
 use CrescoCanvas\Migration\Migrator;
@@ -59,6 +61,8 @@ final class Plugin {
 		( new ThemeEditorAssets() )->register();
 		( new DynamicData() )->register();
 		( new DynamicEditorAssets() )->register();
+		( new AdvancedDynamicData() )->register();
+		( new AdvancedEditorAssets() )->register();
 		$styles->register();
 		$tokens->register();
 		( new Blocks() )->register();
