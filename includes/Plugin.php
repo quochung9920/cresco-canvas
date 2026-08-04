@@ -16,6 +16,8 @@ use CrescoCanvas\Dynamic\AdvancedQuery;
 use CrescoCanvas\Dynamic\AlphaFourEditorAssets;
 use CrescoCanvas\Dynamic\DynamicData;
 use CrescoCanvas\Dynamic\EditorAssets as DynamicEditorAssets;
+use CrescoCanvas\Dynamic\InteractiveEditorAssets;
+use CrescoCanvas\Dynamic\InteractiveQuery;
 use CrescoCanvas\Dynamic\StructuredDynamicData;
 use CrescoCanvas\Migration\Migrator;
 use CrescoCanvas\Styles\DesignTokens;
@@ -69,6 +71,8 @@ final class Plugin {
 		( new StructuredDynamicData() )->register();
 		( new AdvancedQuery() )->register();
 		( new AlphaFourEditorAssets() )->register();
+		( new InteractiveQuery() )->register();
+		( new InteractiveEditorAssets() )->register();
 		$styles->register();
 		$tokens->register();
 		( new Blocks() )->register();
