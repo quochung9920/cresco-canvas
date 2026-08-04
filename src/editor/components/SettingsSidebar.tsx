@@ -110,42 +110,49 @@ export function SettingsSidebar() {
 	}, [ loadSettings ] );
 
 	useEffect( () => {
-		let animationFrame = 0;
-		let attempts = 0;
-		let iframe: HTMLIFrameElement | null = null;
+		const iframeListeners = new Map< HTMLIFrameElement, () => void >();
 
-		const update = () => {
-			const documents = [ document, iframe?.contentDocument ];
-			togglePreviewScope( documents, pageUsesCanvas );
-
-			if ( globalSettings ) {
-				applyPreviewTokens( globalSettings, documents );
-			}
-		};
-		const connectIframe = () => {
-			const candidate = document.querySelector< HTMLIFrameElement >(
-				'iframe[name="editor-canvas"]'
-			);
-
-			if ( candidate ) {
-				iframe = candidate;
-				iframe.addEventListener( 'load', update );
-				update();
+		const updateDocument = ( targetDocument: Document | null ) => {
+			if ( ! targetDocument ) {
 				return;
 			}
 
-			if ( attempts < 120 ) {
-				attempts += 1;
-				animationFrame = requestAnimationFrame( connectIframe );
+			togglePreviewScope( [ targetDocument ], pageUsesCanvas );
+			if ( globalSettings ) {
+				applyPreviewTokens( globalSettings, [ targetDocument ] );
 			}
 		};
+		const attachIframe = ( iframe: HTMLIFrameElement ) => {
+			if ( iframeListeners.has( iframe ) ) {
+				return;
+			}
 
-		update();
-		connectIframe();
+			const onLoad = () => updateDocument( iframe.contentDocument );
+			iframeListeners.set( iframe, onLoad );
+			iframe.addEventListener( 'load', onLoad );
+			onLoad();
+		};
+		const scan = () => {
+			updateDocument( document );
+			document
+				.querySelectorAll< HTMLIFrameElement >(
+					'iframe[name="editor-canvas"]'
+				)
+				.forEach( attachIframe );
+		};
+
+		scan();
+		const observer = new MutationObserver( scan );
+		observer.observe( document.documentElement, {
+			childList: true,
+			subtree: true,
+		} );
 
 		return () => {
-			cancelAnimationFrame( animationFrame );
-			iframe?.removeEventListener( 'load', update );
+			observer.disconnect();
+			for ( const [ iframe, onLoad ] of iframeListeners ) {
+				iframe.removeEventListener( 'load', onLoad );
+			}
 		};
 	}, [ globalSettings, pageUsesCanvas ] );
 
