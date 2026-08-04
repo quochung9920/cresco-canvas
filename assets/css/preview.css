@@ -1,0 +1,98 @@
+html[data-cc-preview-device="4k"] {
+	--cc-preview-width: 1920px;
+}
+
+html[data-cc-preview-device="desktop"] {
+	--cc-preview-width: 1440px;
+}
+
+html[data-cc-preview-device="laptop"] {
+	--cc-preview-width: 1024px;
+}
+
+html[data-cc-preview-device="tablet"] {
+	--cc-preview-width: 768px;
+}
+
+html[data-cc-preview-device="mobile"] {
+	--cc-preview-width: 390px;
+}
+
+html[data-cc-preview-device] .edit-post-visual-editor,
+html[data-cc-preview-device] .editor-visual-editor {
+	overflow: auto;
+}
+
+html[data-cc-preview-device] iframe[name="editor-canvas"] {
+	box-shadow: 0 8px 28px rgba(17, 24, 39, 0.14);
+	inline-size: var(--cc-preview-width);
+	margin-inline: auto;
+	max-inline-size: none;
+	transition: inline-size 160ms ease;
+}
+
+html[data-cc-preview-device] .editor-styles-wrapper:not(iframe *) {
+	inline-size: min(100%, var(--cc-preview-width));
+	margin-inline: auto;
+}
+
+.cresco-canvas-preview-sidebar .components-panel__body {
+	border-block-start: 1px solid #ddd;
+}
+
+.cc-preview-device-grid {
+	display: grid;
+	gap: 8px;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.cc-preview-device-grid .components-button {
+	justify-content: center;
+}
+
+.cc-preview-note {
+	color: #757575;
+	font-size: 12px;
+	margin-block-end: 0;
+}
+
+.cc-preview-actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+}
+
+.cc-frontend-preview-modal {
+	inline-size: min(96vw, 1600px);
+	max-inline-size: none;
+}
+
+.cc-frontend-preview-toolbar {
+	align-items: center;
+	display: flex;
+	gap: 12px;
+	justify-content: space-between;
+	margin-block-end: 12px;
+}
+
+.cc-frontend-preview-stage {
+	background: #f0f0f1;
+	display: flex;
+	justify-content: center;
+	overflow: auto;
+	padding: 16px;
+}
+
+.cc-frontend-preview-frame {
+	background: #fff;
+	border: 1px solid #dcdcde;
+	block-size: min(78vh, 1000px);
+	flex: 0 0 auto;
+	max-inline-size: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	html[data-cc-preview-device] iframe[name="editor-canvas"] {
+		transition: none;
+	}
+}
