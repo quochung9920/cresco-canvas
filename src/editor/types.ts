@@ -5,9 +5,11 @@ export interface CanvasEditorBootstrap {
 }
 
 export interface GlobalSettings {
+	aliases: Record< string, string >;
 	background: string;
 	containerMax: number;
 	contentMax: number;
+	customColors: Record< string, string >;
 	fontFamily: string;
 	muted: string;
 	primary: string;
@@ -18,6 +20,7 @@ export interface GlobalSettings {
 }
 
 export interface DesignTokenCatalog {
+	aliases: Record< string, string >;
 	colors: Record< string, string >;
 	layout: Record< string, string >;
 	motion: Record< string, string >;
