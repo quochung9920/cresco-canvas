@@ -1,20 +1,20 @@
-# Cresco Canvas — Single Codex Completion Prompt
+# Cresco Canvas — Single Complete Widget Builder Prompt
 
 <!-- markdownlint-disable MD013 MD025 -->
 
-Use this file as the **only authoritative prompt** for Codex.
+This file is the **only authoritative implementation prompt** for Cresco Canvas.
 
-Copy everything below into Codex while it is connected to this repository. Reuse the exact same prompt after every merged pull request. It is intentionally idempotent: on every run, Codex must inspect the real repository state, verify what is complete, repair incomplete work, and continue from the next missing requirement.
-
----
-
-You are the lead product architect, principal WordPress and Gutenberg engineer, React/TypeScript engineer, PHP engineer, UI/UX designer, QA lead, security reviewer, accessibility specialist, performance engineer, release manager, and commercial-readiness gatekeeper for **Cresco Canvas**.
-
-Repository:
+Give this entire file to the coding agent while it is connected to:
 
 ```text
 quochung9920/cresco-canvas
 ```
+
+Run the same prompt again after every reviewed and merged pull request. The prompt is intentionally idempotent: each run must inspect the real repository, verify what already works, repair incomplete work, and continue from the next missing requirement without requesting a second prompt.
+
+---
+
+You are the lead product architect, principal WordPress/Gutenberg engineer, React/TypeScript engineer, PHP engineer, visual-builder UX designer, accessibility specialist, security reviewer, QA lead, performance engineer, release manager, and commercial-readiness gatekeeper for **Cresco Canvas**.
 
 Product:
 
@@ -23,51 +23,62 @@ Cresco Canvas
 Build visually. Run natively.
 ```
 
-## Mission
+## Primary mission
 
-Transform the current repository into an excellent, production-grade, commercially distributable native WordPress visual website builder.
+Transform the current Cresco Canvas repository into a complete, polished, native WordPress visual website builder with a clearly visible drag-and-drop element library, professional responsive controls, accurate previews, reusable templates/components, Theme Builder, dynamic data, interactive widgets, integrations, tests, migrations, recovery, documentation, and release evidence.
 
-This is the single authoritative instruction for the entire product lifecycle. Do not request another specification unless a genuinely business-critical decision cannot be inferred safely from this prompt or from established WordPress conventions.
+The current product may contain only a Gutenberg sidebar, global settings, and a basic Container block. That is not sufficient. Do not confuse existing Gutenberg functionality with a completed Cresco visual-builder experience.
 
-For every capability in this prompt:
+For every requirement in this prompt:
 
 - If it does not exist, implement it.
-- If it exists only as a prototype, complete it.
-- If it is broken, fix it.
-- If it is insecure, redesign and secure it.
-- If it is duplicated, consolidate it without losing data.
-- If it is obsolete, remove it only through a tested migration and rollback path.
-- If WordPress Core already provides the capability well, integrate or extend the Core capability instead of creating an unnecessary proprietary replacement.
+- If it is only planned or documented, implement the real behavior.
+- If it is partial, finish it.
+- If it is broken, repair it and add regression coverage.
+- If it is unsafe, redesign it safely.
+- If WordPress Core already provides the capability well, integrate, extend, compose, or expose the Core capability instead of creating a redundant proprietary replacement.
+- If a custom Cresco block, variation, pattern, extension, or server renderer is needed to provide a coherent user experience, implement it.
+- Do not stop after producing an audit, plan, mock interface, placeholder, or empty block registration.
+- Do not claim a widget exists merely because a similarly named Core block exists. It must be discoverable through the Cresco element experience, have the required controls, render correctly, and pass its acceptance tests.
 
-Do not merely write plans or placeholder interfaces. Implement working behavior, tests, migrations, documentation, and release evidence.
+The final product must let a normal user build complete responsive Pages and site templates visually without needing code or developer tools.
 
-Do not interpret words such as “100%”, “perfect”, “best”, or “commercial-ready” as permission to make unsupported claims. Commercial readiness is allowed only when every mandatory release gate defined below is verified as `PASS` with reproducible evidence.
+## Execution model
 
-If something cannot be verified, mark it `NOT VERIFIED`. If it fails, mark it `FAIL`. Never convert `NOT TESTED` into `PASS`.
+This is one prompt for the complete product, but implementation must remain reviewable.
 
-## How to execute this one prompt
+On every run:
 
-This prompt covers the complete product, but the work must remain reviewable.
+1. Inspect the actual repository, branch state, history, open pull requests, workflows, tests, documentation, dependencies, build artifacts, and current plugin version.
+2. Read `README.md`, `CHANGELOG.md`, all files under `docs/`, all source files relevant to the next scope, test configuration, migrations, and release scripts.
+3. Run all existing checks from a clean dependency installation before changing code.
+4. Build or update a feature matrix using exactly:
+   - `COMPLETE`
+   - `PARTIAL`
+   - `MISSING`
+   - `BROKEN`
+   - `NOT APPLICABLE`
+5. Verify the latest genuinely complete milestone from code and reproducible evidence, not from version numbers or roadmap claims.
+6. Repair incomplete or broken work in the current milestone first.
+7. Select the next coherent implementation scope from the ordered roadmap in this prompt.
+8. Create a dedicated branch.
+9. Implement production behavior, tests, migrations, documentation, and build outputs.
+10. Run all applicable checks.
+11. Perform an adversarial self-review from architecture, security, accessibility, performance, destructive-workflow QA, beginner-user, professional-designer, and upgrade-user perspectives.
+12. Fix every validated P0/P1 issue and add regression tests where possible.
+13. Open one reviewable pull request.
+14. Do not merge automatically.
+15. Stop and report exact evidence.
+16. After human review and merge, the same prompt is run again and continues from the repository’s new real state.
 
-1. Audit the current repository.
-2. Determine the latest genuinely completed milestone from code and evidence, not from version labels.
-3. Repair the current milestone if it is incomplete.
-4. Select the next incomplete milestone.
-5. Implement one coherent milestone or release-hardening scope on a dedicated branch.
-6. Test it comprehensively.
-7. Open one pull request.
-8. Do not merge automatically.
-9. Stop and report evidence.
-10. After human review and merge, run this exact same prompt again. It must re-audit the merged result and continue automatically from the real state.
+Do not combine several large milestones into one unreviewable pull request. Do not ask for another functional specification unless a genuinely business-critical decision cannot be inferred from this prompt, existing repository conventions, or established WordPress practices.
 
-No second prompt is required at any stage.
+# 1. Non-negotiable architecture and product principles
 
-# 1. Non-negotiable product principles
-
-1. Keep WordPress and Gutenberg as the engine.
+1. WordPress and Gutenberg remain the engine.
 2. Do not fork WordPress Core or Gutenberg.
-3. Store Page content as native WordPress block markup in `post_content`.
-4. Use native entities where appropriate, including:
+3. Page content must remain native block markup in `post_content`.
+4. Use native entities where appropriate:
    - `wp_template`
    - `wp_template_part`
    - `wp_block`
@@ -75,286 +86,315 @@ No second prompt is required at any stage.
    - Synced Patterns
    - Pattern Overrides
    - Block Bindings
-5. Avoid proprietary page formats that create unnecessary vendor lock-in.
-6. When the plugin is deactivated, user content must remain readable and must not disappear.
-7. Reuse capable Core blocks instead of cloning basic content blocks without a strong documented reason.
-8. Provide complete user-facing capabilities even when they are implemented through Core blocks, patterns, variations, extensions, or compositions rather than custom widgets.
-9. Build a small set of powerful composable layout blocks rather than hundreds of redundant blocks.
-10. React and editor packages must not load on the public frontend.
-11. Public output must prioritize semantic HTML, scoped CSS, minimal wrappers, server rendering where appropriate, and the WordPress Interactivity API for interactive behavior.
-12. Cresco Canvas CSS and JavaScript must not unexpectedly affect non-Canvas Pages, unrelated admin screens, themes, plugins, or third-party blocks.
-13. Every destructive or structural operation must be undoable, recoverable, or protected by a clear confirmation.
-14. Security, accessibility, performance, data safety, migration safety, recovery, and backward compatibility are release requirements.
-15. Do not commit credentials, API keys, tokens, secrets, private user data, local environment files, or unnecessary build artifacts.
-16. Never merge automatically into `main`.
-17. Never claim completion because code compiles. Test real behavior.
-18. Do not weaken, delete, skip, broadly mock, or suppress tests merely to obtain green CI.
-19. Do not silently change existing content or site output during an upgrade.
-20. Preserve unknown blocks and third-party blocks.
-21. Extend the standard Gutenberg editor directly. Do not create a separate Cresco editor screen, dual-editor routing, alternate Page edit links, or a proprietary replacement for Core document workflows.
+5. Do not create an unnecessary proprietary Page JSON format or vendor lock-in.
+6. The normal WordPress Page title and **Edit** action must open the standard Gutenberg editor.
+7. Cresco Canvas must extend Gutenberg directly. Do not reintroduce a duplicate editor, alternate Page router, or dual-editor workflow.
+8. If Cresco assets fail, Gutenberg must remain usable and user content must remain editable.
+9. Plugin deactivation must not hide or destroy content.
+10. Uninstall must preserve content by default and delete only explicitly approved Cresco metadata/options.
+11. Unknown blocks and third-party blocks must survive edits, migrations, activation, deactivation, and upgrades.
+12. Prefer Core blocks for basic content, but provide a coherent Cresco discovery, control, responsive, preview, and template experience around them.
+13. Create custom blocks only where Core cannot provide the required output, data model, interaction, responsiveness, accessibility, or builder UX.
+14. Build a small set of strong composable layout primitives and reusable shared controls.
+15. Do not load editor React packages on the public frontend.
+16. Public output must use semantic HTML, minimal wrappers, scoped CSS, conditional assets, server rendering where appropriate, and the Interactivity API only for real interaction.
+17. Cresco styles and scripts must not leak into unrelated Pages, admin screens, themes, plugins, or third-party blocks.
+18. All destructive operations must be undoable, recoverable, confirmed, or protected by revisions.
+19. Security, accessibility, performance, data safety, migrations, rollback, compatibility, documentation, and recovery are release requirements.
+20. Never commit credentials, tokens, API keys, secrets, user data, or local environment configuration.
+21. Do not weaken, skip, delete, broadly mock, or suppress failing tests merely to obtain green CI.
+22. Never claim completion because code compiles. Test user-visible behavior.
+23. Never merge into `main` automatically.
 
-# 2. Mandatory first actions on every run
+# 2. Required visual-builder experience
 
-Before changing code:
+The current screenshot-like state where the user only sees List View on the left and a small Cresco settings sidebar on the right is not the final target.
 
-1. Inspect all tracked source files relevant to the product.
-2. Inspect Git history, recent commits, current branches, open pull requests, tags, and CI status.
-3. Read:
-   - `README.md`
-   - `CHANGELOG.md`
-   - all files under `docs/`
-   - package and Composer manifests
-   - build configuration
-   - CI workflows
-   - release scripts
-   - migration code
-   - tests
-4. Verify the actual plugin version and current functionality.
-5. Install dependencies from a clean checkout.
-6. Run all existing checks before editing.
-7. Reproduce known defects before fixing them.
-8. Create or update:
-   - `docs/BASELINE_AUDIT.md`
-   - `docs/ARCHITECTURE.md`
-   - `docs/ROADMAP.md`
-   - `docs/DECISIONS.md`
-   - `docs/COMMERCIAL_READINESS.md`
-   - `docs/SECURITY_THREAT_MODEL.md`
-   - `docs/ACCESSIBILITY_AUDIT.md`
-   - `docs/PERFORMANCE_BASELINE.md`
-   - `docs/COMPATIBILITY_MATRIX.md`
-   - `docs/RELEASE_CHECKLIST.md`
-   - `docs/KNOWN_LIMITATIONS.md`
-   - `CHANGELOG.md`
-9. Build a feature-completeness matrix with every capability in this prompt marked:
-   - `COMPLETE`
-   - `PARTIAL`
-   - `MISSING`
-   - `BROKEN`
-   - `NOT APPLICABLE`
-10. Do not remove working behavior until the replacement exists and has tests.
+Implement a clear, discoverable **Cresco Elements Library** directly inside the native Gutenberg workspace.
 
-# 3. Target architecture
+## 2.1 Cresco Elements Library
 
-Build toward:
+Provide a visible editor entry such as a Cresco tab/button/panel integrated through supported Gutenberg APIs. It must not require the user to know block names or use the generic inserter only.
 
-```text
-WordPress Core
-├── @wordpress/block-editor
-├── @wordpress/core-data
-├── @wordpress/data
-├── @wordpress/components
-├── @wordpress/notices
-├── native block markup in post_content
-├── native autosaves and revisions
-├── wp_template and wp_template_part
-├── Patterns, Synced Patterns, Pattern Overrides
-├── Block Bindings
-├── public Style Engine APIs
-└── Interactivity API
+The Elements Library must provide:
 
-Cresco Canvas
-├── native Gutenberg editor extension
-├── Gutenberg sidebar, block extensions, and contextual tools
-├── Core-owned document workflow and recovery
-├── layout engine
-├── shared controls
-├── responsive inheritance engine
-├── global design system
-├── templates and components
-├── live and external preview systems
-├── Theme Builder and display conditions
-├── dynamic data and Query Builder
-├── interactive components
-├── integrations
-├── diagnostics and Gutenberg-safe recovery
-├── compatibility layer
-└── extension SDK
-```
+- A clearly labeled **Cresco Elements** entry.
+- Search by title, keyword, synonym, category, and use case.
+- Categories:
+  - Layout
+  - Basic
+  - Media
+  - Marketing
+  - Navigation
+  - Blog and Content
+  - Interactive
+  - Dynamic
+  - Forms
+  - WooCommerce
+  - Utility
+- Grid and compact-list display modes.
+- Recognizable icons.
+- Short descriptions/tooltips.
+- Recent elements.
+- Favorites.
+- Recommended starter elements.
+- Keyboard navigation.
+- Accessible names and focus behavior.
+- Click-to-insert.
+- Drag-to-canvas when Gutenberg APIs permit reliable accessible drag behavior.
+- Correct insertion into the currently selected compatible parent.
+- Clear explanation when an element cannot be inserted in the current context.
+- Empty search state.
+- Loading and error states.
+- No duplicate registration or duplicate inserter items.
+- A developer API for third-party Cresco element registration after the stable core is complete.
 
-Preferred source organization:
+A user opening a normal Page editor must be able to discover Cresco Elements without reading documentation.
+
+## 2.2 Builder workspace
+
+Reuse Gutenberg’s native top bar, canvas, List View, document overview, inserter, Block Inspector, keyboard shortcuts, command palette, media library, save/publish flow, autosaves, revisions, locking, and preview actions.
+
+Add Cresco-specific surfaces only where needed:
 
 ```text
-cresco-canvas/
-├── cresco-canvas.php
-├── composer.json
-├── package.json
-├── phpcs.xml.dist
-├── phpunit.xml.dist
-├── playwright.config.*
-├── .github/workflows/
-├── includes/
-│   ├── Admin/
-│   ├── API/
-│   ├── Blocks/
-│   ├── Compatibility/
-│   ├── Data/
-│   ├── Diagnostics/
-│   ├── Migration/
-│   ├── Rendering/
-│   ├── Security/
-│   ├── Styles/
-│   ├── Templates/
-│   └── Plugin.php
-├── src/
-│   ├── editor/
-│   ├── blocks/
-│   ├── components/
-│   ├── controls/
-│   ├── data/
-│   ├── hooks/
-│   ├── stores/
-│   ├── styles/
-│   ├── types/
-│   └── utils/
-├── build/
-├── templates/
-├── patterns/
-├── tests/
-│   ├── php/
-│   ├── unit/
-│   └── e2e/
-└── docs/
+Left/Inserter surfaces: Elements | Structure | Templates | Components
+Right inspector: Content | Layout | Style | Responsive | Effects | Advanced
+Top/preview surfaces: 4K | Desktop | Laptop | Tablet | Mobile | Live Preview | External Preview
 ```
 
-Adjust this only when WordPress conventions or repository reality justify a better structure. Document material decisions.
+Required behavior:
 
-# 4. Complete user experience
-
-## 4.1 WordPress integration
-
-The normal WordPress Page title and `Edit` action must always open the standard Gutenberg editor. Cresco Canvas must appear directly inside Gutenberg through public SlotFills, block APIs, editor settings, and native data stores.
-
-Provide:
-
-- One standard `Edit` action with no **Edit in Canvas / WordPress Editor** split.
-- Per-Page Canvas enablement saved as revision-enabled post metadata through the native Gutenberg save workflow.
-- Cresco controls in Gutenberg's sidebar, block inspector, inserter, List View, toolbar, and command surfaces where appropriate.
-- No custom Page load/save REST route, editor router, redirect, takeover, or alternate full-screen shell.
-- If Cresco assets fail, Gutenberg must remain usable and display a non-blocking recovery notice.
-- Support for Pages first, then configured public post types.
-- Correct capabilities and permissions.
-
-## 4.2 Native Gutenberg workspace
-
-Extend Gutenberg's professional full-screen workspace. Reuse Core surfaces instead of cloning them, and add Cresco-specific controls only where Core has no suitable capability.
-
-Use the native top bar:
-
-```text
-Back | Page title | Status | Undo | Redo | Devices | Preview | Save/Publish | More
-```
-
-Use the native inserter and document overview/List View for:
-
-```text
-Add | Structure | Templates | Components
-```
-
-Use the native block inspector and Cresco plugin sidebar for:
-
-```text
-Content | Layout | Style | Responsive | Effects | Advanced
-```
-
-Required editor behavior:
-
-- Element search.
-- Categorized inserter.
-- Drag and drop.
-- Structure/Navigator tree.
-- Block breadcrumbs.
-- Inline text editing.
-- Context menu.
-- Duplicate.
-- Delete.
-- Copy and paste.
+- Drag-and-drop ordering and nesting.
+- Clear drop zones.
+- Selection outline and element label.
+- Breadcrumbs.
+- Structure/Navigator integration.
+- Duplicate, delete, copy, paste.
 - Copy and paste styles.
-- Multi-selection.
+- Multi-selection for compatible operations.
 - Block locking.
+- Context menu.
 - Keyboard shortcuts.
-- Command palette.
-- Media library integration.
-- Loading skeletons.
-- Empty-state onboarding.
-- Clear errors and notices.
-- Resizable/collapsible panels.
+- Undo/redo for supported content and style changes.
+- Collapsible control sections.
+- Searchable controls where appropriate.
 - Beginner-friendly defaults.
-- Progressive disclosure for advanced controls.
+- Progressive disclosure of advanced controls.
+- Reset individual property, section, device override, or complete style.
+- Clear inherited/global/local indicators.
+- No raw JSON editing required for normal workflows.
 
-## 4.3 Document reliability
+## 2.3 Per-element inspector contract
 
-Use `@wordpress/core-data` and native WordPress entity workflows wherever appropriate.
+Every Cresco element or Cresco-enhanced Core element must expose only relevant controls, grouped consistently:
 
-Implement and verify:
+### Content
 
-- Fetching and editing the current entity.
-- Dirty state.
-- Save and update.
-- Publish.
-- Draft, pending, private, scheduled, and published states.
-- Autosave.
-- Revisions.
-- Undo and redo.
-- Post locking.
-- Concurrent edit conflict detection.
-- Stale revision warning.
-- Save retry.
-- Offline and timeout states.
-- Crash boundary.
-- Recovery screen.
-- Unsaved-change navigation warning.
-- Slug.
-- Excerpt.
-- Featured image.
-- Parent Page.
-- Page template.
-- Discussion settings where applicable.
-- Recovery without data loss.
+- Text/content/data source.
+- Media selection.
+- Links and actions.
+- Repeater/list items where applicable.
+- Accessibility labels where content alone is insufficient.
 
-Custom REST endpoints may remain only for genuinely custom Cresco domain data and must have schemas, permission callbacks, validation, sanitization, and tests.
+### Layout
 
-# 5. Widgets, blocks, and capability library
-
-Provide all of the following user-facing capabilities. Reuse and extend Core blocks when practical; create custom Cresco blocks only where Core cannot meet the required UX, responsive behavior, dynamic data, or frontend output.
-
-## 5.1 Layout capabilities
-
-- Section.
-- Container.
-- Grid.
-- Stack.
-- Columns.
-- Spacer.
-- Divider.
-- Full width and boxed layout.
-- Nested layouts.
-- Semantic HTML tags.
-
-Layout controls:
-
-- Block, Flexbox, and CSS Grid.
-- Direction and wrap.
-- Grid columns and rows.
-- Auto-fit and auto-fill.
-- Alignment and justification.
+- Display mode.
+- Direction.
+- Wrap.
+- Alignment.
+- Justification.
 - Gap.
-- Width, min-width, max-width.
-- Height, min-height, max-height.
-- Aspect ratio.
-- Overflow.
-- Position: static, relative, absolute, sticky with safeguards.
-- Insets.
-- Z-index.
-- Responsive ordering.
-- Visibility.
+- Width/height/min/max.
+- Positioning where safe.
+- Order and alignment within parent.
 
-## 5.2 Basic content capabilities
+### Style
+
+- Typography.
+- Color.
+- Background.
+- Border.
+- Radius.
+- Shadow.
+- Spacing.
+- States where applicable.
+
+### Responsive
+
+- Device-specific explicit overrides.
+- Inheritance indicator.
+- Reset to inherited value.
+- Responsive visibility and order.
+
+### Effects
+
+- Opacity.
+- Transform.
+- Transition.
+- Motion only when performant, accessible, and reduced-motion aware.
+
+### Advanced
+
+- Semantic tag.
+- HTML anchor.
+- Additional CSS class.
+- ARIA controls when safe and understandable.
+- Conditional visibility.
+- Dynamic binding.
+- Custom CSS only with explicit capability checks, strict scoping, validation, and safe output.
+
+# 3. Shared control and style engine
+
+Do not build separate inconsistent controls for each widget.
+
+Create reusable typed schemas, React controls, PHP validation, serialization, migration, and style-generation utilities for:
+
+- Responsive values.
+- Unit values.
+- Linked/unlinked dimensions.
+- Margin and padding.
+- Width and height.
+- Min/max dimensions.
+- Gap.
+- Flex controls.
+- Grid controls.
+- Position controls.
+- Typography.
+- Colors.
+- Gradients.
+- Background images and overlays.
+- Borders.
+- Radius.
+- Shadows.
+- Opacity.
+- Transform.
+- Transition.
+- Visibility.
+- Normal, hover, focus, active, and disabled states where applicable.
+- Dynamic bindings.
+- Conditional visibility.
+- Design-token selection.
+
+Preferred style-output order:
+
+1. Native block supports.
+2. Public WordPress Style Engine APIs.
+3. Scoped CSS custom properties and generated rules.
+4. Minimal inline styles only where justified.
+
+Do not depend directly on private WordPress APIs without an isolated compatibility adapter, version checks, tests, and documented fallback.
+
+Avoid generating a unique stylesheet request per element. Use efficient scoped styles, stable identifiers, deduplication, and cache invalidation.
+
+# 4. Complete widget and capability library
+
+All capabilities below must be represented in the feature matrix. A capability is not `COMPLETE` until it is discoverable, insertable, editable, responsive where applicable, previewed correctly, rendered correctly, accessible, documented, and tested.
+
+Use Core blocks, block variations, block extensions, patterns, server-rendered blocks, or custom blocks according to the best architecture. The user-facing experience must remain coherent under the Cresco Elements Library.
+
+## 4.1 Layout elements
+
+### Section
+
+Purpose: major horizontal Page region.
+
+Required:
+
+- Full width, boxed, contained, and custom width.
+- Semantic tags including `section`, `main`, `article`, `aside`, `header`, `footer`, and `div` with validation.
+- Inner content container option.
+- Background color, gradient, image, video only when performant and accessible.
+- Overlay.
+- Min height.
+- Vertical alignment.
+- Overflow.
+- Anchor.
+- Responsive spacing, visibility, and order.
+- InnerBlocks and allowed-block configuration.
+
+### Container
+
+Complete the existing `cresco/container` without breaking legacy content.
+
+Required:
+
+- Block, flex, and grid.
+- Row/column direction.
+- Wrap.
+- Align/justify.
+- Gap.
+- Width/min/max.
+- Height/min/max.
+- Padding/margin.
+- Background and overlay.
+- Border/radius/shadow.
+- Semantic tag.
+- Position controls with safeguards.
+- Nested containers.
+- Responsive overrides.
+- Migration from current attributes.
+
+### Grid
+
+Required:
+
+- Explicit columns/rows.
+- Repeat.
+- `auto-fit` and `auto-fill`.
+- Minmax controls.
+- Column/row gap.
+- Item span/start/end.
+- Responsive templates.
+- Accessible DOM order preserved.
+- Prevent visual order controls from creating misleading keyboard/screen-reader order without warning.
+
+### Stack
+
+Required:
+
+- Vertical/horizontal stack.
+- Responsive direction.
+- Gap.
+- Alignment.
+- Distribution.
+- Wrap.
+- Dividers between items when accessible.
+
+### Columns
+
+Provide a Cresco-enhanced native Columns experience or custom implementation only if needed.
+
+Required:
+
+- Presets.
+- Custom ratios.
+- Responsive stacking.
+- Reverse-on-mobile option with accessibility warning.
+- Equal height.
+- Gap.
+- Per-column width and alignment.
+
+### Spacer and Divider
+
+Required:
+
+- Responsive size.
+- Horizontal/vertical divider where semantically appropriate.
+- Line style, thickness, width, color, alignment.
+- Optional accessible label only when content meaning requires it; decorative output must be hidden from assistive technology.
+
+## 4.2 Basic content elements
+
+Expose and enhance these through the Cresco library:
 
 - Heading.
 - Paragraph/Text.
-- Button and button group.
+- Rich Text.
+- Button.
+- Button Group.
 - Icon.
+- Icon List.
 - Image.
 - Gallery.
 - Video.
@@ -362,249 +402,401 @@ Layout controls:
 - List.
 - Quote.
 - Pullquote.
-- Code and preformatted content with safe handling.
+- Code.
+- Preformatted.
 - Table.
-- File/download.
+- File/Download.
 - Embed.
-- Shortcode compatibility where safe.
-- HTML block with appropriate capability restrictions and sanitization.
+- Shortcode.
+- Restricted Custom HTML.
 
-## 5.3 Common design and marketing capabilities
+Requirements across applicable elements:
 
-Provide equivalent capabilities through blocks, patterns, variations, or compositions:
+- Content editing directly in canvas.
+- Semantic markup.
+- Link controls including new-tab and rel behavior.
+- Typography and responsive typography.
+- Alignment and spacing.
+- State styling for interactive elements.
+- Media alt text guidance.
+- Lazy loading according to WordPress behavior.
+- Safe embed and HTML handling.
+- No arbitrary script execution through Custom HTML.
 
-- Icon Box.
+## 4.3 Media and visual elements
+
 - Image Box.
+- Icon Box.
+- Media Card.
+- Image Hotspots.
+- Before/After comparison.
+- Lightbox Gallery.
+- Video Lightbox.
+- Logo Cloud.
+- Lottie only if dependency, licensing, accessibility, reduced motion, asset size, and security are acceptable; otherwise mark intentionally unsupported.
+
+All media elements must preserve alt text, captions, keyboard operation, reduced motion, responsive images, and frontend performance.
+
+## 4.4 Marketing and business elements
+
 - Call to Action.
+- Feature List.
+- Feature Grid.
 - Testimonial.
-- Pricing table.
+- Testimonial Carousel.
+- Pricing Card.
+- Pricing Table.
+- Team Member.
 - Counter.
-- Progress bar.
-- Star rating.
-- Social icons.
-- Team member card.
-- Feature list.
-- FAQ.
+- Progress Bar.
+- Star Rating.
+- Stats Grid.
 - Timeline.
-- Logo cloud.
-- Before/after comparison when implemented accessibly.
-- Table of contents.
-- Breadcrumbs.
+- FAQ.
+- Announcement Bar.
+- Badge.
+- Social Icons.
+- Share Buttons.
+- Contact Information.
+- Business Hours.
+- Map/embed with privacy-conscious loading.
+- Countdown with server/client time consistency and accessible fallback.
 
-Avoid creating redundant custom blocks when a pattern or variation provides a cleaner native solution.
+Use patterns/compositions rather than redundant custom blocks when that produces better portability and maintainability.
 
-## 5.4 Interactive capabilities
+## 4.5 Interactive elements
 
-Implement with the WordPress Interactivity API where appropriate:
+Use the WordPress Interactivity API and server-rendered fallback content where appropriate.
 
 - Accordion.
 - Tabs.
-- Modal.
+- Modal/Dialog.
 - Off-canvas panel.
 - Dropdown.
 - Tooltip.
-- Mobile menu.
+- Popover.
+- Mobile Menu.
 - Slider/Carousel.
+- Content Toggle.
+- Dismissible Notice.
 - Load More.
-- Live filters.
-- Dismissible notice.
-- Accessible disclosure components.
+- Live Filters.
+- Search suggestions only with bounded queries and privacy/security safeguards.
 
-Every interactive capability must support keyboard operation, focus management, reduced motion, correct ARIA, and server-rendered fallback content.
+Every interactive element must include:
 
-## 5.5 Navigation and site capabilities
+- Keyboard operation.
+- Correct focus placement and restoration.
+- Escape behavior.
+- Arrow-key behavior for composite widgets where appropriate.
+- Correct ARIA names, roles, states, and relationships.
+- Reduced-motion support.
+- Touch support.
+- Server-rendered meaningful content without JavaScript.
+- No frontend React editor runtime.
+- E2E accessibility tests and documented manual checks.
+
+## 4.6 Navigation and site elements
 
 - Site Logo.
 - Site Title.
+- Site Tagline.
 - Navigation/Menu.
-- Search.
+- Mobile Navigation.
+- Search Form.
 - Breadcrumbs.
-- Login/logout links.
-- Post navigation.
+- Login/Logout link.
+- Post Navigation.
 - Pagination.
-- Archive title.
-- Query results.
+- Archive Title.
+- Author Box.
+- Language switcher integration points.
+- Back to Top.
 
-## 5.6 Dynamic capabilities
+Do not bypass native WordPress Navigation or authentication behavior.
+
+## 4.7 Blog and content elements
+
+- Post Title.
+- Post Content.
+- Post Excerpt.
+- Featured Image.
+- Post Date.
+- Author.
+- Terms/Categories/Tags.
+- Comments.
+- Related Posts.
+- Post Grid.
+- Post List.
+- Post Carousel.
+- Query Results.
+- Table of Contents.
+- Reading Time.
+- Share Buttons.
+- Previous/Next navigation.
+
+Prefer native Query and block context where it meets requirements. Create a Cresco Loop/Query experience only where it adds clear visual and dynamic value.
+
+## 4.8 Dynamic data elements and bindings
+
+Implement a secure extensible dynamic-data registry and visual binding UI.
+
+Sources:
 
 - Post title.
 - Post content.
 - Post excerpt.
 - Featured image.
-- Author.
-- Date.
+- Post ID and URL.
+- Author fields.
+- Dates.
 - Terms.
 - Post meta.
-- ACF fields.
+- ACF fields, including supported field types.
 - Site options.
 - User fields.
-- URL parameters with validation.
+- Current queried object.
+- URL parameters with strict allowlisting/validation.
+- Request context where safe.
+- Related content.
+- WooCommerce data when enabled.
+- Extensible registered callbacks with schema, capability, sanitization, and caching contracts.
+
+Prefer Block Bindings and native block context.
+
+Binding UI must:
+
+- Show compatible sources for the selected property.
+- Preview a representative value.
+- Allow fallback values.
+- Handle missing data clearly.
+- Escape output by context.
+- Prevent sensitive-data exposure.
+- Avoid arbitrary PHP callbacks from untrusted users.
+
+## 4.9 Query Builder and Loop Builder
+
+Provide a visual Query Builder for supported post types.
+
+Required filters:
+
+- Post type.
+- Status with capability restrictions.
+- Taxonomy.
+- Meta Query.
+- Search.
+- Author.
+- Date.
+- Include/exclude IDs.
+- Parent/children.
 - Current context.
 - Related content.
-- WooCommerce data when WooCommerce support is in scope.
-- Extensible custom source registry.
+- Manual selection.
 
-Prefer Block Bindings.
+Required behavior:
 
-## 5.7 Forms
+- Ordering.
+- Pagination.
+- Offset with clear pagination limitations.
+- AND/OR groups.
+- Preview count.
+- Empty result state.
+- Query limits.
+- Cache strategy and invalidation.
+- Protection against expensive unbounded queries.
+- Server-side permission and data checks.
 
-Before creating a large native form system, provide excellent integrations with established form plugins such as Gravity Forms, Fluent Forms, Contact Form 7, and other integrations supported by the project.
+Loop Builder must support a reusable visual loop-item template based on native blocks/patterns and block context, not raw duplicated HTML strings.
 
-A later native Form Builder may include:
+## 4.10 Conditional visibility
 
-- Accessible fields.
-- Validation.
-- Conditional logic.
-- Multi-step forms.
-- File upload security.
-- Email actions.
-- Webhooks.
-- Entry storage.
-- Spam protection.
-- GDPR controls.
+Support conditions based on:
 
-Do not mark native Forms complete until delivery, validation, security, privacy, and failure handling are tested.
+- Dynamic field values.
+- Logged-in state.
+- User role/capability.
+- Post type.
+- Taxonomy.
+- Author.
+- Date/time.
+- URL parameter with validation.
+- Device preference only as presentation, not security.
+- WooCommerce product/stock/cart context when available.
+- Registered custom conditions.
 
-## 5.8 WooCommerce
+Provide AND/OR groups, include/exclude logic, clear summaries, and preview context.
 
-When WooCommerce is included in the supported commercial scope, provide:
+Security-sensitive restrictions must be enforced server-side. CSS hiding is not authorization.
 
-- Product title.
-- Product images/gallery.
+## 4.11 Forms
+
+First provide polished integrations for established form plugins detected on the site, including at minimum architecture for:
+
+- Gravity Forms.
+- Fluent Forms.
+- Contact Form 7.
+- WPForms if compatibility is technically and legally appropriate.
+
+Provide:
+
+- Form selector.
+- Safe preview.
+- Style integration without breaking plugin functionality.
+- Success/error/loading states.
+- Accessibility-preserving output.
+- Conditional asset loading.
+
+A native Cresco Form Builder is post-1.0 unless earlier implementation is explicitly justified. It must not be considered complete without secure validation, email delivery, entry storage, file-upload security, spam protection, privacy controls, webhooks, failure handling, and accessibility.
+
+## 4.12 WooCommerce elements
+
+When WooCommerce is installed and supported, provide through stable WooCommerce APIs:
+
+- Product Title.
+- Product Images/Gallery.
 - Price.
 - Rating.
 - Stock.
+- Short Description.
+- Product Content.
 - Variations.
 - Add to Cart.
-- Product meta.
-- Related products.
+- Product Meta.
+- Product Data tabs or accessible equivalent.
+- Related Products.
 - Upsells.
+- Cross-sells where context permits.
 - Product Loop.
-- Product archive filters.
-- Cart, Checkout, and My Account template support only through stable WooCommerce APIs.
+- Product Filters.
+- Cart notices.
+- Mini Cart integration.
+- Cart, Checkout, and My Account template support only through stable supported APIs.
 
-Do not duplicate or bypass WooCommerce business logic.
+Never duplicate pricing, stock, tax, variation, cart, checkout, authentication, or order business logic.
 
-# 6. Responsive system
+## 4.13 Utility elements
 
-Required preview modes:
+- Anchor/Menu Anchor.
+- HTML ID helper.
+- Responsive visibility helper.
+- Sticky helper.
+- Back to Top.
+- Page Break where meaningful.
+- Print visibility.
+- Accessible visually-hidden text.
+- Template Slot/Hook integration for developers.
+
+# 5. Responsive engine
+
+Implement five first-class preview modes:
 
 ```text
-4K
-Desktop
-Laptop
-Tablet
-Mobile
+4K      1920px preview width
+Desktop 1440px preview width
+Laptop  1024px preview width
+Tablet   768px preview width
+Mobile   390px preview width
 ```
 
-Default preview widths:
+Preview widths and generated CSS breakpoints are related but must be modeled separately and documented.
 
-```text
-4K: 1920
-Desktop: 1440
-Laptop: 1024
-Tablet: 768
-Mobile: 390
-```
+Responsive inheritance rules:
 
-Preview widths and CSS breakpoints are related but not identical. Implement a documented breakpoint system.
-
-Responsive inheritance:
-
-- Desktop is the base value.
-- Smaller devices inherit until an explicit override exists.
+- Desktop is the base authored value unless the architecture documents a better compatible model.
+- Smaller devices inherit from the next larger authored value until explicitly overridden.
 - Store only explicit overrides.
-- Do not generate unused media queries.
+- Clearly show inherited, global, local, and overridden states.
 - Allow reset to inherited value.
-- Make inheritance visually clear in controls.
+- Do not generate media queries for missing overrides.
+- Support responsive layout, spacing, typography, alignment, sizing, order, visibility, backgrounds, borders, and applicable effects.
 
-Support validated values and units:
+Supported validated units:
 
 ```text
-px, %, rem, em, vw, vh, auto, min(), max(), clamp(), design tokens
+px
+%
+rem
+em
+vw
+vh
+svw
+svh
+auto
+min-content
+max-content
+fit-content
+min()
+max()
+clamp()
+design tokens
 ```
 
-Prevent CSS injection through arbitrary values.
+Use a safe parser/allowlist. Do not concatenate arbitrary unsanitized CSS.
 
-Responsive controls must work for layout, spacing, typography, alignment, order, sizing, visibility, backgrounds, borders, and other applicable properties.
+Breakpoint configuration must have validation, collision prevention, migration, reset, and clear warnings. Existing content must not change appearance silently after breakpoint updates.
 
-# 7. Preview system
+# 6. Preview system
 
-Provide three distinct preview experiences.
+Provide three clearly distinct preview workflows.
 
-## 7.1 Gutenberg editing canvas
+## 6.1 Edit Canvas
 
-- Fast interactive editor canvas.
-- Device-width simulation.
-- Accurate block styling.
-- Clear selection outlines and editing controls.
-- No editor chrome in saved frontend markup.
+The normal Gutenberg editing canvas must provide:
 
-## 7.2 Live Frontend Preview
+- Fast direct editing.
+- Selection outlines.
+- Drop zones.
+- Element labels.
+- Responsive width simulation.
+- Cresco global tokens.
+- Correct widget styles.
+- No editor controls in saved frontend markup.
 
-Implement a secure iframe or equivalent frontend-rendered preview that can display:
+## 6.2 Live Frontend Preview
 
-- Active theme CSS.
+Provide a user-visible **Live Preview** action that displays the real frontend rendering in a secure same-site iframe or supported preview surface.
+
+It must include:
+
+- Active theme styles.
 - Header and footer.
+- Current template.
 - Global Styles.
-- Dynamic Data.
-- Queries.
-- Interactive components.
-- Theme Builder templates.
-- Correct preview context.
-- Desktop, laptop, tablet, mobile, and 4K widths.
+- Cresco generated styles.
+- Dynamic data.
+- Query results.
+- Interactive widget behavior.
+- Draft preview security/nonces.
+- Preview context selection for templates.
+- Device widths: 4K, Desktop, Laptop, Tablet, Mobile.
+- Refresh/reload control.
+- Clear stale-preview indicator.
+- Error state that does not damage the editor.
 
-Synchronize safe editor changes when practical. Clearly indicate when saving or refreshing is required.
+Use debounced or explicit refresh where full real-time synchronization is unsafe or expensive. Do not claim live synchronization when the preview is only a static width change in the editor.
 
-## 7.3 External Preview
+## 6.3 External WordPress Preview
 
-- Open the real WordPress preview in a new tab.
-- Preserve draft preview nonces and permissions.
-- Never expose private drafts to unauthorized users.
+Keep the native WordPress preview in a new tab for final verification.
 
-Acceptance requirement: representative Pages must render materially consistently between the Gutenberg editing canvas, Live Preview, and public frontend.
+Preserve draft privacy, nonces, permissions, status behavior, and theme/plugin execution.
 
-# 8. Shared control system and styling
+## 6.4 Preview consistency
 
-Create shared, reusable controls and schemas for:
+Create automated comparison fixtures for representative widgets and layouts. Material differences among editor canvas, live frontend preview, and public frontend must be documented and minimized.
 
-- Units.
-- Linked and unlinked dimensions.
-- Margin and padding.
-- Width and height.
-- Typography.
-- Colors.
-- Backgrounds.
-- Gradients.
-- Images and overlays.
-- Borders.
-- Radius.
-- Shadows.
-- Layout.
-- Responsive overrides.
-- Visibility.
-- Normal, hover, focus, active, and disabled states where applicable.
-- Transitions and motion.
-- Transform.
-- Custom CSS with strict scoping and permissions.
+# 7. Global Design System
 
-Do not duplicate control logic in every block.
+Build a token-first design system.
 
-Prefer styling in this order:
-
-1. Native block supports.
-2. Public WordPress Style Engine APIs.
-3. CSS custom properties and scoped generated CSS.
-4. Minimal inline styles only when justified.
-
-Avoid private WordPress APIs unless isolated behind a compatibility adapter and documented.
-
-# 9. Global Design System
-
-Implement token groups:
+Token groups:
 
 - Colors.
-- Typography.
+- Typography families.
+- Typography sizes/scales.
+- Line heights.
+- Font weights.
+- Letter spacing.
 - Spacing.
 - Containers.
 - Breakpoints.
@@ -618,50 +810,56 @@ Implement token groups:
 - Motion.
 - Z-index.
 
-Every token needs:
+Each token needs:
 
 - Stable ID.
 - Label.
 - Group.
-- Validated value.
-- Optional alias.
+- Value.
+- Optional alias/reference.
+- Validation.
 - Global/local state.
-- Migration support.
 - Usage tracking.
+- Migration behavior.
+- Safe deletion/remapping behavior.
 
-Style precedence must be documented and predictable:
+Style precedence must be documented and tested:
 
 ```text
 WordPress/theme defaults
 → Cresco global tokens
-→ block defaults
+→ element defaults
 → instance overrides
-→ responsive and state overrides
+→ responsive/state overrides
 ```
 
 Provide:
 
+- Global editor UI.
+- Token picker in element controls.
+- Create/edit/duplicate/delete with dependency checks.
 - Import/export.
-- Safe import preview.
+- Import preview.
 - Conflict resolution.
 - Token remapping.
-- Reset and recovery.
+- Reset.
 - Version metadata.
-- Backward-compatible migrations.
+- Rollback/recovery.
 
-Do not style global `body`, all buttons, or unrelated Pages unintentionally. Scope assets and variables to Canvas usage.
+Global styles must be scoped. Non-Cresco Pages must not change unless the user intentionally enables an explicit broader scope and receives a clear warning.
 
-A separate lightweight companion block theme named **Cresco Base** may be created, but the plugin must not require it.
+# 8. Templates, patterns, components, and kits
 
-# 10. Templates and components
+## 8.1 Template Library
 
-Template library categories:
+Provide a visual library with preview thumbnails and categories:
 
 - Full Pages.
 - Sections.
 - Headers.
 - Footers.
 - Heroes.
+- Feature sections.
 - Cards.
 - CTAs.
 - Pricing.
@@ -670,161 +868,506 @@ Template library categories:
 - Contact.
 - Blog.
 - Portfolio.
-- WooCommerce templates when supported.
+- Team.
+- Navigation.
+- WooCommerce when supported.
 
-Every template needs:
+Each template item needs:
 
 - Stable ID.
 - Title.
+- Description.
 - Category.
 - Tags.
 - Thumbnail.
 - Version.
-- Required blocks.
-- Required plugin version.
+- Required blocks/plugins.
+- Minimum plugin version.
 - Token dependencies.
 - Preview.
 - Import validation.
 - Conflict handling.
 - Migration support.
+- Attribution/license metadata for bundled third-party assets.
 
-Components must prioritize:
+Provide click preview, insert, replace-confirmation where applicable, favorite, recent, and search.
 
-- Patterns.
-- Synced Patterns.
-- Pattern Overrides.
-- Block Locking.
-- Content-only editing.
+## 8.2 Components
 
-Required editing modes:
-
-## Design Mode
-
-- Full layout, responsive, structure, and style control.
-
-## Content Mode
-
-- Text, images, video, and links.
-- No destructive structure or layout control.
-
-Changing a synced component must update instances without losing valid per-instance content overrides.
-
-# 11. Theme Builder
+Use Patterns, Synced Patterns, Pattern Overrides, block locking, and content-only editing before creating proprietary component storage.
 
 Support:
 
+- Create component from selection.
+- Insert component instances.
+- Synchronized structural/style updates.
+- Allowed content overrides.
+- Detach instance.
+- Rename and organize.
+- Usage count.
+- Safe deletion.
+- Version/migration strategy.
+
+Modes:
+
+### Design Mode
+
+Full structure, layout, style, responsive, dynamic, and advanced controls.
+
+### Content Mode
+
+Only approved text, image, video, icon, link, and repeated-content fields. No destructive layout controls.
+
+## 8.3 Site Kits
+
+Provide export/import of a complete Cresco site kit containing validated selections of:
+
+- Tokens.
+- Templates.
+- Template parts.
+- Patterns/components.
+- Widget defaults.
+- Breakpoints.
+- Required plugin declarations.
+
+Never silently import executable PHP, JavaScript, unsafe HTML, or remote tracking code.
+
+# 9. Theme Builder
+
+Implement a native Theme Builder using WordPress template entities and supported APIs.
+
+Templates:
+
 - Header.
 - Footer.
+- Front Page.
+- Home/Posts Page.
 - Single Post.
 - Single Page.
-- Custom Post Type.
+- Custom Post Type single.
 - Archive.
-- Taxonomy.
+- Post Type Archive.
+- Category.
+- Tag.
+- Custom Taxonomy.
 - Author.
+- Date Archive.
 - Search Results.
 - 404.
 - WooCommerce templates when supported.
 
-Store templates through native entities where appropriate.
-
-Display Conditions must support:
+Display Conditions:
 
 - Entire Site.
+- Singular.
 - Post Type.
 - Specific content.
 - Taxonomy.
 - Author.
+- Archive.
 - Search.
-- User role.
+- User role/capability.
 - Logged-in state.
-- WooCommerce conditions.
+- WooCommerce context.
 - Include and exclude.
-- AND and OR groups.
+- AND/OR groups.
 - Priority.
 - Conflict detection.
-- Fallback templates.
+- Fallback template.
 - Preview context.
-- Emergency disable.
+- Emergency disable/recovery.
 
-Never allow a malformed condition to produce an unrecoverable blank site. Always provide a safe fallback.
+Requirements:
 
-# 12. Dynamic Data and Query Builder
+- Store templates in native entities where appropriate.
+- Respect active theme behavior and WordPress template hierarchy.
+- Provide a safe blank-site fallback.
+- Never create a condition that makes the admin/editor inaccessible.
+- Provide conflict summaries and deterministic resolution.
+- Preserve content after plugin deactivation as far as native block/template architecture permits; document any plugin-dependent rendering honestly.
 
-Implement a visual Query Builder supporting:
+# 10. Reliability and data workflows
 
-- Post type.
-- Status.
-- Taxonomy query.
-- Meta query.
-- Search.
-- Author.
-- Date.
-- Ordering.
-- Pagination.
-- Offset.
-- AND and OR relations.
-- Current context.
-- Related content.
-- Manual selection.
-- Caching and invalidation.
-- Query limits.
-- Protection against expensive queries.
+Use native WordPress entity data and editor stores for Page workflows.
 
-Provide a Loop Builder using native query concepts where practical.
+Verify:
 
-Conditional Visibility may include:
+- Load/edit current entity.
+- Dirty state.
+- Save/update.
+- Publish.
+- Draft/pending/private/scheduled/published states.
+- Autosave.
+- Revisions.
+- Undo/redo.
+- Post locking.
+- Concurrent edit handling.
+- Stale content warning.
+- Save retry.
+- Offline/timeout behavior.
+- Unsaved navigation warning.
+- Crash recovery.
+- Slug.
+- Excerpt.
+- Featured image.
+- Parent.
+- Template.
+- Discussion settings when supported.
 
-- Dynamic field values.
-- Authentication state.
-- User role.
-- Taxonomy.
-- Stock state.
-- URL parameter.
-- Device.
-- Date/time.
-- Custom registered conditions.
+Custom Cresco data must use explicit schemas, capabilities, validation, sanitization, escaping, migrations, and tests.
 
-Security-sensitive visibility must be enforced server-side, not only hidden with CSS or JavaScript.
+Migrations must be:
 
-# 13. Build system, engineering quality, and repository workflow
+- Versioned.
+- Idempotent.
+- Lock-safe.
+- Failure-aware.
+- Backed by realistic fixtures.
+- Non-destructive by default.
+- Documented with rollback limitations.
 
-Implement or complete:
+# 11. Ordered implementation roadmap
 
-- TypeScript source.
+Determine actual status first, then implement in this order. Repair earlier incomplete work before moving forward.
+
+## Stage A — Elements Library and shared builder foundation
+
+- Cresco Elements entry visible in Gutenberg.
+- Search/categories/favorites/recent.
+- Click/drag insertion.
+- Consistent inspector groups.
+- Shared typed controls.
+- Element registry and metadata.
+- Error/loading/empty states.
+- Initial E2E proving a normal user can find and insert an element.
+
+## Stage B — Layout, responsive engine, and preview
+
+- Complete Section, Container, Grid, Stack, Columns, Spacer, Divider.
+- Five preview modes.
+- Responsive inheritance and generated styles.
+- Edit Canvas consistency.
+- Live Frontend Preview.
+- External Preview retained.
+
+## Stage C — Basic, media, and marketing elements
+
+- Complete all Sections 4.2, 4.3, and 4.4 capabilities.
+- Use Core enhancements/patterns where preferable.
+- Ensure every listed element appears coherently in Cresco Elements.
+
+## Stage D — Global Design System, templates, and components
+
+- Token system.
+- Template Library.
+- Synced components.
+- Design Mode and Content Mode.
+- Site kits.
+
+## Stage E — Navigation, blog, Theme Builder, and dynamic data
+
+- Site/navigation elements.
+- Blog/content elements.
+- Native Theme Builder.
+- Display Conditions.
+- Dynamic binding registry.
+- ACF support.
+- Query Builder/Loop Builder.
+- Conditional Visibility.
+
+## Stage F — Interactive elements and integrations
+
+- All Interactivity API widgets.
+- Form-plugin integrations.
+- Accessibility and no-JS fallbacks.
+
+## Stage G — WooCommerce
+
+- WooCommerce element set and templates through stable APIs.
+- Cart/checkout/account compatibility without duplicating business logic.
+
+## Stage H — Production and commercial hardening
+
+- Onboarding.
+- Guided tour.
+- Starter kits.
+- Diagnostics.
+- Recovery tools.
+- Regenerate styles/assets.
+- Compatibility report.
+- Privacy-safe debug export.
+- Complete end-user and developer documentation.
+- Translation readiness.
+- Release ZIP.
+- Alpha, Beta, RC, staging validation.
+- Upgrade and rollback guides.
+
+# 12. Definition of Done for every element and feature
+
+An element/feature is not complete unless all applicable conditions pass:
+
+- Discoverable in the intended Cresco UI.
+- Correct icon, title, description, category, and keywords.
+- Insertable by click and supported drag behavior.
+- Correct default output.
+- Content editing works.
+- Inspector controls work.
+- Responsive behavior works.
+- Reset/inheritance works.
+- Editor canvas renders correctly.
+- Live preview renders correctly.
+- Public frontend renders correctly.
+- Saved markup remains valid.
+- No editor-only chrome is saved.
+- Semantic HTML is used.
+- Keyboard operation works.
+- Screen-reader behavior is reviewed.
+- Focus behavior is correct.
+- Reduced motion is honored.
+- Inputs are validated/sanitized.
+- Output is escaped by context.
+- Capabilities and REST permissions are correct.
+- Error states are recoverable.
+- PHP/unit/E2E coverage exists where applicable.
+- Migration and backward compatibility are covered.
+- Performance impact is measured or bounded.
+- Documentation and changelog are updated.
+- No new PHP notices, console errors, accessibility-critical violations, or global style leaks.
+
+# 13. Security requirements
+
+Threat-model every new surface:
+
+- REST endpoints.
+- Admin actions.
+- Metadata.
+- Template/site-kit imports.
+- Media and uploads.
+- Dynamic data.
+- URL parameters.
+- Query Builder.
+- Conditional visibility.
+- Custom CSS/HTML.
+- External embeds/requests.
+- Forms.
+- Webhooks.
+- WooCommerce context.
+- Extension APIs.
+- Future AI actions.
+
+Check for and test realistic paths involving:
+
+- Missing authentication/capabilities.
+- CSRF/nonces.
+- Stored/reflected/DOM XSS.
+- SQL injection.
+- SSRF.
+- IDOR.
+- Information disclosure.
+- Privilege escalation.
+- Path traversal.
+- Unsafe file upload.
+- Unsafe deserialization.
+- Open redirects.
+- Secret leakage.
+- Dependency and supply-chain risk.
+- Query denial of service.
+
+Fix root causes. Add regression tests for every validated P0/P1 issue where technically possible.
+
+# 14. Accessibility requirements
+
+Target WCAG 2.2 AA for both editor additions and generated frontend components.
+
+Verify:
+
+- Full keyboard-only operation.
+- Logical tab order.
+- Visible focus.
+- Correct names/labels.
+- Screen-reader announcements.
+- Dialog focus trap and restoration.
+- Escape behavior.
+- Arrow-key behavior.
+- Drag-and-drop alternatives.
+- Reduced motion.
+- Color contrast.
+- 200% and 400% zoom.
+- Reflow.
+- High-contrast/forced-colors behavior.
+- RTL.
+- Touch target size.
+- NVDA + Firefox.
+- VoiceOver + Safari/WebKit.
+
+Automated scans are required but are not sufficient. Record manual evidence and mark unperformed tests `NOT VERIFIED`.
+
+# 15. Performance requirements
+
+Measure before and after meaningful changes.
+
+Editor scenarios:
+
+- Empty Page.
+- Typical landing Page.
+- 100 blocks.
+- 500 blocks.
+- Deep nesting.
+- Repeated selection.
+- Continuous typing.
+- Dragging/reordering.
+- Undo/redo.
+- Save/autosave.
+- Opening Elements Library.
+- Searching Elements.
+- Switching preview devices.
+
+Frontend scenarios:
+
+- Static Core/Cresco Page.
+- Multiple layout blocks.
+- Interactive widgets.
+- Dynamic queries.
+- WooCommerce template when supported.
+- Mobile CPU/network throttling.
+
+Targets on the documented standard environment:
+
+- Editor usable target under 2.5 seconds.
+- Typing response p95 under 50 ms.
+- Block selection p95 under 100 ms.
+- Normal Page save target under 1.5 seconds excluding network variability.
+- 500-block Page remains usable.
+- No unexplained release-to-release regression greater than 5%.
+- No Cresco editor React runtime on static frontend Pages.
+- Normal Canvas CSS target under 40 KB gzip.
+- Independently loaded interactive feature JavaScript target under 12 KB gzip when practical.
+- CLS under 0.1 on representative Pages.
+- Assets loaded only when needed.
+
+Do not fabricate measurements.
+
+# 16. Compatibility matrix
+
+Verify supported combinations and mark each cell `PASS`, `FAIL`, `NOT TESTED`, or `NOT SUPPORTED`:
+
+- Supported WordPress versions.
+- Supported PHP versions.
+- Chromium.
+- Firefox.
+- WebKit/Safari.
+- Block themes.
+- Classic themes.
+- Child themes.
+- Multisite.
+- RTL.
+- Gutenberg plugin supported version and no Gutenberg plugin.
+- ACF.
+- Form integrations.
+- WooCommerce when supported.
+- Object cache.
+- Page cache/minification configurations.
+- Different permalink structures.
+- Common role/capability combinations.
+- Clean install.
+- Upgrade from every released Cresco schema.
+- Deactivate/reactivate.
+- Rollback.
+- Uninstall.
+
+Never advertise an untested combination as supported.
+
+# 17. Engineering, CI, packaging, and release
+
+Maintain or implement:
+
+- Strict TypeScript source.
 - Modular React architecture.
-- `@wordpress/scripts` or a justified equivalent.
+- `@wordpress/scripts` or justified equivalent.
 - Composer autoloading.
-- PHPCS with WordPress Coding Standards.
+- WordPress Coding Standards.
+- PHP compatibility rules.
 - ESLint.
 - Stylelint.
-- Type checking.
-- PHP unit/integration tests.
-- JavaScript unit tests.
+- Markdown linting.
+- Unit tests.
+- PHP tests.
+- Integration tests where feasible.
 - Playwright E2E.
-- GitHub Actions.
-- Deterministic lock files.
-- Production and development builds.
-- Reproducible release ZIP.
+- Axe automation.
 - Plugin Check.
-- Versioned migrations.
-- Idempotent migration runner.
-- Feature flags.
-- Activation checks.
-- Minimum version checks.
-- Safe deactivation.
-- Explicit uninstall policy.
+- GitHub Actions matrices.
+- Deterministic dependency locks.
+- Reproducible production build.
+- Allowlisted release ZIP.
+- Checksum/artifact generation.
+- Version consistency check.
+- Release notes and changelog.
 
-Branch examples:
+Development dependencies and source maps must not be placed in commercial release ZIPs unless intentionally documented.
+
+Audit GPL compatibility, bundled assets, fonts, icons, images, dependencies, and third-party notices.
+
+Do not claim legal review. Create an owner/legal checklist for trademark, privacy, terms, refunds, licensing, data processing, telemetry, support obligations, tax, and jurisdiction.
+
+# 18. Severity and release gates
+
+Classify findings:
 
 ```text
-milestone/0.2-foundation
-milestone/0.3-editor-reliability
-feature/live-preview
-fix/save-conflict
+P0 — data loss, remote code execution, critical privilege escalation, unrecoverable corruption, or release-blocking outage
+P1 — serious security, broken save/publish, major migration failure, major accessibility blocker, major compatibility failure, or severe reliability regression
+P2 — important usability, performance, maintainability, migration, recovery, or test weakness
+P3 — minor defect, polish, or documentation gap
+```
+
+Rules:
+
+- Fix all reproducible P0 immediately.
+- Fix all P1 before progressing.
+- Add regression tests for P0/P1 fixes where possible.
+- Fix in-scope P2 or create explicit tracked follow-up work.
+- Do not prioritize P3 polish while P0/P1 remain.
+
+Cresco Canvas may be called commercially ready only when:
+
+```text
+P0: 0
+P1: 0
+
+Gate 1 — Data safety: PASS
+Gate 2 — Security: PASS
+Gate 3 — Accessibility: PASS
+Gate 4 — Reliability: PASS
+Gate 5 — Compatibility: PASS
+Gate 6 — Performance: PASS
+Gate 7 — Product completeness: PASS
+Gate 8 — Release and commercial operations: PASS
+
+FAIL: 0
+NOT VERIFIED: 0
+```
+
+The engineering gates do not replace qualified legal review or real customer support operations.
+
+# 19. Pull request workflow
+
+For each run:
+
+1. Create a branch such as:
+
+```text
+milestone/elements-library
+milestone/layout-responsive-preview
+milestone/basic-marketing-elements
+milestone/design-templates-components
+milestone/theme-dynamic-query
+milestone/interactive-integrations
+milestone/woocommerce
 release/1.0.0-rc1
 ```
 
-Use small coherent commits and Conventional Commits where practical:
+2. Use small coherent Conventional Commits where practical:
 
 ```text
 feat:
@@ -837,580 +1380,77 @@ perf:
 security:
 ```
 
-# 14. Required milestone order
-
-Do not skip foundations. Determine the current actual state and continue in this order:
-
-## 0.2 — Architecture and reliability foundation
-
-- Build system.
-- TypeScript and modular editor.
-- Composer.
-- CI.
-- Tests.
-- Migration framework.
-- Feature flags.
-- Activation/deactivation/uninstall safety.
-- Style isolation.
-- Direct native Gutenberg integration and non-blocking missing-build recovery.
-
-## 0.3 — Reliable editor workflow
-
-- Native entity data.
-- Save/publish.
-- Autosave.
-- Revisions.
-- Undo/redo.
-- Locking and conflicts.
-- Crash recovery.
-- Native Gutenberg workspace extension and Core List View/Navigator integration.
-
-## 0.4 — Layout and responsive engine
-
-- Section, Container, Grid, Stack.
-- Shared controls.
-- Complete responsive inheritance.
-- Efficient CSS output.
-
-## 0.5 — Global Design System
-
-- Complete token system.
-- Import/export.
-- Theme compatibility.
-
-## 0.6 — Templates and components
-
-- Template library.
-- Synced components.
-- Design Mode and Content Mode.
-
-## 0.7 — Theme Builder
-
-- Templates and Display Conditions.
-
-## 0.8 — Dynamic Data and Query Builder
-
-- Block Bindings.
-- ACF.
-- Queries.
-- Loops.
-- Conditional Visibility.
-
-## 0.9 — Interactive components and integrations
-
-- Interactivity API components.
-- Form integrations.
-- Accessibility hardening.
-
-## 1.0 — Commercial production release
-
-- Onboarding.
-- Interactive tour.
-- Starter designs.
-- Diagnostics.
-- Gutenberg-safe diagnostic mode that can disable Cresco extensions without replacing the editor.
-- Revision browser.
-- Restore snapshot.
-- Reset/regenerate styles and assets.
-- Compatibility report.
-- Privacy-safe debug export.
-- Complete documentation.
-- Translations.
-- Release ZIP.
-- Beta and RC process.
-- Real staging validation.
-- Upgrade and rollback guides.
-- No placeholder production UI.
-
-Post-1.0, after 1.0 is stable:
-
-- WooCommerce Builder.
-- Native Form Builder.
-- AI Assistant.
-- Collaboration.
-- Extension SDK.
-- Marketplace.
-
-AI must operate on blocks, attributes, tokens, patterns, templates, queries, and conditions. AI changes require a visual preview, explicit user acceptance, one-step undo, no automatic publishing, and no unsafe arbitrary scripts.
-
-# 15. Independent audit requirements
-
-Audit the plugin as an external commercial product before deploying it to customer websites.
-
-## Product and UX
-
-Test:
-
-- First activation and onboarding.
-- Opening a Page from normal WordPress Edit.
-- Adding, moving, nesting, duplicating, deleting, and restoring blocks.
-- Inline content editing.
-- Media selection.
-- Save, publish, autosave, revisions, undo, redo.
-- Locking and concurrent editing.
-- Crash recovery.
-- Device previews.
-- Live Preview.
-- External Preview.
-- Global Settings.
-- Templates.
-- Components.
-- Design Mode.
-- Content Mode.
-- Empty, loading, offline, permission-denied, timeout, invalid-content, and server-error states.
-- Deactivation and uninstall.
-
-## Data integrity
-
-Verify:
-
-- Native markup remains in `post_content`.
-- Unknown and third-party blocks survive.
-- Failed saves do not overwrite newer content silently.
-- Concurrent edits cannot silently corrupt content.
-- Migrations are versioned and idempotent.
-- Realistic legacy fixtures exist.
-- Rollback is documented and tested.
-- Deactivation preserves content.
-- Uninstall removes only data the user explicitly approved for removal.
-
-## Security
-
-Review every trust boundary:
-
-- REST endpoints.
-- Admin actions.
-- AJAX actions.
-- Uploads.
-- Template imports.
-- Dynamic sources.
-- Query inputs.
-- URL parameters.
-- Custom CSS and HTML.
-- External requests.
-- Webhooks.
-- AI changes.
-- Extension hooks.
-- Licensing and update mechanisms if added.
-
-Check for:
-
-- Missing authentication.
-- Missing capabilities.
-- Missing nonce or CSRF protection.
-- Stored, reflected, and DOM XSS.
-- SQL injection.
-- SSRF.
-- Path traversal.
-- Unsafe deserialization.
-- Arbitrary upload or execution.
-- Privilege escalation.
-- IDOR.
-- Information disclosure.
-- Open redirects.
-- Secret leakage.
-- Vulnerable dependencies.
-- Supply-chain risk.
-
-Safely reproduce realistic findings, fix root causes, and add regression tests for every fixed P0/P1 issue where technically possible.
-
-## Accessibility
-
-Target WCAG 2.2 AA for the editor and generated interactive frontend components.
-
-Verify:
-
-- Keyboard-only operation.
-- Logical tab order.
-- Visible focus.
-- Correct labels and accessible names.
-- Screen-reader announcements.
-- Dialog focus trap and restoration.
-- Escape and arrow-key behavior.
-- Reduced motion.
-- Color contrast.
-- 200% and 400% zoom.
-- High-contrast behavior.
-- RTL.
-- NVDA with Firefox.
-- VoiceOver with Safari or WebKit.
-
-Automated scans are required but are not sufficient. Document manual checks separately.
-
-## Performance
-
-Editor datasets:
-
-- Empty Page.
-- Normal Page.
-- 100 blocks.
-- 500 blocks.
-- Deeply nested blocks.
-- Repeated selection and typing.
-- Undo/redo under load.
-- Save and autosave latency.
-
-Frontend datasets:
-
-- Static blocks only.
-- Multiple Cresco layout blocks.
-- Interactive components.
-- Dynamic queries.
-- Mobile network and CPU throttling.
-
-Measure before and after changes. Do not accept unexplained regressions.
-
-## Compatibility
-
-Test supported combinations across:
-
-- Supported WordPress versions.
-- Supported PHP versions.
-- Chromium.
-- Firefox.
-- WebKit.
-- Block themes.
-- Classic themes.
-- Child themes.
-- Multisite.
-- RTL.
-- ACF.
-- WooCommerce when in scope.
-- Latest supported Gutenberg plugin.
-- No Gutenberg plugin.
-- Common caching/minification configurations.
-- Object cache.
-- Different permalink structures.
-
-Every matrix cell must be `PASS`, `FAIL`, `NOT TESTED`, or `NOT SUPPORTED`.
-
-## Packaging and commercial operations
-
-Audit:
-
-- Plugin headers.
-- Version consistency.
-- GPL compatibility.
-- Third-party licenses and notices.
-- Release ZIP contents.
-- Development-file exclusion.
-- Deterministic and reproducible build.
-- Translation readiness.
-- Text domains.
-- Upgrade and rollback paths.
-- Changelog and documentation.
-- Privacy disclosures.
-- Telemetry opt-in and data minimization if telemetry exists.
-- Error-reporting privacy.
-- Diagnostics privacy.
-- Update mechanism and package integrity.
-- Free/Pro boundaries if introduced.
-- License-key security if introduced.
-- No loss or degradation of user-owned content after license expiry.
-
-Do not claim legal review is complete. Create an owner/legal checklist for trademark, terms, privacy, refunds, licensing, data processing, support obligations, tax, and jurisdiction.
-
-# 16. Severity classification
-
-Classify every finding:
-
-```text
-P0 — Data loss, remote code execution, critical privilege escalation, unrecoverable corruption, or release-blocking outage.
-P1 — Serious security issue, broken save/publish, major migration failure, major accessibility blocker, major compatibility failure, or severe reliability/performance regression.
-P2 — Important usability, maintainability, performance, migration, recovery, or test gap.
-P3 — Minor defect, polish, documentation gap, or low-risk improvement.
-```
-
-Rules:
-
-1. Fix all reproducible P0 issues immediately.
-2. Fix all P1 issues before progressing.
-3. Add regression tests for fixed P0/P1 issues when technically possible.
-4. Fix in-scope P2 findings or create explicit tracked follow-up work.
-5. Do not prioritize P3 polish while P0/P1 issues remain.
-
-# 17. Exact execution loop
-
-## Step A — Verify
-
-- Inspect repository state.
-- Run all existing checks.
-- Record exact commands and results.
-- Reproduce defects.
-- Establish a clean baseline.
-
-## Step B — Plan
-
-- Determine the latest complete milestone.
-- Determine the next incomplete milestone.
-- Define one reviewable scope.
-- Define measurable acceptance criteria.
-- Identify files expected to change.
-- Document data, migration, security, accessibility, performance, and rollback risks.
-
-## Step C — Implement
-
-- Create a dedicated branch.
-- Use public WordPress APIs.
-- Preserve native content and backward compatibility.
-- Use small coherent commits.
-- Avoid unrelated refactors.
-- Update tests, documentation, migrations, version metadata, and changelog with the implementation.
-
-## Step D — Test
-
-Run every applicable check:
-
-- PHP syntax.
-- PHPCS.
-- PHPUnit.
-- TypeScript type checking.
-- ESLint.
-- Stylelint.
-- JavaScript unit tests.
-- Playwright E2E.
-- Plugin Check.
-- Production build.
-- Accessibility automation.
-- Manual keyboard testing.
-- Manual screen-reader testing.
-- Performance benchmarks.
-- Compatibility matrix jobs.
-- Clean install.
-- Activation.
-- Upgrade.
-- Rollback.
-- Deactivation.
-- Reactivation.
-- Uninstall.
-- Release ZIP installation.
-
-Do not hide or suppress failures.
-
-## Step E — Adversarial review
-
-Review the complete diff from these perspectives:
-
-1. WordPress Core architect.
-2. Gutenberg engineer.
-3. Security researcher.
-4. Accessibility specialist.
-5. Performance engineer.
-6. QA engineer attempting destructive workflows.
-7. Beginner WordPress user.
-8. Professional designer.
-9. Professional developer.
-10. Site owner upgrading from an older version.
-11. Commercial plugin reviewer.
-
-Fix all validated P0/P1 issues and rerun tests.
-
-## Step F — Open one pull request
-
-The PR must include:
+3. Open one pull request including:
 
 - Problem statement.
 - Verified baseline.
 - Scope and acceptance criteria.
-- Before/after behavior.
+- Before/after user flow.
+- Screenshots or recordings for UI work when possible.
+- Elements/capabilities added.
 - Files changed.
 - Architecture decisions.
-- User-visible behavior.
-- Data impact.
-- Migration and backward-compatibility impact.
+- Data model and migration impact.
+- Backward compatibility.
 - Security assessment.
 - Accessibility assessment.
 - Performance measurements.
-- Compatibility matrix results.
+- Compatibility results.
 - Exact test commands and results.
 - CI status.
-- Screenshots or recordings where possible.
+- Release artifact status.
 - Known limitations.
 - Unverified items.
 - Rollback instructions.
 - Remaining P2/P3 findings.
 
-Do not merge automatically.
+4. Do not merge automatically.
+5. Stop after opening the pull request.
 
-## Step G — Stop and report
-
-After opening the PR:
-
-- Stop implementation.
-- Do not begin another milestone in the same PR.
-- Report the PR URL, branch, commit SHAs, acceptance criteria, test results, release-gate results, known limitations, and exact recommended next action.
-- The next instruction after human review and merge is simply to run this same prompt again.
-
-# 18. Performance budgets
-
-Document the hardware and environment used.
-
-Editor targets:
-
-- Usable editor on a standard test environment: under 2.5 seconds.
-- Typing response p95: under 50 ms.
-- Block selection p95: under 100 ms.
-- Normal Page save: under 1.5 seconds.
-- 500-block Page remains usable.
-- Unexplained release-to-release regression: no greater than 5%.
-
-Frontend targets:
-
-- Static Canvas Page loads no Cresco editor React runtime.
-- Normal Canvas CSS target: under 40 KB gzip.
-- Additional independently loaded interactive feature JavaScript target: under 12 KB gzip.
-- CLS target: under 0.1.
-- Minimal wrappers.
-- Conditional assets.
-- No Canvas assets on unrelated Pages unless technically required and documented.
-
-Do not estimate or invent measurements.
-
-# 19. Definition of Done
-
-A feature is not complete unless every applicable item is satisfied:
-
-- UX behavior documented.
-- Data model documented.
-- Permissions implemented.
-- Input validated and sanitized.
-- Output escaped.
-- REST schemas and permissions correct.
-- Error states handled.
-- Recovery path exists.
-- Keyboard behavior works.
-- Screen-reader behavior reviewed.
-- Responsive behavior defined.
-- PHP tests added.
-- JavaScript tests added.
-- E2E tests added.
-- Migration covered.
-- Rollback covered.
-- Backward compatibility covered.
-- Performance impact measured.
-- Documentation updated.
-- Changelog updated.
-- No new PHP notices.
-- No new console warnings.
-- No unresolved P0/P1 findings.
-
-# 20. Commercial release gates
-
-Cresco Canvas must not be called commercially ready until all eight gates are `PASS`.
-
-## Gate 1 — Data safety
-
-Requires tested save, autosave, revisions, conflict handling, crash recovery, migrations, rollback, deactivation, uninstall, unknown-block preservation, and upgrade fixtures for every released schema.
-
-## Gate 2 — Security
-
-Requires a current threat model, no validated open P0/P1 security finding, reviewed capabilities/nonces/validation/sanitization/escaping/REST permissions, dependency review, and regression tests for high-severity fixes.
-
-## Gate 3 — Accessibility
-
-Requires keyboard-accessible critical flows, WCAG 2.2 AA target for generated interactive components, no unresolved serious/critical automated findings, and documented manual screen-reader, focus, zoom, reduced-motion, and RTL tests.
-
-## Gate 4 — Reliability
-
-Requires green required CI, passing install/activate/edit/save/publish/update/rollback/deactivate/reactivate flows, working Gutenberg-safe recovery, and no open P0/P1 defects.
-
-## Gate 5 — Compatibility
-
-Requires tested supported combinations, clearly documented unsupported combinations, and no untested combination advertised as supported.
-
-## Gate 6 — Performance
-
-Requires budgets met or deviations explicitly documented and approved, no unexplained major regression, no editor React runtime on static public Pages, scoped/conditional assets, and large-Page tests.
-
-## Gate 7 — Product completeness
-
-Requires the intended 1.0 scope complete, onboarding, documentation, diagnostics, recovery, errors, no placeholder production UI, and no critical workflow requiring developer tools.
-
-## Gate 8 — Release and commercial operations
-
-Requires a reproducible installable ZIP, version consistency, complete changelog/readme/licenses/notices/translations/upgrade notes/rollback notes, privacy and commercial owner checklists, completed beta and release-candidate cycles, and real staging validation.
-
-Commercial readiness requires:
-
-```text
-P0: 0
-P1: 0
-
-Gate 1: PASS
-Gate 2: PASS
-Gate 3: PASS
-Gate 4: PASS
-Gate 5: PASS
-Gate 6: PASS
-Gate 7: PASS
-Gate 8: PASS
-
-FAIL: 0
-NOT VERIFIED: 0
-```
-
-Even when engineering gates pass, do not claim legal approval unless qualified legal counsel has completed it.
-
-# 21. Release-candidate process
-
-When the 1.0 feature scope appears complete:
-
-1. Freeze new features.
-2. Create a release branch.
-3. Produce alpha, beta, and release-candidate builds.
-4. Test clean sites, existing sites, legacy versions, multiple themes, supported PHP and WordPress versions, multisite, RTL, real staging sites, and representative hosting environments.
-5. Collect and classify findings.
-6. Fix all P0/P1 findings.
-7. Repeat RC testing after release-blocking fixes.
-8. Generate the final commercial-readiness report.
-9. Open the final release PR.
-10. Do not merge or publish automatically.
-
-# 22. Required final report format
+# 20. Required final report
 
 At the end of every run, report exactly:
 
 1. Verified repository state.
-2. Latest genuinely completed milestone.
-3. Current milestone.
-4. Feature-completeness matrix summary.
-5. Evidence-based readiness percentage.
+2. Latest genuinely completed stage.
+3. Current implemented scope.
+4. Overall feature matrix counts: COMPLETE/PARTIAL/MISSING/BROKEN/NOT APPLICABLE.
+5. Evidence-based roadmap coverage percentage.
 6. Audit findings by P0/P1/P2/P3.
-7. Work implemented.
-8. Files changed.
-9. Architecture decisions.
-10. Data migrations and backward compatibility.
-11. Security results.
-12. Accessibility results.
-13. Performance results.
-14. Compatibility matrix summary.
-15. Tests run with exact commands and `PASS`, `FAIL`, or `NOT RUN`.
-16. CI status.
-17. Release artifact status.
-18. Known limitations.
-19. Unverified items.
-20. Commercial release gates 1–8 as `PASS`, `FAIL`, or `NOT VERIFIED`.
-21. Pull request URL.
-22. Branch name and commit SHAs.
-23. Whether the PR is safe for human review.
-24. Exact recommended next action.
+7. Elements/widgets implemented in this run.
+8. User-visible builder changes.
+9. Files changed.
+10. Architecture decisions.
+11. Data migrations and backward compatibility.
+12. Security results.
+13. Accessibility results.
+14. Performance results.
+15. Compatibility summary.
+16. Tests run with exact command and PASS/FAIL/NOT RUN.
+17. CI status.
+18. Release artifact status.
+19. Known limitations.
+20. Unverified items.
+21. Commercial release gates, each PASS/FAIL/NOT VERIFIED.
+22. Pull request URL.
+23. Branch and commit SHAs.
+24. Whether the pull request is safe for human review.
+25. Exact recommended next action after review and merge.
 
-Never report 100% readiness while any gate is `FAIL` or `NOT VERIFIED`, any P0/P1 exists, mandatory tests are missing, the release artifact is not reproducible, or migration/rollback is unverified.
+Never report 100% readiness while any mandatory capability is missing from the agreed 1.0 scope, any P0/P1 remains, any release gate is `FAIL` or `NOT VERIFIED`, mandatory testing is missing, or real staging/beta/RC validation has not occurred.
 
 ## Begin now
 
-Audit the current repository first.
+Audit the repository first.
 
-Create the feature-completeness matrix.
+Do not merely update the roadmap.
 
-Repair missing, partial, broken, insecure, or non-production behavior in the current milestone.
+Repair any incomplete current work, then select the first incomplete stage from the ordered roadmap.
 
-Then implement the next incomplete milestone completely.
-
-Run every applicable check.
+Implement it as working production-quality behavior with tests and documentation.
 
 Open one pull request.
 
 Do not merge automatically.
 
-Stop after reporting the evidence.
+Stop after reporting evidence.
