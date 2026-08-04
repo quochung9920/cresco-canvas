@@ -13,6 +13,7 @@ use CrescoCanvas\Blocks\Blocks;
 use CrescoCanvas\Migration\Migrator;
 use CrescoCanvas\Styles\DesignTokens;
 use CrescoCanvas\Styles\GlobalStyles;
+use CrescoCanvas\Templates\EditorAssets as TemplateEditorAssets;
 use CrescoCanvas\Templates\TemplateLibrary;
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -47,6 +48,7 @@ final class Plugin {
 		( new EditorIntegration() )->register();
 		( new RestApi() )->register();
 		( new TemplateLibrary() )->register();
+		( new TemplateEditorAssets() )->register();
 		$styles->register();
 		$tokens->register();
 		( new Blocks() )->register();
