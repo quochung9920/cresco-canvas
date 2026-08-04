@@ -48,16 +48,16 @@ final class EditorIntegration {
 	}
 
 	/**
-	 * Load the Cresco sidebar inside the standard Gutenberg Page editor.
+	 * Load Cresco tools inside the standard Gutenberg Page editor.
 	 */
 	public function enqueue_assets() {
 		if ( ! $this->is_page_editor() ) {
 			return;
 		}
 
-		$asset = $this->editor_asset();
+		$editor_asset = $this->editor_asset();
 
-		if ( null === $asset ) {
+		if ( null === $editor_asset ) {
 			return;
 		}
 
@@ -65,14 +65,14 @@ final class EditorIntegration {
 			'cresco-canvas-editor',
 			CRESCO_CANVAS_URL . 'build/editor.css',
 			array( 'wp-components' ),
-			(string) $asset['version']
+			(string) $editor_asset['version']
 		);
 		wp_style_add_data( 'cresco-canvas-editor', 'rtl', 'replace' );
 		wp_enqueue_script(
 			'cresco-canvas-editor',
 			CRESCO_CANVAS_URL . 'build/editor.js',
-			(array) $asset['dependencies'],
-			(string) $asset['version'],
+			(array) $editor_asset['dependencies'],
+			(string) $editor_asset['version'],
 			true
 		);
 		wp_add_inline_script(
@@ -87,20 +87,56 @@ final class EditorIntegration {
 			'before'
 		);
 		wp_set_script_translations( 'cresco-canvas-editor', 'cresco-canvas' );
+
+		$preview_asset = $this->preview_asset();
+
+		if ( null === $preview_asset ) {
+			return;
+		}
+
+		wp_enqueue_style(
+			'cresco-canvas-preview',
+			CRESCO_CANVAS_URL . 'assets/css/preview.css',
+			array( 'wp-components' ),
+			(string) $preview_asset['version']
+		);
+		wp_style_add_data( 'cresco-canvas-preview', 'rtl', 'replace' );
+		wp_enqueue_script(
+			'cresco-canvas-preview',
+			CRESCO_CANVAS_URL . 'build/preview.js',
+			(array) $preview_asset['dependencies'],
+			(string) $preview_asset['version'],
+			true
+		);
+		wp_add_inline_script(
+			'cresco-canvas-preview',
+			'window.crescoCanvasPreviewSettings = ' . wp_json_encode(
+				array(
+					'previewUrl' => $this->preview_url(),
+					'version'    => CRESCO_CANVAS_VERSION,
+				)
+			) . ';',
+			'before'
+		);
+		wp_set_script_translations( 'cresco-canvas-preview', 'cresco-canvas' );
 	}
 
 	/**
 	 * Warn administrators without preventing the native editor from loading.
 	 */
 	public function render_missing_build_notice() {
-		if ( ! $this->is_page_editor() || null !== $this->editor_asset() || ! current_user_can( 'activate_plugins' ) ) {
+		if (
+			! $this->is_page_editor() ||
+			( null !== $this->editor_asset() && null !== $this->preview_asset() ) ||
+			! current_user_can( 'activate_plugins' )
+		) {
 			return;
 		}
 
 		printf(
 			'<div class="notice notice-warning"><p><strong>%1$s</strong> %2$s</p></div>',
-			esc_html__( 'Cresco Canvas tools are unavailable.', 'cresco-canvas' ),
-			esc_html__( 'The compiled editor extension is missing. Gutenberg remains fully usable; install a release ZIP or run the production build to restore Cresco tools.', 'cresco-canvas' )
+			esc_html__( 'Some Cresco Canvas tools are unavailable.', 'cresco-canvas' ),
+			esc_html__( 'A compiled editor or preview asset is missing. Gutenberg remains fully usable; install a release ZIP or run the production build to restore Cresco tools.', 'cresco-canvas' )
 		);
 	}
 
@@ -121,6 +157,47 @@ final class EditorIntegration {
 		$asset = require $asset_path;
 
 		return is_array( $asset ) && isset( $asset['dependencies'], $asset['version'] ) ? $asset : null;
+	}
+
+	/**
+	 * Return a validated responsive-preview asset manifest.
+	 *
+	 * @return array<string, mixed>|null
+	 */
+	private function preview_asset() {
+		$script_path = CRESCO_CANVAS_PATH . 'build/preview.js';
+		$style_path  = CRESCO_CANVAS_PATH . 'assets/css/preview.css';
+		$asset_path  = CRESCO_CANVAS_PATH . 'build/preview.asset.php';
+
+		if ( ! is_readable( $script_path ) || ! is_readable( $style_path ) || ! is_readable( $asset_path ) ) {
+			return null;
+		}
+
+		$asset = require $asset_path;
+
+		return is_array( $asset ) && isset( $asset['dependencies'], $asset['version'] ) ? $asset : null;
+	}
+
+	/**
+	 * Resolve a permission-aware preview URL for the Page being edited.
+	 *
+	 * @return string
+	 */
+	private function preview_url() {
+		$post_id = 0;
+
+		if ( isset( $GLOBALS['post'] ) && $GLOBALS['post'] instanceof \WP_Post ) {
+			$post_id = (int) $GLOBALS['post']->ID;
+		} elseif ( isset( $_GET['post'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only screen context.
+			$post_id = absint( wp_unslash( $_GET['post'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only screen context.
+		}
+
+		if ( ! $post_id || ! current_user_can( 'edit_post', $post_id ) ) {
+			return '';
+		}
+
+		$url = get_preview_post_link( $post_id );
+		return is_string( $url ) ? $url : '';
 	}
 
 	/**
