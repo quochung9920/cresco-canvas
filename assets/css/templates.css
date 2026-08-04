@@ -1,0 +1,14 @@
+.interface-interface-skeleton__sidebar:has(.cresco-templates-sidebar){width:min(400px,38vw)}
+.cresco-templates-sidebar .components-panel__body{border-top:1px solid #ddd}
+.cresco-templates-sidebar .components-notice{margin:12px}
+.cc-template-loading{align-items:center;display:flex;justify-content:center;min-height:80px}
+.cc-template-grid{display:grid;gap:10px}
+.cc-template-card{background:#fff;border:1px solid #dcdcde;border-radius:8px;display:grid;gap:8px;padding:12px}
+.cc-template-card strong{font-size:14px}
+.cc-template-card p,.cc-template-note{color:#646970;font-size:12px;line-height:1.5;margin:0}
+.cc-template-card .components-button{justify-content:center;width:100%}
+.cc-component-list{display:grid;gap:8px;margin-top:12px}
+.cc-component-row{align-items:center;border:1px solid #dcdcde;border-radius:6px;display:grid;gap:8px;grid-template-columns:minmax(0,1fr) auto;padding:8px 10px}
+.cc-component-row span{font-size:12px;font-weight:600;overflow-wrap:anywhere}
+.cresco-templates-sidebar textarea{font-family:monospace;font-size:11px}
+@media(max-width:1100px){.interface-interface-skeleton__sidebar:has(.cresco-templates-sidebar){width:min(350px,48vw)}}
