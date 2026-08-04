@@ -40,6 +40,30 @@
 		outline: 2px solid transparent;
 	}
 
+	.cc-token-row {
+		align-items: center;
+		border-bottom: 1px solid #f0f0f1;
+		display: grid;
+		gap: 8px;
+		grid-template-columns: minmax(0, 1fr) auto auto;
+		padding: 8px 0;
+	}
+
+	.cc-token-row code {
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+
+	.cc-token-row input[type="color"] {
+		background: transparent;
+		border: 1px solid #949494;
+		border-radius: 4px;
+		height: 30px;
+		padding: 2px;
+		width: 38px;
+	}
+
 	.cc-native-note {
 		color: #757575;
 		font-size: 12px;
