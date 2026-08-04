@@ -17,9 +17,9 @@ This document tracks the implementation sequence requested for direct updates to
 
 ## Current implementation state
 
-### `0.3.1` Gutenberg and Elements stabilization — IN PROGRESS
+### `0.3.1-alpha.1` Gutenberg and Elements stabilization — SOURCE CANDIDATE, NOT YET VERIFIED
 
-Implemented:
+Implemented in source and checked-in runtime files:
 
 - Standard Gutenberg remains the only Page editor.
 - Native WordPress save, publish, autosave, revisions, undo/redo, locking, media, List View, and preview remain available.
@@ -27,18 +27,34 @@ Implemented:
 - Search, categories, favorites, recent elements, click insertion, and supported drag-to-canvas insertion exist.
 - Initial layout, content, media, marketing, navigation, blog, interactive, and utility element compositions exist.
 - Page-level Cresco styling is enabled automatically after element insertion.
-- Element registry unit coverage now verifies stable IDs, known categories, and valid native block factories.
-- Playwright coverage now verifies that a user can search for Heading, insert it as a native Gutenberg block, select it, and enable Cresco Page styles.
+- Persisted favorite and recent IDs are sanitized for invalid values, stale element IDs, duplicates, and limits.
+- Element insertion resolves the selected container, selected sibling, or document end rather than always appending blindly.
+- Element factories are checked for unavailable nested block types before insertion.
+- WordPress insertion restrictions are checked at the selected location and surfaced as a warning instead of failing silently.
+- Unknown drag payloads, storage failures, factory failures, and insertion failures receive recoverable user feedback.
+- Continuous animation-frame canvas polling has been replaced by mutation and iframe-load observers with cleanup.
+- Element registry unit coverage verifies stable IDs, known categories, and valid native block factories.
+- Library-state unit coverage verifies storage sanitation, search, recent ordering, nested availability checks, and insertion-point resolution.
+- Playwright coverage verifies that a user can search for Heading, insert it as a native Gutenberg block, select it, and enable Cresco Page styles.
+- Plugin header, PHP constant, package metadata, Container block metadata, CI artifact name, changelog, and editor asset metadata are set to `0.3.1-alpha.1`.
+
+Important evidence limitation:
+
+- `build/editor.js` was synchronized with the revised source so WordPress does not intentionally load the previous runtime.
+- That checked-in runtime has not yet been regenerated and verified by a successful `npm run build` on the current `main` head.
+- Source presence and test presence are not test results.
 
 Still required before `0.3.1` can be called complete:
 
 - A successful hosted CI run on the current `main` head.
-- WordPress runtime verification of click insertion, drag insertion, save, reload, and frontend output.
-- Unavailable/context-restricted block handling for Site Logo, Navigation, and post-context elements.
-- Regression testing with unknown and third-party blocks.
-- Manual keyboard, screen-reader, RTL, zoom, and forced-colors verification.
+- Passing type checking, JavaScript lint, CSS lint, Markdown lint, unit tests, version check, production build, package reproducibility, PHP tests, coding standards, compatibility matrix, E2E tests, accessibility automation, and Plugin Check.
+- WordPress runtime verification of click insertion, drag insertion, save, reload, frontend output, and editor/frontend parity.
+- Regression testing with unknown, unavailable, restricted, and third-party blocks.
+- Manual keyboard, screen-reader, RTL, zoom, forced-colors, touch, and browser verification.
 - Multisite, role/capability, activation, upgrade, rollback, deactivate/reactivate, and uninstall verification.
-- Documented performance evidence for opening and searching the Elements Library.
+- Documented performance evidence for opening, searching, and inserting from the Elements Library.
+
+The `0.4.0` milestone must not start until the applicable `0.3.1` engineering checks pass or a blocking infrastructure failure is explicitly documented and resolved.
 
 ### `0.4.0` Layout, responsive, and preview — NOT STARTED AS A COMPLETE MILESTONE
 
