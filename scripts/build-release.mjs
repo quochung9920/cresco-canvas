@@ -16,6 +16,7 @@ const requiredFiles = [
 	'LICENSE',
 	'assets/css/design-system.css',
 	'assets/css/preview.css',
+	'assets/css/templates.css',
 	'build/design-system.js',
 	'build/design-system.asset.php',
 	'build/editor.js',
@@ -25,6 +26,8 @@ const requiredFiles = [
 	'build/container.asset.php',
 	'build/preview.js',
 	'build/preview.asset.php',
+	'build/templates.js',
+	'build/templates.asset.php',
 	'vendor/autoload.php',
 ];
 
@@ -32,6 +35,7 @@ const allowedRoots = [
 	'assets/css/design-system.css',
 	'assets/css/frontend.css',
 	'assets/css/preview.css',
+	'assets/css/templates.css',
 	'blocks',
 	'build',
 	'docs',
@@ -43,10 +47,7 @@ async function walk( relativePath ) {
 	const absolutePath = path.join( root, relativePath );
 	const entries = await readdir( absolutePath, { withFileTypes: true } );
 	const files = [];
-
-	for ( const entry of entries.sort( ( left, right ) =>
-		left.name.localeCompare( right.name )
-	) ) {
+	for ( const entry of entries.sort( ( left, right ) => left.name.localeCompare( right.name ) ) ) {
 		const child = path.join( relativePath, entry.name );
 		if ( entry.isDirectory() ) {
 			files.push( ...( await walk( child ) ) );
@@ -54,7 +55,6 @@ async function walk( relativePath ) {
 			files.push( child );
 		}
 	}
-
 	return files;
 }
 
@@ -62,14 +62,7 @@ for ( const file of requiredFiles ) {
 	await readFile( path.join( root, file ) );
 }
 
-const files = [
-	'cresco-canvas.php',
-	'uninstall.php',
-	'README.md',
-	'CHANGELOG.md',
-	'LICENSE',
-];
-
+const files = [ 'cresco-canvas.php', 'uninstall.php', 'README.md', 'CHANGELOG.md', 'LICENSE' ];
 for ( const allowedRoot of allowedRoots ) {
 	if ( path.extname( allowedRoot ) ) {
 		files.push( allowedRoot );
@@ -79,29 +72,17 @@ for ( const allowedRoot of allowedRoots ) {
 }
 
 const archiveEntries = {};
-
 for ( const file of [ ...new Set( files ) ].sort() ) {
 	if ( file.endsWith( '.map' ) || file.includes( '/tests/' ) ) {
 		continue;
 	}
-
 	const archiveName = `cresco-canvas/${ file.replaceAll( path.sep, '/' ) }`;
-	archiveEntries[ archiveName ] = [
-		new Uint8Array( await readFile( path.join( root, file ) ) ),
-		{ mtime: fixedDate },
-	];
+	archiveEntries[ archiveName ] = [ new Uint8Array( await readFile( path.join( root, file ) ) ), { mtime: fixedDate } ];
 }
 
 const archive = zipSync( archiveEntries, { level: 9 } );
 const checksum = createHash( 'sha256' ).update( archive ).digest( 'hex' );
-
 await mkdir( outputDirectory, { recursive: true } );
 await writeFile( archivePath, archive );
-await writeFile(
-	`${ archivePath }.sha256`,
-	`${ checksum }  cresco-canvas.zip\n`
-);
-
-process.stdout.write(
-	`Created dist/cresco-canvas.zip (${ archive.length } bytes)\nSHA-256: ${ checksum }\n`
-);
+await writeFile( `${ archivePath }.sha256`, `${ checksum }  cresco-canvas.zip\n` );
+process.stdout.write( `Created dist/cresco-canvas.zip (${ archive.length } bytes)\nSHA-256: ${ checksum }\n` );
