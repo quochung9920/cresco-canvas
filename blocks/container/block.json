@@ -4,9 +4,10 @@
   "name": "cresco/container",
   "version": "0.3.0-alpha.1",
   "title": "Cresco Container",
-  "category": "design",
+  "category": "cresco-canvas",
   "icon": "layout",
   "description": "Flexible native layout container for Cresco Canvas.",
+  "keywords": ["cresco", "container", "layout", "section", "flex", "grid"],
   "textdomain": "cresco-canvas",
   "attributes": {
     "layoutMode": { "type": "string", "default": "flex" },
