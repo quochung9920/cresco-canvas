@@ -15,6 +15,14 @@ final class DesignTokens {
 	const SCHEMA_VERSION = 1;
 
 	/**
+	 * Register token output for Canvas frontend and Gutenberg.
+	 */
+	public function register() {
+		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_frontend_tokens' ), 20 );
+		add_filter( 'block_editor_settings_all', array( $this, 'add_editor_tokens' ), 20, 2 );
+	}
+
+	/**
 	 * Build a stable token catalog from normalized global settings.
 	 *
 	 * @param array<string, mixed> $settings Normalized settings.
@@ -32,14 +40,14 @@ final class DesignTokens {
 			'typography'    => array(
 				'fontFamily' => (string) $settings['fontFamily'],
 				'sizes'      => array(
-					'xs'  => '0.75rem',
-					'sm'  => '0.875rem',
-					'base'=> '1rem',
-					'lg'  => '1.125rem',
-					'xl'  => '1.25rem',
-					'2xl' => '1.5rem',
-					'3xl' => '1.875rem',
-					'4xl' => '2.25rem',
+					'xs'   => '0.75rem',
+					'sm'   => '0.875rem',
+					'base' => '1rem',
+					'lg'   => '1.125rem',
+					'xl'   => '1.25rem',
+					'2xl'  => '1.5rem',
+					'3xl'  => '1.875rem',
+					'4xl'  => '2.25rem',
 				),
 			),
 			'spacing'       => array(
@@ -130,5 +138,42 @@ final class DesignTokens {
 		}
 
 		return $css;
+	}
+
+	/**
+	 * Add the complete token catalog to Canvas frontend Pages.
+	 */
+	public function enqueue_frontend_tokens() {
+		$styles = new GlobalStyles();
+		if ( ! $styles->is_canvas_page() || ! wp_style_is( 'cresco-canvas-frontend', 'enqueued' ) ) {
+			return;
+		}
+
+		wp_add_inline_style(
+			'cresco-canvas-frontend',
+			'body.cresco-canvas-page{' . self::css_variables( GlobalStyles::get_settings() ) . '}'
+		);
+	}
+
+	/**
+	 * Add the complete token catalog to the Page block editor.
+	 *
+	 * @param array<string, mixed>      $settings Editor settings.
+	 * @param \WP_Block_Editor_Context $context  Editor context.
+	 * @return array<string, mixed>
+	 */
+	public function add_editor_tokens( $settings, $context ) {
+		$post = isset( $context->post ) ? $context->post : null;
+		if ( ! $post || 'page' !== $post->post_type ) {
+			return $settings;
+		}
+
+		$settings['styles']   = isset( $settings['styles'] ) && is_array( $settings['styles'] ) ? $settings['styles'] : array();
+		$settings['styles'][] = array(
+			'css'            => '.editor-styles-wrapper{' . self::css_variables( GlobalStyles::get_settings() ) . '}',
+			'__unstableType' => 'theme',
+		);
+
+		return $settings;
 	}
 }
