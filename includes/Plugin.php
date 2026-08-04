@@ -13,54 +13,40 @@ use CrescoCanvas\Blocks\Blocks;
 use CrescoCanvas\Migration\Migrator;
 use CrescoCanvas\Styles\DesignTokens;
 use CrescoCanvas\Styles\GlobalStyles;
+use CrescoCanvas\Templates\TemplateLibrary;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
 final class Plugin {
-	/**
-	 * Singleton instance.
-	 *
-	 * @var Plugin|null
-	 */
+	/** @var Plugin|null */
 	private static $instance = null;
 
-	/**
-	 * Whether services have been registered.
-	 *
-	 * @var bool
-	 */
+	/** @var bool */
 	private $booted = false;
 
-	/**
-	 * Get the plugin instance.
-	 *
-	 * @return Plugin
-	 */
+	/** @return Plugin */
 	public static function instance() {
 		if ( null === self::$instance ) {
 			self::$instance = new self();
 		}
-
 		return self::$instance;
 	}
 
-	/**
-	 * Register plugin services once.
-	 */
+	/** Register plugin services once. */
 	public function boot() {
 		if ( $this->booted ) {
 			return;
 		}
 
 		$this->booted = true;
-
-		$styles = new GlobalStyles();
-		$tokens = new DesignTokens();
+		$styles        = new GlobalStyles();
+		$tokens        = new DesignTokens();
 
 		( new EditorIntegration() )->register();
 		( new RestApi() )->register();
+		( new TemplateLibrary() )->register();
 		$styles->register();
 		$tokens->register();
 		( new Blocks() )->register();
@@ -70,15 +56,10 @@ final class Plugin {
 		add_action( 'init', array( $this, 'load_textdomain' ), 0 );
 	}
 
-	/**
-	 * Load translations from the release package.
-	 */
+	/** Load translations from the release package. */
 	public function load_textdomain() {
 		load_plugin_textdomain( 'cresco-canvas', false, dirname( plugin_basename( CRESCO_CANVAS_FILE ) ) . '/languages' );
 	}
 
-	/**
-	 * Prevent direct construction.
-	 */
 	private function __construct() {}
 }
