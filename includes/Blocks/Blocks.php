@@ -16,7 +16,33 @@ final class Blocks {
 	 * Register block initialization.
 	 */
 	public function register() {
+		add_filter( 'block_categories_all', array( $this, 'register_category' ), 10, 2 );
 		add_action( 'init', array( $this, 'register_blocks' ) );
+	}
+
+	/**
+	 * Add a dedicated Cresco category to Gutenberg's native inserter.
+	 *
+	 * @param array<int, array<string, string>> $categories Existing categories.
+	 * @return array<int, array<string, string>>
+	 */
+	public function register_category( $categories ) {
+		foreach ( $categories as $category ) {
+			if ( isset( $category['slug'] ) && 'cresco-canvas' === $category['slug'] ) {
+				return $categories;
+			}
+		}
+
+		array_unshift(
+			$categories,
+			array(
+				'slug'  => 'cresco-canvas',
+				'title' => __( 'Cresco Canvas', 'cresco-canvas' ),
+				'icon'  => 'layout',
+			)
+		);
+
+		return $categories;
 	}
 
 	/**
