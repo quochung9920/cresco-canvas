@@ -10,6 +10,7 @@
 
 namespace CrescoCanvas\API;
 
+use CrescoCanvas\Styles\DesignTokens;
 use CrescoCanvas\Styles\GlobalStyles;
 use WP_REST_Request;
 use WP_REST_Response;
@@ -20,16 +21,12 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 final class RestApi {
-	/**
-	 * Register REST initialization.
-	 */
+	/** Register REST initialization. */
 	public function register() {
 		add_action( 'rest_api_init', array( $this, 'register_routes' ) );
 	}
 
-	/**
-	 * Register only genuinely custom Cresco domain data.
-	 */
+	/** Register only genuinely custom Cresco domain data. */
 	public function register_routes() {
 		register_rest_route(
 			'cresco-canvas/v1',
@@ -48,29 +45,44 @@ final class RestApi {
 				'schema' => array( $this, 'settings_schema' ),
 			)
 		);
+
+		register_rest_route(
+			'cresco-canvas/v1',
+			'/settings/reset',
+			array(
+				'methods'             => WP_REST_Server::CREATABLE,
+				'callback'            => array( $this, 'reset_settings' ),
+				'permission_callback' => array( $this, 'can_manage_settings' ),
+			)
+		);
+
+		register_rest_route(
+			'cresco-canvas/v1',
+			'/design-tokens',
+			array(
+				'methods'             => WP_REST_Server::READABLE,
+				'callback'            => array( $this, 'get_design_tokens' ),
+				'permission_callback' => array( $this, 'can_manage_settings' ),
+			)
+		);
 	}
 
-	/**
-	 * Verify the same capability WordPress uses for site-wide design changes.
-	 *
-	 * @return bool
-	 */
+	/** @return bool */
 	public function can_manage_settings() {
 		return current_user_can( 'edit_theme_options' );
 	}
 
-	/**
-	 * Return normalized design settings.
-	 *
-	 * @return WP_REST_Response
-	 */
+	/** @return WP_REST_Response */
 	public function get_settings() {
 		return new WP_REST_Response( GlobalStyles::get_settings() );
 	}
 
+	/** @return WP_REST_Response */
+	public function get_design_tokens() {
+		return new WP_REST_Response( DesignTokens::catalog( GlobalStyles::get_settings() ) );
+	}
+
 	/**
-	 * Save normalized design settings.
-	 *
 	 * @param WP_REST_Request $request Request object.
 	 * @return WP_REST_Response
 	 */
@@ -81,11 +93,15 @@ final class RestApi {
 		return new WP_REST_Response( $settings );
 	}
 
-	/**
-	 * Settings response schema.
-	 *
-	 * @return array<string, mixed>
-	 */
+	/** @return WP_REST_Response */
+	public function reset_settings() {
+		$settings = GlobalStyles::sanitize_settings( GlobalStyles::defaults() );
+		update_option( 'cresco_canvas_settings', $settings, false );
+
+		return new WP_REST_Response( $settings );
+	}
+
+	/** @return array<string, mixed> */
 	public function settings_schema() {
 		return array(
 			'$schema'              => 'http://json-schema.org/draft-04/schema#',
