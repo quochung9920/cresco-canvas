@@ -8,6 +8,39 @@ All notable changes are documented here. Versions follow Semantic Versioning whe
 
 No changes have been classified for the next version yet.
 
+## [0.5.0-alpha.1] - 2026-08-04
+
+### Added
+
+- A structured Global Design token registry for colors, typography, spacing, layout widths, radius, shadows, and motion.
+- Custom color tokens and aliases with bounded counts, sanitized slugs, validated values, and scoped CSS variables.
+- Schema version three migration for custom tokens without modifying Page content.
+- REST endpoints for reading settings, saving settings, resetting defaults, and retrieving the normalized token catalog.
+- Import, export, reset, custom-color, and alias management controls.
+- Safe deletion protection when an alias still references a custom color.
+- A compiled **Cresco Design System** Gutenberg sidebar runtime that is loaded independently from the legacy editor bundle.
+- Regression tests for token catalogs, custom colors, aliases, and CSS variable output.
+
+### Changed
+
+- Global settings now expose muted color, container width, content width, custom colors, and aliases.
+- Frontend and Gutenberg editor token output now use a complete scoped CSS-variable catalog.
+- Release packaging now requires the Design System runtime, manifest, and stylesheet.
+- Bumped the plugin, package, and Container block to `0.5.0-alpha.1`.
+
+### Security
+
+- Site-wide design changes remain restricted to users with `edit_theme_options`.
+- Custom token slugs, colors, aliases, widths, radius, and font stacks are sanitized again on the server before storage or CSS output.
+- Aliases can reference only allow-listed core colors or existing custom color tokens.
+
+### Known limitations
+
+- Hosted CI and WordPress runtime evidence have not yet been produced for the current `main` head.
+- The repository `package-lock.json` is still unavailable as a usable dependency lock, so the full source build has not been reproduced through `npm ci`.
+- The independent Design System runtime is checked in and enqueued, but keyboard, RTL, browser, multisite, lifecycle, visual-regression, and performance verification remain pending.
+- Templates, Components, Theme Builder, Dynamic Data, Query/Loop Builder, full interactive blocks, form integrations, WooCommerce scope, and commercial hardening remain later milestones.
+
 ## [0.4.0-alpha.1] - 2026-08-04
 
 ### Added
