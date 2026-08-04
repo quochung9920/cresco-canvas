@@ -69,7 +69,7 @@ final class DynamicDataTest extends TestCase {
 	}
 
 	public function test_page_parameter_is_sanitized_and_bounded(): void {
-		self::assertSame( 'loop_page', DynamicData::sanitize_page_param( 'Loop Page!' ) );
+		self::assertSame( 'looppage', DynamicData::sanitize_page_param( 'Loop Page!' ) );
 		self::assertSame( 'cc_page', DynamicData::sanitize_page_param( '' ) );
 		self::assertSame( 32, strlen( DynamicData::sanitize_page_param( str_repeat( 'a', 80 ) ) ) );
 	}
