@@ -10,6 +10,86 @@
 	box-shadow: 0 0 0 1px #635bff;
 }
 
+.editor-styles-wrapper .cc-responsive-context {
+	color: #757575;
+	font-size: 12px;
+}
+
+html[data-cc-preview-device="4k"] .wp-block-cresco-container.cc-container {
+	--cc-active-align: var(--cc-align-4k, var(--cc-align-desktop));
+	--cc-active-columns: var(--cc-columns-4k, var(--cc-columns-desktop));
+	--cc-active-direction: var(--cc-direction-4k, var(--cc-direction-desktop));
+	--cc-active-display: var(--cc-display-4k, var(--cc-display-desktop));
+	--cc-active-gap: var(--cc-gap-4k, var(--cc-gap-desktop));
+	--cc-active-justify: var(--cc-justify-4k, var(--cc-justify-desktop));
+	--cc-active-max-width: var(--cc-max-width-4k, var(--cc-max-width-desktop));
+	--cc-active-padding-bottom: var(--cc-padding-bottom-4k, var(--cc-padding-bottom-desktop));
+	--cc-active-padding-left: var(--cc-padding-left-4k, var(--cc-padding-left-desktop));
+	--cc-active-padding-right: var(--cc-padding-right-4k, var(--cc-padding-right-desktop));
+	--cc-active-padding-top: var(--cc-padding-top-4k, var(--cc-padding-top-desktop));
+	--cc-active-wrap: var(--cc-wrap-4k, var(--cc-wrap-desktop));
+}
+
+html[data-cc-preview-device="desktop"] .wp-block-cresco-container.cc-container {
+	--cc-active-align: var(--cc-align-desktop);
+	--cc-active-columns: var(--cc-columns-desktop);
+	--cc-active-direction: var(--cc-direction-desktop);
+	--cc-active-display: var(--cc-display-desktop);
+	--cc-active-gap: var(--cc-gap-desktop);
+	--cc-active-justify: var(--cc-justify-desktop);
+	--cc-active-max-width: var(--cc-max-width-desktop);
+	--cc-active-padding-bottom: var(--cc-padding-bottom-desktop);
+	--cc-active-padding-left: var(--cc-padding-left-desktop);
+	--cc-active-padding-right: var(--cc-padding-right-desktop);
+	--cc-active-padding-top: var(--cc-padding-top-desktop);
+	--cc-active-wrap: var(--cc-wrap-desktop);
+}
+
+html[data-cc-preview-device="laptop"] .wp-block-cresco-container.cc-container {
+	--cc-active-align: var(--cc-align-laptop, var(--cc-align-desktop));
+	--cc-active-columns: var(--cc-columns-laptop, var(--cc-columns-desktop));
+	--cc-active-direction: var(--cc-direction-laptop, var(--cc-direction-desktop));
+	--cc-active-display: var(--cc-display-laptop, var(--cc-display-desktop));
+	--cc-active-gap: var(--cc-gap-laptop, var(--cc-gap-desktop));
+	--cc-active-justify: var(--cc-justify-laptop, var(--cc-justify-desktop));
+	--cc-active-max-width: var(--cc-max-width-laptop, var(--cc-max-width-desktop));
+	--cc-active-padding-bottom: var(--cc-padding-bottom-laptop, var(--cc-padding-bottom-desktop));
+	--cc-active-padding-left: var(--cc-padding-left-laptop, var(--cc-padding-left-desktop));
+	--cc-active-padding-right: var(--cc-padding-right-laptop, var(--cc-padding-right-desktop));
+	--cc-active-padding-top: var(--cc-padding-top-laptop, var(--cc-padding-top-desktop));
+	--cc-active-wrap: var(--cc-wrap-laptop, var(--cc-wrap-desktop));
+}
+
+html[data-cc-preview-device="tablet"] .wp-block-cresco-container.cc-container {
+	--cc-active-align: var(--cc-align-tablet, var(--cc-align-laptop));
+	--cc-active-columns: var(--cc-columns-tablet, var(--cc-columns-laptop));
+	--cc-active-direction: var(--cc-direction-tablet, var(--cc-direction-laptop));
+	--cc-active-display: var(--cc-display-tablet, var(--cc-display-laptop));
+	--cc-active-gap: var(--cc-gap-tablet, var(--cc-gap-laptop));
+	--cc-active-justify: var(--cc-justify-tablet, var(--cc-justify-laptop));
+	--cc-active-max-width: var(--cc-max-width-tablet, var(--cc-max-width-laptop));
+	--cc-active-padding-bottom: var(--cc-padding-bottom-tablet, var(--cc-padding-bottom-laptop));
+	--cc-active-padding-left: var(--cc-padding-left-tablet, var(--cc-padding-left-laptop));
+	--cc-active-padding-right: var(--cc-padding-right-tablet, var(--cc-padding-right-laptop));
+	--cc-active-padding-top: var(--cc-padding-top-tablet, var(--cc-padding-top-laptop));
+	--cc-active-wrap: var(--cc-wrap-tablet, var(--cc-wrap-laptop));
+}
+
+html[data-cc-preview-device="mobile"] .wp-block-cresco-container.cc-container {
+	--cc-active-align: var(--cc-align-mobile, var(--cc-align-tablet));
+	--cc-active-columns: var(--cc-columns-mobile, var(--cc-columns-tablet));
+	--cc-active-direction: var(--cc-direction-mobile, var(--cc-direction-tablet));
+	--cc-active-display: var(--cc-display-mobile, var(--cc-display-tablet));
+	--cc-active-gap: var(--cc-gap-mobile, var(--cc-gap-tablet));
+	--cc-active-justify: var(--cc-justify-mobile, var(--cc-justify-tablet));
+	--cc-active-max-width: var(--cc-max-width-mobile, var(--cc-max-width-tablet));
+	--cc-active-padding-bottom: var(--cc-padding-bottom-mobile, var(--cc-padding-bottom-tablet));
+	--cc-active-padding-left: var(--cc-padding-left-mobile, var(--cc-padding-left-tablet));
+	--cc-active-padding-right: var(--cc-padding-right-mobile, var(--cc-padding-right-tablet));
+	--cc-active-padding-top: var(--cc-padding-top-mobile, var(--cc-padding-top-tablet));
+	--cc-active-wrap: var(--cc-wrap-mobile, var(--cc-wrap-tablet));
+}
+
 .editor-styles-wrapper .cc-elements-grid {
 	display: grid;
 	gap: 24px;
