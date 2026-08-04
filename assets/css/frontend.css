@@ -7,3 +7,31 @@ body.cresco-canvas-page .wp-block-cresco-container.cc-container img {
 	max-width: 100%;
 }
 
+body.cresco-canvas-page .cc-elements-grid {
+	display: grid;
+	gap: 24px;
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+body.cresco-canvas-page .cc-elements-stack {
+	display: flex;
+	flex-direction: column;
+	gap: 24px;
+}
+
+@media (max-width: 1024px) {
+	body.cresco-canvas-page .cc-elements-grid {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+}
+
+@media (max-width: 767px) {
+	body.cresco-canvas-page .cc-elements-grid {
+		grid-template-columns: minmax(0, 1fr);
+	}
+
+	body.cresco-canvas-page .wp-block-cresco-container.cc-container {
+		max-width: 100%;
+	}
+}
+
