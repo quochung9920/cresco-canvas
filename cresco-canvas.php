@@ -20,7 +20,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 define( 'CRESCO_CANVAS_VERSION', '0.4.0-alpha.1' );
-define( 'CRESCO_CANVAS_SCHEMA_VERSION', 2 );
+define( 'CRESCO_CANVAS_SCHEMA_VERSION', 3 );
 define( 'CRESCO_CANVAS_MINIMUM_WORDPRESS', '6.7' );
 define( 'CRESCO_CANVAS_MINIMUM_PHP', '8.1' );
 define( 'CRESCO_CANVAS_FILE', __FILE__ );
@@ -43,12 +43,10 @@ add_action(
 	'plugins_loaded',
 	static function () {
 		$requirements = new CrescoCanvas\Requirements();
-
 		if ( ! $requirements->is_compatible() ) {
 			add_action( 'admin_notices', array( $requirements, 'render_admin_notice' ) );
 			return;
 		}
-
 		CrescoCanvas\Plugin::instance()->boot();
 	}
 );
