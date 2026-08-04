@@ -4,6 +4,30 @@
 
 All notable changes are documented here. Versions follow Semantic Versioning where practical during the pre-1.0 cycle.
 
+## [Unreleased]
+
+### Added
+
+- A visible **Cresco Elements** library inside the Gutenberg sidebar.
+- Search, categories, favorites, recent elements, click-to-insert, and drag-to-canvas insertion.
+- Native layout elements for Section, Container, Row, Grid, Stack, Columns, Spacer, and Divider.
+- Native content and media elements for Heading, Text, Buttons, List, Quote, Table, Image, Gallery, Video, Audio, File, and Embed.
+- Composed marketing elements for Hero, Feature Grid, Call to Action, Testimonial, and Pricing Card.
+- Native interactive, navigation, blog, and utility elements including FAQ disclosure, Navigation, Search, Site Logo, Social Links, dynamic post blocks, Latest Posts, Shortcode, and Custom HTML.
+- A dedicated **Cresco Canvas** category in Gutenberg's native inserter.
+- Responsive helper output for inserted Grid and Stack compositions.
+
+### Changed
+
+- Widened the Cresco sidebar when active and moved the element library ahead of Page and Global Design settings.
+- Automatically enables Page-level Cresco styling after inserting an element.
+- Added searchable Container keywords and moved the block into the Cresco inserter category.
+
+### Known limitations
+
+- This is the first usable element-library stage, not completion of the full master roadmap.
+- Dedicated responsive property controls, custom Tabs/Modal/Slider blocks, Templates, Theme Builder, Dynamic Data bindings, Query Builder, WooCommerce Builder, and Live Frontend Preview still require subsequent implementation and runtime verification.
+
 ## [0.3.0-alpha.1] - 2026-08-04
 
 ### Added
