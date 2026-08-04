@@ -5,16 +5,32 @@ import {
 	useBlockProps,
 } from '@wordpress/block-editor';
 import {
+	Button,
 	ColorPalette,
 	PanelBody,
 	RangeControl,
 	SelectControl,
 } from '@wordpress/components';
-import { Fragment } from '@wordpress/element';
-import { __ } from '@wordpress/i18n';
+import { Fragment, useEffect, useState } from '@wordpress/element';
+import { __, sprintf } from '@wordpress/i18n';
 
+import {
+	PREVIEW_DEVICE_EVENT,
+	readPreviewDevice,
+	type PreviewDevice,
+	type PreviewDeviceEventDetail,
+} from '../../shared/previewDevices';
+import {
+	resetResponsiveDevice,
+	resolveContainerLayout,
+	updateResponsiveOverride,
+} from './responsive';
 import { styleFromAttributes } from './styles';
-import type { ContainerAttributes } from './types';
+import type {
+	ContainerAttributes,
+	ResolvedContainerLayout,
+	ResponsivePreviewDevice,
+} from './types';
 
 const SIDES = [
 	{ key: 'paddingTop', label: __( 'Padding top', 'cresco-canvas' ) },
@@ -23,163 +39,235 @@ const SIDES = [
 	{ key: 'paddingLeft', label: __( 'Padding left', 'cresco-canvas' ) },
 ] as const;
 
+const DEVICE_LABELS: Record< PreviewDevice, string > = {
+	'4k': __( '4K', 'cresco-canvas' ),
+	desktop: __( 'Desktop', 'cresco-canvas' ),
+	laptop: __( 'Laptop', 'cresco-canvas' ),
+	tablet: __( 'Tablet', 'cresco-canvas' ),
+	mobile: __( 'Mobile', 'cresco-canvas' ),
+};
+
 export function Edit( {
 	attributes,
 	setAttributes,
 }: BlockEditProps< ContainerAttributes > ) {
+	const [ device, setDevice ] = useState< PreviewDevice >( readPreviewDevice );
+	const resolved = resolveContainerLayout( attributes, device );
 	const blockProps = useBlockProps( {
 		className: 'cc-container',
 		style: styleFromAttributes( attributes ),
 	} );
+
+	useEffect( () => {
+		const onDeviceChange = ( event: Event ) => {
+			const detail = ( event as CustomEvent< PreviewDeviceEventDetail > )
+				.detail;
+			if ( detail?.device ) {
+				setDevice( detail.device );
+			}
+		};
+
+		window.addEventListener( PREVIEW_DEVICE_EVENT, onDeviceChange );
+		return () =>
+			window.removeEventListener( PREVIEW_DEVICE_EVENT, onDeviceChange );
+	}, [] );
+
+	function updateLayout< Key extends keyof ResolvedContainerLayout >(
+		key: Key,
+		value: ResolvedContainerLayout[ Key ]
+	) {
+		if ( device === 'desktop' ) {
+			setAttributes( { [ key ]: value } );
+			return;
+		}
+
+		setAttributes( {
+			responsive: updateResponsiveOverride(
+				attributes.responsive,
+				device,
+				key,
+				value
+			),
+		} );
+	}
+
+	function resetCurrentDevice() {
+		if ( device === 'desktop' ) {
+			return;
+		}
+		setAttributes( {
+			responsive: resetResponsiveDevice(
+				attributes.responsive,
+				device as ResponsivePreviewDevice
+			),
+		} );
+	}
+
+	const hasCurrentOverride =
+		device !== 'desktop' && Boolean( attributes.responsive?.[ device ] );
 
 	return (
 		<Fragment>
 			<InspectorControls>
 				<PanelBody
 					initialOpen
-					title={ __( 'Layout', 'cresco-canvas' ) }
+					title={ sprintf(
+						/* translators: %s: responsive preview device name. */
+						__( 'Layout · %s', 'cresco-canvas' ),
+						DEVICE_LABELS[ device ]
+					) }
 				>
+					<p className="cc-responsive-context">
+						{ device === 'desktop'
+							? __(
+									'Desktop values are the base inherited by every smaller device.',
+									'cresco-canvas'
+							  )
+							: __(
+									'Only changed values are stored for this device; all other values inherit automatically.',
+									'cresco-canvas'
+							  ) }
+					</p>
 					<SelectControl
 						label={ __( 'Layout mode', 'cresco-canvas' ) }
-						onChange={ ( layoutMode ) =>
-							setAttributes( {
-								layoutMode:
-									layoutMode as ContainerAttributes[ 'layoutMode' ],
-							} )
+						onChange={ ( layoutMode: string ) =>
+							updateLayout(
+								'layoutMode',
+								layoutMode as ResolvedContainerLayout[ 'layoutMode' ]
+							)
 						}
 						options={ [
-							{
-								label: __( 'Flex', 'cresco-canvas' ),
-								value: 'flex',
-							},
-							{
-								label: __( 'Grid', 'cresco-canvas' ),
-								value: 'grid',
-							},
-							{
-								label: __( 'Block', 'cresco-canvas' ),
-								value: 'block',
-							},
+							{ label: __( 'Flex', 'cresco-canvas' ), value: 'flex' },
+							{ label: __( 'Grid', 'cresco-canvas' ), value: 'grid' },
+							{ label: __( 'Block', 'cresco-canvas' ), value: 'block' },
 						] }
-						value={ attributes.layoutMode }
+						value={ resolved.layoutMode }
 					/>
-					{ attributes.layoutMode === 'flex' && (
-						<SelectControl
-							label={ __( 'Direction', 'cresco-canvas' ) }
-							onChange={ ( direction ) =>
-								setAttributes( {
-									direction:
-										direction as ContainerAttributes[ 'direction' ],
-								} )
+					{ resolved.layoutMode === 'flex' && (
+						<>
+							<SelectControl
+								label={ __( 'Direction', 'cresco-canvas' ) }
+								onChange={ ( direction: string ) =>
+									updateLayout(
+										'direction',
+										direction as ResolvedContainerLayout[ 'direction' ]
+									)
+								}
+								options={ [
+									{ label: __( 'Column', 'cresco-canvas' ), value: 'column' },
+									{ label: __( 'Row', 'cresco-canvas' ), value: 'row' },
+								] }
+								value={ resolved.direction }
+							/>
+							<SelectControl
+								label={ __( 'Wrapping', 'cresco-canvas' ) }
+								onChange={ ( wrap: string ) =>
+									updateLayout(
+										'wrap',
+										wrap as ResolvedContainerLayout[ 'wrap' ]
+									)
+								}
+								options={ [
+									{ label: __( 'No wrap', 'cresco-canvas' ), value: 'nowrap' },
+									{ label: __( 'Wrap', 'cresco-canvas' ), value: 'wrap' },
+								] }
+								value={ resolved.wrap }
+							/>
+						</>
+					) }
+					{ resolved.layoutMode === 'grid' && (
+						<RangeControl
+							label={ __( 'Columns', 'cresco-canvas' ) }
+							max={ 12 }
+							min={ 1 }
+							onChange={ ( columns: number | undefined ) =>
+								updateLayout( 'columns', columns ?? 3 )
 							}
-							options={ [
-								{
-									label: __( 'Column', 'cresco-canvas' ),
-									value: 'column',
-								},
-								{
-									label: __( 'Row', 'cresco-canvas' ),
-									value: 'row',
-								},
-							] }
-							value={ attributes.direction }
+							value={ resolved.columns }
 						/>
 					) }
-					{ attributes.layoutMode !== 'block' && (
+					{ resolved.layoutMode !== 'block' && (
 						<>
 							<SelectControl
 								label={ __( 'Justification', 'cresco-canvas' ) }
-								onChange={ ( justify ) =>
-									setAttributes( {
-										justify:
-											justify as ContainerAttributes[ 'justify' ],
-									} )
+								onChange={ ( justify: string ) =>
+									updateLayout(
+										'justify',
+										justify as ResolvedContainerLayout[ 'justify' ]
+									)
 								}
 								options={ [
-									{
-										label: __( 'Start', 'cresco-canvas' ),
-										value: 'flex-start',
-									},
-									{
-										label: __( 'Center', 'cresco-canvas' ),
-										value: 'center',
-									},
-									{
-										label: __( 'End', 'cresco-canvas' ),
-										value: 'flex-end',
-									},
-									{
-										label: __(
-											'Space between',
-											'cresco-canvas'
-										),
-										value: 'space-between',
-									},
+									{ label: __( 'Start', 'cresco-canvas' ), value: 'flex-start' },
+									{ label: __( 'Center', 'cresco-canvas' ), value: 'center' },
+									{ label: __( 'End', 'cresco-canvas' ), value: 'flex-end' },
+									{ label: __( 'Space between', 'cresco-canvas' ), value: 'space-between' },
 								] }
-								value={ attributes.justify }
+								value={ resolved.justify }
 							/>
 							<SelectControl
 								label={ __( 'Alignment', 'cresco-canvas' ) }
-								onChange={ ( align ) =>
-									setAttributes( {
-										align: align as ContainerAttributes[ 'align' ],
-									} )
+								onChange={ ( align: string ) =>
+									updateLayout(
+										'align',
+										align as ResolvedContainerLayout[ 'align' ]
+									)
 								}
 								options={ [
-									{
-										label: __( 'Stretch', 'cresco-canvas' ),
-										value: 'stretch',
-									},
-									{
-										label: __( 'Start', 'cresco-canvas' ),
-										value: 'flex-start',
-									},
-									{
-										label: __( 'Center', 'cresco-canvas' ),
-										value: 'center',
-									},
-									{
-										label: __( 'End', 'cresco-canvas' ),
-										value: 'flex-end',
-									},
+									{ label: __( 'Stretch', 'cresco-canvas' ), value: 'stretch' },
+									{ label: __( 'Start', 'cresco-canvas' ), value: 'flex-start' },
+									{ label: __( 'Center', 'cresco-canvas' ), value: 'center' },
+									{ label: __( 'End', 'cresco-canvas' ), value: 'flex-end' },
 								] }
-								value={ attributes.align }
+								value={ resolved.align }
 							/>
 							<RangeControl
 								label={ __( 'Gap', 'cresco-canvas' ) }
-								max={ 160 }
+								max={ 240 }
 								min={ 0 }
-								onChange={ ( gap ) =>
-									setAttributes( { gap: gap ?? 0 } )
+								onChange={ ( gap: number | undefined ) =>
+									updateLayout( 'gap', gap ?? 0 )
 								}
-								value={ attributes.gap }
+								value={ resolved.gap }
 							/>
 						</>
 					) }
 					<RangeControl
 						label={ __( 'Maximum width', 'cresco-canvas' ) }
-						max={ 2560 }
+						max={ 3840 }
 						min={ 320 }
-						onChange={ ( maxWidth ) =>
-							setAttributes( { maxWidth: maxWidth ?? 1200 } )
+						onChange={ ( maxWidth: number | undefined ) =>
+							updateLayout( 'maxWidth', maxWidth ?? 1200 )
 						}
-						value={ attributes.maxWidth }
+						value={ resolved.maxWidth }
 					/>
+					{ device !== 'desktop' && (
+						<Button
+							disabled={ ! hasCurrentOverride }
+							onClick={ resetCurrentDevice }
+							variant="secondary"
+						>
+							{ __( 'Reset device overrides', 'cresco-canvas' ) }
+						</Button>
+					) }
 				</PanelBody>
 				<PanelBody
 					initialOpen={ false }
-					title={ __( 'Spacing', 'cresco-canvas' ) }
+					title={ sprintf(
+						/* translators: %s: responsive preview device name. */
+						__( 'Spacing · %s', 'cresco-canvas' ),
+						DEVICE_LABELS[ device ]
+					) }
 				>
 					{ SIDES.map( ( side ) => (
 						<RangeControl
 							key={ side.key }
 							label={ side.label }
-							max={ 240 }
+							max={ 400 }
 							min={ 0 }
-							onChange={ ( value ) =>
-								setAttributes( { [ side.key ]: value ?? 0 } )
+							onChange={ ( value: number | undefined ) =>
+								updateLayout( side.key, value ?? 0 )
 							}
-							value={ attributes[ side.key ] }
+							value={ resolved[ side.key ] }
 						/>
 					) ) }
 				</PanelBody>
@@ -187,9 +275,9 @@ export function Edit( {
 					initialOpen={ false }
 					title={ __( 'Style', 'cresco-canvas' ) }
 				>
-					<p>{ __( 'Background', 'cresco-canvas' ) }</p>
+					<p>{ __( 'Background color', 'cresco-canvas' ) }</p>
 					<ColorPalette
-						onChange={ ( background ) =>
+						onChange={ ( background: string | undefined ) =>
 							setAttributes( { background: background || '' } )
 						}
 						value={ attributes.background }
