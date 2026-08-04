@@ -15,11 +15,14 @@ const requiredFiles = [
 	'CHANGELOG.md',
 	'LICENSE',
 	'assets/css/design-system.css',
+	'assets/css/dynamic.css',
 	'assets/css/preview.css',
 	'assets/css/templates.css',
 	'assets/css/theme-builder.css',
 	'build/design-system.js',
 	'build/design-system.asset.php',
+	'build/dynamic.js',
+	'build/dynamic.asset.php',
 	'build/editor.js',
 	'build/editor.asset.php',
 	'build/editor.css',
@@ -37,6 +40,7 @@ const requiredFiles = [
 
 const allowedRoots = [
 	'assets/css/design-system.css',
+	'assets/css/dynamic.css',
 	'assets/css/frontend.css',
 	'assets/css/preview.css',
 	'assets/css/templates.css',
