@@ -31,7 +31,7 @@
 		$schema: 'https://schemas.wp.org/trunk/block.json',
 		apiVersion: 3,
 		name: 'cresco/container',
-		version: '0.3.1-alpha.1',
+		version: '0.4.0-alpha.1',
 		title: 'Cresco Container',
 		category: 'cresco-canvas',
 		icon: 'layout',
