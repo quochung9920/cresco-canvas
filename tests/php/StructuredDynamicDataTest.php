@@ -39,7 +39,7 @@ final class StructuredDynamicDataTest extends TestCase {
 		$blocks = array(
 			array( 'blockName' => 'core/paragraph', 'attrs' => array(), 'innerBlocks' => array() ),
 			array( 'blockName' => 'cresco/acf-layout', 'attrs' => array( 'layoutName' => '' ), 'innerBlocks' => array() ),
-			array( 'blockName' => 'cresco/acf-layout', 'attrs' => array( 'layoutName' => 'Hero Banner' ), 'innerBlocks' => array() ),
+			array( 'blockName' => 'cresco/acf-layout', 'attrs' => array( 'layoutName' => 'hero-banner' ), 'innerBlocks' => array() ),
 		);
 
 		$templates = StructuredDynamicData::layout_templates( $blocks );
