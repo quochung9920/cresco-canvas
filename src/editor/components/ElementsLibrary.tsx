@@ -1,4 +1,4 @@
-import type { BlockInstance } from '@wordpress/blocks';
+import { getBlockType, type BlockInstance } from '@wordpress/blocks';
 import { Button, Notice, SearchControl } from '@wordpress/components';
 import { useDispatch, useSelect } from '@wordpress/data';
 import {
@@ -16,15 +16,32 @@ import {
 	type CrescoElementDefinition,
 	type ElementCategory,
 } from '../elements';
+import {
+	findUnavailableBlockNames,
+	matchesElementQuery,
+	MAX_RECENT_ELEMENTS,
+	prependRecentElement,
+	resolveInsertionPoint,
+	sanitizeElementIds,
+} from '../elementLibraryState';
 
 const FAVORITES_KEY = 'crescoCanvas.elementFavorites';
 const RECENT_KEY = 'crescoCanvas.elementRecent';
 const DRAG_MIME = 'application/x-cresco-canvas-element';
-const MAX_RECENT = 8;
+const VALID_ELEMENT_IDS = new Set(
+	crescoElements.map( ( element ) => element.id )
+);
 
 type LibraryFilter = 'all' | 'favorites' | 'recent' | ElementCategory;
+type LibraryNoticeStatus = 'success' | 'warning' | 'error';
+
+interface LibraryNotice {
+	message: string;
+	status: LibraryNoticeStatus;
+}
 
 interface BlockEditorSelect {
+	canInsertBlockType?: ( blockName: string, rootClientId?: string ) => boolean;
 	getBlockIndex: ( clientId: string ) => number;
 	getBlockName: ( clientId: string ) => string | null;
 	getBlockOrder: ( rootClientId?: string ) => string[];
@@ -45,13 +62,11 @@ interface ElementsLibraryProps {
 	onElementInserted?: () => void;
 }
 
-function readStoredIds( key: string ): string[] {
+function readStoredIds( key: string, limit = Number.POSITIVE_INFINITY ): string[] {
 	try {
 		const stored = window.localStorage.getItem( key );
 		const parsed: unknown = stored ? JSON.parse( stored ) : [];
-		return Array.isArray( parsed )
-			? parsed.filter( ( value ): value is string => typeof value === 'string' )
-			: [];
+		return sanitizeElementIds( parsed, VALID_ELEMENT_IDS, limit );
 	} catch {
 		return [];
 	}
@@ -83,9 +98,9 @@ export function ElementsLibrary( {
 		readStoredIds( FAVORITES_KEY )
 	);
 	const [ recent, setRecent ] = useState< string[] >( () =>
-		readStoredIds( RECENT_KEY )
+		readStoredIds( RECENT_KEY, MAX_RECENT_ELEMENTS )
 	);
-	const [ message, setMessage ] = useState( '' );
+	const [ notice, setNotice ] = useState< LibraryNotice | null >( null );
 
 	const selection = useSelect( ( select ) => {
 		const blockEditor = select(
@@ -106,53 +121,122 @@ export function ElementsLibrary( {
 
 	const insertDefinition = useCallback(
 		( definition: CrescoElementDefinition, targetClientId?: string | null ) => {
-			const blocks = definition.create();
-			const selectedClientId = targetClientId ?? selection.selectedClientId;
-			let rootClientId: string | undefined;
-			let index: number | undefined;
+			setNotice( null );
 
-			if (
-				selectedClientId &&
-				canContainElements( blockEditorSelect.getBlockName( selectedClientId ) )
-			) {
-				rootClientId = selectedClientId;
-				index = blockEditorSelect.getBlockOrder( rootClientId ).length;
-			} else if ( selectedClientId ) {
-				rootClientId =
-					blockEditorSelect.getBlockRootClientId( selectedClientId ) ??
-					undefined;
-				index = blockEditorSelect.getBlockIndex( selectedClientId ) + 1;
-			} else {
-				index = blockEditorSelect.getBlockOrder().length;
+			try {
+				const blocks = definition.create();
+				if ( blocks.length === 0 ) {
+					throw new Error( 'Element factory returned no blocks.' );
+				}
+
+				const unavailableBlockNames = findUnavailableBlockNames(
+					blocks,
+					( blockName ) => Boolean( getBlockType( blockName ) )
+				);
+				if ( unavailableBlockNames.length > 0 ) {
+					setNotice( {
+						message: sprintf(
+							/* translators: 1: element name, 2: comma-separated block names. */
+							__(
+								'%1$s cannot be added because these WordPress blocks are unavailable: %2$s.',
+								'cresco-canvas'
+							),
+							definition.label,
+							unavailableBlockNames.join( ', ' )
+						),
+						status: 'error',
+					} );
+					return;
+				}
+
+				const selectedClientId =
+					targetClientId ?? selection.selectedClientId;
+				const insertionPoint = resolveInsertionPoint(
+					selectedClientId,
+					blockEditorSelect,
+					canContainElements
+				);
+				const blockedRootNames =
+					typeof blockEditorSelect.canInsertBlockType === 'function'
+						? [
+								...new Set(
+									blocks
+										.map( ( current ) => current.name )
+										.filter(
+											( blockName ) =>
+												! blockEditorSelect.canInsertBlockType?.(
+													blockName,
+													insertionPoint.rootClientId
+												)
+										)
+								),
+							]
+						: [];
+
+				if ( blockedRootNames.length > 0 ) {
+					setNotice( {
+						message: sprintf(
+							/* translators: 1: element name, 2: comma-separated block names. */
+							__(
+								'%1$s cannot be inserted at the selected location. Restricted blocks: %2$s.',
+								'cresco-canvas'
+							),
+							definition.label,
+							blockedRootNames.join( ', ' )
+						),
+						status: 'warning',
+					} );
+					return;
+				}
+
+				insertBlocks(
+					blocks,
+					insertionPoint.index,
+					insertionPoint.rootClientId
+				);
+
+				const firstBlock = blocks[ 0 ];
+				if ( firstBlock ) {
+					selectBlock( firstBlock.clientId );
+				}
+
+				setRecent( ( current ) => {
+					const nextRecent = prependRecentElement(
+						current,
+						definition.id,
+						VALID_ELEMENT_IDS,
+						MAX_RECENT_ELEMENTS
+					);
+					writeStoredIds( RECENT_KEY, nextRecent );
+					return nextRecent;
+				} );
+				setNotice( {
+					message: sprintf(
+						/* translators: %s is an element name. */
+						__( '%s was added to the page.', 'cresco-canvas' ),
+						definition.label
+					),
+					status: 'success',
+				} );
+				onElementInserted?.();
+			} catch {
+				setNotice( {
+					message: sprintf(
+						/* translators: %s is an element name. */
+						__(
+							'%s could not be added. Reload the editor and try again.',
+							'cresco-canvas'
+						),
+						definition.label
+					),
+					status: 'error',
+				} );
 			}
-
-			insertBlocks( blocks, index, rootClientId );
-
-			const firstBlock = blocks[ 0 ];
-			if ( firstBlock ) {
-				selectBlock( firstBlock.clientId );
-			}
-
-			const nextRecent = [
-				definition.id,
-				...recent.filter( ( id ) => id !== definition.id ),
-			].slice( 0, MAX_RECENT );
-			setRecent( nextRecent );
-			writeStoredIds( RECENT_KEY, nextRecent );
-			setMessage(
-				sprintf(
-					/* translators: %s is an element name. */
-					__( '%s was added to the page.', 'cresco-canvas' ),
-					definition.label
-				)
-			);
-			onElementInserted?.();
 		},
 		[
 			blockEditorSelect,
 			insertBlocks,
 			onElementInserted,
-			recent,
 			selectBlock,
 			selection.selectedClientId,
 		]
@@ -161,17 +245,25 @@ export function ElementsLibrary( {
 	const insertById = useCallback(
 		( id: string, targetClientId?: string | null ) => {
 			const definition = findCrescoElement( id );
-			if ( definition ) {
-				insertDefinition( definition, targetClientId );
+			if ( ! definition ) {
+				setNotice( {
+					message: __(
+						'This dragged element is no longer available.',
+						'cresco-canvas'
+					),
+					status: 'error',
+				} );
+				return;
 			}
+
+			insertDefinition( definition, targetClientId );
 		},
 		[ insertDefinition ]
 	);
 
 	useEffect( () => {
-		let frame = 0;
-		let iframe: HTMLIFrameElement | null = null;
 		const documents = new Set< Document >();
+		const iframeListeners = new Map< HTMLIFrameElement, () => void >();
 
 		const onDragOver = ( event: DragEvent ) => {
 			if ( event.dataTransfer?.types.includes( DRAG_MIME ) ) {
@@ -188,13 +280,14 @@ export function ElementsLibrary( {
 			}
 
 			event.preventDefault();
-			const target = event.target instanceof Element ? event.target : null;
-			const targetClientId = target
-				?.closest< HTMLElement >( '[data-block]' )
-				?.dataset.block;
+			const target = event.target as Element | null;
+			const targetClientId =
+				target && typeof target.closest === 'function'
+					? target.closest< HTMLElement >( '[data-block]' )?.dataset.block
+					: undefined;
 			insertById( id, targetClientId ?? null );
 		};
-		const attach = ( targetDocument: Document | null | undefined ) => {
+		const attachDocument = ( targetDocument: Document | null | undefined ) => {
 			if ( ! targetDocument || documents.has( targetDocument ) ) {
 				return;
 			}
@@ -202,19 +295,38 @@ export function ElementsLibrary( {
 			targetDocument.addEventListener( 'dragover', onDragOver );
 			targetDocument.addEventListener( 'drop', onDrop );
 		};
-		const findCanvas = () => {
-			attach( document );
-			iframe = document.querySelector< HTMLIFrameElement >(
-				'iframe[name="editor-canvas"]'
-			);
-			attach( iframe?.contentDocument );
-			frame = window.requestAnimationFrame( findCanvas );
+		const attachIframe = ( iframe: HTMLIFrameElement ) => {
+			if ( iframeListeners.has( iframe ) ) {
+				return;
+			}
+
+			const onLoad = () => attachDocument( iframe.contentDocument );
+			iframeListeners.set( iframe, onLoad );
+			iframe.addEventListener( 'load', onLoad );
+			onLoad();
+		};
+		const scanForCanvas = () => {
+			document
+				.querySelectorAll< HTMLIFrameElement >(
+					'iframe[name="editor-canvas"]'
+				)
+				.forEach( attachIframe );
 		};
 
-		findCanvas();
+		attachDocument( document );
+		scanForCanvas();
+
+		const observer = new MutationObserver( scanForCanvas );
+		observer.observe( document.documentElement, {
+			childList: true,
+			subtree: true,
+		} );
 
 		return () => {
-			window.cancelAnimationFrame( frame );
+			observer.disconnect();
+			for ( const [ iframe, onLoad ] of iframeListeners ) {
+				iframe.removeEventListener( 'load', onLoad );
+			}
 			for ( const targetDocument of documents ) {
 				targetDocument.removeEventListener( 'dragover', onDragOver );
 				targetDocument.removeEventListener( 'drop', onDrop );
@@ -223,8 +335,7 @@ export function ElementsLibrary( {
 	}, [ insertById ] );
 
 	const visibleElements = useMemo( () => {
-		const normalizedQuery = query.trim().toLocaleLowerCase();
-		return crescoElements.filter( ( element ) => {
+		const matches = crescoElements.filter( ( element ) => {
 			if ( filter === 'favorites' && ! favorites.includes( element.id ) ) {
 				return false;
 			}
@@ -239,27 +350,30 @@ export function ElementsLibrary( {
 			) {
 				return false;
 			}
-			if ( ! normalizedQuery ) {
-				return true;
-			}
 
-			return [
-				element.label,
-				element.description,
-				...element.keywords,
-			]
-				.join( ' ' )
-				.toLocaleLowerCase()
-				.includes( normalizedQuery );
+			return matchesElementQuery( element, query );
 		} );
+
+		return filter === 'recent'
+			? matches.sort(
+					( first, second ) =>
+						recent.indexOf( first.id ) - recent.indexOf( second.id )
+			  )
+			: matches;
 	}, [ favorites, filter, query, recent ] );
 
 	function toggleFavorite( id: string ) {
-		const nextFavorites = favorites.includes( id )
-			? favorites.filter( ( favoriteId ) => favoriteId !== id )
-			: [ ...favorites, id ];
-		setFavorites( nextFavorites );
-		writeStoredIds( FAVORITES_KEY, nextFavorites );
+		setFavorites( ( current ) => {
+			const nextFavorites = current.includes( id )
+				? current.filter( ( favoriteId ) => favoriteId !== id )
+				: [ ...current, id ];
+			const sanitized = sanitizeElementIds(
+				nextFavorites,
+				VALID_ELEMENT_IDS
+			);
+			writeStoredIds( FAVORITES_KEY, sanitized );
+			return sanitized;
+		} );
 	}
 
 	return (
@@ -321,13 +435,13 @@ export function ElementsLibrary( {
 					</Button>
 				) ) }
 			</div>
-			{ message && (
+			{ notice && (
 				<Notice
 					isDismissible
-					onRemove={ () => setMessage( '' ) }
-					status="success"
+					onRemove={ () => setNotice( null ) }
+					status={ notice.status }
 				>
-					{ message }
+					{ notice.message }
 				</Notice>
 			) }
 			<div className="cc-elements-grid-list">
