@@ -20,9 +20,13 @@
     "paddingBottom": { "type": "number", "default": 40 },
     "paddingLeft": { "type": "number", "default": 24 },
     "maxWidth": { "type": "number", "default": 1200 },
-    "background": { "type": "string", "default": "" }
+    "background": { "type": "string", "default": "" },
+    "columns": { "type": "number" },
+    "wrap": { "type": "string" },
+    "responsive": { "type": "object" }
   },
   "supports": {
+    "align": ["wide", "full"],
     "anchor": true,
     "html": false,
     "className": true,
