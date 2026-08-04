@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<ruleset name="Cresco Canvas">
+	<description>WordPress Coding Standards for Cresco Canvas.</description>
+	<file>cresco-canvas.php</file>
+	<file>uninstall.php</file>
+	<file>includes</file>
+	<exclude-pattern>vendor/*</exclude-pattern>
+	<arg name="basepath" value="."/>
+	<arg name="colors"/>
+	<arg value="sp"/>
+	<config name="minimum_supported_wp_version" value="6.7"/>
+	<rule ref="WordPress">
+		<!-- Composer PSR-4 class names intentionally use matching StudlyCaps filenames. -->
+		<exclude name="WordPress.Files.FileName"/>
+	</rule>
+	<rule ref="PHPCompatibilityWP">
+		<properties>
+			<property name="testVersion" value="8.1-"/>
+		</properties>
+	</rule>
+</ruleset>

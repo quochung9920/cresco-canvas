@@ -1,1 +1,12 @@
-.editor-styles-wrapper .wp-block-cresco-container.cc-container{border:1px dashed rgba(99,91,255,.35);border-radius:8px;min-height:80px;position:relative}.editor-styles-wrapper .wp-block-cresco-container.cc-container.is-selected{border-color:#635bff;box-shadow:0 0 0 1px #635bff}
+.editor-styles-wrapper .wp-block-cresco-container.cc-container {
+	border: 1px dashed rgba(99, 91, 255, 0.35);
+	border-radius: 8px;
+	min-height: 80px;
+	position: relative;
+}
+
+.editor-styles-wrapper .wp-block-cresco-container.cc-container.is-selected {
+	border-color: #635bff;
+	box-shadow: 0 0 0 1px #635bff;
+}
+

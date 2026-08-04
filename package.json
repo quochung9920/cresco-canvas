@@ -1,0 +1,48 @@
+{
+  "name": "cresco-canvas",
+  "version": "0.2.0-alpha.1",
+  "private": true,
+  "description": "Build visually. Run natively.",
+  "license": "GPL-2.0-or-later",
+  "engines": {
+    "node": ">=20.19.0",
+    "npm": ">=10.0.0"
+  },
+  "overrides": {
+    "adm-zip": "0.6.0",
+    "serialize-javascript": "7.0.7"
+  },
+  "scripts": {
+    "build": "wp-scripts build",
+    "start": "wp-scripts start",
+    "typecheck": "tsc --noEmit",
+    "lint:js": "wp-scripts lint-js src tests scripts webpack.config.js playwright.config.ts",
+    "lint:css": "wp-scripts lint-style 'assets/css/**/*.css' 'blocks/**/*.css' 'src/**/*.scss'",
+    "lint:md": "wp-scripts lint-md-docs README.md CHANGELOG.md 'docs/**/*.md'",
+    "test:unit": "wp-scripts test-unit-js --runInBand",
+    "test:e2e": "playwright test",
+    "test:e2e:report": "playwright show-report",
+    "check:version": "node scripts/check-version.mjs",
+    "package": "node scripts/build-release.mjs",
+    "package:verify": "node scripts/verify-reproducible-build.mjs"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "4.12.1",
+    "@playwright/test": "1.62.1",
+    "@types/jest": "30.0.0",
+    "@types/react": "18.3.31",
+    "@types/react-dom": "18.3.7",
+    "@wordpress/api-fetch": "7.52.0",
+    "@wordpress/block-editor": "16.1.0",
+    "@wordpress/blocks": "15.25.0",
+    "@wordpress/components": "38.0.0",
+    "@wordpress/compose": "8.5.0",
+    "@wordpress/data": "10.52.0",
+    "@wordpress/element": "8.4.0",
+    "@wordpress/env": "11.12.0",
+    "@wordpress/i18n": "6.25.0",
+    "@wordpress/scripts": "34.0.0",
+    "fflate": "0.8.3",
+    "typescript": "5.9.3"
+  }
+}
