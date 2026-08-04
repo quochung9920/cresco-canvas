@@ -125,6 +125,7 @@ final class Migrator {
 	private static function migrations() {
 		return array(
 			1 => array( self::class, 'migrate_to_version_one' ),
+			2 => array( self::class, 'migrate_to_version_two' ),
 		);
 	}
 
@@ -137,6 +138,17 @@ final class Migrator {
 
 		update_option( 'cresco_canvas_settings', $settings, false );
 		add_option( FeatureFlags::OPTION_NAME, FeatureFlags::defaults(), '', false );
+	}
+
+	/**
+	 * Remove the retired dual-editor preferences without touching Page content.
+	 */
+	private static function migrate_to_version_two() {
+		$settings = GlobalStyles::sanitize_settings( (array) get_option( 'cresco_canvas_settings', array() ) );
+
+		update_option( 'cresco_canvas_settings', $settings, false );
+		delete_post_meta_by_key( '_cresco_canvas_editor_preference' );
+		delete_metadata( 'user', 0, 'cresco_canvas_last_editor', '', true );
 	}
 
 	/**
@@ -161,4 +173,3 @@ final class Migrator {
 		delete_option( self::LOCK_OPTION );
 	}
 }
-

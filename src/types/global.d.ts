@@ -1,8 +1,8 @@
-import type { CanvasBootstrap } from '../editor/types';
+import type { CanvasEditorBootstrap } from '../editor/types';
 
 declare global {
 	interface Window {
-		crescoCanvasSettings: CanvasBootstrap;
+		crescoCanvasEditorSettings: CanvasEditorBootstrap;
 	}
 }
 

@@ -3,7 +3,7 @@
  * Plugin Name:       Cresco Canvas
  * Plugin URI:        https://github.com/quochung9920/cresco-canvas
  * Description:       A fast, native visual website builder for WordPress.
- * Version:           0.2.0-alpha.1
+ * Version:           0.3.0-alpha.1
  * Requires at least: 6.7
  * Requires PHP:      8.1
  * Author:            Crescospec
@@ -19,8 +19,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'CRESCO_CANVAS_VERSION', '0.2.0-alpha.1' );
-define( 'CRESCO_CANVAS_SCHEMA_VERSION', 1 );
+define( 'CRESCO_CANVAS_VERSION', '0.3.0-alpha.1' );
+define( 'CRESCO_CANVAS_SCHEMA_VERSION', 2 );
 define( 'CRESCO_CANVAS_MINIMUM_WORDPRESS', '6.7' );
 define( 'CRESCO_CANVAS_MINIMUM_PHP', '8.1' );
 define( 'CRESCO_CANVAS_FILE', __FILE__ );
@@ -52,4 +52,3 @@ add_action(
 		CrescoCanvas\Plugin::instance()->boot();
 	}
 );
-

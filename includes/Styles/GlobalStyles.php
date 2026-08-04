@@ -7,7 +7,7 @@
 
 namespace CrescoCanvas\Styles;
 
-use CrescoCanvas\Admin\EditorPreferences;
+use CrescoCanvas\Admin\EditorIntegration;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -19,18 +19,18 @@ final class GlobalStyles {
 	 */
 	public function register() {
 		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_frontend_styles' ) );
-		add_action( 'enqueue_block_editor_assets', array( $this, 'enqueue_block_editor_tokens' ) );
+		add_filter( 'block_editor_settings_all', array( $this, 'add_block_editor_tokens' ), 10, 2 );
 		add_filter( 'body_class', array( $this, 'add_canvas_body_class' ) );
 	}
 
 	/**
-	 * Default settings, including recoverable editor behavior.
+	 * Default scoped design settings.
 	 *
 	 * @return array<string, mixed>
 	 */
 	public static function defaults() {
 		return array(
-			'schemaVersion'         => 1,
+			'schemaVersion'         => 2,
 			'primary'               => '#635bff',
 			'text'                  => '#111827',
 			'muted'                 => '#6b7280',
@@ -39,7 +39,6 @@ final class GlobalStyles {
 			'contentMax'            => 1200,
 			'radius'                => 12,
 			'fontFamily'            => 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
-			'editorPreference'      => 'remember',
 			'removeDataOnUninstall' => false,
 		);
 	}
@@ -63,15 +62,8 @@ final class GlobalStyles {
 		$defaults             = self::defaults();
 		$container_max        = min( 2560, max( 960, absint( $input['containerMax'] ?? $defaults['containerMax'] ) ) );
 		$content_max          = min( $container_max, max( 640, absint( $input['contentMax'] ?? $defaults['contentMax'] ) ) );
-		$editor_preference    = sanitize_key( (string) ( $input['editorPreference'] ?? $defaults['editorPreference'] ) );
-		$allowed_preferences  = array( 'canvas', 'wordpress', 'remember' );
-
-		if ( ! in_array( $editor_preference, $allowed_preferences, true ) ) {
-			$editor_preference = $defaults['editorPreference'];
-		}
-
 		return array(
-			'schemaVersion'         => 1,
+			'schemaVersion'         => 2,
 			'primary'               => sanitize_hex_color( $input['primary'] ?? '' ) ?: $defaults['primary'],
 			'text'                  => sanitize_hex_color( $input['text'] ?? '' ) ?: $defaults['text'],
 			'muted'                 => sanitize_hex_color( $input['muted'] ?? '' ) ?: $defaults['muted'],
@@ -80,7 +72,6 @@ final class GlobalStyles {
 			'contentMax'            => $content_max,
 			'radius'                => min( 80, max( 0, absint( $input['radius'] ?? $defaults['radius'] ) ) ),
 			'fontFamily'            => self::sanitize_font_family( $input['fontFamily'] ?? $defaults['fontFamily'] ),
-			'editorPreference'      => $editor_preference,
 			'removeDataOnUninstall' => rest_sanitize_boolean( $input['removeDataOnUninstall'] ?? false ),
 		);
 	}
@@ -109,6 +100,19 @@ final class GlobalStyles {
 	}
 
 	/**
+	 * Build visual rules that consume the validated design variables.
+	 *
+	 * @param string $selector Trusted internal scope selector.
+	 * @return string
+	 */
+	public static function visual_css( $selector ) {
+		return sprintf(
+			'%1$s{background:var(--cc-background);color:var(--cc-text);font-family:var(--cc-font);}%1$s .wp-block-cresco-container a:not(.wp-block-button__link){color:var(--cc-primary);}%1$s .wp-block-cresco-container .wp-block-button__link:not(.has-background){background-color:var(--cc-primary);}%1$s .wp-block-cresco-container .wp-block-button__link{border-radius:var(--cc-radius);}',
+			$selector
+		);
+	}
+
+	/**
 	 * Load public CSS only on a Page that uses Canvas.
 	 */
 	public function enqueue_frontend_styles() {
@@ -122,22 +126,33 @@ final class GlobalStyles {
 			array(),
 			CRESCO_CANVAS_VERSION
 		);
-		wp_add_inline_style( 'cresco-canvas-frontend', self::css( 'body.cresco-canvas-page' ) );
+		wp_add_inline_style(
+			'cresco-canvas-frontend',
+			self::css( 'body.cresco-canvas-page' ) . self::visual_css( 'body.cresco-canvas-page' )
+		);
 	}
 
 	/**
-	 * Add tokens to a native block editor only for Canvas-enabled Pages.
+	 * Add tokens to the editor content through WordPress's public settings API.
+	 *
+	 * @param array<string, mixed>     $settings Editor settings.
+	 * @param \WP_Block_Editor_Context $context  Current editor context.
+	 * @return array<string, mixed>
 	 */
-	public function enqueue_block_editor_tokens() {
-		$post_id = get_the_ID();
+	public function add_block_editor_tokens( $settings, $context ) {
+		$post = isset( $context->post ) ? $context->post : null;
 
-		if ( ! $post_id || 'page' !== get_post_type( $post_id ) || ! $this->post_uses_canvas( $post_id ) ) {
-			return;
+		if ( ! $post || 'page' !== $post->post_type ) {
+			return $settings;
 		}
 
-		wp_register_style( 'cresco-canvas-editor-tokens', false, array(), CRESCO_CANVAS_VERSION );
-		wp_enqueue_style( 'cresco-canvas-editor-tokens' );
-		wp_add_inline_style( 'cresco-canvas-editor-tokens', self::css( '.editor-styles-wrapper' ) );
+		$settings['styles']   = isset( $settings['styles'] ) && is_array( $settings['styles'] ) ? $settings['styles'] : array();
+		$settings['styles'][] = array(
+			'css'            => self::css( '.editor-styles-wrapper' ) . self::visual_css( '.editor-styles-wrapper.cresco-canvas-editor-scope' ),
+			'__unstableType' => 'theme',
+		);
+
+		return $settings;
 	}
 
 	/**
@@ -175,7 +190,7 @@ final class GlobalStyles {
 	 * @return bool
 	 */
 	public function post_uses_canvas( $post_id ) {
-		if ( rest_sanitize_boolean( get_post_meta( $post_id, EditorPreferences::ENABLED_META, true ) ) ) {
+		if ( rest_sanitize_boolean( get_post_meta( $post_id, EditorIntegration::ENABLED_META, true ) ) ) {
 			return true;
 		}
 
@@ -194,4 +209,3 @@ final class GlobalStyles {
 		return preg_match( '/^[a-zA-Z0-9 _,-.\"\'()]+$/', $value ) ? $value : self::defaults()['fontFamily'];
 	}
 }
-

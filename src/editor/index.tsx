@@ -1,19 +1,9 @@
-import { createRoot } from '@wordpress/element';
+import { registerPlugin } from '@wordpress/plugins';
 
 import '../styles/admin.scss';
-import { App } from './App';
-import { ErrorBoundary } from './components/ErrorBoundary';
+import { SettingsSidebar } from './components/SettingsSidebar';
 
-const container = document.getElementById( 'cresco-canvas-app' );
-
-if ( container ) {
-	const bootstrap = window.crescoCanvasSettings;
-	createRoot( container ).render(
-		<ErrorBoundary
-			nativeEditUrl={ bootstrap.nativeEditUrl }
-			safeModeUrl={ bootstrap.safeModeUrl }
-		>
-			<App />
-		</ErrorBoundary>
-	);
-}
+registerPlugin( 'cresco-canvas', {
+	icon: 'layout',
+	render: SettingsSidebar,
+} );

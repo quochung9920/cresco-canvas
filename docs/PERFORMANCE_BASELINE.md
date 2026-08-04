@@ -1,6 +1,6 @@
 # Performance Baseline
 
-Recorded: 2026-08-03.
+Recorded: 2026-08-04 after the native Gutenberg refactor.
 
 ## Environment
 
@@ -19,12 +19,13 @@ Measurements use production output from `npm run build` and GNU `gzip -c`.
 
 | Asset | Raw bytes | Gzip bytes | Budget/result |
 | --- | ---: | ---: | --- |
-| `assets/css/frontend.css` | 494 | 225 | PASS: below 40 KB gzip |
-| `build/editor.js` | 12,015 | 3,771 | Admin-only; no frontend budget |
-| `build/editor.css` | 3,263 | Not recorded separately | Admin-only |
+| `assets/css/frontend.css` | 200 | 147 | PASS: below 40 KB gzip |
+| Frontend CSS plus default inline design rules | 901 | 364 | Combined-source measurement; emitted only on Canvas Pages |
+| `build/editor.js` | 6,071 | 2,341 | Admin-only; 49.5% raw reduction from 0.2 |
+| `build/editor.css` | 886 | 421 | Admin-only; sidebar styles only |
 | `build/container.js` | 4,565 | 1,421 | Editor-only block registration |
 
-The public frontend enqueues no Cresco editor JavaScript. Frontend CSS is conditional on singular Canvas Pages. Container block CSS is block-specific and loaded through WordPress block metadata.
+The public frontend enqueues no Cresco editor JavaScript. Frontend CSS is conditional on singular Canvas Pages. Container block CSS is block-specific and loaded through WordPress block metadata. Removing the duplicate Page editor shell reduced the editor JavaScript by 5,944 raw bytes and removed duplicate document-state/rendering work in favor of Gutenberg's already-loaded runtime.
 
 ## Runtime budgets
 
