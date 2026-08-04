@@ -2,6 +2,8 @@
 
 The declared minimum remains WordPress 6.7 and PHP 8.1 for backward compatibility. CI also covers maintained/current environments and WordPress trunk as experimental evidence.
 
+Version under assessment: `0.3.0-alpha.1`. The editor smoke test must use the normal Page **Edit** action and confirm that Cresco loads inside Gutenberg; any alternate Cresco editor screen is a failure.
+
 Every cell is one of `PASS`, `FAIL`, `NOT TESTED`, or `NOT SUPPORTED`.
 
 | WordPress | PHP | Clean activation | Editor smoke | Status |

@@ -7,8 +7,7 @@
 
 namespace CrescoCanvas;
 
-use CrescoCanvas\Admin\Admin;
-use CrescoCanvas\Admin\EditorPreferences;
+use CrescoCanvas\Admin\EditorIntegration;
 use CrescoCanvas\API\RestApi;
 use CrescoCanvas\Blocks\Blocks;
 use CrescoCanvas\Migration\Migrator;
@@ -56,18 +55,16 @@ final class Plugin {
 
 		$this->booted = true;
 
-		$preferences = new EditorPreferences();
-		$styles      = new GlobalStyles();
+		$styles = new GlobalStyles();
 
-		$preferences->register();
-		( new Admin( $preferences, $styles ) )->register();
+		( new EditorIntegration() )->register();
 		( new RestApi() )->register();
 		$styles->register();
 		( new Blocks() )->register();
 
 		add_action( 'admin_init', array( Migrator::class, 'maybe_run' ), 1 );
 		add_action( 'admin_notices', array( Migrator::class, 'render_failure_notice' ) );
-		add_action( 'init', array( $this, 'load_textdomain' ) );
+		add_action( 'init', array( $this, 'load_textdomain' ), 0 );
 	}
 
 	/**
@@ -82,4 +79,3 @@ final class Plugin {
 	 */
 	private function __construct() {}
 }
-

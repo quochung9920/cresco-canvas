@@ -8,7 +8,7 @@ Status vocabulary is fixed to `COMPLETE`, `PARTIAL`, `MISSING`, `BROKEN`, and `N
 | --- | --- | --- |
 | Pre-roadmap 0.1.1 MVP | COMPLETE | Audited `main` commit `7e56722e76138b9b08af5ee5d8bc2b02789e77d9` |
 | 0.2 Architecture and reliability foundation | COMPLETE | Implemented on `milestone/0.2-foundation`; hosted CI evidence is tracked separately |
-| 0.3 Reliable editor workflow | MISSING | Transitional save exists, but native entity/autosave/revision/lock/Navigator work has not begun |
+| 0.3 Reliable editor workflow | PARTIAL | Native Gutenberg integration is implemented; hosted WordPress/browser verification remains unavailable |
 | 0.4 Layout and responsive engine | MISSING | Legacy-compatible Container is retained; complete engine absent |
 | 0.5 Global Design System | MISSING | Small validated setting subset only |
 | 0.6 Templates and components | MISSING | Not implemented |
@@ -27,16 +27,16 @@ Status vocabulary is fixed to `COMPLETE`, `PARTIAL`, `MISSING`, `BROKEN`, and `N
 | Patterns, Synced Patterns, Pattern Overrides, Block Bindings | MISSING | 0.6/0.8 scope |
 | Public Style Engine APIs | MISSING | Current safe subset uses scoped CSS properties |
 | WordPress Interactivity API | MISSING | 0.9 scope |
-| Unknown/third-party block preservation | PARTIAL | Native parser/serializer used; E2E preservation fixture absent |
+| Unknown/third-party block preservation | PARTIAL | Standard Gutenberg owns the document; a third-party E2E fixture remains absent |
 | Readable content after deactivation | COMPLETE | Native markup plus no destructive deactivation |
-| Core blocks reused instead of cloned | PARTIAL | Selected Core block inserter exists; capability library incomplete |
+| Core blocks reused instead of cloned | COMPLETE | Full native Gutenberg inserter and Core block library remain available |
 | No editor React runtime on public frontend | COMPLETE | No frontend JavaScript enqueue |
 | Semantic/minimal public output | PARTIAL | Container saves one wrapper; full library not implemented |
-| Global default editor: Canvas, WordPress, remember | COMPLETE | Validated setting and preference resolution |
-| Per-Page Canvas enablement and preference | PARTIAL | Enablement records on Canvas entry and REST meta exists; dedicated Page UI absent |
-| Row actions for both editors | COMPLETE | Explicit Page row actions |
-| Safe native bypass URL | COMPLETE | Action-specific nonce and capability enforcement |
-| No redirect loops | COMPLETE | Link filtering uses a native bypass and performs no redirects |
+| Single standard Gutenberg editor entry | COMPLETE | Normal Page title/Edit is untouched; dual-editor routing is removed |
+| Per-Page Canvas enablement | COMPLETE | Native sidebar edits revision-enabled REST post metadata through `core/editor` |
+| No dual-editor row actions | COMPLETE | Source and E2E regression prohibit separate Canvas/WordPress links |
+| Missing-build native recovery | COMPLETE | Gutenberg remains usable and a non-blocking admin warning identifies missing assets |
+| No redirect loops | COMPLETE | No Cresco editor router, edit-link filter, or redirect exists |
 | Pages-first support | COMPLETE | Page type/capability checks throughout |
 | Configured public post types | MISSING | Later expansion only |
 | Correct capabilities and permissions | COMPLETE | Page/settings/publish boundaries separated |
@@ -45,44 +45,44 @@ Status vocabulary is fixed to `COMPLETE`, `PARTIAL`, `MISSING`, `BROKEN`, and `N
 
 | Capability | Status | Evidence |
 | --- | --- | --- |
-| Top bar: Back, Page title, Status, Devices, Preview, Save | PARTIAL | Present; status is notice/dirty state and publish workflow is incomplete |
-| Top bar: Undo, Redo, Publish, More | MISSING | 0.3 shell scope |
-| Left panel: Add | COMPLETE | Searchable categorized element panel |
-| Left panel: Structure, Templates, Components | MISSING | 0.3/0.6 scope |
-| Right panel: Content, Layout, Style | PARTIAL | Core BlockInspector plus Container controls |
+| Top bar: Back, Page title, Status, Devices, Preview, Save | COMPLETE | Standard Gutenberg top bar owns these workflows |
+| Top bar: Undo, Redo, Publish, More | COMPLETE | Standard Gutenberg top bar owns these workflows |
+| Left panel: Add | COMPLETE | Native categorized Gutenberg inserter |
+| Left panel: Structure, Templates, Components | PARTIAL | Core List View and patterns exist; Cresco template/component library remains 0.6 |
+| Right panel: Content, Layout, Style | COMPLETE | Native block inspector plus Container controls and Cresco sidebar |
 | Right panel: Responsive, Effects, Advanced | MISSING | 0.4+ scope |
-| Element search and categorized inserter | COMPLETE | Search filters selected Core/Cresco elements by label/category |
-| Drag and drop | MISSING | Core canvas may support block movement, but custom library drag workflow is absent |
-| Structure/Navigator tree and block breadcrumbs | MISSING | 0.3 scope |
-| Inline text editing | PARTIAL | Provided through Core block editing; browser validation pending |
-| Context menu, duplicate, delete | PARTIAL | Core block editor controls may provide them; custom-shell verification absent |
-| Copy/paste and copy/paste styles | MISSING | Not implemented/verified |
-| Multi-selection | MISSING | Not implemented/verified |
-| Block locking | MISSING | Editor setting allows locks; user workflow absent |
-| Keyboard shortcuts and command palette | MISSING | Not implemented |
-| Media library integration | PARTIAL | Core image/video blocks are exposed; custom-shell validation pending |
+| Element search and categorized inserter | COMPLETE | Native Gutenberg inserter remains available |
+| Drag and drop | COMPLETE | Native Gutenberg canvas/List View behavior remains available |
+| Structure/Navigator tree and block breadcrumbs | COMPLETE | Core document overview/List View and selection breadcrumbs remain available |
+| Inline text editing | COMPLETE | Native Core block editing; browser matrix still required for release evidence |
+| Context menu, duplicate, delete | COMPLETE | Native Gutenberg block actions remain available |
+| Copy/paste and copy/paste styles | PARTIAL | Core copy/paste is available; representative style-copy validation remains absent |
+| Multi-selection | COMPLETE | Native Gutenberg selection is not replaced |
+| Block locking | COMPLETE | Native Gutenberg locking UI/data is not replaced |
+| Keyboard shortcuts and command palette | COMPLETE | Native Gutenberg shortcuts and command surfaces remain available |
+| Media library integration | COMPLETE | Native media blocks and Media Library remain available |
 | Loading skeletons | PARTIAL | Spinner/empty state exists; skeleton system absent |
 | Empty-state onboarding | PARTIAL | Actionable empty state exists; guided onboarding is 1.0 scope |
-| Clear errors and notices | COMPLETE | Notice states, PHP recovery views, and error boundary |
-| Resizable/collapsible panels | MISSING | Not implemented |
+| Clear errors and notices | COMPLETE | WordPress notices, settings retry, and non-blocking missing-build warning |
+| Resizable/collapsible panels | PARTIAL | Native panels collapse; custom resizing is not added |
 | Beginner defaults and progressive disclosure | PARTIAL | Safe defaults and panel grouping exist; usability study absent |
-| `@wordpress/core-data` native entity workflow | MISSING | Required 0.3 replacement |
-| Fetch/edit current Page entity | PARTIAL | Transitional versioned route loads title/content/status |
-| Dirty state | COMPLETE | Serialized snapshot comparison |
-| Save/update | PARTIAL | Revision-guarded save exists; native workflow remains 0.3 |
-| Publish | PARTIAL | Status route and publish capability exist; complete publish UX absent |
-| Draft, pending, private, scheduled, published states | PARTIAL | Enums/persistence exist; workflow UI and E2E matrix absent |
-| Autosave and revisions | MISSING | 0.3 scope |
-| Undo and redo | MISSING | 0.3 scope |
-| Post locking | MISSING | 0.3 scope |
-| Concurrent edit detection and stale revision warning | COMPLETE | Exact persisted-state revision token returns HTTP 409, including same-second changes |
-| Save retry | MISSING | Error shown; retry workflow not implemented |
-| Offline and timeout states | MISSING | Generic error only |
-| Crash boundary and recovery screen | COMPLETE | Error boundary, Safe Mode, native editor, missing-build view |
-| Unsaved-change navigation warning | COMPLETE | `beforeunload` while dirty |
-| Slug, excerpt, featured image, parent Page, template, discussion | MISSING | 0.3 document inspector scope |
-| Recovery without data loss | PARTIAL | Conflict/Safe Mode/native bypass exist; native autosave/revisions absent |
-| Custom REST schemas, permissions, validation, sanitization, tests | COMPLETE | Versioned transitional routes and regression coverage |
+| `@wordpress/core-data` native entity workflow | COMPLETE | Cresco runs inside Core's Page editor and does not own Page requests |
+| Fetch/edit current Page entity | COMPLETE | Core editor/data stores are the single source of truth |
+| Dirty state | COMPLETE | Core dirty-state selectors and UI own the document |
+| Save/update | COMPLETE | Gutenberg saves Page content and Cresco Page metadata together |
+| Publish | COMPLETE | Native publish flow is retained |
+| Draft, pending, private, scheduled, published states | COMPLETE | Native document status UI is retained; runtime role matrix remains unverified |
+| Autosave and revisions | COMPLETE | Core workflows retained; Cresco metadata opts into revisions |
+| Undo and redo | COMPLETE | Native Gutenberg history is retained |
+| Post locking | COMPLETE | Native WordPress locking is retained |
+| Concurrent edit detection and stale revision warning | COMPLETE | Native locking/conflict UI replaces the custom optimistic route |
+| Save retry | PARTIAL | Core notices/retry behavior retained; destructive network E2E remains absent |
+| Offline and timeout states | PARTIAL | Core recovery/notices retained; offline E2E remains absent |
+| Crash boundary and recovery screen | PARTIAL | Core recovery owns the Page; missing Cresco assets fail open, but crash E2E remains absent |
+| Unsaved-change navigation warning | COMPLETE | Native Gutenberg navigation protection is retained |
+| Slug, excerpt, featured image, parent Page, template, discussion | COMPLETE | Native Page document inspector remains available where supported |
+| Recovery without data loss | PARTIAL | Core autosave/revisions/locking retained; staged recovery matrix remains unverified |
+| Custom REST schemas, permissions, validation, sanitization, tests | COMPLETE | Only custom settings remain; Page routes are removed and regression-tested |
 
 ## Layout and content capability library
 
@@ -146,21 +146,21 @@ Status vocabulary is fixed to `COMPLETE`, `PARTIAL`, `MISSING`, `BROKEN`, and `N
 
 | Capability | Status | Evidence |
 | --- | --- | --- |
-| 4K 1920, Desktop 1440, Laptop 1024, Tablet 768, Mobile 390 previews | COMPLETE | Device buttons and scoped canvas widths |
+| 4K 1920, Desktop 1440, Laptop 1024, Tablet 768, Mobile 390 previews | PARTIAL | Core preview modes are retained; the exact five-width custom set is not implemented |
 | Documented CSS breakpoint system distinct from preview widths | MISSING | 0.4 scope |
 | Desktop-base inheritance; explicit smaller overrides only | MISSING | 0.4 scope |
 | Reset/inheritance indicators and no unused media queries | MISSING | 0.4 scope |
 | Validated px/%/rem/em/vw/vh/auto/min/max/clamp/token values | MISSING | Current controls are bounded pixels only |
 | CSS injection prevention | COMPLETE | Strict server setting grammar; arbitrary custom values absent |
 | Responsive layout/spacing/typography/alignment/order/sizing/visibility/background/border controls | MISSING | 0.4 scope |
-| Fast Edit Canvas and device simulation | PARTIAL | Shell/device widths exist; timing/accuracy not measured |
+| Fast Gutenberg editing canvas and device simulation | PARTIAL | Core canvas/modes retained; timing and exact viewport accuracy are not measured |
 | Selection outlines/editing controls | PARTIAL | Container/Core editor controls exist; representative validation pending |
 | No editor chrome in saved frontend markup | COMPLETE | Save output contains block markup only |
 | Live frontend theme iframe and synchronization | MISSING | 0.3+ preview scope |
 | Theme/header/footer/global/dynamic/query/interactive/template context in live preview | MISSING | Later milestones |
 | External real WordPress preview | COMPLETE | Core preview URL opens in a new tab |
 | Draft preview nonce/privacy preservation | PARTIAL | Core preview API used; role/E2E validation pending |
-| Material consistency across Canvas/live/public views | MISSING | Live preview absent |
+| Material consistency across editor/live/public views | PARTIAL | Native editor and public markup share blocks; live-theme/browser comparison absent |
 
 ## Shared controls, design system, templates, and Theme Builder
 
@@ -219,16 +219,16 @@ Status vocabulary is fixed to `COMPLETE`, `PARTIAL`, `MISSING`, `BROKEN`, and `N
 | Composer autoloading | COMPLETE | PSR-4 manifest, lock, optimized release install, fallback |
 | PHPCS with WordPress/PHP compatibility standards | COMPLETE | Config and required CI job |
 | ESLint, Stylelint, type checking | COMPLETE | Scripts run locally and in CI |
-| PHP unit tests | COMPLETE | Isolated migration/style/preference/conflict suites |
+| PHP unit tests | COMPLETE | Isolated migration, native metadata, settings, and style suites |
 | PHP integration tests | MISSING | Real WordPress behavior is smoke/E2E only |
-| JavaScript unit tests | COMPLETE | API and style projection tests |
-| Playwright E2E | COMPLETE | Three-browser workflow, isolation, recovery, axe tests configured |
+| JavaScript unit tests | COMPLETE | Error normalization, token projection, and Container style tests |
+| Playwright E2E | COMPLETE | Three-browser Gutenberg entry/save/meta/isolation/removed-route/axe suite configured |
 | GitHub Actions | COMPLETE | JS/PHP/WPCS/compatibility/E2E jobs |
 | Deterministic lock files | COMPLETE | npm and Composer locks |
 | Production and development builds | COMPLETE | `build` and `start` scripts |
 | Reproducible release ZIP and checksum | COMPLETE | Fixed timestamps, allowlist, double-build hash check |
 | Plugin Check | COMPLETE | Required CI execution configured |
-| Versioned/idempotent migrations | COMPLETE | Schema version one, atomic lock, failure state |
+| Versioned/idempotent migrations | COMPLETE | Schemas one and two, atomic lock, failure state, and retired-preference cleanup |
 | Feature flags | COMPLETE | Known flags normalized and default off |
 | Activation and minimum-version checks | COMPLETE | WordPress/PHP requirements block activation |
 | Safe deactivation | COMPLETE | Content/settings preserved |
@@ -252,11 +252,11 @@ Status vocabulary is fixed to `COMPLETE`, `PARTIAL`, `MISSING`, `BROKEN`, and `N
 
 The summary is generated from the matrix rows above (excluding milestone-history rows):
 
-- `COMPLETE`: 43
-- `PARTIAL`: 38
-- `MISSING`: 99
+- `COMPLETE`: 63
+- `PARTIAL`: 35
+- `MISSING`: 82
 - `BROKEN`: 0
 - `NOT APPLICABLE`: 6
-- Weighted product-scope readiness: **34.4%**
+- Weighted product-scope readiness: **44.7%**
 
 Formula: `(COMPLETE + 0.5 × PARTIAL) ÷ (COMPLETE + PARTIAL + MISSING + BROKEN)`. This percentage is descriptive roadmap coverage only. It does not override the eight commercial gates, all of which remain `NOT VERIFIED`.

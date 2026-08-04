@@ -1,6 +1,6 @@
 import {
 	Button,
-	SelectControl,
+	PanelBody,
 	TextControl,
 	ToggleControl,
 } from '@wordpress/components';
@@ -12,11 +12,12 @@ import type { GlobalSettings } from '../types';
 interface Props {
 	onChange: ( settings: GlobalSettings ) => void;
 	onSave: () => void;
+	saving: boolean;
 	settings: GlobalSettings;
 }
 
 interface ColorFieldProps {
-	field: 'primary' | 'text' | 'background';
+	field: 'background' | 'primary' | 'text';
 	label: string;
 	onChange: ( settings: GlobalSettings ) => void;
 	settings: GlobalSettings;
@@ -27,7 +28,7 @@ function ColorField( { field, label, onChange, settings }: ColorFieldProps ) {
 
 	return (
 		<label className="cc-color-field" htmlFor={ inputId }>
-			{ label }
+			<span>{ label }</span>
 			<input
 				id={ inputId }
 				type="color"
@@ -40,89 +41,73 @@ function ColorField( { field, label, onChange, settings }: ColorFieldProps ) {
 	);
 }
 
-export function GlobalSettingsPanel( { onChange, onSave, settings }: Props ) {
+export function GlobalSettingsPanel( {
+	onChange,
+	onSave,
+	saving,
+	settings,
+}: Props ) {
 	return (
 		<>
-			<div className="cc-panel-header">
-				{ __( 'Global Settings', 'cresco-canvas' ) }
-			</div>
-			<div className="cc-panel-body cc-settings-grid">
-				<ColorField
-					field="primary"
-					label={ __( 'Primary color', 'cresco-canvas' ) }
-					onChange={ onChange }
-					settings={ settings }
-				/>
-				<ColorField
-					field="text"
-					label={ __( 'Text color', 'cresco-canvas' ) }
-					onChange={ onChange }
-					settings={ settings }
-				/>
-				<ColorField
-					field="background"
-					label={ __( 'Background color', 'cresco-canvas' ) }
-					onChange={ onChange }
-					settings={ settings }
-				/>
-				<TextControl
-					label={ __( 'Boxed maximum width', 'cresco-canvas' ) }
-					min={ 960 }
-					onChange={ ( value ) =>
-						onChange( {
-							...settings,
-							containerMax: Number( value ),
-						} )
-					}
-					type="number"
-					value={ settings.containerMax }
-				/>
-				<TextControl
-					label={ __( 'Content maximum width', 'cresco-canvas' ) }
-					min={ 640 }
-					onChange={ ( value ) =>
-						onChange( { ...settings, contentMax: Number( value ) } )
-					}
-					type="number"
-					value={ settings.contentMax }
-				/>
-				<TextControl
-					label={ __( 'Global radius', 'cresco-canvas' ) }
-					min={ 0 }
-					onChange={ ( value ) =>
-						onChange( { ...settings, radius: Number( value ) } )
-					}
-					type="number"
-					value={ settings.radius }
-				/>
-				<SelectControl
-					label={ __( 'Default Page editor', 'cresco-canvas' ) }
-					onChange={ ( value ) =>
-						onChange( {
-							...settings,
-							editorPreference:
-								value as GlobalSettings[ 'editorPreference' ],
-						} )
-					}
-					options={ [
-						{
-							label: __(
-								'Remember last choice',
-								'cresco-canvas'
-							),
-							value: 'remember',
-						},
-						{
-							label: __( 'Cresco Canvas', 'cresco-canvas' ),
-							value: 'canvas',
-						},
-						{
-							label: __( 'WordPress Editor', 'cresco-canvas' ),
-							value: 'wordpress',
-						},
-					] }
-					value={ settings.editorPreference }
-				/>
+			<PanelBody
+				initialOpen={ false }
+				title={ __( 'Global design', 'cresco-canvas' ) }
+			>
+				<div className="cc-settings-grid">
+					<ColorField
+						field="primary"
+						label={ __( 'Primary color', 'cresco-canvas' ) }
+						onChange={ onChange }
+						settings={ settings }
+					/>
+					<ColorField
+						field="text"
+						label={ __( 'Text color', 'cresco-canvas' ) }
+						onChange={ onChange }
+						settings={ settings }
+					/>
+					<ColorField
+						field="background"
+						label={ __( 'Page background', 'cresco-canvas' ) }
+						onChange={ onChange }
+						settings={ settings }
+					/>
+					<TextControl
+						label={ __( 'Global radius', 'cresco-canvas' ) }
+						max={ 80 }
+						min={ 0 }
+						onChange={ ( value ) =>
+							onChange( {
+								...settings,
+								radius: Number( value ),
+							} )
+						}
+						type="number"
+						value={ settings.radius }
+					/>
+					<TextControl
+						label={ __( 'Font family stack', 'cresco-canvas' ) }
+						onChange={ ( fontFamily ) =>
+							onChange( { ...settings, fontFamily } )
+						}
+						value={ settings.fontFamily }
+					/>
+					<Button
+						disabled={ saving }
+						isBusy={ saving }
+						onClick={ onSave }
+						variant="primary"
+					>
+						{ saving
+							? __( 'Saving…', 'cresco-canvas' )
+							: __( 'Save global design', 'cresco-canvas' ) }
+					</Button>
+				</div>
+			</PanelBody>
+			<PanelBody
+				initialOpen={ false }
+				title={ __( 'Data and uninstall', 'cresco-canvas' ) }
+			>
 				<ToggleControl
 					checked={ settings.removeDataOnUninstall }
 					help={ __(
@@ -140,10 +125,7 @@ export function GlobalSettingsPanel( { onChange, onSave, settings }: Props ) {
 						} )
 					}
 				/>
-				<Button onClick={ onSave } variant="primary">
-					{ __( 'Save Global Settings', 'cresco-canvas' ) }
-				</Button>
-			</div>
+			</PanelBody>
 		</>
 	);
 }

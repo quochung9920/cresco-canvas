@@ -29,6 +29,7 @@ function cresco_canvas_uninstall_site_data() {
 	delete_option( 'cresco_canvas_migration_lock' );
 
 	delete_post_meta_by_key( '_cresco_canvas_enabled' );
+	// Clean legacy 0.2 dual-editor data retained for upgrade compatibility.
 	delete_post_meta_by_key( '_cresco_canvas_editor_preference' );
 	delete_metadata( 'user', 0, 'cresco_canvas_last_editor', '', true );
 }
@@ -44,4 +45,3 @@ if ( is_multisite() ) {
 } else {
 	cresco_canvas_uninstall_site_data();
 }
-

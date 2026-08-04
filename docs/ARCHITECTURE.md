@@ -2,17 +2,17 @@
 
 ## Boundaries
 
-Cresco Canvas remains a WordPress plugin, not a fork of WordPress or Gutenberg. The canonical Page document is native block markup in `wp_posts.post_content`. The custom shell composes public `@wordpress/*` packages and selected Core blocks; public output contains no Cresco editor React runtime.
+Cresco Canvas is a Gutenberg extension, not a fork and not a second editor. The normal WordPress Page **Edit** action opens Gutenberg. WordPress Core owns the Page entity and every document workflow; Cresco registers native blocks, a plugin sidebar, revision-enabled Page metadata, and scoped style tokens.
 
 ```text
-WordPress Page post_content
-        ↑ parse / serialize
-Typed Canvas editor shell
-        ↓ revision-guarded save (0.2 transition)
-Versioned Cresco REST API
+WordPress Page post_content and post meta
+        ↕ Core editor/data stores
+Native Gutenberg editor
+        ↕ public SlotFills and block APIs
+Cresco sidebar, Container block, and design settings
 ```
 
-Milestone 0.3 replaces the transitional Page route with native entity workflows through `@wordpress/core-data`, including autosaves, revisions, locks, undo/redo, and recovery.
+The public frontend contains no Cresco editor React runtime. Deactivation leaves native markup readable and editable.
 
 ## PHP services
 
@@ -24,59 +24,58 @@ Milestone 0.3 replaces the transitional Page route with native entity workflows 
 | `Lifecycle\Deactivator` | Preserve content/settings and clear only a stale migration lock |
 | `Migration\Migrator` | Serialize idempotent schema upgrades and retain failure evidence |
 | `Support\FeatureFlags` | Normalize known experimental flags; all default off |
-| `Admin\EditorPreferences` | Resolve Page/global/user editor choice and build signed recovery URLs |
-| `Admin\Admin` | Render/enqueue the custom editor only on its own admin screen |
-| `API\RestApi` | Transitional Page/settings routes with schemas, capabilities, normalization, and conflict detection |
-| `Styles\GlobalStyles` | Validate design settings and conditionally emit scoped CSS variables |
-| `Blocks\Blocks` | Register the native Container metadata and compiled editor script |
+| `Admin\EditorIntegration` | Register revision-enabled Page metadata and enqueue the Gutenberg sidebar only in the Page block editor |
+| `API\RestApi` | Expose only permissioned, validated Cresco global settings; no Page document routes |
+| `Styles\GlobalStyles` | Validate design settings and conditionally emit scoped editor/frontend variables |
+| `Blocks\Blocks` | Register the native Container metadata and compiled block editor script |
 
-Composer supplies optimized PSR-4 loading in release artifacts. A small fallback autoloader keeps a source checkout recoverable before `composer install`; it loads only the `CrescoCanvas\` namespace from `includes/`.
+Composer supplies optimized PSR-4 loading in releases. A restricted fallback autoloader keeps source checkouts recoverable before `composer install` and loads only `CrescoCanvas\` classes from `includes/`.
 
 ## Editor modules
 
-- `src/editor/App.tsx` owns document state and composes the shell.
-- `src/editor/api.ts` centralizes authenticated REST requests and error normalization.
-- `src/editor/components/` isolates top bar, inserter, inspector, settings, and crash recovery.
-- `src/blocks/container/` owns Container registration, edit/save views, types, and style projection.
-- `src/types/wordpress-block-editor.d.ts` declares only the public block-editor runtime surface used by this plugin because that package does not currently publish TypeScript declarations.
+- `src/editor/index.tsx` registers one WordPress plugin extension.
+- `src/editor/components/SettingsSidebar.tsx` integrates Page enablement and site-wide settings with Gutenberg's sidebar.
+- `src/editor/components/GlobalSettingsPanel.tsx` uses WordPress controls and a separate save only for site-wide Cresco data.
+- `src/editor/previewTokens.ts` projects validated settings into the current Gutenberg canvas without touching unrelated DOM.
+- `src/blocks/container/` owns native Container registration, edit/save views, types, and style projection.
 
-Generated files under `build/` are production assets required for a source checkout to activate safely. Source maps, dependencies, tests, and developer source are excluded from release ZIPs.
+There is no custom Page editor mount point, router, top bar, document state store, Page REST adapter, or alternate Page edit URL.
+
+Generated files under `build/` are production assets required for source-checkout recovery. Source maps, dependencies, tests, and developer source are excluded from release ZIPs.
 
 ## Data model
 
 | Storage | Key/entity | Policy |
 | --- | --- | --- |
-| Posts | Page `post_content` | Canonical native block markup; never deleted by uninstall |
-| Post meta | `_cresco_canvas_enabled` | Boolean conditional-asset marker |
-| Post meta | `_cresco_canvas_editor_preference` | Optional `canvas` or `wordpress` Page override |
-| User meta | `cresco_canvas_last_editor` | Last explicit editor choice in remember mode |
-| Option | `cresco_canvas_settings` | Validated global tokens, editor default, uninstall choice |
+| Posts | Page `post_content` | Canonical native block markup; Core saves/revises it; uninstall never deletes it |
+| Post meta | `_cresco_canvas_enabled` | Boolean, REST-visible, capability-protected, and revision-enabled |
+| Option | `cresco_canvas_settings` | Validated global tokens and explicit uninstall choice |
 | Option | `cresco_canvas_feature_flags` | Known Boolean experimental flags |
 | Option | `cresco_canvas_db_version` | Last completed schema version |
-| Option | `cresco_canvas_migration_state` | Complete/failure evidence without sensitive stack traces |
+| Option | `cresco_canvas_migration_state` | Complete/failure evidence without rendered exception details |
 | Option | `cresco_canvas_migration_lock` | Short-lived atomic migration lock |
 
-Schema version one normalizes legacy settings and creates default feature flags. It never rewrites posts or block markup.
+Schema version one normalizes legacy settings and creates feature flags. Schema version two removes the retired editor-choice option and metadata. Neither migration rewrites posts or block markup; `_cresco_canvas_enabled` is preserved.
 
-## Save safety
+## Document reliability
 
-The 0.2 route returns a SHA-256 token derived from the exact persisted ID, modified time, title, status, and content. A save must present that token. A mismatch returns HTTP 409 before mutation, including when both edits share WordPress's one-second timestamp. The route separately checks Page edit and publish capabilities.
+Gutenberg's native Page workflow provides entity fetching, dirty state, save/update/publish, statuses and scheduling, autosaves, revisions, undo/redo, post locking and conflict handling, retry/error notices, unsaved-navigation protection, preview, slug, featured image, parent, template, discussion, media, inserter, and List View.
 
-This is transitional optimistic concurrency, not a substitute for native autosaves, revisions, or post locks; those remain 0.3 acceptance criteria.
+Cresco Page metadata is edited through `core/editor` and saved by the same Core action as Page content. It opts into metadata revisions. Custom REST remains only for site-wide Cresco settings because those are not Page entity data.
 
 ## Asset isolation
 
-- Admin JavaScript/CSS loads only on the registered Cresco submenu hook and never in Safe Mode.
-- The custom screen enqueues the supported Core block library and the Cresco Container registration.
-- Frontend CSS loads only for singular Pages with explicit Canvas metadata or a legacy `cresco/container` block.
-- Design variables target `.cresco-canvas-scope` in admin and `body.cresco-canvas-page` on the frontend.
-- Container selectors are block-specific; no unqualified `body`, button, or root selector remains.
+- Sidebar JavaScript/CSS loads only in the standard Gutenberg Page editor.
+- Missing sidebar assets produce a non-blocking PHP warning and never prevent Gutenberg from opening.
+- RTL uses WordPress stylesheet replacement metadata.
+- No editor JavaScript is enqueued on the public frontend.
+- Frontend CSS loads only on a singular Page with explicit Cresco metadata or a legacy `cresco/container` block.
+- Design variables target `.editor-styles-wrapper` in Gutenberg and `body.cresco-canvas-page` on the frontend.
+- Container selectors are block-specific; no unqualified root, body, or button selector exists.
 
 ## Recovery and rollback
 
-- A React error boundary links to signed Safe Mode and WordPress Editor URLs.
-- Safe Mode renders without Cresco editor scripts or generated admin CSS.
-- Missing build files produce an actionable PHP recovery view.
-- Unsaved changes trigger a browser navigation warning.
-- Deactivation preserves all user data and native markup.
-- Uninstall defaults to preservation. Explicit cleanup removes only documented Cresco options/meta, including on multisite, and never touches `post_content`.
+- Core autosaves, revisions, locks, notices, and recovery own document safety.
+- A missing Cresco build disables only Cresco tools; the Page remains editable in Gutenberg.
+- Deactivation preserves all content, metadata, and settings.
+- Uninstall defaults to preservation. Explicit cleanup removes documented Cresco options/metadata across multisite and never touches `post_content`.

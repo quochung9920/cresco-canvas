@@ -6,7 +6,7 @@
  */
 
 define( 'ABSPATH', __DIR__ . '/' );
-define( 'CRESCO_CANVAS_SCHEMA_VERSION', 1 );
+define( 'CRESCO_CANVAS_SCHEMA_VERSION', 2 );
 define( 'CRESCO_CANVAS_MINIMUM_PHP', '8.1' );
 define( 'CRESCO_CANVAS_MINIMUM_WORDPRESS', '6.7' );
 define( 'CRESCO_CANVAS_PATH', dirname( __DIR__, 2 ) . '/' );
@@ -16,6 +16,8 @@ $GLOBALS['cresco_test_posts']     = array();
 $GLOBALS['cresco_test_post_meta'] = array();
 $GLOBALS['cresco_test_user_meta'] = array();
 $GLOBALS['cresco_test_updates']   = array();
+$GLOBALS['cresco_test_registered_meta'] = array();
+$GLOBALS['cresco_test_capabilities']    = array();
 
 if ( ! class_exists( 'WP_Error' ) ) {
 	class WP_Error {
@@ -141,12 +143,38 @@ function delete_option( $name ) {
 	return true;
 }
 
+function delete_metadata( $meta_type, $object_id, $meta_key, $meta_value = '', $delete_all = false ) {
+	unset( $object_id, $meta_value );
+
+	if ( 'user' === $meta_type && $delete_all ) {
+		foreach ( $GLOBALS['cresco_test_user_meta'] as &$values ) {
+			unset( $values[ $meta_key ] );
+		}
+		unset( $values );
+	}
+
+	return true;
+}
+
+function delete_post_meta_by_key( $meta_key ) {
+	foreach ( $GLOBALS['cresco_test_post_meta'] as &$values ) {
+		unset( $values[ $meta_key ] );
+	}
+	unset( $values );
+
+	return true;
+}
+
 function get_bloginfo( $field ) {
 	return 'version' === $field ? '7.0.1' : '';
 }
 
 function get_current_user_id() {
 	return 7;
+}
+
+function current_user_can( $capability ) {
+	return $GLOBALS['cresco_test_capabilities'][ $capability ] ?? true;
 }
 
 function get_option( $name, $default = false ) {
@@ -183,6 +211,11 @@ function mysql2date( $format, $date ) {
 
 function rest_sanitize_boolean( $value ) {
 	return filter_var( $value, FILTER_VALIDATE_BOOLEAN );
+}
+
+function register_post_meta( $post_type, $meta_key, $args ) {
+	$GLOBALS['cresco_test_registered_meta'][ $post_type . ':' . $meta_key ] = $args;
+	return true;
 }
 
 function sanitize_hex_color( $value ) {

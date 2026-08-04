@@ -1,9 +1,3 @@
-body.cresco-canvas-page {
-	background: var(--cc-background);
-	color: var(--cc-text);
-	font-family: var(--cc-font);
-}
-
 body.cresco-canvas-page .wp-block-cresco-container.cc-container {
 	box-sizing: border-box;
 }
@@ -11,10 +5,5 @@ body.cresco-canvas-page .wp-block-cresco-container.cc-container {
 body.cresco-canvas-page .wp-block-cresco-container.cc-container img {
 	height: auto;
 	max-width: 100%;
-}
-
-body.cresco-canvas-page .wp-block-cresco-container .cc-button,
-body.cresco-canvas-page .wp-block-cresco-container .wp-block-button__link {
-	border-radius: var(--cc-radius);
 }
 

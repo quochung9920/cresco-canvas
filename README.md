@@ -1,40 +1,36 @@
 # Cresco Canvas
 
-Cresco Canvas is an experimental native visual editor for WordPress Pages. Version `0.2.0-alpha.1` establishes the architecture and reliability foundation; it is not a commercial release.
+Cresco Canvas is an experimental visual-building extension for the native WordPress Gutenberg editor. Version `0.3.0-alpha.1` removes the separate Canvas editor and integrates Cresco controls directly into the standard Page editor. It is not a commercial release.
 
-The plugin stores Page content as normal Gutenberg block markup in `post_content`. Deactivation leaves content and settings intact. Uninstall never deletes Page content and removes plugin-owned options and metadata only when an administrator has explicitly enabled that setting.
+Page content remains normal Gutenberg block markup in `post_content`. WordPress Core owns loading, saving, publishing, autosaves, revisions, undo/redo, post locking, previews, media, the inserter, and List View. Cresco adds a native Container block, a Gutenberg sidebar, and scoped design tokens.
 
 ## Requirements
 
 - WordPress 6.7 or newer.
 - PHP 8.1 or newer.
-- A modern browser supported by the installed WordPress version.
+- A browser supported by the installed WordPress version.
 - Node.js 22 and npm 10 or newer for development.
-- Composer 2 for development and release packaging.
-- Docker for the `wp-env` compatibility and E2E suites.
+- Composer 2 and Docker for packaging and WordPress/E2E suites.
 
-## What milestone 0.2 provides
+## What milestone 0.3 changes
 
-- A TypeScript editor shell built with public `@wordpress/*` packages.
-- A native `cresco/container` block plus selected Core blocks.
-- Explicit **Edit in Canvas** and **WordPress Editor** Page actions.
-- Global, per-Page, and remembered editor preferences.
-- Nonce-protected native-editor bypass and no-JavaScript Safe Mode.
-- Dirty-state and navigation warnings, clear recovery errors, and exact revision-token conflict detection for the transitional save route.
-- Scoped, conditional frontend assets; editor React code is never loaded on the public frontend.
-- Versioned, idempotent migrations, feature flags, runtime checks, safe lifecycle hooks, and opt-in uninstall cleanup.
-- Deterministic dependency locks, CI matrices, automated tests, and a reproducible release ZIP.
-
-Autosave, native entity editing, revisions UI, undo/redo, post locking, and the full Navigator workflow belong to milestone 0.3 and are intentionally not claimed here.
+- The normal Page title and **Edit** action open Gutenberg—there is no **Edit in Canvas / WordPress Editor** choice.
+- Cresco tools appear inside Gutenberg in the **Cresco Canvas** plugin sidebar.
+- The Page styling switch is revision-enabled metadata and is saved by Gutenberg's normal **Save**, **Update**, or **Publish** workflow.
+- The custom Page REST load/save routes, duplicate editor router, custom shell, Safe Mode route, and editor-choice preferences are removed.
+- Existing `cresco/container` markup remains compatible and editable as a native block.
+- Site-wide Cresco design settings remain permissioned custom data, saved through the settings endpoint and previewed in the editor.
+- Missing Cresco build assets show a non-blocking warning; Gutenberg remains usable.
+- Frontend CSS remains conditional and scoped to Pages that enable Cresco or contain a legacy Cresco Container.
 
 ## Install a release ZIP
 
 1. Download the CI-produced `cresco-canvas.zip` artifact from a reviewed milestone build.
 2. In WordPress, open **Plugins → Add New Plugin → Upload Plugin**.
 3. Upload the ZIP and activate Cresco Canvas.
-4. Open **Pages** and choose **Edit in Canvas** for a Page.
+4. Open **Pages**, select the normal **Edit** action, then open the **Cresco Canvas** sidebar in Gutenberg.
 
-Do not package the repository directory manually: source checkouts omit Composer's release autoloader.
+Do not package the repository directory manually: source checkouts omit Composer's optimized release autoloader.
 
 ## Develop locally
 
@@ -51,6 +47,7 @@ Useful checks:
 npm run typecheck
 npm run lint:js
 npm run lint:css
+npm run lint:md
 npm run test:unit
 phpunit --configuration phpunit.xml.dist
 npm run test:e2e
@@ -58,22 +55,19 @@ npm run check:version
 npm run package:verify
 ```
 
-`npm run package:verify` requires `vendor/autoload.php`, so run Composer first. The resulting archive and checksum are written to `dist/`.
-
-## Editor selection and recovery
-
-The default setting supports **Cresco Canvas**, **WordPress Editor**, or **Remember last choice**. A Page-level `_cresco_canvas_editor_preference` value overrides the global choice. Every Page row exposes explicit links to both editors.
-
-Safe Mode is a signed, user-specific URL shown by the editor recovery boundary. It disables Cresco editor scripts and generated admin CSS for that request, then offers a signed WordPress Editor link. Safe Mode does not modify the Page.
+`npm run package:verify` requires `vendor/autoload.php`; run Composer first. The archive and checksum are written to `dist/`.
 
 ## Data and rollback
 
 - Canonical content: native block markup in `wp_posts.post_content`.
-- Plugin options: `cresco_canvas_settings`, `cresco_canvas_feature_flags`, `cresco_canvas_db_version`, and migration state/lock options.
-- Plugin metadata: `_cresco_canvas_enabled`, `_cresco_canvas_editor_preference`, and `cresco_canvas_last_editor` user metadata.
-- Rollback from this alpha: deactivate the plugin and use the WordPress Editor. Do not install code with an older schema until its rollback compatibility has been reviewed.
+- Plugin option: `cresco_canvas_settings` for validated global tokens and opt-in uninstall cleanup.
+- Page metadata: `_cresco_canvas_enabled`, registered for native REST saving and revisions.
+- Migration schema 2 removes retired dual-editor preferences without changing Page content.
+- Deactivation preserves all content and settings.
+- Uninstall preserves data by default; explicit cleanup removes only documented Cresco options and metadata, never `post_content`.
+- Rollback from this alpha: deactivate the plugin and continue editing the native blocks in Gutenberg. Review schema compatibility before installing older plugin code.
 
-See [Architecture](docs/ARCHITECTURE.md), [Roadmap](docs/ROADMAP.md), [Known limitations](docs/KNOWN_LIMITATIONS.md), and [Release checklist](docs/RELEASE_CHECKLIST.md) for the evidence-backed status.
+See [Architecture](docs/ARCHITECTURE.md), [Roadmap](docs/ROADMAP.md), [Known limitations](docs/KNOWN_LIMITATIONS.md), and [Release checklist](docs/RELEASE_CHECKLIST.md) for evidence-backed status.
 
 ## License
 

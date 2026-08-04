@@ -49,3 +49,26 @@ No baseline command suite could be run because the repository did not define one
 ## Scope decision
 
 The latest genuinely completed state was the pre-roadmap 0.1.1 MVP. Milestone 0.2 was therefore the next incomplete milestone. This branch repairs its baseline P1/P2 issues and implements only the 0.2 architecture and reliability foundation. It deliberately does not begin milestone 0.3.
+
+## Milestone 0.3 re-audit
+
+Re-audit date: 2026-08-04 (Asia/Ho_Chi_Minh).
+
+The re-audit used merged `main` commit `724ad425ae5e578a782942e378852925b29f555f`, version `0.2.0-alpha.1`, as its immutable baseline. PRs #1 and #2 were merged. The latest Actions run still had `startup_failure` and allocated zero jobs, so hosted WordPress/runtime claims remained unavailable.
+
+Clean baseline commands produced the following evidence before milestone 0.3 edits:
+
+| Check | Result |
+| --- | --- |
+| `npm ci` | PASS, with documented upstream peer/deprecation warnings |
+| TypeScript, JavaScript lint, CSS lint, unit tests, build, version check | PASS |
+| Markdown lint | FAIL: the newly merged authoritative prompt did not conform to the configured Markdown rules |
+| Production npm audit | PASS: zero production vulnerabilities |
+| Full npm audit | FAIL: 30 development-only transitive advisories |
+| Native PHP/Composer/WordPress/browser suite | NOT TESTED: required runtimes were unavailable locally |
+
+The central P1 product/UX finding was architectural: normal Page editing was split between **Edit in Canvas** and **WordPress Editor**, while Cresco duplicated Core Page loading, saving, conflict, navigation, and recovery behavior in a proprietary shell. This was difficult to use and prevented Core autosaves, revisions, locking, document settings, List View, media, and standard editor behavior from being the single source of truth.
+
+Milestone 0.3 therefore replaces the duplicate shell with a direct Gutenberg extension. The normal Edit action is untouched; Page content and revision-enabled Cresco metadata use Core's save boundary. The custom Page REST routes and editor-choice data are retired through schema version two. Site-wide design settings remain custom, permissioned data. Markdown lint is repaired with narrow inline exemptions for the authoritative prompt's intentionally long instructions and numbered top-level sections; all other Markdown rules and documents remain checked.
+
+No Page content or public markup migration is performed. Hosted WordPress, browser, compatibility, accessibility, and release-artifact evidence remains mandatory before the milestone can be declared complete or production-ready.

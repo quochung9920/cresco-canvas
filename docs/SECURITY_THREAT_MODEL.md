@@ -1,48 +1,47 @@
 # Security Threat Model
 
-Last reviewed: 2026-08-03 for milestone 0.2.
+Last reviewed: 2026-08-04 for milestone 0.3.
 
 ## Protected assets
 
-- Page content, titles, publication state, and draft privacy.
-- Site-wide Cresco design settings.
-- Editor preferences and feature flags.
+- Page content, Cresco Page metadata, publication state, and draft privacy.
+- Site-wide Cresco design settings and feature flags.
 - WordPress authentication cookies and REST nonces.
-- Availability of the admin editor and public frontend.
+- Availability of Gutenberg and the public frontend.
 - Release artifact integrity and absence of developer/private files.
 
 ## Trust boundaries
 
-Authenticated browser input crosses WordPress admin and REST boundaries. Page authors are not assumed to have theme-setting or publish permissions. Stored WordPress content and legacy plugin options are untrusted until normalized. Themes, plugins, blocks, and build dependencies are external components and may fail or conflict.
+WordPress Core owns the Page REST/entity boundary and document workflows. Cresco-owned browser input crosses one custom REST boundary for global settings. Page authors are not assumed to have site-design permission. Stored settings and legacy options are untrusted until normalized. Themes, plugins, blocks, and build dependencies may fail or conflict.
 
 ## Threats and controls
 
 | Threat | Control | Residual status |
 | --- | --- | --- |
-| Unauthorized Page read/write | Route-specific `edit_pages`/`edit_post` checks and Page-type validation | Automated permission integration test remains NOT VERIFIED |
-| Unauthorized publish/private/scheduled transition | Separate `publish_pages` capability check | Role matrix remains NOT VERIFIED |
-| Cross-site request forgery | WordPress REST nonce for API; action-specific nonces for editor-choice URLs | Signed read-only bypass query is intentionally not an authorization grant |
-| Stale or same-second overwrite | Exact SHA-256 persisted-state revision token; HTTP 409 before update | Native locks/autosaves/revision UI remain 0.3 |
-| Stored CSS injection | Hex sanitization, bounded numbers, editor enum, strict font-stack grammar, trusted selectors | Custom CSS is not implemented |
-| Malicious REST values | Route schemas, enums, types, sanitizers, bounds, and WordPress post APIs | Property-based/fuzz testing is not implemented |
-| Cross-site scripting in admin output | WordPress escaping for text/attributes/URLs and JSON encoding for bootstrap data | Full manual payload review remains NOT VERIFIED |
-| Open redirect or redirect loop | Locally constructed admin URLs; native bypass does not redirect | Browser matrix evidence pending CI |
-| Data destruction on lifecycle events | Deactivation preserves data; uninstall is explicit and never deletes posts/content | Multisite uninstall execution pending CI/manual evidence |
-| Information leakage in migration errors | User notice is generic; exception detail is stored locally, not rendered | Privacy-safe diagnostics are 1.0 scope |
-| Frontend code/style supply | No editor React runtime on public pages; CSS is scoped/conditional | Third-party block behavior remains compatibility work |
-| Artifact contamination | Deterministic allowlist ZIP; archive-content CI assertion; SHA-256 output | Signing/provenance is not implemented |
-| Dependency compromise | Exact npm lock, Composer lock, production audit gate, visible full audit | Upstream development toolchain has 30 advisories, including 5 high; no production npm dependencies ship |
-| CI action tag mutation | Workflow uses established major action tags | Pinning every action to reviewed commit SHAs remains P2 |
+| Unauthorized Page content/meta write | Core Page endpoint plus `_cresco_canvas_enabled` `edit_post` authorization | Role and real WordPress integration matrix remains NOT VERIFIED |
+| Unauthorized publication/state transition | Delegated entirely to Core Page capabilities and editor workflow | Runtime role matrix remains NOT VERIFIED |
+| Cross-site request forgery | Core-configured REST nonce used by `apiFetch`; no custom editor-choice actions remain | Browser evidence pending |
+| Stale overwrite/concurrent editing | Native autosave, revisions, post locking, conflict notices, and Core save behavior | Two-user runtime test remains NOT VERIFIED |
+| Stored CSS injection | Hex sanitization, bounded numbers, strict font-stack grammar, and trusted internal selectors | Property/fuzz testing absent; arbitrary Custom CSS is not implemented |
+| Malicious settings REST values | `edit_theme_options`, response schema, normalization, bounds, and explicit property allowlist | Real REST permission integration test remains NOT VERIFIED |
+| Cross-site scripting in admin output | WordPress escaping plus `wp_json_encode` for bootstrap data; React escapes rendered text | Full manual payload review remains NOT VERIFIED |
+| Editor denial of service from missing assets | Missing Cresco build emits a non-blocking notice; Gutenberg continues without the extension | Real missing-build staging test remains NOT VERIFIED |
+| Redirect loop/open redirect | No Cresco editor router, takeover, redirect, or alternate Page URL exists | Static source regression and E2E absence checks configured |
+| Lifecycle data destruction | Deactivation preserves data; uninstall is explicit and never deletes posts/content | Multisite execution remains NOT VERIFIED |
+| Frontend style/script contamination | No public editor JS; frontend CSS is scoped and conditional | Third-party theme/block matrix remains NOT VERIFIED |
+| Artifact contamination | Deterministic allowlist ZIP, archive-content assertion, and SHA-256 output | Signing/provenance absent |
+| Dependency compromise | Exact locks, production audit gate, and visible full audit | Development toolchain retains 30 transitive advisories |
+| CI action tag mutation | Established major action tags | Commit-SHA pinning remains open P2 |
 
 ## REST inventory
 
 | Route | Method | Capability | Mutation |
 | --- | --- | --- | --- |
-| `/cresco-canvas/v1/pages` | GET | `edit_pages`, then per-record `edit_post` | None |
-| `/cresco-canvas/v1/pages/{id}` | GET | Page type plus `edit_post` | None |
-| `/cresco-canvas/v1/pages/{id}` | POST | Page type plus `edit_post`; `publish_pages` for publish-like states | Title/content/status, guarded by exact revision |
+| WordPress Core Page endpoint | Core methods | Core Page/post capabilities | Native Page content, status, and registered metadata |
 | `/cresco-canvas/v1/settings` | GET/POST | `edit_theme_options` | Validated Cresco option only |
+
+The retired `/cresco-canvas/v1/pages` routes are intentionally absent and have E2E regression coverage.
 
 ## Security result
 
-No reproducible P0 or P1 security issue remains after the code review. This is not a complete security gate: WordPress role integration tests, Plugin Check, hosted CI, penetration testing, dependency provenance, and full 1.0 functionality are not yet verified.
+No reproducible P0 or P1 security issue remains after static review and local JavaScript/PHP-source checks. This is not a passed security gate: native role integration, Plugin Check, hosted CI, penetration testing, provenance, and future product surfaces remain unverified.

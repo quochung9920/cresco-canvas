@@ -1,5 +1,7 @@
 # Cresco Canvas — Single Codex Completion Prompt
 
+<!-- markdownlint-disable MD013 MD025 -->
+
 Use this file as the **only authoritative prompt** for Codex.
 
 Copy everything below into Codex while it is connected to this repository. Reuse the exact same prompt after every merged pull request. It is intentionally idempotent: on every run, Codex must inspect the real repository state, verify what is complete, repair incomplete work, and continue from the next missing requirement.
@@ -89,6 +91,7 @@ No second prompt is required at any stage.
 18. Do not weaken, delete, skip, broadly mock, or suppress tests merely to obtain green CI.
 19. Do not silently change existing content or site output during an upgrade.
 20. Preserve unknown blocks and third-party blocks.
+21. Extend the standard Gutenberg editor directly. Do not create a separate Cresco editor screen, dual-editor routing, alternate Page edit links, or a proprietary replacement for Core document workflows.
 
 # 2. Mandatory first actions on every run
 
@@ -151,8 +154,9 @@ WordPress Core
 └── Interactivity API
 
 Cresco Canvas
-├── custom visual editor shell
-├── document workflow and recovery
+├── native Gutenberg editor extension
+├── Gutenberg sidebar, block extensions, and contextual tools
+├── Core-owned document workflow and recovery
 ├── layout engine
 ├── shared controls
 ├── responsive inheritance engine
@@ -163,7 +167,7 @@ Cresco Canvas
 ├── dynamic data and Query Builder
 ├── interactive components
 ├── integrations
-├── diagnostics and Safe Mode
+├── diagnostics and Gutenberg-safe recovery
 ├── compatibility layer
 └── extension SDK
 ```
@@ -219,38 +223,35 @@ Adjust this only when WordPress conventions or repository reality justify a bett
 
 ## 4.1 WordPress integration
 
-The normal WordPress Page title and `Edit` action must open the correct Page directly in Cresco Canvas when Canvas is selected as the editor.
+The normal WordPress Page title and `Edit` action must always open the standard Gutenberg editor. Cresco Canvas must appear directly inside Gutenberg through public SlotFills, block APIs, editor settings, and native data stores.
 
 Provide:
 
-- Global default editor setting:
-  - Cresco Canvas
-  - WordPress Editor
-  - Remember last choice
-- Per-Page Canvas enablement.
-- Row actions for both Cresco Canvas and WordPress Editor.
-- Safe bypass URL to open the native editor when Canvas fails.
-- No redirect loops.
+- One standard `Edit` action with no **Edit in Canvas / WordPress Editor** split.
+- Per-Page Canvas enablement saved as revision-enabled post metadata through the native Gutenberg save workflow.
+- Cresco controls in Gutenberg's sidebar, block inspector, inserter, List View, toolbar, and command surfaces where appropriate.
+- No custom Page load/save REST route, editor router, redirect, takeover, or alternate full-screen shell.
+- If Cresco assets fail, Gutenberg must remain usable and display a non-blocking recovery notice.
 - Support for Pages first, then configured public post types.
 - Correct capabilities and permissions.
 
-## 4.2 Editor shell
+## 4.2 Native Gutenberg workspace
 
-Build a professional full-screen builder.
+Extend Gutenberg's professional full-screen workspace. Reuse Core surfaces instead of cloning them, and add Cresco-specific controls only where Core has no suitable capability.
 
-Top bar:
+Use the native top bar:
 
 ```text
 Back | Page title | Status | Undo | Redo | Devices | Preview | Save/Publish | More
 ```
 
-Left panel:
+Use the native inserter and document overview/List View for:
 
 ```text
 Add | Structure | Templates | Components
 ```
 
-Right panel:
+Use the native block inspector and Cresco plugin sidebar for:
 
 ```text
 Content | Layout | Style | Responsive | Effects | Advanced
@@ -531,7 +532,7 @@ Responsive controls must work for layout, spacing, typography, alignment, order,
 
 Provide three distinct preview experiences.
 
-## 7.1 Edit Canvas
+## 7.1 Gutenberg editing canvas
 
 - Fast interactive editor canvas.
 - Device-width simulation.
@@ -561,7 +562,7 @@ Synchronize safe editor changes when practical. Clearly indicate when saving or 
 - Preserve draft preview nonces and permissions.
 - Never expose private drafts to unauthorized users.
 
-Acceptance requirement: representative Pages must render materially consistently between Edit Canvas, Live Preview, and public frontend.
+Acceptance requirement: representative Pages must render materially consistently between the Gutenberg editing canvas, Live Preview, and public frontend.
 
 # 8. Shared control system and styling
 
@@ -697,11 +698,11 @@ Components must prioritize:
 
 Required editing modes:
 
-### Design Mode
+## Design Mode
 
 - Full layout, responsive, structure, and style control.
 
-### Content Mode
+## Content Mode
 
 - Text, images, video, and links.
 - No destructive structure or layout control.
@@ -851,7 +852,7 @@ Do not skip foundations. Determine the current actual state and continue in this
 - Feature flags.
 - Activation/deactivation/uninstall safety.
 - Style isolation.
-- Configurable editor entry and Safe Mode.
+- Direct native Gutenberg integration and non-blocking missing-build recovery.
 
 ## 0.3 — Reliable editor workflow
 
@@ -862,7 +863,7 @@ Do not skip foundations. Determine the current actual state and continue in this
 - Undo/redo.
 - Locking and conflicts.
 - Crash recovery.
-- Full editor shell and Navigator.
+- Native Gutenberg workspace extension and Core List View/Navigator integration.
 
 ## 0.4 — Layout and responsive engine
 
@@ -907,7 +908,7 @@ Do not skip foundations. Determine the current actual state and continue in this
 - Interactive tour.
 - Starter designs.
 - Diagnostics.
-- Safe Mode.
+- Gutenberg-safe diagnostic mode that can disable Cresco extensions without replacing the editor.
 - Revision browser.
 - Restore snapshot.
 - Reset/regenerate styles and assets.
@@ -1311,7 +1312,7 @@ Requires keyboard-accessible critical flows, WCAG 2.2 AA target for generated in
 
 ## Gate 4 — Reliability
 
-Requires green required CI, passing install/activate/edit/save/publish/update/rollback/deactivate/reactivate flows, working Safe Mode and recovery, and no open P0/P1 defects.
+Requires green required CI, passing install/activate/edit/save/publish/update/rollback/deactivate/reactivate flows, working Gutenberg-safe recovery, and no open P0/P1 defects.
 
 ## Gate 5 — Compatibility
 
