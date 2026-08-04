@@ -8,6 +8,38 @@ All notable changes are documented here. Versions follow Semantic Versioning whe
 
 No changes have been classified for the next version yet.
 
+## [0.6.0-alpha.1] - 2026-08-05
+
+### Added
+
+- Native Cresco pattern categories and a bundled catalog for complete Pages, heroes, feature grids, calls to action, testimonials, pricing, and contact sections.
+- A compiled **Cresco Templates** Gutenberg sidebar with search, category filters, and click-to-insert native block templates.
+- Synced component creation from the selected Gutenberg block using WordPress `wp_block` entities.
+- Listing and insertion of saved synced components through native `core/block` references.
+- Safe Site Kit export and import for sanitized Cresco design settings and allow-listed bundled template identifiers.
+- REST endpoints for the template catalog, synced components, and Site Kits.
+- Regression tests for stable template identifiers, categories, native block markup, and executable-content exclusions.
+- Dedicated Templates runtime, manifest, and stylesheet included in release packaging.
+
+### Changed
+
+- Registered Templates, Components, and Site Kit services during plugin boot.
+- Bumped the plugin, package, and Container block to `0.6.0-alpha.1`.
+
+### Security
+
+- Template and component editing requires `edit_pages`; Site Kit management requires `edit_theme_options`.
+- Synced components reject Custom HTML, Shortcode, Classic, non-Core, and non-Cresco blocks.
+- Site Kit imports accept only schema version one, sanitized design settings, and template IDs present in the bundled catalog.
+- Site Kits never import PHP or JavaScript.
+
+### Known limitations
+
+- Hosted CI and WordPress runtime evidence have not yet been produced for the current `main` head.
+- Component creation currently saves one selected root block at a time; multi-selection and content-only overrides are not yet implemented.
+- Template thumbnails, remote catalog delivery, favorites, version conflict handling, and dependency installation are not yet implemented.
+- The repository dependency lock remains unusable, so a full `npm ci` build and byte comparison have not been completed.
+
 ## [0.5.0-alpha.1] - 2026-08-04
 
 ### Added
