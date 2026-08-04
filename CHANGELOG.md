@@ -8,6 +8,40 @@ All notable changes are documented here. Versions follow Semantic Versioning whe
 
 No changes have been classified for the next version yet.
 
+## [0.4.0-alpha.1] - 2026-08-04
+
+### Added
+
+- Responsive Container controls for Flex, Grid, Block, direction, wrapping, columns, justification, alignment, gap, maximum width, and per-side padding.
+- Explicit responsive inheritance from Desktop to Laptop, Tablet, and Mobile, with an independent 4K override derived from Desktop.
+- Five logical editor preview modes: 4K at 1920px, Desktop at 1440px, Laptop at 1024px, Tablet at 768px, and Mobile at 390px.
+- A dedicated **Cresco Preview** Gutenberg sidebar with persisted device selection.
+- Permission-aware Live Frontend Preview in a size-constrained iframe, manual refresh, new-tab access, and refresh after WordPress save or autosave completes.
+- Unit coverage for responsive normalization, inheritance, override reset, safe style generation, exact preview widths, and hardened browser storage behavior.
+
+### Changed
+
+- Preserved legacy Container inline output until responsive-only attributes are used, reducing block markup churn for existing Pages.
+- Added bounded numeric normalization and allow-listed layout values before responsive CSS variables are generated.
+- Restricted Container background output to recognized color values and CSS custom properties.
+- Added wide and full alignment support to the Container block.
+- Replaced one-size Container controls with device-aware controls synchronized with the preview selector.
+- Included preview source, runtime, styles, manifest, and required assets in release packaging.
+- Bumped the plugin, package, Container block, runtime manifests, and CI artifact name to `0.4.0-alpha.1`.
+
+### Security
+
+- Frontend preview URLs are generated only for users who can edit the current Page.
+- Invalid, infinite, and out-of-range responsive values are normalized before output.
+- Unsafe background expressions are discarded instead of being serialized into Container styles.
+
+### Known limitations
+
+- The checked-in runtime and source pass local syntax and isolated TypeScript validation only; a repository production build has not yet regenerated and compared all assets.
+- Hosted CI, WordPress runtime behavior, save/reload parity, frontend parity, RTL, accessibility, browser, role, multisite, lifecycle, and performance evidence remain unverified.
+- The current responsive property model applies to the Cresco Container. Shared controls for every supported Core block remain future work in this milestone.
+- Templates, Theme Builder, Dynamic Data, Query/Loop Builder, custom interactive blocks, forms, WooCommerce scope, diagnostics, beta, RC, and commercial release gates remain later milestones.
+
 ## [0.3.1-alpha.1] - 2026-08-04
 
 ### Added
