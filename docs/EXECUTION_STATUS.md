@@ -61,9 +61,9 @@ Implemented:
 
 Remaining evidence includes hosted CI, theme/plugin compatibility, accessibility, RTL, browser, multisite, role, revision, and frontend runtime verification.
 
-### `0.8.0-alpha.4` — FUNCTIONAL SOURCE AND CHECKED-IN RUNTIME, NOT VERIFIED
+### `0.8.0-alpha.5` — FUNCTIONAL SOURCE AND CHECKED-IN RUNTIME, NOT VERIFIED
 
-Implemented across alpha.1 through alpha.4:
+Implemented across alpha.1 through alpha.5:
 
 - Dynamic scalar fields for post, site, post meta, and ACF values.
 - Dynamic images for featured, meta, and ACF image return formats.
@@ -74,16 +74,19 @@ Implemented across alpha.1 through alpha.4:
 - ACF Sub Field dot-path binding for scalar row values.
 - Permission-protected ACF field schema discovery without raw value exposure.
 - Advanced Loop queries for post type, author, parent, search, dates, include/exclude IDs, one meta clause, and up to three taxonomy clauses.
-- Checked-in Gutenberg runtimes, styles, manifests, release-package requirements, REST discovery/preview endpoints, and regression test source.
+- Filterable Loop with signed public AJAX rendering, search, up to three taxonomy facets, AJAX pagination, Load More, Infinite Scroll, URL/history synchronization, and no-JavaScript fallbacks.
+- WooCommerce presets for newest, featured, on-sale, in-stock, best-selling, and top-rated products.
+- Checked-in Gutenberg/editor/frontend runtimes, styles, manifests, release-package requirements, REST discovery/preview/render endpoints, and regression test source.
 
 Known limitations:
 
-- No AJAX filtering, faceted search, load-more, infinite scroll, or URL history synchronization.
-- No WooCommerce query presets.
+- Taxonomy facets do not yet calculate live per-option counts.
+- Runtime meta facets, range filters, active-filter chips, and dependent facet counts are not implemented.
 - Repeater/Flexible Content currently bind scalar sub-fields; dedicated nested image/gallery/relationship/repeater row bindings remain future work.
 - Advanced Loop intentionally does not permit arbitrary nested meta/tax query groups or arbitrary SQL.
+- Multiple identical Filterable Loops should use unique Instance IDs to avoid URL-key collisions.
 - The dependency lock/build environment remains unavailable, so checked-in runtimes have not been reproduced from the TypeScript source pipeline.
-- Hosted CI and full WordPress/ACF runtime, accessibility, RTL, multisite, browser, security, and performance evidence remain missing.
+- Hosted CI and full WordPress/ACF/WooCommerce runtime, accessibility, RTL, multisite, browser, security, and performance evidence remain missing.
 
 ### `0.9.0` — NOT STARTED AS A COMPLETE MILESTONE
 
@@ -95,8 +98,8 @@ Production hardening, complete CI/runtime matrices, reproducible packaging, migr
 
 ## Validation state
 
-- Checked-in PHP, JavaScript, CSS, and asset manifests exist through `0.8.0-alpha.4`.
-- Regression test source exists for the main sanitization, catalog, resolver, query, and structured-data boundaries.
+- Checked-in PHP, JavaScript, CSS, and asset manifests exist through `0.8.0-alpha.5`.
+- Regression test source exists for the main sanitization, catalog, resolver, query, structured-data, signature, public-filter, and template-safety boundaries.
 - No successful hosted workflow or complete WordPress runtime test result has been observed for the latest `main` commit.
 - No production or commercial readiness claim is permitted.
 - `0.9.0` and `1.0.0` release gates remain unverified.
