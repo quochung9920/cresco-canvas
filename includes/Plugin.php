@@ -17,6 +17,7 @@ use CrescoCanvas\Templates\EditorAssets as TemplateEditorAssets;
 use CrescoCanvas\Templates\TemplateLibrary;
 use CrescoCanvas\Theme\EditorAssets as ThemeEditorAssets;
 use CrescoCanvas\Theme\ThemeBuilder;
+use CrescoCanvas\Theme\ThemeDiagnostics;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -52,6 +53,7 @@ final class Plugin {
 		( new TemplateLibrary() )->register();
 		( new TemplateEditorAssets() )->register();
 		( new ThemeBuilder() )->register();
+		( new ThemeDiagnostics() )->register();
 		( new ThemeEditorAssets() )->register();
 		$styles->register();
 		$tokens->register();
