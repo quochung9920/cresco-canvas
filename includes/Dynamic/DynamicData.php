@@ -18,7 +18,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 final class DynamicData {
 	const FIELD_BLOCK = 'cresco/dynamic-field';
+	const IMAGE_BLOCK = 'cresco/dynamic-image';
 	const LOOP_BLOCK  = 'cresco/loop';
+
+	/** @var int */
+	private static $loop_depth = 0;
 
 	/** Register dynamic blocks and REST discovery endpoints. */
 	public function register() {
@@ -46,6 +50,23 @@ final class DynamicData {
 		);
 
 		register_block_type(
+			self::IMAGE_BLOCK,
+			array(
+				'api_version'     => 3,
+				'attributes'      => array(
+					'source'      => array( 'type' => 'string', 'default' => 'featured' ),
+					'key'         => array( 'type' => 'string', 'default' => '' ),
+					'size'        => array( 'type' => 'string', 'default' => 'large' ),
+					'altFallback' => array( 'type' => 'string', 'default' => '' ),
+					'linkTo'      => array( 'type' => 'string', 'default' => 'none' ),
+					'fallbackUrl' => array( 'type' => 'string', 'default' => '' ),
+				),
+				'render_callback' => array( $this, 'render_dynamic_image' ),
+				'supports'        => array( 'html' => false, 'className' => true, 'align' => array( 'left', 'center', 'right', 'wide', 'full' ), 'spacing' => true ),
+			)
+		);
+
+		register_block_type(
 			self::LOOP_BLOCK,
 			array(
 				'api_version'     => 3,
@@ -54,10 +75,13 @@ final class DynamicData {
 					'postsPerPage' => array( 'type' => 'number', 'default' => 6 ),
 					'order'        => array( 'type' => 'string', 'default' => 'DESC' ),
 					'orderby'      => array( 'type' => 'string', 'default' => 'date' ),
+					'preset'       => array( 'type' => 'string', 'default' => 'custom' ),
 					'taxonomy'     => array( 'type' => 'string', 'default' => '' ),
 					'term'         => array( 'type' => 'string', 'default' => '' ),
 					'offset'       => array( 'type' => 'number', 'default' => 0 ),
 					'columns'      => array( 'type' => 'number', 'default' => 3 ),
+					'pagination'   => array( 'type' => 'boolean', 'default' => false ),
+					'pageParam'    => array( 'type' => 'string', 'default' => 'cc_page' ),
 					'emptyMessage' => array( 'type' => 'string', 'default' => '' ),
 				),
 				'render_callback' => array( $this, 'render_loop' ),
@@ -103,22 +127,27 @@ final class DynamicData {
 
 		return new WP_REST_Response(
 			array(
-				'postTypes'     => $types,
-				'sources'       => array( 'post', 'meta', 'acf', 'site' ),
-				'postFields'    => array( 'title', 'excerpt', 'content', 'date', 'modified', 'author', 'permalink', 'featured_image_url' ),
-				'orderBy'       => array( 'date', 'modified', 'title', 'menu_order', 'rand' ),
-				'acfAvailable'  => function_exists( 'get_field' ),
-				'maxLoopItems'  => 24,
-				'maxLoopOffset' => 200,
+				'postTypes'      => $types,
+				'sources'        => array( 'post', 'meta', 'acf', 'site' ),
+				'imageSources'   => array( 'featured', 'meta', 'acf' ),
+				'postFields'     => array( 'title', 'excerpt', 'content', 'date', 'modified', 'author', 'permalink', 'featured_image_url' ),
+				'orderBy'        => array( 'date', 'modified', 'title', 'menu_order', 'rand' ),
+				'queryPresets'   => array( 'custom', 'recent', 'oldest', 'alphabetical', 'random' ),
+				'imageSizes'     => array_values( get_intermediate_image_sizes() ),
+				'acfAvailable'   => function_exists( 'get_field' ),
+				'maxLoopItems'   => 24,
+				'maxLoopOffset'  => 200,
+				'maxNestedLoops' => 1,
 			)
 		);
 	}
 
 	/** Return a safe preview of a normalized query. */
 	public function query_preview( WP_REST_Request $request ) {
-		$args  = self::sanitize_query( (array) $request->get_json_params() );
-		$query = new WP_Query( $args );
-		$items = array();
+		$payload = (array) $request->get_json_params();
+		$args    = self::sanitize_query( $payload );
+		$query   = new WP_Query( $args );
+		$items   = array();
 		foreach ( $query->posts as $post ) {
 			if ( ! current_user_can( 'read_post', $post->ID ) ) {
 				continue;
@@ -131,7 +160,15 @@ final class DynamicData {
 				'url'      => get_permalink( $post ),
 			);
 		}
-		return new WP_REST_Response( array( 'args' => $args, 'foundPosts' => (int) $query->found_posts, 'items' => $items ) );
+		return new WP_REST_Response(
+			array(
+				'args'       => $args,
+				'page'       => (int) ( $args['paged'] ?? 1 ),
+				'maxPages'   => (int) $query->max_num_pages,
+				'foundPosts' => (int) $query->found_posts,
+				'items'      => $items,
+			)
+		);
 	}
 
 	/** Render a dynamic scalar value. */
@@ -160,11 +197,54 @@ final class DynamicData {
 		return sprintf( '<%1$s %2$s>%3$s</%1$s>', $tag, $wrapper, $output );
 	}
 
+	/** Render a featured, meta, or ACF image. */
+	public function render_dynamic_image( $attributes, $content, $block ) {
+		unset( $content );
+		$post_id = isset( $block->context['postId'] ) ? absint( $block->context['postId'] ) : get_the_ID();
+		$image   = self::resolve_image( $attributes, $post_id );
+		if ( empty( $image['url'] ) ) {
+			$fallback = esc_url_raw( (string) ( $attributes['fallbackUrl'] ?? '' ) );
+			if ( ! $fallback ) {
+				return '';
+			}
+			$image = array( 'id' => 0, 'url' => $fallback, 'alt' => '' );
+		}
+
+		$alt = '' !== (string) ( $image['alt'] ?? '' ) ? (string) $image['alt'] : sanitize_text_field( (string) ( $attributes['altFallback'] ?? '' ) );
+		$size = sanitize_key( (string) ( $attributes['size'] ?? 'large' ) );
+		if ( ! in_array( $size, array_merge( array( 'thumbnail', 'medium', 'medium_large', 'large', 'full' ), get_intermediate_image_sizes() ), true ) ) {
+			$size = 'large';
+		}
+
+		if ( ! empty( $image['id'] ) ) {
+			$html = wp_get_attachment_image( (int) $image['id'], $size, false, array( 'alt' => $alt, 'class' => 'cresco-dynamic-image__img' ) );
+		} else {
+			$html = '<img class="cresco-dynamic-image__img" src="' . esc_url( $image['url'] ) . '" alt="' . esc_attr( $alt ) . '" loading="lazy" decoding="async" />';
+		}
+		if ( ! $html ) {
+			return '';
+		}
+		if ( 'post' === sanitize_key( (string) ( $attributes['linkTo'] ?? 'none' ) ) && $post_id ) {
+			$html = '<a href="' . esc_url( get_permalink( $post_id ) ) . '">' . $html . '</a>';
+		}
+		return '<figure ' . get_block_wrapper_attributes( array( 'class' => 'cresco-dynamic-image' ) ) . '>' . $html . '</figure>';
+	}
+
 	/** Render inner blocks for every post returned by the normalized query. */
 	public function render_loop( $attributes, $content ) {
-		$args  = self::sanitize_query( $attributes );
-		$query = new WP_Query( $args );
+		if ( self::$loop_depth > 0 ) {
+			return current_user_can( 'edit_pages' ) ? '<p class="cresco-loop__warning">' . esc_html__( 'Nested Cresco Loops are not supported.', 'cresco-canvas' ) . '</p>' : '';
+		}
+
+		self::$loop_depth++;
+		$page_param = self::sanitize_page_param( $attributes['pageParam'] ?? 'cc_page' );
+		$paged      = ! empty( $attributes['pagination'] ) && isset( $_GET[ $page_param ] ) ? absint( wp_unslash( $_GET[ $page_param ] ) ) : 1; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Public read-only pagination.
+		$input      = array_merge( $attributes, array( 'paged' => max( 1, $paged ) ) );
+		$args       = self::sanitize_query( $input );
+		$query      = new WP_Query( $args );
+
 		if ( ! $query->have_posts() ) {
+			self::$loop_depth--;
 			$message = sanitize_text_field( (string) ( $attributes['emptyMessage'] ?? '' ) );
 			return $message ? '<p class="cresco-loop__empty">' . esc_html( $message ) . '</p>' : '';
 		}
@@ -176,13 +256,33 @@ final class DynamicData {
 			$items .= '<div class="cresco-loop__item">' . do_blocks( $content ) . '</div>';
 		}
 		wp_reset_postdata();
+		self::$loop_depth--;
+
 		$wrapper = get_block_wrapper_attributes(
 			array(
 				'class' => 'cresco-loop',
 				'style' => '--cresco-loop-columns:' . $columns . ';',
 			)
 		);
-		return '<div ' . $wrapper . '>' . $items . '</div>';
+		$output = '<div ' . $wrapper . '>' . $items . '</div>';
+		if ( ! empty( $attributes['pagination'] ) && $query->max_num_pages > 1 ) {
+			$base = add_query_arg( $page_param, '%#%' );
+			$links = paginate_links(
+				array(
+					'base'      => $base,
+					'format'    => '',
+					'current'   => max( 1, $paged ),
+					'total'     => (int) $query->max_num_pages,
+					'type'      => 'list',
+					'prev_text' => __( 'Previous', 'cresco-canvas' ),
+					'next_text' => __( 'Next', 'cresco-canvas' ),
+				)
+			);
+			if ( $links ) {
+				$output .= '<nav class="cresco-loop__pagination" aria-label="' . esc_attr__( 'Loop pagination', 'cresco-canvas' ) . '">' . wp_kses_post( $links ) . '</nav>';
+			}
+		}
+		return $output;
 	}
 
 	/** Resolve an allow-listed dynamic value. */
@@ -218,6 +318,34 @@ final class DynamicData {
 		}
 	}
 
+	/** Resolve common ACF and metadata image return formats. */
+	public static function resolve_image( $attributes, $post_id ) {
+		if ( ! $post_id ) {
+			return array( 'id' => 0, 'url' => '', 'alt' => '' );
+		}
+		$source = sanitize_key( (string) ( $attributes['source'] ?? 'featured' ) );
+		$key    = sanitize_key( (string) ( $attributes['key'] ?? '' ) );
+		if ( 'featured' === $source ) {
+			$id = get_post_thumbnail_id( $post_id );
+			return array( 'id' => (int) $id, 'url' => $id ? (string) wp_get_attachment_image_url( $id, 'full' ) : '', 'alt' => $id ? (string) get_post_meta( $id, '_wp_attachment_image_alt', true ) : '' );
+		}
+		$value = 'acf' === $source && function_exists( 'get_field' ) ? get_field( $key, $post_id ) : get_post_meta( $post_id, $key, true );
+		if ( is_numeric( $value ) ) {
+			$id = absint( $value );
+			return array( 'id' => $id, 'url' => (string) wp_get_attachment_image_url( $id, 'full' ), 'alt' => (string) get_post_meta( $id, '_wp_attachment_image_alt', true ) );
+		}
+		if ( is_string( $value ) ) {
+			return array( 'id' => 0, 'url' => esc_url_raw( $value ), 'alt' => '' );
+		}
+		if ( is_array( $value ) ) {
+			$id  = absint( $value['ID'] ?? $value['id'] ?? 0 );
+			$url = esc_url_raw( (string) ( $value['url'] ?? ( $id ? wp_get_attachment_image_url( $id, 'full' ) : '' ) ) );
+			$alt = sanitize_text_field( (string) ( $value['alt'] ?? ( $id ? get_post_meta( $id, '_wp_attachment_image_alt', true ) : '' ) ) );
+			return array( 'id' => $id, 'url' => $url, 'alt' => $alt );
+		}
+		return array( 'id' => 0, 'url' => '', 'alt' => '' );
+	}
+
 	/** Normalize loop query arguments to a bounded allow-list. */
 	public static function sanitize_query( $input ) {
 		$post_types = get_post_types( array( 'public' => true ), 'names' );
@@ -225,16 +353,31 @@ final class DynamicData {
 		if ( ! in_array( $post_type, $post_types, true ) ) {
 			$post_type = 'post';
 		}
+
+		$preset  = sanitize_key( (string) ( $input['preset'] ?? 'custom' ) );
+		$order   = 'ASC' === strtoupper( (string) ( $input['order'] ?? 'DESC' ) ) ? 'ASC' : 'DESC';
 		$orderby = sanitize_key( (string) ( $input['orderby'] ?? 'date' ) );
 		if ( ! in_array( $orderby, array( 'date', 'modified', 'title', 'menu_order', 'rand' ), true ) ) {
 			$orderby = 'date';
 		}
+		switch ( $preset ) {
+			case 'recent': $orderby = 'date'; $order = 'DESC'; break;
+			case 'oldest': $orderby = 'date'; $order = 'ASC'; break;
+			case 'alphabetical': $orderby = 'title'; $order = 'ASC'; break;
+			case 'random': $orderby = 'rand'; $order = 'DESC'; break;
+			default: $preset = 'custom';
+		}
+
+		$per_page   = min( 24, max( 1, absint( $input['postsPerPage'] ?? 6 ) ) );
+		$base_offset = min( 200, max( 0, absint( $input['offset'] ?? 0 ) ) );
+		$paged       = min( 999, max( 1, absint( $input['paged'] ?? 1 ) ) );
 		$args = array(
 			'post_type'           => $post_type,
 			'post_status'         => 'publish',
-			'posts_per_page'      => min( 24, max( 1, absint( $input['postsPerPage'] ?? 6 ) ) ),
-			'offset'              => min( 200, max( 0, absint( $input['offset'] ?? 0 ) ) ),
-			'order'               => 'ASC' === strtoupper( (string) ( $input['order'] ?? 'DESC' ) ) ? 'ASC' : 'DESC',
+			'posts_per_page'      => $per_page,
+			'offset'              => min( 2000, $base_offset + ( ( $paged - 1 ) * $per_page ) ),
+			'paged'               => $paged,
+			'order'               => $order,
 			'orderby'             => $orderby,
 			'ignore_sticky_posts' => true,
 			'no_found_rows'       => false,
@@ -245,6 +388,12 @@ final class DynamicData {
 			$args['tax_query'] = array( array( 'taxonomy' => $taxonomy, 'field' => 'slug', 'terms' => array( $term ) ) );
 		}
 		return $args;
+	}
+
+	/** Normalize a query-string key used by one loop instance. */
+	public static function sanitize_page_param( $value ) {
+		$value = sanitize_key( (string) $value );
+		return $value ? substr( $value, 0, 32 ) : 'cc_page';
 	}
 
 	/** Convert a dynamic value to safe scalar text. */
