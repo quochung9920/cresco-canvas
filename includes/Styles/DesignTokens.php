@@ -1,0 +1,134 @@
+<?php
+/**
+ * Structured, sanitized design-token registry.
+ *
+ * @package CrescoCanvas
+ */
+
+namespace CrescoCanvas\Styles;
+
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
+final class DesignTokens {
+	const SCHEMA_VERSION = 1;
+
+	/**
+	 * Build a stable token catalog from normalized global settings.
+	 *
+	 * @param array<string, mixed> $settings Normalized settings.
+	 * @return array<string, mixed>
+	 */
+	public static function catalog( $settings ) {
+		return array(
+			'schemaVersion' => self::SCHEMA_VERSION,
+			'colors'        => array(
+				'primary'    => (string) $settings['primary'],
+				'text'       => (string) $settings['text'],
+				'muted'      => (string) $settings['muted'],
+				'background' => (string) $settings['background'],
+			),
+			'typography'    => array(
+				'fontFamily' => (string) $settings['fontFamily'],
+				'sizes'      => array(
+					'xs'  => '0.75rem',
+					'sm'  => '0.875rem',
+					'base'=> '1rem',
+					'lg'  => '1.125rem',
+					'xl'  => '1.25rem',
+					'2xl' => '1.5rem',
+					'3xl' => '1.875rem',
+					'4xl' => '2.25rem',
+				),
+			),
+			'spacing'       => array(
+				'0'  => '0',
+				'1'  => '0.25rem',
+				'2'  => '0.5rem',
+				'3'  => '0.75rem',
+				'4'  => '1rem',
+				'6'  => '1.5rem',
+				'8'  => '2rem',
+				'12' => '3rem',
+				'16' => '4rem',
+				'24' => '6rem',
+			),
+			'layout'        => array(
+				'containerMax' => sprintf( '%dpx', (int) $settings['containerMax'] ),
+				'contentMax'   => sprintf( '%dpx', (int) $settings['contentMax'] ),
+			),
+			'radius'        => array(
+				'base' => sprintf( '%dpx', (int) $settings['radius'] ),
+				'sm'   => sprintf( '%dpx', max( 0, (int) $settings['radius'] - 4 ) ),
+				'lg'   => sprintf( '%dpx', min( 96, (int) $settings['radius'] + 8 ) ),
+				'pill' => '9999px',
+			),
+			'shadows'       => array(
+				'sm' => '0 1px 2px rgb(15 23 42 / 0.08)',
+				'md' => '0 8px 24px rgb(15 23 42 / 0.12)',
+				'lg' => '0 20px 48px rgb(15 23 42 / 0.16)',
+			),
+			'motion'        => array(
+				'fast'   => '120ms',
+				'normal' => '200ms',
+				'slow'   => '360ms',
+				'easing' => 'cubic-bezier(0.2, 0, 0, 1)',
+			),
+		);
+	}
+
+	/**
+	 * Convert the catalog to scoped CSS custom properties.
+	 *
+	 * @param array<string, mixed> $settings Normalized settings.
+	 * @return string
+	 */
+	public static function css_variables( $settings ) {
+		$tokens = self::catalog( $settings );
+		$pairs  = array(
+			'--cc-primary'       => $tokens['colors']['primary'],
+			'--cc-text'          => $tokens['colors']['text'],
+			'--cc-muted'         => $tokens['colors']['muted'],
+			'--cc-background'    => $tokens['colors']['background'],
+			'--cc-font'          => $tokens['typography']['fontFamily'],
+			'--cc-font-xs'       => $tokens['typography']['sizes']['xs'],
+			'--cc-font-sm'       => $tokens['typography']['sizes']['sm'],
+			'--cc-font-base'     => $tokens['typography']['sizes']['base'],
+			'--cc-font-lg'       => $tokens['typography']['sizes']['lg'],
+			'--cc-font-xl'       => $tokens['typography']['sizes']['xl'],
+			'--cc-font-2xl'      => $tokens['typography']['sizes']['2xl'],
+			'--cc-font-3xl'      => $tokens['typography']['sizes']['3xl'],
+			'--cc-font-4xl'      => $tokens['typography']['sizes']['4xl'],
+			'--cc-space-1'       => $tokens['spacing']['1'],
+			'--cc-space-2'       => $tokens['spacing']['2'],
+			'--cc-space-3'       => $tokens['spacing']['3'],
+			'--cc-space-4'       => $tokens['spacing']['4'],
+			'--cc-space-6'       => $tokens['spacing']['6'],
+			'--cc-space-8'       => $tokens['spacing']['8'],
+			'--cc-space-12'      => $tokens['spacing']['12'],
+			'--cc-space-16'      => $tokens['spacing']['16'],
+			'--cc-space-24'      => $tokens['spacing']['24'],
+			'--cc-container-max' => $tokens['layout']['containerMax'],
+			'--cc-content-max'   => $tokens['layout']['contentMax'],
+			'--cc-radius'        => $tokens['radius']['base'],
+			'--cc-radius-sm'     => $tokens['radius']['sm'],
+			'--cc-radius-lg'     => $tokens['radius']['lg'],
+			'--cc-radius-pill'   => $tokens['radius']['pill'],
+			'--cc-shadow-sm'     => $tokens['shadows']['sm'],
+			'--cc-shadow-md'     => $tokens['shadows']['md'],
+			'--cc-shadow-lg'     => $tokens['shadows']['lg'],
+			'--cc-motion-fast'   => $tokens['motion']['fast'],
+			'--cc-motion'        => $tokens['motion']['normal'],
+			'--cc-motion-slow'   => $tokens['motion']['slow'],
+			'--cc-easing'        => $tokens['motion']['easing'],
+		);
+
+		$css = '';
+		foreach ( $pairs as $name => $value ) {
+			$css .= $name . ':' . $value . ';';
+		}
+
+		return $css;
+	}
+}
