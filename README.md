@@ -1,8 +1,8 @@
 # Cresco Canvas
 
-Cresco Canvas is an experimental visual-building extension for the native WordPress Gutenberg editor. Version `0.3.0-alpha.1` removes the separate Canvas editor and integrates Cresco controls directly into the standard Page editor. It is not a commercial release.
+Cresco Canvas is an experimental visual-building extension for the native WordPress Gutenberg editor. Version `0.3.0-alpha.1` integrates Cresco controls directly into the standard Page editor and now includes the first usable **Cresco Elements** toolkit. It is not yet a commercial release.
 
-Page content remains normal Gutenberg block markup in `post_content`. WordPress Core owns loading, saving, publishing, autosaves, revisions, undo/redo, post locking, previews, media, the inserter, and List View. Cresco adds a native Container block, a Gutenberg sidebar, and scoped design tokens.
+Page content remains normal Gutenberg block markup in `post_content`. WordPress Core owns loading, saving, publishing, autosaves, revisions, undo/redo, post locking, previews, media, the inserter, and List View. Cresco adds a native Container block, a searchable element library, composed website sections, a Gutenberg sidebar, and scoped design tokens.
 
 ## Requirements
 
@@ -12,16 +12,32 @@ Page content remains normal Gutenberg block markup in `post_content`. WordPress 
 - Node.js 22 and npm 10 or newer for development.
 - Composer 2 and Docker for packaging and WordPress/E2E suites.
 
-## What milestone 0.3 changes
+## Current editor experience
 
-- The normal Page title and **Edit** action open Gutenberg—there is no **Edit in Canvas / WordPress Editor** choice.
-- Cresco tools appear inside Gutenberg in the **Cresco Canvas** plugin sidebar.
+1. Open **Pages** and select the normal **Edit** action.
+2. Open **Cresco Canvas** from Gutenberg's More menu.
+3. Expand **Elements**.
+4. Search, filter, favorite, click, or drag an element into the editor canvas.
+5. Continue editing with Gutenberg's native block toolbar, Inspector, List View, Save, Update, Publish, Preview, undo/redo, revisions, and locking.
+
+The initial Elements Library includes:
+
+- Layout: Section, Container, Row, Grid, Stack, Columns, Spacer, Divider.
+- Content: Heading, Text, Buttons, List, Quote, Table.
+- Media: Image, Gallery, Video, Audio, File, Embed.
+- Marketing compositions: Hero, Feature Grid, Call to Action, Testimonial, Pricing Card.
+- Navigation and dynamic content: Social Links, Navigation, Search, Site Logo, Post Title, Featured Image, Excerpt, Date, Latest Posts.
+- Utility and interaction: FAQ disclosure, Shortcode, Custom HTML.
+
+Elements are implemented with native Core blocks and Cresco Container compositions wherever possible. This keeps content portable and editable after plugin deactivation.
+
+## Page and global styling
+
 - The Page styling switch is revision-enabled metadata and is saved by Gutenberg's normal **Save**, **Update**, or **Publish** workflow.
-- The custom Page REST load/save routes, duplicate editor router, custom shell, Safe Mode route, and editor-choice preferences are removed.
-- Existing `cresco/container` markup remains compatible and editable as a native block.
-- Site-wide Cresco design settings remain permissioned custom data, saved through the settings endpoint and previewed in the editor.
-- Missing Cresco build assets show a non-blocking warning; Gutenberg remains usable.
-- Frontend CSS remains conditional and scoped to Pages that enable Cresco or contain a legacy Cresco Container.
+- Site-wide Cresco design settings are permissioned custom data with an explicit save action.
+- Current design settings include primary, text, muted, and background colors, global radius, font family, container width, and content width.
+- Editor preview tokens and frontend CSS are scoped to Pages using Cresco.
+- Inserting an element automatically enables Cresco Page styling for that Page.
 
 ## Install a release ZIP
 
@@ -62,10 +78,15 @@ npm run package:verify
 - Canonical content: native block markup in `wp_posts.post_content`.
 - Plugin option: `cresco_canvas_settings` for validated global tokens and opt-in uninstall cleanup.
 - Page metadata: `_cresco_canvas_enabled`, registered for native REST saving and revisions.
+- Favorites and recent Elements are local editor preferences stored in browser local storage; they are not site content.
 - Migration schema 2 removes retired dual-editor preferences without changing Page content.
 - Deactivation preserves all content and settings.
 - Uninstall preserves data by default; explicit cleanup removes only documented Cresco options and metadata, never `post_content`.
-- Rollback from this alpha: deactivate the plugin and continue editing the native blocks in Gutenberg. Review schema compatibility before installing older plugin code.
+- Rollback from this alpha: deactivate the plugin and continue editing native blocks in Gutenberg. Review schema compatibility before installing older plugin code.
+
+## Current limitations
+
+The Elements Library is the first visual-builder stage. Dedicated responsive property controls, custom Tabs/Modal/Slider blocks, Templates, Theme Builder, Dynamic Data bindings, Query Builder, WooCommerce Builder, and Live Frontend Preview remain in the authoritative roadmap and are not yet claimed complete.
 
 See [Architecture](docs/ARCHITECTURE.md), [Roadmap](docs/ROADMAP.md), [Known limitations](docs/KNOWN_LIMITATIONS.md), and [Release checklist](docs/RELEASE_CHECKLIST.md) for evidence-backed status.
 
