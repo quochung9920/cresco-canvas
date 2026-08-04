@@ -9,6 +9,7 @@ module.exports = {
 			process.cwd(),
 			'src/blocks/container/index.tsx'
 		),
+		preview: path.resolve( process.cwd(), 'src/preview/index.tsx' ),
 	},
 	output: {
 		...defaultConfig.output,
