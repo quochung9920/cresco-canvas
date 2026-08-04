@@ -10,3 +10,26 @@
 	box-shadow: 0 0 0 1px #635bff;
 }
 
+.editor-styles-wrapper .cc-elements-grid {
+	display: grid;
+	gap: 24px;
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.editor-styles-wrapper .cc-elements-stack {
+	display: flex;
+	flex-direction: column;
+	gap: 24px;
+}
+
+@media (max-width: 1024px) {
+	.editor-styles-wrapper .cc-elements-grid {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+}
+
+@media (max-width: 767px) {
+	.editor-styles-wrapper .cc-elements-grid {
+		grid-template-columns: minmax(0, 1fr);
+	}
+}
