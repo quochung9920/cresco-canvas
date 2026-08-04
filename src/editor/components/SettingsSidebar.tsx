@@ -19,6 +19,7 @@ import {
 	type EditorBlockTree,
 } from '../previewTokens';
 import type { GlobalSettings, PageMeta } from '../types';
+import { ElementsLibrary } from './ElementsLibrary';
 import { GlobalSettingsPanel } from './GlobalSettingsPanel';
 
 const ENABLED_META = '_cresco_canvas_enabled';
@@ -63,6 +64,18 @@ export function SettingsSidebar() {
 	}, [] );
 	const pageUsesCanvas =
 		Boolean( pageMeta[ ENABLED_META ] ) || hasCanvasBlock;
+
+	const enablePageStyles = useCallback( () => {
+		if ( pageMeta[ ENABLED_META ] ) {
+			return;
+		}
+		editPost( {
+			meta: {
+				...pageMeta,
+				[ ENABLED_META ]: true,
+			},
+		} );
+	}, [ editPost, pageMeta ] );
 
 	const loadSettings = useCallback( async () => {
 		if ( ! bootstrap.canManageSettings ) {
@@ -186,7 +199,14 @@ export function SettingsSidebar() {
 					</Notice>
 				) }
 				<PanelBody
+					className="cc-elements-panel"
 					initialOpen
+					title={ __( 'Elements', 'cresco-canvas' ) }
+				>
+					<ElementsLibrary onElementInserted={ enablePageStyles } />
+				</PanelBody>
+				<PanelBody
+					initialOpen={ false }
 					title={ __( 'Page styling', 'cresco-canvas' ) }
 				>
 					<ToggleControl
