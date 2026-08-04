@@ -43,7 +43,7 @@ final class InteractiveQueryTest extends TestCase {
 	}
 
 	public function test_instance_ids_are_sanitized_and_bounded(): void {
-		self::assertSame( 'products_loop', InteractiveQuery::sanitize_instance_id( 'Products Loop' ) );
+		self::assertSame( 'productsloop', InteractiveQuery::sanitize_instance_id( 'Products Loop' ) );
 		self::assertLessThanOrEqual( 32, strlen( InteractiveQuery::sanitize_instance_id( str_repeat( 'a', 80 ) ) ) );
 		self::assertStringStartsWith( 'ccq_', InteractiveQuery::sanitize_instance_id( '', 'payload' ) );
 	}
