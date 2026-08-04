@@ -53,17 +53,12 @@ export function SettingsSidebar() {
 		const value = editor.getEditedPostAttribute( 'meta' );
 		return value && typeof value === 'object' ? ( value as PageMeta ) : {};
 	}, [] );
-	const { editPost } = useDispatch(
-		'core/editor'
-	) as unknown as EditorDispatch;
+	const { editPost } = useDispatch( 'core/editor' ) as unknown as EditorDispatch;
 	const hasCanvasBlock = useSelect( ( select ) => {
-		const blockEditor = select(
-			'core/block-editor'
-		) as unknown as BlockEditorSelect;
+		const blockEditor = select( 'core/block-editor' ) as unknown as BlockEditorSelect;
 		return containsCrescoBlock( blockEditor.getBlocks() );
 	}, [] );
-	const pageUsesCanvas =
-		Boolean( pageMeta[ ENABLED_META ] ) || hasCanvasBlock;
+	const pageUsesCanvas = Boolean( pageMeta[ ENABLED_META ] ) || hasCanvasBlock;
 
 	const enablePageStyles = useCallback( () => {
 		if ( pageMeta[ ENABLED_META ] ) {
@@ -94,10 +89,7 @@ export function SettingsSidebar() {
 			const normalized = normalizeApiError( error );
 			setNotice(
 				normalized.message ||
-					__(
-						'Global design settings could not be loaded.',
-						'cresco-canvas'
-					)
+					__( 'Global design settings could not be loaded.', 'cresco-canvas' )
 			);
 			setNoticeStatus( 'error' );
 		} finally {
@@ -135,18 +127,13 @@ export function SettingsSidebar() {
 		const scan = () => {
 			updateDocument( document );
 			document
-				.querySelectorAll< HTMLIFrameElement >(
-					'iframe[name="editor-canvas"]'
-				)
+				.querySelectorAll< HTMLIFrameElement >( 'iframe[name="editor-canvas"]' )
 				.forEach( attachIframe );
 		};
 
 		scan();
 		const observer = new MutationObserver( scan );
-		observer.observe( document.documentElement, {
-			childList: true,
-			subtree: true,
-		} );
+		observer.observe( document.documentElement, { childList: true, subtree: true } );
 
 		return () => {
 			observer.disconnect();
@@ -176,12 +163,31 @@ export function SettingsSidebar() {
 		} catch ( error ) {
 			const normalized = normalizeApiError( error );
 			setNotice(
-				normalized.message ||
-					__( 'Global design could not be saved.', 'cresco-canvas' )
+				normalized.message || __( 'Global design could not be saved.', 'cresco-canvas' )
 			);
 			setNoticeStatus( 'error' );
 		} finally {
 			setSaving( false );
+		}
+	}
+
+	async function resetGlobalSettings() {
+		setNotice( '' );
+		try {
+			const result = await apiFetch< GlobalSettings >( {
+				method: 'POST',
+				path: `${ bootstrap.restPath }settings/reset`,
+			} );
+			setGlobalSettings( result );
+			setNotice( __( 'Global design reset to defaults.', 'cresco-canvas' ) );
+			setNoticeStatus( 'success' );
+		} catch ( error ) {
+			const normalized = normalizeApiError( error );
+			setNotice(
+				normalized.message || __( 'Global design could not be reset.', 'cresco-canvas' )
+			);
+			setNoticeStatus( 'error' );
+			throw error;
 		}
 	}
 
@@ -197,85 +203,49 @@ export function SettingsSidebar() {
 				title={ __( 'Cresco Canvas', 'cresco-canvas' ) }
 			>
 				{ notice && (
-					<Notice
-						isDismissible
-						onRemove={ () => setNotice( '' ) }
-						status={ noticeStatus }
-					>
+					<Notice isDismissible onRemove={ () => setNotice( '' ) } status={ noticeStatus }>
 						{ notice }
 					</Notice>
 				) }
-				<PanelBody
-					className="cc-elements-panel"
-					initialOpen
-					title={ __( 'Elements', 'cresco-canvas' ) }
-				>
+				<PanelBody className="cc-elements-panel" initialOpen title={ __( 'Elements', 'cresco-canvas' ) }>
 					<ElementsLibrary onElementInserted={ enablePageStyles } />
 				</PanelBody>
-				<PanelBody
-					initialOpen={ false }
-					title={ __( 'Page styling', 'cresco-canvas' ) }
-				>
+				<PanelBody initialOpen={ false } title={ __( 'Page styling', 'cresco-canvas' ) }>
 					<ToggleControl
 						checked={ Boolean( pageMeta[ ENABLED_META ] ) }
-						help={ __(
-							'Applies Cresco global colors, typography, and spacing tokens on this Page. Pages containing a Cresco block are detected automatically.',
-							'cresco-canvas'
-						) }
-						label={ __(
-							'Enable Cresco page styles',
-							'cresco-canvas'
-						) }
+						help={ __( 'Applies Cresco global colors, typography, and spacing tokens on this Page. Pages containing a Cresco block are detected automatically.', 'cresco-canvas' ) }
+						label={ __( 'Enable Cresco page styles', 'cresco-canvas' ) }
 						onChange={ ( enabled ) =>
 							editPost( {
-								meta: {
-									...pageMeta,
-									[ ENABLED_META ]: enabled,
-								},
+								meta: { ...pageMeta, [ ENABLED_META ]: enabled },
 							} )
 						}
 					/>
 					<p className="cc-native-note">
-						{ __(
-							'This setting is saved by the normal Gutenberg Save or Update button.',
-							'cresco-canvas'
-						) }
+						{ __( 'This setting is saved by the normal Gutenberg Save or Update button.', 'cresco-canvas' ) }
 					</p>
 				</PanelBody>
 				{ bootstrap.canManageSettings && loading && (
-					<div
-						aria-label={ __(
-							'Loading global design',
-							'cresco-canvas'
-						) }
-						className="cc-sidebar-loading"
-					>
+					<div aria-label={ __( 'Loading global design', 'cresco-canvas' ) } className="cc-sidebar-loading">
 						<Spinner />
 					</div>
 				) }
 				{ bootstrap.canManageSettings && globalSettings && (
 					<GlobalSettingsPanel
 						onChange={ setGlobalSettings }
+						onReset={ resetGlobalSettings }
 						onSave={ saveGlobalSettings }
 						saving={ saving }
 						settings={ globalSettings }
 					/>
 				) }
-				{ bootstrap.canManageSettings &&
-					! loading &&
-					! globalSettings && (
-						<div className="cc-sidebar-retry">
-							<Button
-								onClick={ loadSettings }
-								variant="secondary"
-							>
-								{ __(
-									'Retry loading settings',
-									'cresco-canvas'
-								) }
-							</Button>
-						</div>
-					) }
+				{ bootstrap.canManageSettings && ! loading && ! globalSettings && (
+					<div className="cc-sidebar-retry">
+						<Button onClick={ loadSettings } variant="secondary">
+							{ __( 'Retry loading settings', 'cresco-canvas' ) }
+						</Button>
+					</div>
+				) }
 			</PluginSidebar>
 		</>
 	);
