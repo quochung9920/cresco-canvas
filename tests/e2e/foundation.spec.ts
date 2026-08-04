@@ -18,8 +18,10 @@ interface WordPressBrowserApi {
 		};
 		select: ( store: string ) => {
 			getBlockCount?: () => number;
+			getBlockName?: ( clientId: string ) => string | null;
 			getCurrentPostId?: () => number;
 			getEditedPostAttribute?: ( attribute: string ) => unknown;
+			getSelectedBlockClientId?: () => string | null;
 			isEditedPostDirty?: () => boolean;
 		};
 	};
@@ -105,6 +107,62 @@ test( 'normal Edit opens Gutenberg with Cresco integrated directly', async ( {
 	await expect(
 		page.getByRole( 'checkbox', { name: 'Enable Cresco page styles' } )
 	).toBeVisible();
+} );
+
+test( 'Cresco Elements search inserts a native block and enables Page styles', async ( {
+	page,
+} ) => {
+	await login( page );
+	await openCanvasFixtureInGutenberg( page );
+	await page.getByRole( 'button', { name: 'Cresco Canvas' } ).first().click();
+
+	const initialCount = await page.evaluate( () => {
+		const wordpress = ( window as unknown as { wp: WordPressBrowserApi } )
+			.wp;
+		return (
+			wordpress.data.select( 'core/block-editor' ).getBlockCount?.() ?? 0
+		);
+	} );
+
+	await page.getByLabel( 'Search elements' ).fill( 'Heading' );
+	const headingButton = page
+		.locator( '.cc-element-card__insert' )
+		.filter( { hasText: 'Heading' } )
+		.first();
+	await expect( headingButton ).toBeVisible();
+	await headingButton.click();
+
+	await expect
+		.poll( () =>
+			page.evaluate( () => {
+				const wordpress = (
+					window as unknown as { wp: WordPressBrowserApi }
+				 ).wp;
+				const blockEditor = wordpress.data.select( 'core/block-editor' );
+				const editor = wordpress.data.select( 'core/editor' );
+				const selectedClientId =
+					blockEditor.getSelectedBlockClientId?.() ?? null;
+				const meta = editor.getEditedPostAttribute?.( 'meta' );
+
+				return {
+					count: blockEditor.getBlockCount?.() ?? 0,
+					enabled:
+						typeof meta === 'object' &&
+						meta !== null &&
+						Boolean(
+							( meta as Record< string, unknown > )[ '_cresco_canvas_enabled' ]
+						),
+					selectedName: selectedClientId
+						? blockEditor.getBlockName?.( selectedClientId )
+						: null,
+				};
+			} )
+		)
+		.toEqual( {
+			count: initialCount + 1,
+			enabled: true,
+			selectedName: 'core/heading',
+		} );
 } );
 
 test( 'native Gutenberg document and history services remain available', async ( {
