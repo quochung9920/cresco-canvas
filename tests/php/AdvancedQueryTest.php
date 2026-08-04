@@ -27,7 +27,7 @@ final class AdvancedQueryTest extends TestCase {
 	}
 
 	public function test_page_parameter_is_normalized_and_bounded(): void {
-		self::assertSame( 'results_page', AdvancedQuery::sanitize_page_param( 'Results Page' ) );
+		self::assertSame( 'resultspage', AdvancedQuery::sanitize_page_param( 'Results Page' ) );
 		self::assertSame( 'cc_advanced_page', AdvancedQuery::sanitize_page_param( '' ) );
 		self::assertLessThanOrEqual( 32, strlen( AdvancedQuery::sanitize_page_param( str_repeat( 'a', 60 ) ) ) );
 	}
