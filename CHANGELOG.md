@@ -6,27 +6,46 @@ All notable changes are documented here. Versions follow Semantic Versioning whe
 
 ## [Unreleased]
 
+No changes have been classified for the next version yet.
+
+## [0.3.1-alpha.1] - 2026-08-04
+
 ### Added
 
 - A visible **Cresco Elements** library inside the Gutenberg sidebar.
-- Search, categories, favorites, recent elements, click-to-insert, and drag-to-canvas insertion.
+- Search, categories, favorites, recent elements, click-to-insert, and supported drag-to-canvas insertion.
 - Native layout elements for Section, Container, Row, Grid, Stack, Columns, Spacer, and Divider.
 - Native content and media elements for Heading, Text, Buttons, List, Quote, Table, Image, Gallery, Video, Audio, File, and Embed.
 - Composed marketing elements for Hero, Feature Grid, Call to Action, Testimonial, and Pricing Card.
 - Native interactive, navigation, blog, and utility elements including FAQ disclosure, Navigation, Search, Site Logo, Social Links, dynamic post blocks, Latest Posts, Shortcode, and Custom HTML.
 - A dedicated **Cresco Canvas** category in Gutenberg's native inserter.
 - Responsive helper output for inserted Grid and Stack compositions.
+- Unit coverage for element registration, block factories, persisted library state, nested block availability, search matching, recent ordering, and insertion-point resolution.
+- Playwright coverage for finding and inserting Heading as a native Gutenberg block while automatically enabling Cresco Page styles.
 
 ### Changed
 
 - Widened the Cresco sidebar when active and moved the element library ahead of Page and Global Design settings.
 - Automatically enables Page-level Cresco styling after inserting an element.
 - Added searchable Container keywords and moved the block into the Cresco inserter category.
+- Sanitizes corrupt, duplicated, stale, and unknown favorite or recent element IDs before using browser storage.
+- Inserts after the selected sibling, inside supported container blocks, or at the document end instead of always appending blindly.
+- Replaced continuous animation-frame canvas polling with mutation and iframe-load observers that are removed when the sidebar unmounts.
+- Synchronized the checked-in editor runtime and asset cache version with the stabilized source.
+- Bumped the plugin, package, Container block, and CI artifact name to `0.3.1-alpha.1`.
+
+### Fixed
+
+- Prevents element factories from inserting unavailable WordPress block types.
+- Prevents insertion into a location where WordPress reports that a root block type is restricted.
+- Shows dismissible success, warning, or error feedback instead of failing silently.
+- Handles removed drag payloads and storage failures without breaking the Elements Library.
 
 ### Known limitations
 
-- This is the first usable element-library stage, not completion of the full master roadmap.
-- Dedicated responsive property controls, custom Tabs/Modal/Slider blocks, Templates, Theme Builder, Dynamic Data bindings, Query Builder, WooCommerce Builder, and Live Frontend Preview still require subsequent implementation and runtime verification.
+- This release candidate has not yet produced a successful hosted CI result on its current `main` head.
+- WordPress runtime, save/reload, drag insertion, frontend parity, multisite, lifecycle, role, manual accessibility, RTL, browser, and performance evidence remain unverified.
+- Dedicated responsive property controls, exact five-device preview modes, custom Tabs/Modal/Slider blocks, Templates, Theme Builder, Dynamic Data bindings, Query Builder, WooCommerce Builder, and Live Frontend Preview remain subsequent milestones.
 
 ## [0.3.0-alpha.1] - 2026-08-04
 
