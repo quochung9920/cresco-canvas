@@ -11,6 +11,7 @@ use CrescoCanvas\Admin\EditorIntegration;
 use CrescoCanvas\API\RestApi;
 use CrescoCanvas\Blocks\Blocks;
 use CrescoCanvas\Migration\Migrator;
+use CrescoCanvas\Styles\DesignTokens;
 use CrescoCanvas\Styles\GlobalStyles;
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -56,10 +57,12 @@ final class Plugin {
 		$this->booted = true;
 
 		$styles = new GlobalStyles();
+		$tokens = new DesignTokens();
 
 		( new EditorIntegration() )->register();
 		( new RestApi() )->register();
 		$styles->register();
+		$tokens->register();
 		( new Blocks() )->register();
 
 		add_action( 'admin_init', array( Migrator::class, 'maybe_run' ), 1 );
