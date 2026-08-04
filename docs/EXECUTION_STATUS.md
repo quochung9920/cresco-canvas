@@ -41,33 +41,66 @@ Hosted CI, manual accessibility, browser, RTL, multisite, lifecycle, and perform
 
 Implemented:
 
-- Native WordPress pattern categories and seven bundled templates covering Pages, heroes, features, CTA, testimonials, pricing, and contact.
-- A Gutenberg Template Library with search, category filtering, and native block insertion.
-- Synced component creation from a selected block using `wp_block`.
-- Synced component listing and insertion using native block references.
-- Site Kit export/import for sanitized Cresco settings and allow-listed bundled template IDs.
-- Capability checks for template editing and Site Kit management.
-- Rejection of executable or unsupported component block types.
-- Independent checked-in runtime, stylesheet, manifest, packaging requirements, and PHP regression tests.
+- Native WordPress pattern categories and bundled templates.
+- Gutenberg Template Library search, filtering, and insertion.
+- Synced components using native `wp_block` entities.
+- Sanitized Site Kit import/export.
+- Checked-in runtime, stylesheet, manifest, packaging requirements, and regression test source.
 
-Important limitations:
+Important limitations include absent hosted CI/runtime evidence, limited component capture, no remote catalog, and no demonstrated reproducible `npm ci` build.
 
-- Hosted CI and WordPress runtime evidence are absent for the current `main` head.
-- Multi-block component capture, Pattern Overrides, content-only mode, thumbnails, favorites, remote catalogs, dependency installation, and template conflict handling are not implemented.
-- The repository dependency lock remains unusable, so a reproducible `npm ci` build has not been demonstrated.
+### `0.7.0-alpha.1` — FUNCTIONAL SOURCE AND CHECKED-IN RUNTIME, NOT VERIFIED
 
-### `0.7.0` through `1.0.0` — NOT COMPLETE
+Implemented:
 
-Theme Builder, display conditions, Dynamic Data, ACF, Query/Loop Builder, full interactive catalog, form integrations, WooCommerce scope, diagnostics, beta, RC, and all commercial release gates remain future work.
+- Native `cresco_template` Theme Builder entities with Gutenberg editing and revisions.
+- Header, Footer, Single, Page, Archive, Search, and 404 template types.
+- Allow-listed include/exclude display conditions and priority-based resolution.
+- Frontend slot/document rendering, REST CRUD, Gutenberg controls, admin columns, and conflict diagnostics.
+- Checked-in runtime, renderer, packaging requirements, and regression test source.
+
+Remaining evidence includes hosted CI, theme/plugin compatibility, accessibility, RTL, browser, multisite, role, revision, and frontend runtime verification.
+
+### `0.8.0-alpha.4` — FUNCTIONAL SOURCE AND CHECKED-IN RUNTIME, NOT VERIFIED
+
+Implemented across alpha.1 through alpha.4:
+
+- Dynamic scalar fields for post, site, post meta, and ACF values.
+- Dynamic images for featured, meta, and ACF image return formats.
+- Bounded standard Loop queries, presets, pagination, and nested-loop protection.
+- Dynamic Gallery and Relationship Loop blocks for ACF/meta structured values.
+- ACF Repeater rendering with one native block template per row.
+- ACF Flexible Content rendering with layout-specific child templates and fallback mapping.
+- ACF Sub Field dot-path binding for scalar row values.
+- Permission-protected ACF field schema discovery without raw value exposure.
+- Advanced Loop queries for post type, author, parent, search, dates, include/exclude IDs, one meta clause, and up to three taxonomy clauses.
+- Checked-in Gutenberg runtimes, styles, manifests, release-package requirements, REST discovery/preview endpoints, and regression test source.
+
+Known limitations:
+
+- No AJAX filtering, faceted search, load-more, infinite scroll, or URL history synchronization.
+- No WooCommerce query presets.
+- Repeater/Flexible Content currently bind scalar sub-fields; dedicated nested image/gallery/relationship/repeater row bindings remain future work.
+- Advanced Loop intentionally does not permit arbitrary nested meta/tax query groups or arbitrary SQL.
+- The dependency lock/build environment remains unavailable, so checked-in runtimes have not been reproduced from the TypeScript source pipeline.
+- Hosted CI and full WordPress/ACF runtime, accessibility, RTL, multisite, browser, security, and performance evidence remain missing.
+
+### `0.9.0` — NOT STARTED AS A COMPLETE MILESTONE
+
+Interactive Tabs, Accordion, Modal, Slider/Carousel, Form Builder, validation, submission handling, spam protection, external form integrations, and interaction controls remain future work.
+
+### `1.0.0` — NOT COMPLETE
+
+Production hardening, complete CI/runtime matrices, reproducible packaging, migrations/rollback validation, accessibility and security certification, beta/RC gates, stable documentation, support policy, and commercial infrastructure remain future work.
 
 ## Validation state
 
-- Checked-in PHP, JavaScript, CSS, and asset manifests exist for the implemented milestones.
-- Regression tests are present for Elements, responsive behavior, preview devices, Design Tokens, and Template Library catalog safety.
+- Checked-in PHP, JavaScript, CSS, and asset manifests exist through `0.8.0-alpha.4`.
+- Regression test source exists for the main sanitization, catalog, resolver, query, and structured-data boundaries.
 - No successful hosted workflow or complete WordPress runtime test result has been observed for the latest `main` commit.
 - No production or commercial readiness claim is permitted.
-- All eight commercial release gates remain `NOT VERIFIED`.
+- `0.9.0` and `1.0.0` release gates remain unverified.
 
 ## Direct-main policy
 
-Direct `main` updates were explicitly requested. Changes are therefore committed in small coherent units. Every milestone must still preserve native Gutenberg content, use capability checks, include migration and packaging considerations, and disclose missing evidence.
+Direct `main` updates were explicitly requested. Changes are committed in small coherent units. Every milestone must preserve native Gutenberg content, use capability checks, include migration and packaging considerations, and disclose missing evidence.
