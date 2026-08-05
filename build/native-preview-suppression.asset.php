@@ -1,5 +1,5 @@
 <?php
 return array(
-	'dependencies' => array(),
-	'version'      => '1.0.0-rc.1-native-header.4',
+	'dependencies' => array( 'wp-blocks', 'wp-data', 'wp-i18n' ),
+	'version'      => '1.0.0-rc.1-builder-experience.1',
 );
