@@ -38,5 +38,23 @@ final class EditorHub {
 			array(),
 			CRESCO_CANVAS_VERSION
 		);
+
+		$workspace_asset_file = CRESCO_CANVAS_PATH . 'build/workspace-layout.asset.php';
+		if ( is_readable( $workspace_asset_file ) && is_readable( CRESCO_CANVAS_PATH . 'build/workspace-layout.js' ) ) {
+			$workspace_asset = require $workspace_asset_file;
+			wp_enqueue_script(
+				'cresco-canvas-workspace-layout',
+				CRESCO_CANVAS_URL . 'build/workspace-layout.js',
+				(array) ( $workspace_asset['dependencies'] ?? array() ),
+				(string) ( $workspace_asset['version'] ?? CRESCO_CANVAS_VERSION ),
+				true
+			);
+			wp_enqueue_style(
+				'cresco-canvas-workspace-layout',
+				CRESCO_CANVAS_URL . 'assets/css/workspace-layout.css',
+				array( 'cresco-canvas-editor-hub' ),
+				(string) ( $workspace_asset['version'] ?? CRESCO_CANVAS_VERSION )
+			);
+		}
 	}
 }
