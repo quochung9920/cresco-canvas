@@ -21,6 +21,8 @@ use CrescoCanvas\Dynamic\EditorAssets as DynamicEditorAssets;
 use CrescoCanvas\Dynamic\InteractiveEditorAssets;
 use CrescoCanvas\Dynamic\InteractiveQuery;
 use CrescoCanvas\Dynamic\StructuredDynamicData;
+use CrescoCanvas\Forms\FormBuilder;
+use CrescoCanvas\Interactions\InteractiveComponents;
 use CrescoCanvas\Migration\Migrator;
 use CrescoCanvas\Styles\DesignTokens;
 use CrescoCanvas\Styles\GlobalStyles;
@@ -77,6 +79,8 @@ final class Plugin {
 		( new InteractiveEditorAssets() )->register();
 		( new DynamicCompletion() )->register();
 		( new CompletionEditorAssets() )->register();
+		( new InteractiveComponents() )->register();
+		( new FormBuilder() )->register();
 		$styles->register();
 		$tokens->register();
 		( new Blocks() )->register();
