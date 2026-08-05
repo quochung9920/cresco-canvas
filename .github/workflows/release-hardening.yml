@@ -1,0 +1,128 @@
+name: Release Hardening
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-hardening-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lockfile:
+    name: Dependency lock
+    runs-on: ubuntu-latest
+    outputs:
+      generated: ${{ steps.lock.outputs.generated }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20.19.0
+          cache: npm
+          cache-dependency-path: package-lock.json
+      - id: lock
+        shell: bash
+        run: |
+          if [ ! -s package-lock.json ]; then
+            npm install --package-lock-only --ignore-scripts --no-audit --no-fund
+            echo "generated=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "generated=false" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Commit generated lockfile
+        if: steps.lock.outputs.generated == 'true' && github.event_name == 'push' && github.ref == 'refs/heads/main'
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add package-lock.json
+          git commit -m "build: generate npm dependency lock"
+          git push
+      - name: Require committed lockfile
+        if: steps.lock.outputs.generated == 'true' && !(github.event_name == 'push' && github.ref == 'refs/heads/main')
+        run: |
+          echo "package-lock.json is missing or empty. Generate and commit it before merging."
+          exit 1
+
+  php:
+    name: PHP ${{ matrix.php }}
+    needs: lockfile
+    if: needs.lockfile.outputs.generated != 'true'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        php: ['8.1', '8.2', '8.3', '8.4']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          tools: phpunit:10.5
+          coverage: none
+      - name: PHP syntax
+        shell: bash
+        run: find . -type f -name '*.php' -not -path './vendor/*' -print0 | xargs -0 -n1 php -l
+      - name: PHP unit tests
+        run: phpunit --configuration phpunit.xml.dist
+
+  javascript:
+    name: JavaScript quality
+    needs: lockfile
+    if: needs.lockfile.outputs.generated != 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20.19.0
+          cache: npm
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Checked-in runtime syntax
+        shell: bash
+        run: find build scripts -type f -name '*.js' -o -name '*.mjs' | sort | xargs -n1 node --check
+      - run: npm run check:version
+      - run: npm run typecheck
+      - run: npm run lint:js
+      - run: npm run lint:css
+      - run: npm run lint:md
+      - run: npm run test:unit
+      - run: npm run build
+      - name: Ensure generated runtimes are committed
+        run: git diff --exit-code -- build
+      - run: npm run package
+      - run: npm run package:verify
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cresco-canvas-0.8.0-rc.1
+          path: |
+            dist/cresco-canvas.zip
+            dist/cresco-canvas.zip.sha256
+          if-no-files-found: error
+
+  release-gate:
+    name: 0.8 release gate
+    needs: [lockfile, php, javascript]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Enforce all gates
+        env:
+          LOCK: ${{ needs.lockfile.result }}
+          PHP: ${{ needs.php.result }}
+          JS: ${{ needs.javascript.result }}
+          GENERATED: ${{ needs.lockfile.outputs.generated }}
+        run: |
+          test "$LOCK" = "success"
+          test "$GENERATED" != "true"
+          test "$PHP" = "success"
+          test "$JS" = "success"
