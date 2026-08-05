@@ -1,5 +1,5 @@
 <?php
 return array(
 	'dependencies' => array(),
-	'version'      => '1.0.0-rc.1-native-preview.1',
+	'version'      => '1.0.0-rc.1-native-preview.2',
 );
