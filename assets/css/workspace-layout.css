@@ -1,1 +1,85 @@
-@media (min-width:1180px){body.cresco-canvas-three-pane .interface-interface-skeleton__body{display:flex!important;align-items:stretch;min-width:0;overflow:hidden}body.cresco-canvas-three-pane .cresco-canvas-workspace-left{order:1!important;flex:0 0 clamp(320px,25vw,400px)!important;width:clamp(320px,25vw,400px)!important;max-width:400px!important;min-width:320px!important;border-left:0!important;border-right:1px solid #dcdcde!important;inset:auto!important;position:relative!important}body.cresco-canvas-three-pane .cresco-canvas-workspace-center{order:2!important;flex:1 1 auto!important;width:auto!important;min-width:0!important;max-width:none!important}body.cresco-canvas-three-pane .cresco-canvas-workspace-right{order:3!important;flex:0 0 clamp(280px,22vw,360px)!important;width:clamp(280px,22vw,360px)!important;max-width:360px!important;min-width:280px!important;border-right:0!important;border-left:1px solid #dcdcde!important;inset:auto!important;position:relative!important}body.cresco-canvas-three-pane .cresco-canvas-workspace-left>.interface-complementary-area,body.cresco-canvas-three-pane .cresco-canvas-workspace-right>.interface-complementary-area,body.cresco-canvas-three-pane .cresco-canvas-workspace-left .interface-complementary-area,body.cresco-canvas-three-pane .cresco-canvas-workspace-right .interface-complementary-area{width:100%!important;max-width:none!important;height:100%!important}body.cresco-canvas-three-pane .cresco-canvas-workspace-left .components-panel,body.cresco-canvas-three-pane .cresco-canvas-workspace-left .components-panel__body,body.cresco-canvas-three-pane .cresco-canvas-workspace-left .components-panel__body>div,body.cresco-canvas-three-pane .cresco-canvas-workspace-right .components-panel,body.cresco-canvas-three-pane .cresco-canvas-workspace-right .components-panel__body{width:100%!important;max-width:none!important}body.cresco-canvas-three-pane .cresco-canvas-workspace-left{background:#fff}body.cresco-canvas-three-pane .cresco-canvas-workspace-right{background:#fff}body.cresco-canvas-three-pane .cresco-canvas-workspace-center .edit-post-visual-editor,body.cresco-canvas-three-pane .cresco-canvas-workspace-center .editor-visual-editor{min-width:0}body.cresco-canvas-three-pane .cresco-canvas-workspace-left,body.cresco-canvas-three-pane .cresco-canvas-workspace-right{overflow:hidden}body.cresco-canvas-three-pane .cresco-canvas-workspace-left>* ,body.cresco-canvas-three-pane .cresco-canvas-workspace-right>*{height:100%}}
+@media (min-width: 1180px) {
+	body.cresco-canvas-three-pane {
+		--cc-workspace-left-width: 320px;
+		--cc-workspace-right-width: clamp(280px, 22vw, 360px);
+	}
+
+	body.cresco-canvas-three-pane .interface-interface-skeleton__body {
+		display: flex !important;
+		align-items: stretch;
+		min-width: 0;
+		overflow: hidden;
+	}
+
+	body.cresco-canvas-three-pane .cresco-canvas-workspace-left {
+		order: 1 !important;
+		flex: 0 0 var(--cc-workspace-left-width) !important;
+		width: var(--cc-workspace-left-width) !important;
+		max-width: var(--cc-workspace-left-width) !important;
+		min-width: var(--cc-workspace-left-width) !important;
+		box-sizing: border-box !important;
+		border-left: 0 !important;
+		border-right: 1px solid #dcdcde !important;
+		inset: auto !important;
+		position: relative !important;
+		background: #fff;
+		overflow: hidden;
+	}
+
+	body.cresco-canvas-three-pane .cresco-canvas-workspace-center {
+		order: 2 !important;
+		flex: 1 1 auto !important;
+		width: auto !important;
+		min-width: 0 !important;
+		max-width: none !important;
+	}
+
+	body.cresco-canvas-three-pane .cresco-canvas-workspace-right {
+		order: 3 !important;
+		flex: 0 0 var(--cc-workspace-right-width) !important;
+		width: var(--cc-workspace-right-width) !important;
+		max-width: 360px !important;
+		min-width: 280px !important;
+		box-sizing: border-box !important;
+		border-right: 0 !important;
+		border-left: 1px solid #dcdcde !important;
+		inset: auto !important;
+		position: relative !important;
+		background: #fff;
+		overflow: hidden;
+	}
+
+	body.cresco-canvas-three-pane .cresco-canvas-workspace-left > *,
+	body.cresco-canvas-three-pane .cresco-canvas-workspace-left .interface-interface-skeleton__sidebar,
+	body.cresco-canvas-three-pane .cresco-canvas-workspace-left .interface-interface-skeleton__secondary-sidebar,
+	body.cresco-canvas-three-pane .cresco-canvas-workspace-left .interface-complementary-area,
+	body.cresco-canvas-three-pane .cresco-canvas-workspace-left .components-panel,
+	body.cresco-canvas-three-pane .cresco-canvas-workspace-left .components-panel__body,
+	body.cresco-canvas-three-pane .cresco-canvas-workspace-left .components-panel__body > div {
+		box-sizing: border-box !important;
+		flex-basis: auto !important;
+		width: 100% !important;
+		min-width: 0 !important;
+		max-width: none !important;
+	}
+
+	body.cresco-canvas-three-pane .cresco-canvas-workspace-left > *,
+	body.cresco-canvas-three-pane .cresco-canvas-workspace-right > *,
+	body.cresco-canvas-three-pane .cresco-canvas-workspace-left .interface-complementary-area,
+	body.cresco-canvas-three-pane .cresco-canvas-workspace-right .interface-complementary-area {
+		height: 100% !important;
+	}
+
+	body.cresco-canvas-three-pane .cresco-canvas-workspace-right > .interface-complementary-area,
+	body.cresco-canvas-three-pane .cresco-canvas-workspace-right .interface-complementary-area,
+	body.cresco-canvas-three-pane .cresco-canvas-workspace-right .components-panel,
+	body.cresco-canvas-three-pane .cresco-canvas-workspace-right .components-panel__body {
+		width: 100% !important;
+		max-width: none !important;
+	}
+
+	body.cresco-canvas-three-pane .cresco-canvas-workspace-center .edit-post-visual-editor,
+	body.cresco-canvas-three-pane .cresco-canvas-workspace-center .editor-visual-editor {
+		min-width: 0;
+	}
+}
