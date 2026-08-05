@@ -126,7 +126,7 @@ final class FormCompletion {
 		if ( ! $name || ! $formula ) {
 			return current_user_can( 'edit_pages' ) ? '<p class="cresco-form__warning">' . esc_html__( 'Calculated field requires a name and a valid formula.', 'cresco-canvas' ) . '</p>' : '';
 		}
-		return '<div ' . get_block_wrapper_attributes( array( 'class' => 'cresco-calculated-field', 'data-cresco-calculation' => $formula, 'data-decimals' => (string) $decimals ) ) . '><span class="cresco-calculated-field__label">' . esc_html( sanitize_text_field( (string) ( $attributes['label'] ?? 'Total' ) ) ) . '</span><output aria-live="polite"><span data-cresco-prefix>' . esc_html( sanitize_text_field( (string) ( $attributes['prefix'] ?? '' ) ) ) . '</span><span data-cresco-result>0</span><span data-cresco-suffix>' . esc_html( sanitize_text_field( (string) ( $attributes['suffix'] ?? '' ) ) . '</span></output><input type="hidden" name="fields[' . esc_attr( $name ) . ']" value="0" data-cresco-calculated-input></div>';
+		return '<div ' . get_block_wrapper_attributes( array( 'class' => 'cresco-calculated-field', 'data-cresco-calculation' => $formula, 'data-decimals' => (string) $decimals ) ) . '><span class="cresco-calculated-field__label">' . esc_html( sanitize_text_field( (string) ( $attributes['label'] ?? 'Total' ) ) ) . '</span><output aria-live="polite"><span data-cresco-prefix>' . esc_html( sanitize_text_field( (string) ( $attributes['prefix'] ?? '' ) ) ) . '</span><span data-cresco-result>0</span><span data-cresco-suffix>' . esc_html( sanitize_text_field( (string) ( $attributes['suffix'] ?? '' ) ) ) . '</span></output><input type="hidden" name="fields[' . esc_attr( $name ) . ']" value="0" data-cresco-calculated-input></div>';
 	}
 
 	/** Render a provider-neutral CAPTCHA mount point. */
