@@ -12,6 +12,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 final class FormAdministration {
+	const MAX_EXPORT_ROWS = 2000;
+	const MAX_CELL_BYTES  = 32768;
+
 	/** Register administration and privacy hooks. */
 	public function register() {
 		add_filter( 'manage_' . FormBuilder::POST_TYPE . '_posts_columns', array( $this, 'columns' ) );
@@ -30,6 +33,7 @@ final class FormAdministration {
 	}
 
 	public function column( $column, $post_id ) {
+		if ( ! current_user_can( 'edit_post', $post_id ) ) return;
 		$data = (array) get_post_meta( $post_id, '_cresco_submission_data', true );
 		if ( 'cresco_form' === $column ) {
 			echo esc_html( (string) get_post_meta( $post_id, '_cresco_form_id', true ) );
@@ -40,7 +44,6 @@ final class FormAdministration {
 					echo esc_html( $value );
 					break;
 				}
-			}
 		}
 	}
 
@@ -55,9 +58,10 @@ final class FormAdministration {
 			array(
 				'post_type'      => FormBuilder::POST_TYPE,
 				'post_status'    => 'private',
-				'posts_per_page' => 5000,
+				'posts_per_page' => self::MAX_EXPORT_ROWS,
 				'orderby'        => 'date',
 				'order'          => 'DESC',
+				'no_found_rows'  => true,
 				'meta_query'     => $form_id ? array( array( 'key' => '_cresco_form_id', 'value' => $form_id ) ) : array(),
 			)
 		);
@@ -65,19 +69,46 @@ final class FormAdministration {
 		$headers = array( 'submission_id', 'submitted_at', 'form_id' );
 		foreach ( $query->posts as $post ) {
 			$data = (array) get_post_meta( $post->ID, '_cresco_submission_data', true );
-			$headers = array_values( array_unique( array_merge( $headers, array_keys( $data ) ) ) );
+			$headers = array_values( array_unique( array_merge( $headers, array_map( 'sanitize_key', array_keys( $data ) ) ) ) );
 			$rows[] = array( 'submission_id' => $post->ID, 'submitted_at' => $post->post_date_gmt, 'form_id' => get_post_meta( $post->ID, '_cresco_form_id', true ) ) + $data;
 		}
 		nocache_headers();
 		header( 'Content-Type: text/csv; charset=utf-8' );
 		header( 'Content-Disposition: attachment; filename=cresco-submissions-' . gmdate( 'Y-m-d' ) . '.csv' );
+		header( 'X-Content-Type-Options: nosniff' );
 		$output = fopen( 'php://output', 'w' );
-		fputcsv( $output, $headers );
+		if ( false === $output ) wp_die( esc_html__( 'The export stream could not be opened.', 'cresco-canvas' ) );
+		fputcsv( $output, array_map( array( self::class, 'safe_csv_cell' ), $headers ) );
 		foreach ( $rows as $row ) {
-			fputcsv( $output, array_map( static function ( $key ) use ( $row ) { $value = $row[ $key ] ?? ''; return is_array( $value ) ? implode( ', ', $value ) : $value; }, $headers ) );
+			fputcsv(
+				$output,
+				array_map(
+					static function ( $key ) use ( $row ) {
+						$value = $row[ $key ] ?? '';
+						if ( is_array( $value ) ) $value = implode( ', ', array_map( 'strval', $value ) );
+						if ( is_object( $value ) ) $value = wp_json_encode( $value );
+						return self::safe_csv_cell( $value );
+					},
+					$headers
+				)
+			);
 		}
 		fclose( $output );
 		exit;
+	}
+
+	/** Neutralize spreadsheet formulas and bound individual cells. */
+	public static function safe_csv_cell( $value ) {
+		$value = wp_strip_all_tags( (string) $value );
+		$value = str_replace( array( "\0", "\r" ), '', $value );
+		if ( strlen( $value ) > self::MAX_CELL_BYTES ) {
+			$value = substr( $value, 0, self::MAX_CELL_BYTES );
+		}
+		$trimmed = ltrim( $value );
+		if ( '' !== $trimmed && in_array( $trimmed[0], array( '=', '+', '-', '@' ), true ) ) {
+			$value = "'" . $value;
+		}
+		return $value;
 	}
 
 	public function schedule_retention() {
@@ -89,9 +120,7 @@ final class FormAdministration {
 	/** Purge submissions whose signed retention date has passed. */
 	public function purge_expired() {
 		$ids = get_posts( array( 'post_type' => FormBuilder::POST_TYPE, 'post_status' => 'private', 'fields' => 'ids', 'posts_per_page' => 500, 'meta_key' => '_cresco_delete_after', 'meta_value' => time(), 'meta_compare' => '<=', 'meta_type' => 'NUMERIC' ) );
-		foreach ( $ids as $id ) {
-			wp_delete_post( $id, true );
-		}
+		foreach ( $ids as $id ) wp_delete_post( $id, true );
 	}
 
 	public function privacy_exporter( $exporters ) {
