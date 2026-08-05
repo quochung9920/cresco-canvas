@@ -20,7 +20,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 define( 'CRESCO_CANVAS_VERSION', '1.0.0-rc.1' );
-define( 'CRESCO_CANVAS_SCHEMA_VERSION', 3 );
+define( 'CRESCO_CANVAS_SCHEMA_VERSION', 4 );
 define( 'CRESCO_CANVAS_MINIMUM_WORDPRESS', '6.7' );
 define( 'CRESCO_CANVAS_MINIMUM_PHP', '8.1' );
 define( 'CRESCO_CANVAS_FILE', __FILE__ );
