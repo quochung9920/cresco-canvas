@@ -7,6 +7,7 @@
 
 namespace CrescoCanvas;
 
+use CrescoCanvas\Admin\EditorHub;
 use CrescoCanvas\Admin\EditorIntegration;
 use CrescoCanvas\API\RestApi;
 use CrescoCanvas\Blocks\Blocks;
@@ -91,6 +92,7 @@ final class Plugin {
 		( new FormCompletion() )->register();
 		( new FormCompletionEditorAssets() )->register();
 		( new FormAdministration() )->register();
+		( new EditorHub() )->register();
 		$styles->register();
 		$tokens->register();
 		( new Blocks() )->register();
