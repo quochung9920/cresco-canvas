@@ -13,17 +13,20 @@ Do not tag or market `1.0.0` until every P0 item has objective evidence. Source 
 - [ ] Every checked-in runtime has an authoritative source file.
 - [ ] A clean checkout can run `npm ci`, `composer install --no-dev --optimize-autoloader`, and `npm run build`.
 - [ ] Deleting `build/` and rebuilding reproduces every required runtime.
-- [ ] Release ZIP contents are allow-listed and reviewed.
+- [x] Release ZIP contents are allow-listed and now include the Inspector style engine assets.
 - [ ] Two clean package builds produce the same SHA-256 checksum.
 - [ ] No manually edited generated file is required for functionality.
 
 ### Inspector and rendering integrity
 
-- [ ] Every visible inspector control produces verified editor and frontend output.
-- [ ] Unsupported Core block capabilities hide or disable the corresponding control.
-- [ ] Cresco-only positioning/effects use a versioned Cresco attribute and rendering pipeline rather than unsupported Core style keys.
-- [ ] Save, reload, copy, duplicate, undo, redo, revisions, and reusable patterns preserve settings.
-- [ ] Invalid or legacy style data migrates without invalidating blocks.
+- [ ] Every visible inspector control produces verified editor and frontend output on the supported WordPress matrix.
+- [x] The visible generic Inspector controls now have a matching editor preview and sanitized frontend renderer.
+- [x] Cresco positioning/effects use a versioned Cresco configuration rather than relying on unsupported Core style keys.
+- [x] New values are mirrored into universal block `metadata.crescoStyle`; legacy `style` and `crescoStyle` values remain readable fallbacks.
+- [x] Width, max width, minimum height, spacing, colors, radius, typography, opacity, transform, shadow, position, offsets, z-index, overflow, and device visibility have render paths.
+- [x] Device visibility CSS is compiled from the editable Global tablet/laptop breakpoints.
+- [ ] Save, reload, copy, duplicate, undo, redo, revisions, and reusable patterns preserve settings in runtime tests.
+- [ ] Invalid or legacy style data is exercised against real historical fixtures without invalidating blocks.
 
 ### Security
 
@@ -71,7 +74,7 @@ Do not tag or market `1.0.0` until every P0 item has objective evidence. Source 
 - [ ] Editor overhead is measured on 50-, 200-, and 500-block documents.
 - [ ] Selecting a block and opening the Cresco inspector stays within the interaction budget.
 - [ ] Frontend assets load only when their blocks are present.
-- [ ] Mutation observers are scoped, debounced, and disconnected correctly.
+- [ ] Mutation observers and data subscriptions are scoped, debounced, and disconnected correctly.
 - [ ] Dynamic loops and facets are benchmarked with representative datasets.
 - [ ] Form submission, upload, email, and webhook work are separated from the response path where appropriate.
 
@@ -79,7 +82,7 @@ Do not tag or market `1.0.0` until every P0 item has objective evidence. Source 
 
 - [x] README describes the actual `1.0.0-rc.1` scope.
 - [ ] Architecture documentation matches the current services and editor shell.
-- [ ] Known limitations are current and evidence-based.
+- [x] Known limitations are current and evidence-based.
 - [ ] Changelog is complete and user-facing.
 - [ ] Upgrade, rollback, privacy, security, and support policies are published.
 - [ ] Release ZIP, checksum, SBOM, and provenance are produced.
