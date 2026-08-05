@@ -8,6 +8,13 @@
 	var useSelect = wp.data.useSelect;
 	var bootstrap = window.crescoCanvasEditorSettings || { canManageSettings: false, restPath: '/cresco-canvas/v1/', version: 'unknown' };
 	var labels = { fontXs:'Text XS',fontSm:'Text small',fontBase:'Body text',fontLg:'Text large',fontXl:'Text XL',h1:'Heading H1',h2:'Heading H2',h3:'Heading H3',h4:'Heading H4',h5:'Heading H5',h6:'Heading H6',space2xs:'Space 2XS',spaceXs:'Space XS',spaceSm:'Space small',spaceMd:'Space medium',spaceLg:'Space large',spaceXl:'Space XL',space2xl:'Space 2XL',space3xl:'Space 3XL',sectionBlock:'Section vertical padding',containerGutter:'Container gutter',gridGap:'Grid gap',radiusSm:'Radius small',radiusMd:'Radius medium',radiusLg:'Radius large',controlHeight:'Control height',buttonPadding:'Button horizontal padding' };
+	var breakpointDefinitions = {
+		mobile: { label: 'Mobile start', min: 0, max: 767, range: '0-767px' },
+		tablet: { label: 'Tablet start', min: 1, max: 1024, range: '768-1024px' },
+		laptop: { label: 'Laptop start', min: 2, max: 1439, range: '1025-1439px' },
+		desktop: { label: 'Desktop start', min: 3, max: 1919, range: '1440-1919px' },
+		wide: { label: 'Widescreen start', min: 4, max: 3840, range: 'from 1920px' }
+	};
 	function clone( value ){ return JSON.parse( JSON.stringify( value || {} ) ); }
 	function cleanValue( value ) {
 		if ( value === null || typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean' ) return value;
@@ -67,7 +74,7 @@
 		function applyImport(){try{var value=JSON.parse(importValue);var globalValue=value&&value.globalDesign?value.globalDesign:value;setSettings(globalValue);setImportValue('');setNotice({status:'success',message:__('Imported global values are ready. Save to apply them.','cresco-canvas')});}catch(error){setNotice({status:'error',message:__('Invalid JSON.','cresco-canvas')});}}
 		function ColorField(key,label){return el('label',{className:'cc-global-color'},el('span',null,label),el('input',{type:'color',value:settings[key],onChange:function(event){patch(key,event.target.value);}}),el(TextControl,{hideLabelFromVision:true,label:label,value:settings[key],onChange:function(value){patch(key,value);}}));}
 		function TokenFields(keys){return el('div',{className:'cc-global-token-list'},keys.map(function(key){return el(TextControl,{key:key,label:labels[key]||key,help:settings.fluidTokens[key]&&settings.fluidTokens[key].indexOf('clamp(')===0?__('Fluid across devices with clamp().','cresco-canvas'):'',value:settings.fluidTokens[key]||'',onChange:function(value){patchMap('fluidTokens',key,value);}});}));}
-		function BreakpointFields(){return el('div',{className:'cc-global-token-list'},Object.keys(settings.breakpoints||{}).map(function(key){return el(TextControl,{key:key,type:'number',min:320,max:3840,label:key.charAt(0).toUpperCase()+key.slice(1)+' (px)',value:settings.breakpoints[key],onChange:function(value){patchMap('breakpoints',key,Number(value));}});}));}
+		function BreakpointFields(){return el('div',{className:'cc-global-token-list'},Object.keys(settings.breakpoints||{}).map(function(key){var definition=breakpointDefinitions[key]||{label:key.charAt(0).toUpperCase()+key.slice(1),min:0,max:3840,range:''};return el(TextControl,{key:key,type:'number',min:definition.min,max:definition.max,label:definition.label+' (px)',help:definition.range,value:settings.breakpoints[key],onChange:function(value){patchMap('breakpoints',key,Number(value));}});}));}
 		var blueprint = useMemo( function () {
 			if ( ! settings ) return '';
 			return JSON.stringify( {
@@ -96,7 +103,7 @@
 				if(tab.name==='spacing')return el(PanelBody,{title:__('Fluid spacing scale','cresco-canvas'),initialOpen:true},TokenFields(['space2xs','spaceXs','spaceSm','spaceMd','spaceLg','spaceXl','space2xl','space3xl','sectionBlock','gridGap']));
 				if(tab.name==='layout')return el(Fragment,null,el(PanelBody,{title:__('Container widths','cresco-canvas'),initialOpen:true},el(TextControl,{type:'number',label:__('Container max (px)','cresco-canvas'),value:settings.containerMax,onChange:function(value){patch('containerMax',Number(value));}}),el(TextControl,{type:'number',label:__('Content max (px)','cresco-canvas'),value:settings.contentMax,onChange:function(value){patch('contentMax',Number(value));}}),TokenFields(['containerGutter'])),el(PanelBody,{title:__('Responsive radii','cresco-canvas'),initialOpen:true},el(TextControl,{type:'number',label:__('Legacy base radius (px)','cresco-canvas'),value:settings.radius,onChange:function(value){patch('radius',Number(value));}}),TokenFields(['radiusSm','radiusMd','radiusLg'])));
 				if(tab.name==='controls')return el(PanelBody,{title:__('Buttons and fields','cresco-canvas'),initialOpen:true},TokenFields(['controlHeight','buttonPadding']));
-				return el(PanelBody,{title:__('Structural breakpoints','cresco-canvas'),initialOpen:true},el(Notice,{status:'info',isDismissible:false},__('Typography and spacing remain fluid. These values are used for columns, direction and visibility changes.','cresco-canvas')),BreakpointFields());
+				return el(PanelBody,{title:__('Structural breakpoints','cresco-canvas'),initialOpen:true},el(Notice,{status:'info',isDismissible:false},__('Ranges: Mobile 0-767px, Tablet 768-1024px, Laptop 1025-1439px, Desktop 1440-1919px, Widescreen from 1920px. Typography and spacing remain fluid.','cresco-canvas')),BreakpointFields());
 			}),
 			el(PanelBody,{title:__('Blueprint JSON for ChatGPT','cresco-canvas'),initialOpen:true},
 				el(Notice,{status:'info',isDismissible:false},__('This JSON contains the current page structure, every block attribute, native Gutenberg settings, Cresco settings and Global Design. It excludes temporary editor IDs.','cresco-canvas')),
