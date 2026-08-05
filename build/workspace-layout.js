@@ -57,18 +57,32 @@
 		return current && current.parentElement === parent ? current : null;
 	}
 
-	function clearClasses() {
-		document.body.classList.remove( ROOT_CLASS, RESIZING_CLASS );
-		document.querySelectorAll( '.' + LEFT_CLASS + ', .' + CENTER_CLASS + ', .' + RIGHT_CLASS ).forEach( function ( node ) {
-			node.classList.remove( LEFT_CLASS, CENTER_CLASS, RIGHT_CLASS );
+	function removeClassFromOtherNodes( className, activeNode ) {
+		document.querySelectorAll( '.' + className ).forEach( function ( node ) {
+			if ( node !== activeNode ) node.classList.remove( className );
 		} );
+	}
+
+	function deactivateLayout() {
+		document.body.classList.remove( ROOT_CLASS, RESIZING_CLASS );
+		removeClassFromOtherNodes( LEFT_CLASS, null );
+		removeClassFromOtherNodes( CENTER_CLASS, null );
+		removeClassFromOtherNodes( RIGHT_CLASS, null );
+	}
+
+	function reconcileLayout( left, center, right ) {
+		removeClassFromOtherNodes( LEFT_CLASS, left );
+		removeClassFromOtherNodes( CENTER_CLASS, center );
+		removeClassFromOtherNodes( RIGHT_CLASS, right );
+		document.body.classList.add( ROOT_CLASS );
+		left.classList.add( LEFT_CLASS );
+		center.classList.add( CENTER_CLASS );
+		if ( right ) right.classList.add( RIGHT_CLASS );
 	}
 
 	function removeHandles( except ) {
 		document.querySelectorAll( '.' + HANDLE_CLASS ).forEach( function ( handle ) {
-			if ( ! except || ! except.contains( handle ) ) {
-				handle.remove();
-			}
+			if ( ! except || ! except.contains( handle ) ) handle.remove();
 		} );
 	}
 
@@ -153,8 +167,8 @@
 	}
 
 	function applyLayout() {
-		clearClasses();
 		if ( window.innerWidth < ACTIVE_BREAKPOINT ) {
+			deactivateLayout();
 			removeHandles();
 			return;
 		}
@@ -165,6 +179,7 @@
 		var listView = findListView();
 
 		if ( ! bodyShell || ! crescoPanel || ! editorContent ) {
+			deactivateLayout();
 			removeHandles();
 			return;
 		}
@@ -172,20 +187,16 @@
 		var left = directChildOf( crescoPanel, bodyShell );
 		var center = directChildOf( editorContent, bodyShell );
 		var right = listView ? directChildOf( listView, bodyShell ) : null;
+		if ( right === left || right === center ) right = null;
 
 		if ( ! left || ! center || left === center ) {
+			deactivateLayout();
 			removeHandles();
 			return;
 		}
 
-		document.body.classList.add( ROOT_CLASS );
-		left.classList.add( LEFT_CLASS );
-		center.classList.add( CENTER_CLASS );
+		reconcileLayout( left, center, right );
 		ensureResizeHandle( left );
-
-		if ( right && right !== left && right !== center ) {
-			right.classList.add( RIGHT_CLASS );
-		}
 	}
 
 	var scheduled = false;
