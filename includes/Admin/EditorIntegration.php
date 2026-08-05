@@ -147,6 +147,23 @@ final class EditorIntegration {
 			'before'
 		);
 		wp_set_script_translations( 'cresco-canvas-preview', 'cresco-canvas' );
+
+		$native_preview_asset = $this->native_preview_suppression_asset();
+		if ( null !== $native_preview_asset ) {
+			wp_enqueue_style(
+				'cresco-canvas-native-preview-suppression',
+				CRESCO_CANVAS_URL . 'assets/css/native-preview-suppression.css',
+				array( 'cresco-canvas-preview' ),
+				(string) $native_preview_asset['version']
+			);
+			wp_enqueue_script(
+				'cresco-canvas-native-preview-suppression',
+				CRESCO_CANVAS_URL . 'build/native-preview-suppression.js',
+				array( 'cresco-canvas-preview' ),
+				(string) $native_preview_asset['version'],
+				true
+			);
+		}
 	}
 
 	/** Warn administrators without preventing the native editor from loading. */
@@ -157,6 +174,7 @@ final class EditorIntegration {
 				null !== $this->editor_asset() &&
 				null !== $this->elements_usage_asset() &&
 				null !== $this->preview_asset() &&
+				null !== $this->native_preview_suppression_asset() &&
 				null !== $this->design_system_asset()
 			) ||
 			! current_user_can( 'activate_plugins' )
@@ -167,7 +185,7 @@ final class EditorIntegration {
 		printf(
 			'<div class="notice notice-warning"><p><strong>%1$s</strong> %2$s</p></div>',
 			esc_html__( 'Some Cresco Canvas tools are unavailable.', 'cresco-canvas' ),
-			esc_html__( 'A compiled editor, Elements ranking, Design System, or preview asset is missing. Gutenberg remains fully usable; install a release ZIP or run the production build to restore Cresco tools.', 'cresco-canvas' )
+			esc_html__( 'A compiled editor, Elements ranking, Design System, viewport, or preview-suppression asset is missing. Gutenberg remains fully usable; install a release ZIP or run the production build to restore Cresco tools.', 'cresco-canvas' )
 		);
 	}
 
@@ -212,6 +230,18 @@ final class EditorIntegration {
 		$script_path = CRESCO_CANVAS_PATH . 'build/preview.js';
 		$style_path  = CRESCO_CANVAS_PATH . 'assets/css/preview.css';
 		$asset_path  = CRESCO_CANVAS_PATH . 'build/preview.asset.php';
+		if ( ! is_readable( $script_path ) || ! is_readable( $style_path ) || ! is_readable( $asset_path ) ) {
+			return null;
+		}
+		$asset = require $asset_path;
+		return is_array( $asset ) && isset( $asset['dependencies'], $asset['version'] ) ? $asset : null;
+	}
+
+	/** @return array<string, mixed>|null */
+	private function native_preview_suppression_asset() {
+		$script_path = CRESCO_CANVAS_PATH . 'build/native-preview-suppression.js';
+		$style_path  = CRESCO_CANVAS_PATH . 'assets/css/native-preview-suppression.css';
+		$asset_path  = CRESCO_CANVAS_PATH . 'build/native-preview-suppression.asset.php';
 		if ( ! is_readable( $script_path ) || ! is_readable( $style_path ) || ! is_readable( $asset_path ) ) {
 			return null;
 		}
