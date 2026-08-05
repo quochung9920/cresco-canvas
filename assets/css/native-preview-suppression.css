@@ -11,3 +11,58 @@
 .editor-header__settings .editor-post-preview__dropdown {
 	display: none !important;
 }
+
+.cresco-canvas-header-tools-left {
+	display: inline-flex;
+	align-items: center;
+	gap: 2px;
+	min-width: 0;
+	margin-inline-start: 6px;
+	padding-inline-start: 6px;
+	border-inline-start: 1px solid #dcdcde;
+}
+
+.cresco-canvas-header-tools-left > *,
+.cresco-canvas-header-tool-moved {
+	flex: 0 0 auto;
+	margin: 0 !important;
+}
+
+.cresco-canvas-header-tools-left .components-button,
+.cresco-canvas-header-tools-left button,
+.cresco-canvas-header-tools-left a[role="button"] {
+	min-width: 36px;
+	height: 36px;
+	padding: 6px;
+	border-radius: 4px;
+}
+
+.cresco-canvas-header-tools-left .components-button.is-pressed,
+.cresco-canvas-header-tools-left .components-button[aria-pressed="true"] {
+	background: #1e1e1e;
+	color: #fff;
+}
+
+@media (max-width: 782px) {
+	.cresco-canvas-header-tools-left {
+		gap: 0;
+		margin-inline-start: 2px;
+		padding-inline-start: 2px;
+		border-inline-start: 0;
+	}
+
+	.cresco-canvas-header-tools-left .components-button,
+	.cresco-canvas-header-tools-left button,
+	.cresco-canvas-header-tools-left a[role="button"] {
+		min-width: 32px;
+		width: 32px;
+		height: 32px;
+		padding: 4px;
+	}
+}
+
+@media (forced-colors: active) {
+	.cresco-canvas-header-tools-left {
+		border-inline-start-color: CanvasText;
+	}
+}
