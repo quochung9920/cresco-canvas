@@ -25,9 +25,7 @@
 	function readUsage() {
 		try {
 			var parsed = JSON.parse( window.localStorage.getItem( USAGE_KEY ) || '{}' );
-			if ( ! parsed || typeof parsed !== 'object' || Array.isArray( parsed ) ) {
-				return {};
-			}
+			if ( ! parsed || typeof parsed !== 'object' || Array.isArray( parsed ) ) return {};
 			var clean = {};
 			Object.keys( parsed ).slice( 0, 200 ).forEach( function ( key ) {
 				var normalized = normalizeKey( key );
@@ -43,19 +41,13 @@
 	function writeUsage() {
 		try {
 			window.localStorage.setItem( USAGE_KEY, JSON.stringify( usage ) );
-		} catch ( error ) {
-			// Storage is optional. Sorting still works for the current editor session.
-		}
+		} catch ( error ) {}
 	}
 
 	function removeLegacyPreferences() {
 		try {
-			LEGACY_KEYS.forEach( function ( key ) {
-				window.localStorage.removeItem( key );
-			} );
-		} catch ( error ) {
-			// Ignore unavailable storage.
-		}
+			LEGACY_KEYS.forEach( function ( key ) { window.localStorage.removeItem( key ); } );
+		} catch ( error ) {}
 	}
 
 	function cardKey( card ) {
@@ -65,10 +57,14 @@
 		return normalizeKey( label ? label.textContent : insertButton.textContent );
 	}
 
+	function cardLabel( card ) {
+		var insertButton = card && card.querySelector( INSERT_SELECTOR );
+		var label = insertButton && insertButton.querySelector( 'span:last-child' );
+		return String( label ? label.textContent : 'Widget' ).trim() || 'Widget';
+	}
+
 	function removeObsoleteControls( root ) {
-		root.querySelectorAll( FILTER_SELECTOR + ', ' + FAVORITE_SELECTOR ).forEach( function ( node ) {
-			node.remove();
-		} );
+		root.querySelectorAll( FILTER_SELECTOR + ', ' + FAVORITE_SELECTOR ).forEach( function ( node ) { node.remove(); } );
 	}
 
 	function sortLibrary( library ) {
@@ -76,26 +72,19 @@
 		var list = library.querySelector( LIST_SELECTOR );
 		if ( ! list ) return;
 		var cards = Array.from( list.querySelectorAll( ':scope > ' + CARD_SELECTOR ) );
-
 		cards.forEach( function ( card, index ) {
 			var key = cardKey( card );
 			if ( ! key ) return;
 			card.dataset.ccUsageKey = key;
 			if ( ! originalOrder.has( key ) ) originalOrder.set( key, index );
 		} );
-
-		cards
-			.slice()
-			.sort( function ( first, second ) {
-				var firstKey = first.dataset.ccUsageKey || cardKey( first );
-				var secondKey = second.dataset.ccUsageKey || cardKey( second );
-				var usageDifference = ( usage[ secondKey ] || 0 ) - ( usage[ firstKey ] || 0 );
-				if ( usageDifference !== 0 ) return usageDifference;
-				return ( originalOrder.get( firstKey ) || 0 ) - ( originalOrder.get( secondKey ) || 0 );
-			} )
-			.forEach( function ( card, rank ) {
-				card.style.order = String( rank );
-			} );
+		cards.slice().sort( function ( first, second ) {
+			var firstKey = first.dataset.ccUsageKey || cardKey( first );
+			var secondKey = second.dataset.ccUsageKey || cardKey( second );
+			var usageDifference = ( usage[ secondKey ] || 0 ) - ( usage[ firstKey ] || 0 );
+			if ( usageDifference !== 0 ) return usageDifference;
+			return ( originalOrder.get( firstKey ) || 0 ) - ( originalOrder.get( secondKey ) || 0 );
+		} ).forEach( function ( card, rank ) { card.style.order = String( rank ); } );
 	}
 
 	function applyAll() {
@@ -119,29 +108,40 @@
 		schedule();
 	}
 
+	function startDragFeedback( event, card ) {
+		document.body.classList.add( 'cc-elementor-dragging' );
+		card.classList.add( 'is-dragging' );
+		var overlay = document.querySelector( '.cc-elementor-drop-overlay' );
+		if ( overlay ) overlay.textContent = 'Drop ' + cardLabel( card ) + ' anywhere on the canvas';
+		if ( ! event.dataTransfer ) return;
+		var ghost = card.cloneNode( true );
+		ghost.className += ' cc-elementor-drag-ghost';
+		document.body.appendChild( ghost );
+		try { event.dataTransfer.setDragImage( ghost, 42, 42 ); } catch ( error ) {}
+		window.setTimeout( function () {
+			if ( ghost.parentNode ) ghost.parentNode.removeChild( ghost );
+		}, 0 );
+	}
+
 	function start() {
 		removeLegacyPreferences();
 		applyAll();
-
 		document.addEventListener( 'click', function ( event ) {
 			var insertButton = event.target && event.target.closest ? event.target.closest( INSERT_SELECTOR ) : null;
 			if ( ! insertButton ) return;
 			var card = insertButton.closest( CARD_SELECTOR );
 			if ( card ) recordUsage( card );
 		}, true );
-
 		document.addEventListener( 'dragstart', function ( event ) {
 			var card = event.target && event.target.closest ? event.target.closest( CARD_SELECTOR ) : null;
-			if ( card ) recordUsage( card );
+			if ( ! card ) return;
+			recordUsage( card );
+			startDragFeedback( event, card );
 		}, true );
-
 		var observer = new MutationObserver( schedule );
 		observer.observe( document.body, { childList: true, subtree: true } );
 	}
 
-	if ( document.readyState === 'loading' ) {
-		document.addEventListener( 'DOMContentLoaded', start, { once: true } );
-	} else {
-		start();
-	}
+	if ( document.readyState === 'loading' ) document.addEventListener( 'DOMContentLoaded', start, { once: true } );
+	else start();
 } )();
