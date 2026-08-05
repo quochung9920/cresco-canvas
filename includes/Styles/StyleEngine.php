@@ -16,7 +16,6 @@ final class StyleEngine {
 	const VERSION_ATTRIBUTE = 'crescoStyleVersion';
 	const SCHEMA_VERSION = 1;
 
-	/** Register attributes, rendering, and editor preview assets. */
 	public function register() {
 		add_filter( 'register_block_type_args', array( $this, 'register_attributes' ), 20, 2 );
 		add_filter( 'render_block', array( $this, 'render_block' ), 20, 2 );
@@ -24,7 +23,6 @@ final class StyleEngine {
 		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_frontend_assets' ), 30 );
 	}
 
-	/** Add Cresco-owned attributes without changing Core block serialization. */
 	public function register_attributes( $args, $block_name ) {
 		$args['attributes'] = isset( $args['attributes'] ) && is_array( $args['attributes'] ) ? $args['attributes'] : array();
 		if ( ! isset( $args['attributes'][ self::ATTRIBUTE ] ) ) {
@@ -36,7 +34,6 @@ final class StyleEngine {
 		return $args;
 	}
 
-	/** Apply sanitized declarations to the first rendered element. */
 	public function render_block( $block_content, $block ) {
 		if ( '' === trim( (string) $block_content ) || empty( $block['attrs'] ) ) {
 			return $block_content;
@@ -57,31 +54,19 @@ final class StyleEngine {
 		return $processor->get_updated_html();
 	}
 
-	/** Load editor attribute registration and live preview. */
 	public function enqueue_editor_assets() {
 		$asset_file = CRESCO_CANVAS_PATH . 'build/style-engine-editor.asset.php';
 		if ( is_readable( $asset_file ) && is_readable( CRESCO_CANVAS_PATH . 'build/style-engine-editor.js' ) ) {
 			$asset = require $asset_file;
-			wp_enqueue_script(
-				'cresco-canvas-style-engine-editor',
-				CRESCO_CANVAS_URL . 'build/style-engine-editor.js',
-				(array) ( $asset['dependencies'] ?? array() ),
-				(string) ( $asset['version'] ?? CRESCO_CANVAS_VERSION ),
-				true
-			);
+			wp_enqueue_script( 'cresco-canvas-style-engine-editor', CRESCO_CANVAS_URL . 'build/style-engine-editor.js', (array) ( $asset['dependencies'] ?? array() ), (string) ( $asset['version'] ?? CRESCO_CANVAS_VERSION ), true );
 		}
 		$this->enqueue_shared_style();
 	}
 
-	/** Load the small responsive/style utility sheet on Cresco pages. */
 	public function enqueue_frontend_assets() {
-		if ( ! is_singular() ) {
-			return;
-		}
 		$this->enqueue_shared_style();
 	}
 
-	/** Convert stored configuration into a safe declaration list. */
 	public static function declarations( $style ) {
 		$style = is_array( $style ) ? $style : array();
 		$out = array();
@@ -113,8 +98,7 @@ final class StyleEngine {
 			array( array( 'position', 'zIndex' ), 'z-index', 'integer' ),
 		);
 		foreach ( $map as $item ) {
-			$value = self::path( $style, $item[0] );
-			$value = self::sanitize_value( $value, $item[2] );
+			$value = self::sanitize_value( self::path( $style, $item[0] ), $item[2] );
 			if ( null !== $value && '' !== $value ) {
 				$out[] = $item[1] . ':' . $value;
 			}
@@ -130,7 +114,6 @@ final class StyleEngine {
 		return array_values( array_unique( $out ) );
 	}
 
-	/** Merge legacy Inspector values as a read-only fallback. */
 	private function style_from_attributes( $attrs ) {
 		$managed = isset( $attrs[ self::ATTRIBUTE ] ) && is_array( $attrs[ self::ATTRIBUTE ] ) ? $attrs[ self::ATTRIBUTE ] : array();
 		$legacy = isset( $attrs['style'] ) && is_array( $attrs['style'] ) ? $attrs['style'] : array();
@@ -165,13 +148,9 @@ final class StyleEngine {
 	}
 
 	private static function sanitize_value( $value, $type ) {
-		if ( null === $value || '' === $value ) {
-			return null;
-		}
+		if ( null === $value || '' === $value ) return null;
 		$value = trim( (string) $value );
-		if ( strlen( $value ) > 180 || preg_match( '/[;{}<>]/', $value ) ) {
-			return null;
-		}
+		if ( strlen( $value ) > 180 || preg_match( '/[;{}<>]/', $value ) ) return null;
 		switch ( $type ) {
 			case 'length':
 				return preg_match( '/^(?:-?\d+(?:\.\d+)?(?:px|rem|em|%|vw|vh|vmin|vmax|ch)|0|auto|fit-content|max-content|min-content|(?:calc|min|max|clamp)\([0-9a-zA-Z.%+*\/,_()\s-]+\))$/', $value ) ? $value : null;
@@ -181,8 +160,7 @@ final class StyleEngine {
 				if ( sanitize_hex_color( $value ) ) return $value;
 				return preg_match( '/^(?:transparent|currentColor|var\(--[a-z0-9_-]+\)|rgba?\([0-9.,%\s]+\)|hsla?\([0-9.,%\s]+\))$/i', $value ) ? $value : null;
 			case 'opacity':
-				$number = (float) $value;
-				return (string) min( 1, max( 0, $number ) );
+				return (string) min( 1, max( 0, (float) $value ) );
 			case 'integer':
 				return preg_match( '/^-?\d{1,7}$/', $value ) ? (string) (int) $value : null;
 			case 'transform':
