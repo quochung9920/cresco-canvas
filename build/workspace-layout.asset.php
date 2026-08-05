@@ -1,5 +1,5 @@
 <?php
 return array(
 	'dependencies' => array(),
-	'version'      => '1.0.0-rc.1-workspace.5',
+	'version'      => '1.0.0-rc.1-workspace.6',
 );
