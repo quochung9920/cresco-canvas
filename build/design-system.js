@@ -1,253 +1,42 @@
 ( function ( wp ) {
 	'use strict';
-
-	if ( ! wp || ! wp.plugins || ! wp.editor || ! wp.element || ! wp.components || ! wp.apiFetch ) {
-		return;
-	}
-
-	var el = wp.element.createElement;
-	var useEffect = wp.element.useEffect;
-	var useMemo = wp.element.useMemo;
-	var useState = wp.element.useState;
-	var __ = wp.i18n.__;
-	var apiFetch = wp.apiFetch;
-	var registerPlugin = wp.plugins.registerPlugin;
-	var PluginSidebar = wp.editor.PluginSidebar;
-	var PluginSidebarMoreMenuItem = wp.editor.PluginSidebarMoreMenuItem;
-	var Button = wp.components.Button;
-	var Notice = wp.components.Notice;
-	var PanelBody = wp.components.PanelBody;
-	var SelectControl = wp.components.SelectControl;
-	var Spinner = wp.components.Spinner;
-	var TextControl = wp.components.TextControl;
-	var TextareaControl = wp.components.TextareaControl;
-	var ToggleControl = wp.components.ToggleControl;
+	if ( ! wp || ! wp.plugins || ! wp.editor || ! wp.element || ! wp.components || ! wp.apiFetch ) return;
+	var el = wp.element.createElement, Fragment = wp.element.Fragment, useEffect = wp.element.useEffect, useState = wp.element.useState;
+	var __ = wp.i18n.__, apiFetch = wp.apiFetch, registerPlugin = wp.plugins.registerPlugin;
+	var PluginSidebar = wp.editor.PluginSidebar, PluginSidebarMoreMenuItem = wp.editor.PluginSidebarMoreMenuItem;
+	var Button = wp.components.Button, Notice = wp.components.Notice, PanelBody = wp.components.PanelBody, Spinner = wp.components.Spinner, TabPanel = wp.components.TabPanel, TextControl = wp.components.TextControl, TextareaControl = wp.components.TextareaControl, ToggleControl = wp.components.ToggleControl;
 	var bootstrap = window.crescoCanvasEditorSettings || { canManageSettings: false, restPath: '/cresco-canvas/v1/' };
-
-	function slugify( value ) {
-		return String( value || '' )
-			.toLowerCase()
-			.trim()
-			.replace( /[^a-z0-9_-]+/g, '-' )
-			.replace( /^-+|-+$/g, '' );
-	}
-
-	function cloneRecord( record ) {
-		return Object.assign( {}, record || {} );
-	}
-
-	function ColorInput( props ) {
-		return el( 'label', { className: 'cc-ds-color-field' },
-			el( 'span', null, props.label ),
-			el( 'input', {
-				type: 'color',
-				value: props.value,
-				onChange: function ( event ) { props.onChange( event.target.value ); }
-			} )
-		);
-	}
-
-	function DesignSystemSidebar() {
-		var settingsState = useState( null );
-		var settings = settingsState[ 0 ];
-		var setSettings = settingsState[ 1 ];
-		var loadingState = useState( bootstrap.canManageSettings );
-		var loading = loadingState[ 0 ];
-		var setLoading = loadingState[ 1 ];
-		var savingState = useState( false );
-		var saving = savingState[ 0 ];
-		var setSaving = savingState[ 1 ];
-		var noticeState = useState( null );
-		var notice = noticeState[ 0 ];
-		var setNotice = noticeState[ 1 ];
-		var colorSlugState = useState( '' );
-		var colorSlug = colorSlugState[ 0 ];
-		var setColorSlug = colorSlugState[ 1 ];
-		var colorValueState = useState( '#635bff' );
-		var colorValue = colorValueState[ 0 ];
-		var setColorValue = colorValueState[ 1 ];
-		var aliasSlugState = useState( '' );
-		var aliasSlug = aliasSlugState[ 0 ];
-		var setAliasSlug = aliasSlugState[ 1 ];
-		var aliasTargetState = useState( 'primary' );
-		var aliasTarget = aliasTargetState[ 0 ];
-		var setAliasTarget = aliasTargetState[ 1 ];
-		var importState = useState( '' );
-		var importValue = importState[ 0 ];
-		var setImportValue = importState[ 1 ];
-
-		useEffect( function () {
-			if ( ! bootstrap.canManageSettings ) {
-				setLoading( false );
-				return;
-			}
-			apiFetch( { path: bootstrap.restPath + 'settings' } )
-				.then( setSettings )
-				.catch( function ( error ) {
-					setNotice( { status: 'error', message: error && error.message ? error.message : __( 'Global Design could not be loaded.', 'cresco-canvas' ) } );
-				} )
-				.finally( function () { setLoading( false ); } );
-		}, [] );
-
-		var aliasOptions = useMemo( function () {
-			var options = [
-				{ label: __( 'Primary', 'cresco-canvas' ), value: 'primary' },
-				{ label: __( 'Text', 'cresco-canvas' ), value: 'text' },
-				{ label: __( 'Muted', 'cresco-canvas' ), value: 'muted' },
-				{ label: __( 'Background', 'cresco-canvas' ), value: 'background' }
-			];
-			Object.keys( settings && settings.customColors ? settings.customColors : {} ).forEach( function ( key ) {
-				options.push( { label: __( 'Custom:', 'cresco-canvas' ) + ' ' + key, value: 'custom-' + key } );
-			} );
-			return options;
-		}, [ settings ] );
-
-		function patch( changes ) {
-			setSettings( Object.assign( {}, settings, changes ) );
-		}
-
-		function save() {
-			if ( ! settings || saving ) return;
-			setSaving( true );
-			setNotice( null );
-			apiFetch( { path: bootstrap.restPath + 'settings', method: 'POST', data: settings } )
-				.then( function ( result ) {
-					setSettings( result );
-					setNotice( { status: 'success', message: __( 'Global Design saved.', 'cresco-canvas' ) } );
-				} )
-				.catch( function ( error ) {
-					setNotice( { status: 'error', message: error && error.message ? error.message : __( 'Global Design could not be saved.', 'cresco-canvas' ) } );
-				} )
-				.finally( function () { setSaving( false ); } );
-		}
-
-		function reset() {
-			if ( saving ) return;
-			setSaving( true );
-			apiFetch( { path: bootstrap.restPath + 'settings/reset', method: 'POST' } )
-				.then( function ( result ) {
-					setSettings( result );
-					setNotice( { status: 'success', message: __( 'Global Design reset to defaults.', 'cresco-canvas' ) } );
-				} )
-				.catch( function ( error ) {
-					setNotice( { status: 'error', message: error && error.message ? error.message : __( 'Global Design could not be reset.', 'cresco-canvas' ) } );
-				} )
-				.finally( function () { setSaving( false ); } );
-		}
-
-		function addColor() {
-			var slug = slugify( colorSlug );
-			if ( ! slug || ! settings || Object.keys( settings.customColors || {} ).length >= 24 ) return;
-			var colors = cloneRecord( settings.customColors );
-			colors[ slug ] = colorValue;
-			patch( { customColors: colors } );
-			setColorSlug( '' );
-		}
-
-		function deleteColor( slug ) {
-			var used = Object.keys( settings.aliases || {} ).some( function ( alias ) {
-				return settings.aliases[ alias ] === 'custom-' + slug;
-			} );
-			if ( used ) {
-				setNotice( { status: 'warning', message: __( 'Remove aliases that use this color before deleting it.', 'cresco-canvas' ) } );
-				return;
-			}
-			var colors = cloneRecord( settings.customColors );
-			delete colors[ slug ];
-			patch( { customColors: colors } );
-		}
-
-		function addAlias() {
-			var slug = slugify( aliasSlug );
-			if ( ! slug || ! settings || Object.keys( settings.aliases || {} ).length >= 24 ) return;
-			var aliases = cloneRecord( settings.aliases );
-			aliases[ slug ] = aliasTarget;
-			patch( { aliases: aliases } );
-			setAliasSlug( '' );
-		}
-
-		function deleteAlias( slug ) {
-			var aliases = cloneRecord( settings.aliases );
-			delete aliases[ slug ];
-			patch( { aliases: aliases } );
-		}
-
-		function applyImport() {
-			try {
-				var parsed = JSON.parse( importValue );
-				if ( ! parsed || typeof parsed !== 'object' || typeof parsed.customColors !== 'object' || typeof parsed.aliases !== 'object' ) {
-					throw new Error( __( 'The JSON is not a complete Cresco Design System export.', 'cresco-canvas' ) );
-				}
-				setSettings( parsed );
-				setImportValue( '' );
-				setNotice( { status: 'success', message: __( 'Imported values are ready. Save to persist them.', 'cresco-canvas' ) } );
-			} catch ( error ) {
-				setNotice( { status: 'error', message: error && error.message ? error.message : __( 'Invalid JSON.', 'cresco-canvas' ) } );
-			}
-		}
-
+	var labels = { fontXs:'Text XS',fontSm:'Text small',fontBase:'Body text',fontLg:'Text large',fontXl:'Text XL',h1:'Heading H1',h2:'Heading H2',h3:'Heading H3',h4:'Heading H4',h5:'Heading H5',h6:'Heading H6',space2xs:'Space 2XS',spaceXs:'Space XS',spaceSm:'Space small',spaceMd:'Space medium',spaceLg:'Space large',spaceXl:'Space XL',space2xl:'Space 2XL',space3xl:'Space 3XL',sectionBlock:'Section vertical padding',containerGutter:'Container gutter',gridGap:'Grid gap',radiusSm:'Radius small',radiusMd:'Radius medium',radiusLg:'Radius large',controlHeight:'Control height',buttonPadding:'Button horizontal padding' };
+	function clone( value ){ return JSON.parse( JSON.stringify( value || {} ) ); }
+	function GlobalDesign(){
+		var s=useState(null),settings=s[0],setSettings=s[1],l=useState(true),loading=l[0],setLoading=l[1],sv=useState(false),saving=sv[0],setSaving=sv[1],n=useState(null),notice=n[0],setNotice=n[1],im=useState(''),importValue=im[0],setImportValue=im[1];
+		useEffect(function(){ if(!bootstrap.canManageSettings){setLoading(false);return;} apiFetch({path:bootstrap.restPath+'settings'}).then(setSettings).catch(function(error){setNotice({status:'error',message:error&&error.message?error.message:__('Global settings could not be loaded.','cresco-canvas')});}).finally(function(){setLoading(false);});},[]);
+		function patch(key,value){var next=clone(settings);next[key]=value;setSettings(next);} function patchMap(group,key,value){var next=clone(settings);next[group]=next[group]||{};next[group][key]=value;setSettings(next);}
+		function save(){if(!settings||saving)return;setSaving(true);apiFetch({path:bootstrap.restPath+'settings',method:'POST',data:settings}).then(function(result){setSettings(result);setNotice({status:'success',message:__('Global design saved. Reload the editor to refresh all previews.','cresco-canvas')});}).catch(function(error){setNotice({status:'error',message:error.message||__('Could not save.','cresco-canvas')});}).finally(function(){setSaving(false);});}
+		function reset(){if(saving)return;setSaving(true);apiFetch({path:bootstrap.restPath+'settings/reset',method:'POST'}).then(function(result){setSettings(result);setNotice({status:'success',message:__('Global defaults restored.','cresco-canvas')});}).finally(function(){setSaving(false);});}
+		function applyImport(){try{var value=JSON.parse(importValue);setSettings(value);setImportValue('');setNotice({status:'success',message:__('Imported values are ready. Save to apply them.','cresco-canvas')});}catch(error){setNotice({status:'error',message:__('Invalid JSON.','cresco-canvas')});}}
+		function ColorField(key,label){return el('label',{className:'cc-global-color'},el('span',null,label),el('input',{type:'color',value:settings[key],onChange:function(event){patch(key,event.target.value);}}),el(TextControl,{hideLabelFromVision:true,label:label,value:settings[key],onChange:function(value){patch(key,value);}}));}
+		function TokenFields(keys){return el('div',{className:'cc-global-token-list'},keys.map(function(key){return el(TextControl,{key:key,label:labels[key]||key,help:settings.fluidTokens[key]&&settings.fluidTokens[key].indexOf('clamp(')===0?__('Fluid across devices with clamp().','cresco-canvas'):'',value:settings.fluidTokens[key]||'',onChange:function(value){patchMap('fluidTokens',key,value);}});}));}
+		function BreakpointFields(){return el('div',{className:'cc-global-token-list'},Object.keys(settings.breakpoints||{}).map(function(key){return el(TextControl,{key:key,type:'number',min:320,max:3840,label:key.charAt(0).toUpperCase()+key.slice(1)+' (px)',value:settings.breakpoints[key],onChange:function(value){patchMap('breakpoints',key,Number(value));}});}));}
 		var content;
-		if ( ! bootstrap.canManageSettings ) {
-			content = el( Notice, { status: 'warning', isDismissible: false }, __( 'You do not have permission to manage site-wide design settings.', 'cresco-canvas' ) );
-		} else if ( loading ) {
-			content = el( 'div', { className: 'cc-ds-loading' }, el( Spinner ) );
-		} else if ( ! settings ) {
-			content = el( Notice, { status: 'error', isDismissible: false }, __( 'Global Design settings are unavailable.', 'cresco-canvas' ) );
-		} else {
-			content = el( wp.element.Fragment, null,
-				notice && el( Notice, { status: notice.status, isDismissible: true, onRemove: function () { setNotice( null ); } }, notice.message ),
-				el( PanelBody, { title: __( 'Foundation', 'cresco-canvas' ), initialOpen: true },
-					el( ColorInput, { label: __( 'Primary', 'cresco-canvas' ), value: settings.primary, onChange: function ( value ) { patch( { primary: value } ); } } ),
-					el( ColorInput, { label: __( 'Text', 'cresco-canvas' ), value: settings.text, onChange: function ( value ) { patch( { text: value } ); } } ),
-					el( ColorInput, { label: __( 'Muted', 'cresco-canvas' ), value: settings.muted, onChange: function ( value ) { patch( { muted: value } ); } } ),
-					el( ColorInput, { label: __( 'Background', 'cresco-canvas' ), value: settings.background, onChange: function ( value ) { patch( { background: value } ); } } ),
-					el( TextControl, { label: __( 'Font family stack', 'cresco-canvas' ), value: settings.fontFamily, onChange: function ( value ) { patch( { fontFamily: value } ); } } ),
-					el( TextControl, { label: __( 'Container maximum width', 'cresco-canvas' ), type: 'number', min: 960, max: 2560, value: settings.containerMax, onChange: function ( value ) { patch( { containerMax: Number( value ) } ); } } ),
-					el( TextControl, { label: __( 'Content maximum width', 'cresco-canvas' ), type: 'number', min: 640, max: settings.containerMax, value: settings.contentMax, onChange: function ( value ) { patch( { contentMax: Number( value ) } ); } } ),
-					el( TextControl, { label: __( 'Global radius', 'cresco-canvas' ), type: 'number', min: 0, max: 80, value: settings.radius, onChange: function ( value ) { patch( { radius: Number( value ) } ); } } )
-				),
-				el( PanelBody, { title: __( 'Custom colors', 'cresco-canvas' ), initialOpen: false },
-					Object.keys( settings.customColors || {} ).map( function ( slug ) {
-						return el( 'div', { className: 'cc-ds-token-row', key: slug },
-							el( 'code', null, '--cc-color-' + slug ),
-							el( 'input', { type: 'color', value: settings.customColors[ slug ], onChange: function ( event ) { var colors = cloneRecord( settings.customColors ); colors[ slug ] = event.target.value; patch( { customColors: colors } ); } } ),
-							el( Button, { isDestructive: true, variant: 'tertiary', onClick: function () { deleteColor( slug ); } }, __( 'Delete', 'cresco-canvas' ) )
-						);
-					} ),
-					el( TextControl, { label: __( 'New color slug', 'cresco-canvas' ), value: colorSlug, onChange: setColorSlug } ),
-					el( ColorInput, { label: __( 'New color value', 'cresco-canvas' ), value: colorValue, onChange: setColorValue } ),
-					el( Button, { variant: 'secondary', disabled: ! slugify( colorSlug ), onClick: addColor }, __( 'Add custom color', 'cresco-canvas' ) )
-				),
-				el( PanelBody, { title: __( 'Aliases', 'cresco-canvas' ), initialOpen: false },
-					Object.keys( settings.aliases || {} ).map( function ( slug ) {
-						return el( 'div', { className: 'cc-ds-token-row', key: slug },
-							el( 'code', null, '--cc-alias-' + slug ),
-							el( 'span', null, settings.aliases[ slug ] ),
-							el( Button, { isDestructive: true, variant: 'tertiary', onClick: function () { deleteAlias( slug ); } }, __( 'Delete', 'cresco-canvas' ) )
-						);
-					} ),
-					el( TextControl, { label: __( 'New alias slug', 'cresco-canvas' ), value: aliasSlug, onChange: setAliasSlug } ),
-					el( SelectControl, { label: __( 'Alias target', 'cresco-canvas' ), value: aliasTarget, options: aliasOptions, onChange: setAliasTarget } ),
-					el( Button, { variant: 'secondary', disabled: ! slugify( aliasSlug ), onClick: addAlias }, __( 'Add alias', 'cresco-canvas' ) )
-				),
-				el( PanelBody, { title: __( 'Import, export, and reset', 'cresco-canvas' ), initialOpen: false },
-					el( TextareaControl, { label: __( 'Export JSON', 'cresco-canvas' ), readOnly: true, rows: 8, value: JSON.stringify( settings, null, 2 ) } ),
-					el( TextareaControl, { label: __( 'Import JSON', 'cresco-canvas' ), rows: 8, value: importValue, onChange: setImportValue } ),
-					el( Button, { variant: 'secondary', disabled: ! importValue.trim(), onClick: applyImport }, __( 'Apply import', 'cresco-canvas' ) ),
-					el( Button, { variant: 'tertiary', disabled: saving, onClick: reset }, __( 'Reset to defaults', 'cresco-canvas' ) )
-				),
-				el( PanelBody, { title: __( 'Data', 'cresco-canvas' ), initialOpen: false },
-					el( ToggleControl, { label: __( 'Remove plugin data on uninstall', 'cresco-canvas' ), checked: !! settings.removeDataOnUninstall, onChange: function ( value ) { patch( { removeDataOnUninstall: value } ); } } )
-				),
-				el( 'div', { className: 'cc-ds-actions' }, el( Button, { variant: 'primary', isBusy: saving, disabled: saving, onClick: save }, saving ? __( 'Saving…', 'cresco-canvas' ) : __( 'Save Design System', 'cresco-canvas' ) ) )
-			);
-		}
-
-		return el( wp.element.Fragment, null,
-			el( PluginSidebarMoreMenuItem, { target: 'cresco-canvas-design-system' }, __( 'Cresco Design System', 'cresco-canvas' ) ),
-			el( PluginSidebar, { name: 'cresco-canvas-design-system', title: __( 'Cresco Design System', 'cresco-canvas' ), icon: 'admin-customizer', className: 'cresco-canvas-design-system' }, content )
+		if(!bootstrap.canManageSettings)content=el(Notice,{status:'warning',isDismissible:false},__('You do not have permission to edit global design.','cresco-canvas'));
+		else if(loading)content=el('div',{className:'cc-ds-loading'},el(Spinner));
+		else if(!settings)content=el(Notice,{status:'error',isDismissible:false},__('Global settings are unavailable.','cresco-canvas'));
+		else content=el(Fragment,null,
+			notice&&el(Notice,{status:notice.status,isDismissible:true,onRemove:function(){setNotice(null);}},notice.message),
+			el('div',{className:'cc-global-intro'},el('strong',null,__('Global responsive design','cresco-canvas')),el('p',null,__('Editable defaults for every Cresco page. Use clamp() for fluid values and breakpoints only for structural changes.','cresco-canvas'))),
+			el(TabPanel,{className:'cc-global-tabs',activeClass:'is-active',tabs:[{name:'colors',title:__('Colors','cresco-canvas')},{name:'type',title:__('Type','cresco-canvas')},{name:'spacing',title:__('Spacing','cresco-canvas')},{name:'layout',title:__('Layout','cresco-canvas')},{name:'controls',title:__('Controls','cresco-canvas')},{name:'breakpoints',title:__('Devices','cresco-canvas')}]},function(tab){
+				if(tab.name==='colors')return el(PanelBody,{title:__('Global colors','cresco-canvas'),initialOpen:true},ColorField('primary',__('Primary','cresco-canvas')),ColorField('text',__('Text','cresco-canvas')),ColorField('muted',__('Muted','cresco-canvas')),ColorField('background',__('Background','cresco-canvas')));
+				if(tab.name==='type')return el(Fragment,null,el(PanelBody,{title:__('Font foundation','cresco-canvas'),initialOpen:true},el(TextControl,{label:__('Font family stack','cresco-canvas'),value:settings.fontFamily,onChange:function(value){patch('fontFamily',value);}})),el(PanelBody,{title:__('Fluid typography','cresco-canvas'),initialOpen:true},TokenFields(['fontXs','fontSm','fontBase','fontLg','fontXl','h1','h2','h3','h4','h5','h6'])));
+				if(tab.name==='spacing')return el(PanelBody,{title:__('Fluid spacing scale','cresco-canvas'),initialOpen:true},TokenFields(['space2xs','spaceXs','spaceSm','spaceMd','spaceLg','spaceXl','space2xl','space3xl','sectionBlock','gridGap']));
+				if(tab.name==='layout')return el(Fragment,null,el(PanelBody,{title:__('Container widths','cresco-canvas'),initialOpen:true},el(TextControl,{type:'number',label:__('Container max (px)','cresco-canvas'),value:settings.containerMax,onChange:function(value){patch('containerMax',Number(value));}}),el(TextControl,{type:'number',label:__('Content max (px)','cresco-canvas'),value:settings.contentMax,onChange:function(value){patch('contentMax',Number(value));}}),TokenFields(['containerGutter'])),el(PanelBody,{title:__('Responsive radii','cresco-canvas'),initialOpen:true},el(TextControl,{type:'number',label:__('Legacy base radius (px)','cresco-canvas'),value:settings.radius,onChange:function(value){patch('radius',Number(value));}}),TokenFields(['radiusSm','radiusMd','radiusLg'])));
+				if(tab.name==='controls')return el(PanelBody,{title:__('Buttons and fields','cresco-canvas'),initialOpen:true},TokenFields(['controlHeight','buttonPadding']));
+				return el(PanelBody,{title:__('Structural breakpoints','cresco-canvas'),initialOpen:true},el(Notice,{status:'info',isDismissible:false},__('Typography and spacing remain fluid. These values are used for columns, direction and visibility changes.','cresco-canvas')),BreakpointFields());
+			}),
+			el(PanelBody,{title:__('Import, export and maintenance','cresco-canvas'),initialOpen:false},el(TextareaControl,{label:__('Export JSON','cresco-canvas'),readOnly:true,rows:8,value:JSON.stringify(settings,null,2)}),el(TextareaControl,{label:__('Import JSON','cresco-canvas'),rows:8,value:importValue,onChange:setImportValue}),el(Button,{variant:'secondary',disabled:!importValue.trim(),onClick:applyImport},__('Apply import','cresco-canvas')),el(ToggleControl,{label:__('Remove data on uninstall','cresco-canvas'),checked:!!settings.removeDataOnUninstall,onChange:function(value){patch('removeDataOnUninstall',value);}})),
+			el('div',{className:'cc-ds-actions'},el(Button,{variant:'primary',isBusy:saving,disabled:saving,onClick:save},__('Save global design','cresco-canvas')),el(Button,{variant:'tertiary',disabled:saving,onClick:reset},__('Reset defaults','cresco-canvas')))
 		);
+		return el(Fragment,null,el(PluginSidebarMoreMenuItem,{target:'cresco-canvas-design-system'},__('Global Design','cresco-canvas')),el(PluginSidebar,{className:'cresco-canvas-design-system',icon:'admin-appearance',name:'cresco-canvas-design-system',title:__('Global Design','cresco-canvas')},content));
 	}
-
-	registerPlugin( 'cresco-canvas-design-system', { icon: 'admin-customizer', render: DesignSystemSidebar } );
+	registerPlugin('cresco-canvas-design-system',{icon:'admin-appearance',render:GlobalDesign});
 } )( window.wp );
