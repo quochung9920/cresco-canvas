@@ -2,51 +2,26 @@
 	'use strict';
 
 	var ROOT_CLASS = 'cresco-canvas-three-pane';
-	var RESIZING_CLASS = 'cresco-canvas-workspace-resizing';
 	var LEFT_CLASS = 'cresco-canvas-workspace-left';
 	var CENTER_CLASS = 'cresco-canvas-workspace-center';
 	var RIGHT_CLASS = 'cresco-canvas-workspace-right';
-	var HANDLE_CLASS = 'cresco-canvas-workspace-resize-handle';
-	var STORAGE_KEY = 'crescoCanvas.workspaceLeftWidth';
+	var LEGACY_RESIZING_CLASS = 'cresco-canvas-workspace-resizing';
+	var LEGACY_HANDLE_CLASS = 'cresco-canvas-workspace-resize-handle';
+	var LEGACY_STORAGE_KEY = 'crescoCanvas.workspaceLeftWidth';
 	var WIDTH_PROPERTY = '--cc-workspace-left-width';
 	var ACTIVE_BREAKPOINT = 1180;
-	var DEFAULT_WIDTH = 320;
-	var MIN_WIDTH = 280;
-	var MAX_WIDTH = 520;
 
-	function clamp( value, minimum, maximum ) {
-		return Math.min( maximum, Math.max( minimum, Number( value ) || minimum ) );
-	}
-
-	function maximumWidth() {
-		return Math.max( MIN_WIDTH, Math.min( MAX_WIDTH, window.innerWidth - 640 ) );
-	}
-
-	function readWidth() {
+	function cleanupLegacyResize() {
+		document.body.classList.remove( LEGACY_RESIZING_CLASS );
+		document.body.style.removeProperty( WIDTH_PROPERTY );
+		document.querySelectorAll( '.' + LEGACY_HANDLE_CLASS ).forEach( function ( handle ) {
+			handle.remove();
+		} );
 		try {
-			return clamp( window.localStorage.getItem( STORAGE_KEY ), MIN_WIDTH, maximumWidth() );
-		} catch ( error ) {
-			return DEFAULT_WIDTH;
-		}
-	}
-
-	function persistWidth( width ) {
-		try {
-			window.localStorage.setItem( STORAGE_KEY, String( width ) );
+			window.localStorage.removeItem( LEGACY_STORAGE_KEY );
 		} catch ( error ) {
 			// Storage can be unavailable in hardened browser contexts.
 		}
-	}
-
-	function applyWidth( width, handle ) {
-		var next = clamp( width, MIN_WIDTH, maximumWidth() );
-		document.body.style.setProperty( WIDTH_PROPERTY, next + 'px' );
-		if ( handle ) {
-			handle.setAttribute( 'aria-valuenow', String( next ) );
-			handle.setAttribute( 'aria-valuemax', String( maximumWidth() ) );
-			handle.title = 'Resize Cresco Canvas tools (' + next + 'px). Double-click to reset.';
-		}
-		return next;
 	}
 
 	function directChildOf( node, parent ) {
@@ -64,7 +39,7 @@
 	}
 
 	function deactivateLayout() {
-		document.body.classList.remove( ROOT_CLASS, RESIZING_CLASS );
+		document.body.classList.remove( ROOT_CLASS );
 		removeClassFromOtherNodes( LEFT_CLASS, null );
 		removeClassFromOtherNodes( CENTER_CLASS, null );
 		removeClassFromOtherNodes( RIGHT_CLASS, null );
@@ -78,12 +53,6 @@
 		left.classList.add( LEFT_CLASS );
 		center.classList.add( CENTER_CLASS );
 		if ( right ) right.classList.add( RIGHT_CLASS );
-	}
-
-	function removeHandles( except ) {
-		document.querySelectorAll( '.' + HANDLE_CLASS ).forEach( function ( handle ) {
-			if ( ! except || ! except.contains( handle ) ) handle.remove();
-		} );
 	}
 
 	function findListView() {
@@ -102,74 +71,10 @@
 		return null;
 	}
 
-	function ensureResizeHandle( left ) {
-		removeHandles( left );
-		var handle = left.querySelector( ':scope > .' + HANDLE_CLASS );
-		if ( handle ) {
-			applyWidth( readWidth(), handle );
-			return;
-		}
-
-		handle = document.createElement( 'div' );
-		handle.className = HANDLE_CLASS;
-		handle.setAttribute( 'role', 'separator' );
-		handle.setAttribute( 'aria-label', 'Resize Cresco Canvas tools' );
-		handle.setAttribute( 'aria-orientation', 'vertical' );
-		handle.setAttribute( 'aria-valuemin', String( MIN_WIDTH ) );
-		handle.setAttribute( 'aria-valuemax', String( maximumWidth() ) );
-		handle.tabIndex = 0;
-		left.appendChild( handle );
-		applyWidth( readWidth(), handle );
-
-		function reset() {
-			var width = applyWidth( DEFAULT_WIDTH, handle );
-			persistWidth( width );
-		}
-
-		handle.addEventListener( 'dblclick', reset );
-		handle.addEventListener( 'keydown', function ( event ) {
-			var current = parseInt( handle.getAttribute( 'aria-valuenow' ), 10 ) || readWidth();
-			var step = event.shiftKey ? 20 : 10;
-			if ( event.key === 'ArrowLeft' ) current -= step;
-			else if ( event.key === 'ArrowRight' ) current += step;
-			else if ( event.key === 'Home' ) current = DEFAULT_WIDTH;
-			else return;
-			event.preventDefault();
-			current = applyWidth( current, handle );
-			persistWidth( current );
-		} );
-
-		handle.addEventListener( 'pointerdown', function ( event ) {
-			if ( event.button !== 0 ) return;
-			event.preventDefault();
-			var startX = event.clientX;
-			var startWidth = parseInt( handle.getAttribute( 'aria-valuenow' ), 10 ) || readWidth();
-			document.body.classList.add( RESIZING_CLASS );
-			handle.setPointerCapture( event.pointerId );
-
-			function move( moveEvent ) {
-				applyWidth( startWidth + moveEvent.clientX - startX, handle );
-			}
-
-			function finish() {
-				var width = parseInt( handle.getAttribute( 'aria-valuenow' ), 10 ) || DEFAULT_WIDTH;
-				persistWidth( width );
-				document.body.classList.remove( RESIZING_CLASS );
-				handle.removeEventListener( 'pointermove', move );
-				handle.removeEventListener( 'pointerup', finish );
-				handle.removeEventListener( 'pointercancel', finish );
-			}
-
-			handle.addEventListener( 'pointermove', move );
-			handle.addEventListener( 'pointerup', finish );
-			handle.addEventListener( 'pointercancel', finish );
-		} );
-	}
-
 	function applyLayout() {
+		cleanupLegacyResize();
 		if ( window.innerWidth < ACTIVE_BREAKPOINT ) {
 			deactivateLayout();
-			removeHandles();
 			return;
 		}
 
@@ -180,7 +85,6 @@
 
 		if ( ! bodyShell || ! crescoPanel || ! editorContent ) {
 			deactivateLayout();
-			removeHandles();
 			return;
 		}
 
@@ -191,12 +95,10 @@
 
 		if ( ! left || ! center || left === center ) {
 			deactivateLayout();
-			removeHandles();
 			return;
 		}
 
 		reconcileLayout( left, center, right );
-		ensureResizeHandle( left );
 	}
 
 	var scheduled = false;
@@ -210,14 +112,16 @@
 	}
 
 	function start() {
-		applyWidth( readWidth() );
+		cleanupLegacyResize();
 		scheduleLayout();
 		var observer = new MutationObserver( scheduleLayout );
-		observer.observe( document.body, { childList: true, subtree: true, attributes: true, attributeFilter: [ 'class', 'aria-hidden' ] } );
-		window.addEventListener( 'resize', function () {
-			applyWidth( readWidth(), document.querySelector( '.' + HANDLE_CLASS ) );
-			scheduleLayout();
-		}, { passive: true } );
+		observer.observe( document.body, {
+			childList: true,
+			subtree: true,
+			attributes: true,
+			attributeFilter: [ 'class', 'aria-hidden' ]
+		} );
+		window.addEventListener( 'resize', scheduleLayout, { passive: true } );
 		window.addEventListener( 'orientationchange', scheduleLayout, { passive: true } );
 	}
 
