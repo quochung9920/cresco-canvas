@@ -10,6 +10,11 @@
 		'.edit-site-header__actions',
 		'.interface-interface-skeleton__header',
 	].join( ',' );
+	var RIGHT_TOOLBAR_SELECTOR = [
+		'.edit-post-header__settings',
+		'.editor-header__settings',
+		'.edit-site-header__actions',
+	].join( ',' );
 	var LEFT_TOOLBAR_SELECTORS = [
 		'.editor-header__toolbar',
 		'.edit-post-header__toolbar',
@@ -33,6 +38,18 @@
 		'.edit-post-header__settings-sidebar-toggle',
 		'.editor-header__settings-sidebar-toggle',
 	];
+	var PROTECTED_ACTION_SELECTORS = [
+		'.editor-post-save-draft',
+		'.editor-post-publish-button',
+		'.editor-post-publish-panel__toggle',
+		'.editor-post-switch-to-draft',
+		'.editor-post-saved-state',
+		'.editor-header__save-button',
+		'.editor-header__publish-button',
+		'.edit-site-save-button',
+		'.edit-site-save-button__button',
+		'.interface-pinned-items .components-dropdown-menu__toggle',
+	].join( ',' );
 	var scheduled = false;
 
 	function controlLabel( control ) {
@@ -48,6 +65,10 @@
 			.toLocaleLowerCase();
 	}
 
+	function isVisible( control ) {
+		return Boolean( control && control.getClientRects().length && control.getAttribute( 'aria-hidden' ) !== 'true' );
+	}
+
 	function isPreviewControl( control ) {
 		if ( ! control || ! control.closest( HEADER_SELECTOR ) || control.closest( EXCLUDED_SELECTOR ) ) {
 			return false;
@@ -55,15 +76,38 @@
 		return /(^|\s)(preview|xem trước|xem truoc|xem thử|xem thu)(\s|$)/i.test( controlLabel( control ) );
 	}
 
+	function isProtectedAction( control ) {
+		if ( ! control ) return true;
+		if ( control.matches( PROTECTED_ACTION_SELECTORS ) || control.closest( PROTECTED_ACTION_SELECTORS ) ) return true;
+		var label = controlLabel( control );
+		return /(^|\s)(saved|saving|save|publish|published|update|submit|switch to draft|more|more options|options|preferences|command palette|đã lưu|dang lưu|đang lưu|lưu|xuất bản|xuat ban|đăng|dang|cập nhật|cap nhat|tùy chọn|tuy chon)(\s|$)/i.test( label );
+	}
+
+	function isRightToolbarIcon( control ) {
+		if ( ! control || ! control.closest( RIGHT_TOOLBAR_SELECTOR ) || ! isVisible( control ) ) return false;
+		if ( isProtectedAction( control ) || isPreviewControl( control ) ) return false;
+		return Boolean( control.querySelector( 'svg, .dashicons, [class*="icon"]' ) );
+	}
+
 	function isMovableTool( control ) {
 		if ( ! control || control.closest( '.' + TOOL_HOST_CLASS ) || control.closest( EXCLUDED_SELECTOR ) ) {
 			return false;
 		}
+		if ( isProtectedAction( control ) ) return false;
 		if ( TOOL_CLASS_SELECTORS.some( function ( selector ) { return control.matches( selector ); } ) ) {
 			return true;
 		}
 		var label = controlLabel( control );
-		return /(^|\s)(cresco canvas|cresco preview|settings|setting|styles|global styles|design system|cài đặt|cai dat|kiểu dáng|kieu dang)(\s|$)/i.test( label );
+		if ( /(^|\s)(cresco canvas|cresco preview|global design|settings|setting|styles|global styles|design system|cài đặt|cai dat|kiểu dáng|kieu dang|thiết kế toàn cục|thiet ke toan cuc)(\s|$)/i.test( label ) ) {
+			return true;
+		}
+		/*
+		 * Gutenberg versions do not always expose a stable class or accessible
+		 * label for utility buttons. Any remaining icon-only utility inside the
+		 * right settings group is moved left, while protected save/publish/menu
+		 * actions above always stay in place.
+		 */
+		return isRightToolbarIcon( control );
 	}
 
 	function suppressNode( node ) {
