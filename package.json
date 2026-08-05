@@ -1,6 +1,6 @@
 {
   "name": "cresco-canvas",
-  "version": "0.8.0-rc.1",
+  "version": "0.9.0-alpha.1",
   "private": true,
   "description": "Build visually. Run natively.",
   "license": "GPL-2.0-or-later",
@@ -39,7 +39,6 @@
     "@wordpress/data": "10.52.0",
     "@wordpress/element": "8.4.0",
     "@wordpress/editor": "14.52.0",
-    "@wordpress/env": "11.12.0",
     "@wordpress/i18n": "6.25.0",
     "@wordpress/plugins": "7.52.0",
     "@wordpress/scripts": "34.0.0",
