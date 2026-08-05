@@ -1,0 +1,12 @@
+.cresco-canvas-sidebar .cc-elements-filters,
+.cresco-canvas-sidebar .cc-element-card__favorite {
+	display: none !important;
+}
+
+.cresco-canvas-sidebar .cc-element-card {
+	grid-template-columns: minmax(0, 1fr) !important;
+}
+
+.cresco-canvas-sidebar .cc-element-card__insert.components-button {
+	border-inline-end: 0 !important;
+}
