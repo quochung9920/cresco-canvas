@@ -28,15 +28,21 @@
 	var ZOOM_STORAGE = 'crescoCanvas.previewZoom';
 	var CUSTOM_WIDTH_STORAGE = 'crescoCanvas.previewCustomWidth';
 	var TOOLBAR_ID = 'cresco-canvas-stage-toolbar-root';
+
+	/*
+	 * Preset widths are representative logical CSS viewports inside each
+	 * responsive range. A 1920px logical viewport is appropriate for a
+	 * high-density 4K display while keeping web sizing realistic.
+	 */
 	var devices = [
-		{ id: '4k', width: 1920 },
-		{ id: 'desktop', width: 1440 },
-		{ id: 'laptop', width: 1200 },
-		{ id: 'tablet', width: 768 },
-		{ id: 'mobile', width: 390 },
+		{ id: 'widescreen', width: 1920, range: '>= 1920px' },
+		{ id: 'desktop', width: 1440, range: '1440-1919px' },
+		{ id: 'laptop', width: 1366, range: '1025-1439px' },
+		{ id: 'tablet', width: 768, range: '768-1024px' },
+		{ id: 'mobile', width: 390, range: '0-767px' },
 	];
 	var labels = {
-		'4k': __( '4K', 'cresco-canvas' ),
+		widescreen: __( 'Widescreen', 'cresco-canvas' ),
 		desktop: __( 'Desktop', 'cresco-canvas' ),
 		laptop: __( 'Laptop', 'cresco-canvas' ),
 		tablet: __( 'Tablet', 'cresco-canvas' ),
@@ -48,8 +54,12 @@
 		return Math.min( maximum, Math.max( minimum, Number( value ) || minimum ) );
 	}
 
+	function findDevice( value ) {
+		return devices.find( function ( device ) { return device.id === value; } ) || null;
+	}
+
 	function isDevice( value ) {
-		return devices.some( function ( device ) { return device.id === value; } ) || value === 'custom';
+		return Boolean( findDevice( value ) ) || value === 'custom';
 	}
 
 	function readStorage( key, fallback ) {
@@ -62,12 +72,19 @@
 	}
 
 	function writeStorage( key, value ) {
-		try { window.localStorage.setItem( key, String( value ) ); } catch ( error ) {}
+		try {
+			window.localStorage.setItem( key, String( value ) );
+		} catch ( error ) {}
 	}
 
 	function readDevice() {
-		var value = readStorage( DEVICE_STORAGE, 'desktop' );
-		return isDevice( value ) ? value : 'desktop';
+		var value = readStorage( DEVICE_STORAGE, 'widescreen' );
+		/* Migrate the former 4K preset without losing the user's preference. */
+		if ( value === '4k' ) {
+			value = 'widescreen';
+			writeStorage( DEVICE_STORAGE, value );
+		}
+		return isDevice( value ) ? value : 'widescreen';
 	}
 
 	function readZoom() {
@@ -80,19 +97,30 @@
 	}
 
 	function deviceWidth( device, customWidth ) {
-		if ( device === 'custom' ) return clamp( customWidth, 320, 2560 );
-		var match = devices.find( function ( candidate ) { return candidate.id === device; } );
-		return match ? match.width : 1440;
+		if ( device === 'custom' ) {
+			return clamp( customWidth, 320, 2560 );
+		}
+		var match = findDevice( device );
+		return match ? match.width : 1920;
+	}
+
+	function deviceRange( device ) {
+		var match = findDevice( device );
+		return match ? match.range : __( 'Custom width', 'cresco-canvas' );
 	}
 
 	function applyDevice( targetDocument, device, width ) {
-		if ( ! targetDocument ) return;
+		if ( ! targetDocument ) {
+			return;
+		}
 		targetDocument.documentElement.dataset.ccPreviewDevice = device;
 		targetDocument.documentElement.style.setProperty( '--cc-preview-width', width + 'px' );
 	}
 
 	function appendRefreshToken( url, refreshKey ) {
-		if ( ! url ) return '';
+		if ( ! url ) {
+			return '';
+		}
 		try {
 			var parsed = new URL( url, window.location.href );
 			parsed.searchParams.set( 'cresco_canvas_refresh', String( refreshKey ) );
@@ -144,6 +172,7 @@
 				),
 			};
 		}, [ bootstrap.previewUrl ] );
+
 		var previewSrc = useMemo( function () {
 			return appendRefreshToken( editorState.previewUrl, refreshKey );
 		}, [ editorState.previewUrl, refreshKey ] );
@@ -154,8 +183,12 @@
 
 			function attach() {
 				var stage = locateStage();
-				if ( ! stage.host || ! stage.visualEditor ) return;
-				if ( currentHost && currentHost !== stage.host ) currentHost.classList.remove( 'cresco-canvas-stage-host' );
+				if ( ! stage.host || ! stage.visualEditor ) {
+					return;
+				}
+				if ( currentHost && currentHost !== stage.host ) {
+					currentHost.classList.remove( 'cresco-canvas-stage-host' );
+				}
 				currentHost = stage.host;
 				currentHost.classList.add( 'cresco-canvas-stage-host' );
 				root = document.getElementById( TOOLBAR_ID );
@@ -165,7 +198,9 @@
 					root.className = 'cc-canvas-stage-toolbar-root';
 					stage.host.insertBefore( root, stage.visualEditor );
 				}
-				if ( toolbarMount !== root ) setToolbarMount( root );
+				if ( toolbarMount !== root ) {
+					setToolbarMount( root );
+				}
 			}
 
 			attach();
@@ -173,8 +208,12 @@
 			observer.observe( document.body, { childList: true, subtree: true } );
 			return function () {
 				observer.disconnect();
-				if ( currentHost ) currentHost.classList.remove( 'cresco-canvas-stage-host' );
-				if ( root && root.parentNode ) root.parentNode.removeChild( root );
+				if ( currentHost ) {
+					currentHost.classList.remove( 'cresco-canvas-stage-host' );
+				}
+				if ( root && root.parentNode ) {
+					root.parentNode.removeChild( root );
+				}
 			};
 		}, [] );
 
@@ -203,12 +242,16 @@
 					stage.host.dataset.ccCanvasDevice = device;
 					stage.host.dataset.ccCanvasZoom = zoom;
 				}
-				return value;
+				return percent;
 			}
 
 			function attachIframe( iframe ) {
-				if ( iframeListeners.has( iframe ) ) return;
-				var onLoad = function () { applyDevice( iframe.contentDocument, device, width ); };
+				if ( iframeListeners.has( iframe ) ) {
+					return;
+				}
+				var onLoad = function () {
+					applyDevice( iframe.contentDocument, device, width );
+				};
 				iframeListeners.set( iframe, onLoad );
 				iframe.addEventListener( 'load', onLoad );
 				onLoad();
@@ -217,8 +260,11 @@
 			function scan() {
 				stage = locateStage();
 				applyDevice( document, device, width );
-				resolveZoom();
+				var percent = resolveZoom();
 				document.querySelectorAll( 'iframe[name="editor-canvas"]' ).forEach( attachIframe );
+				window.dispatchEvent( new CustomEvent( EVENT_NAME, {
+					detail: { device: device, width: width, zoom: percent, range: deviceRange( device ) },
+				} ) );
 			}
 
 			scan();
@@ -228,12 +274,15 @@
 			}
 			var observer = new MutationObserver( scan );
 			observer.observe( document.documentElement, { childList: true, subtree: true } );
-			window.dispatchEvent( new CustomEvent( EVENT_NAME, { detail: { device: device, width: width, zoom: computedZoom } } ) );
 
 			return function () {
 				observer.disconnect();
-				if ( resizeObserver ) resizeObserver.disconnect();
-				iframeListeners.forEach( function ( onLoad, iframe ) { iframe.removeEventListener( 'load', onLoad ); } );
+				if ( resizeObserver ) {
+					resizeObserver.disconnect();
+				}
+				iframeListeners.forEach( function ( onLoad, iframe ) {
+					iframe.removeEventListener( 'load', onLoad );
+				} );
 			};
 		}, [ device, zoom, customWidth ] );
 
@@ -254,26 +303,46 @@
 		}
 
 		var toolbar = toolbarMount && typeof createPortal === 'function' ? createPortal(
-			createElement( 'div', { className: 'cc-canvas-stage-toolbar', role: 'toolbar', 'aria-label': __( 'Cresco Canvas viewport', 'cresco-canvas' ) },
-				createElement( 'div', { className: 'cc-canvas-stage-toolbar__devices', role: 'group', 'aria-label': __( 'Viewport device', 'cresco-canvas' ) },
-					[ 'desktop', 'laptop', 'tablet', 'mobile' ].map( function ( id ) {
+			createElement( 'div', {
+				className: 'cc-canvas-stage-toolbar',
+				role: 'toolbar',
+				'aria-label': __( 'Cresco Canvas viewport', 'cresco-canvas' ),
+			},
+				createElement( 'div', {
+					className: 'cc-canvas-stage-toolbar__devices',
+					role: 'group',
+					'aria-label': __( 'Viewport device', 'cresco-canvas' ),
+				},
+					devices.map( function ( candidate ) {
 						return createElement( Button, {
-							key: id,
-							'aria-pressed': device === id,
-							className: device === id ? 'is-active' : '',
-							onClick: function () { selectDevice( id ); },
+							key: candidate.id,
+							'aria-pressed': device === candidate.id,
+							className: device === candidate.id ? 'is-active' : '',
+							label: labels[ candidate.id ] + ' (' + candidate.range + ')',
+							onClick: function () { selectDevice( candidate.id ); },
 							variant: 'tertiary',
-						}, labels[ id ] );
+						}, labels[ candidate.id ] );
 					} )
 				),
 				createElement( 'label', { className: 'cc-canvas-stage-toolbar__width' },
 					createElement( 'span', null, __( 'Width', 'cresco-canvas' ) ),
-					createElement( 'input', { type: 'number', min: 320, max: 2560, step: 1, value: width, onChange: changeCustomWidth, 'aria-label': __( 'Custom viewport width in pixels', 'cresco-canvas' ) } ),
+					createElement( 'input', {
+						type: 'number',
+						min: 320,
+						max: 2560,
+						step: 1,
+						value: width,
+						onChange: changeCustomWidth,
+						'aria-label': __( 'Custom viewport width in pixels', 'cresco-canvas' ),
+					} ),
 					createElement( 'small', null, 'px' )
 				),
 				createElement( 'label', { className: 'cc-canvas-stage-toolbar__zoom' },
 					createElement( 'span', null, __( 'Zoom', 'cresco-canvas' ) ),
-					createElement( 'select', { value: zoom, onChange: function ( event ) { setZoom( event.target.value ); } },
+					createElement( 'select', {
+						value: zoom,
+						onChange: function ( event ) { setZoom( event.target.value ); },
+					},
 						createElement( 'option', { value: 'fit' }, __( 'Fit', 'cresco-canvas' ) ),
 						createElement( 'option', { value: '50' }, '50%' ),
 						createElement( 'option', { value: '75' }, '75%' ),
@@ -281,7 +350,10 @@
 						createElement( 'option', { value: '125' }, '125%' )
 					)
 				),
-				createElement( 'span', { className: 'cc-canvas-stage-toolbar__status', 'aria-live': 'polite' }, width + 'px · ' + computedZoom + '%' )
+				createElement( 'span', {
+					className: 'cc-canvas-stage-toolbar__status',
+					'aria-live': 'polite',
+				}, labels[ device ] || labels.custom, ' · ', width, 'px · ', computedZoom, '%' )
 			),
 			toolbarMount
 		) : null;
@@ -289,14 +361,35 @@
 		return createElement( Fragment, null,
 			toolbar,
 			createElement( PluginSidebarMoreMenuItem, { target: 'cresco-canvas-preview' }, __( 'Cresco Preview', 'cresco-canvas' ) ),
-			createElement( PluginSidebar, { className: 'cresco-canvas-preview-sidebar', icon: 'visibility', name: 'cresco-canvas-preview', title: __( 'Cresco Preview', 'cresco-canvas' ) },
+			createElement( PluginSidebar, {
+				className: 'cresco-canvas-preview-sidebar',
+				icon: 'visibility',
+				name: 'cresco-canvas-preview',
+				title: __( 'Cresco Preview', 'cresco-canvas' ),
+			},
 				createElement( PanelBody, { initialOpen: true, title: __( 'Responsive viewport', 'cresco-canvas' ) },
-					createElement( 'div', { 'aria-label': __( 'Preview device', 'cresco-canvas' ), className: 'cc-preview-device-grid', role: 'group' },
+					createElement( 'div', {
+						'aria-label': __( 'Preview device', 'cresco-canvas' ),
+						className: 'cc-preview-device-grid',
+						role: 'group',
+					},
 						devices.map( function ( candidate ) {
-							return createElement( Button, { 'aria-pressed': device === candidate.id, key: candidate.id, onClick: function () { selectDevice( candidate.id ); }, variant: device === candidate.id ? 'primary' : 'secondary' }, labels[ candidate.id ] );
+							return createElement( Button, {
+								'aria-pressed': device === candidate.id,
+								key: candidate.id,
+								onClick: function () { selectDevice( candidate.id ); },
+								variant: device === candidate.id ? 'primary' : 'secondary',
+							}, labels[ candidate.id ] );
 						} )
 					),
-					createElement( 'p', { className: 'cc-preview-note' }, sprintf( __( '%1$s uses a %2$dpx logical viewport.', 'cresco-canvas' ), labels[ device ] || labels.custom, width ) )
+					createElement( 'p', { className: 'cc-preview-note' },
+						sprintf(
+							__( '%1$s uses a %2$dpx logical viewport. Responsive range: %3$s.', 'cresco-canvas' ),
+							labels[ device ] || labels.custom,
+							width,
+							deviceRange( device )
+						)
+					)
 				),
 				createElement( PanelBody, { initialOpen: true, title: __( 'Live frontend preview', 'cresco-canvas' ) },
 					editorState.previewUrl ? createElement( Fragment, null,
@@ -308,17 +401,30 @@
 					) : createElement( Notice, { isDismissible: false, status: 'warning' }, __( 'A frontend preview URL is not available for this Page yet.', 'cresco-canvas' ) )
 				)
 			),
-			previewOpen && previewSrc ? createElement( Modal, { className: 'cc-frontend-preview-modal', onRequestClose: function () { setPreviewOpen( false ); }, title: __( 'Live frontend preview', 'cresco-canvas' ) },
+			previewOpen && previewSrc ? createElement( Modal, {
+				className: 'cc-frontend-preview-modal',
+				onRequestClose: function () { setPreviewOpen( false ); },
+				title: __( 'Live frontend preview', 'cresco-canvas' ),
+			},
 				createElement( 'div', { className: 'cc-frontend-preview-toolbar' },
 					createElement( 'span', { 'aria-live': 'polite' }, editorState.saving ? __( 'Waiting for WordPress to finish saving…', 'cresco-canvas' ) : __( 'Showing the latest saved preview.', 'cresco-canvas' ) ),
 					createElement( Button, { onClick: function () { setRefreshKey( function ( value ) { return value + 1; } ); }, variant: 'secondary' }, __( 'Refresh', 'cresco-canvas' ) )
 				),
 				createElement( 'div', { className: 'cc-frontend-preview-stage' },
-					createElement( 'iframe', { className: 'cc-frontend-preview-frame', key: device + '-' + refreshKey, src: previewSrc, style: { inlineSize: width }, title: __( 'Cresco frontend Page preview', 'cresco-canvas' ) } )
+					createElement( 'iframe', {
+						className: 'cc-frontend-preview-frame',
+						key: device + '-' + refreshKey,
+						src: previewSrc,
+						style: { inlineSize: width },
+						title: __( 'Cresco frontend Page preview', 'cresco-canvas' ),
+					} )
 				)
 			) : null
 		);
 	}
 
-	registerPlugin( 'cresco-canvas-preview', { icon: 'visibility', render: PreviewSidebar } );
+	registerPlugin( 'cresco-canvas-preview', {
+		icon: 'visibility',
+		render: PreviewSidebar,
+	} );
 } )( window.wp, window.crescoCanvasPreviewSettings );
