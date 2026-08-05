@@ -23,6 +23,7 @@ use CrescoCanvas\Dynamic\InteractiveQuery;
 use CrescoCanvas\Dynamic\StructuredDynamicData;
 use CrescoCanvas\Forms\FormAdministration;
 use CrescoCanvas\Forms\FormBuilder;
+use CrescoCanvas\Forms\FormCompletion;
 use CrescoCanvas\Forms\FormEnhancements;
 use CrescoCanvas\Interactions\EditorAssets as InteractionEditorAssets;
 use CrescoCanvas\Interactions\InteractiveComponents;
@@ -86,6 +87,7 @@ final class Plugin {
 		( new InteractionEditorAssets() )->register();
 		( new FormBuilder() )->register();
 		( new FormEnhancements() )->register();
+		( new FormCompletion() )->register();
 		( new FormAdministration() )->register();
 		$styles->register();
 		$tokens->register();
