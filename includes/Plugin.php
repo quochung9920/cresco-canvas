@@ -30,6 +30,7 @@ use CrescoCanvas\Forms\FormEnhancements;
 use CrescoCanvas\Interactions\EditorAssets as InteractionEditorAssets;
 use CrescoCanvas\Interactions\InteractiveComponents;
 use CrescoCanvas\Migration\Migrator;
+use CrescoCanvas\Security\SecurityHardening;
 use CrescoCanvas\Styles\DesignTokens;
 use CrescoCanvas\Styles\GlobalStyles;
 use CrescoCanvas\Styles\StyleEngine;
@@ -68,6 +69,7 @@ final class Plugin {
 		$styles        = new GlobalStyles();
 		$tokens        = new DesignTokens();
 
+		( new SecurityHardening() )->register();
 		( new EditorIntegration() )->register();
 		( new RestApi() )->register();
 		( new TemplateLibrary() )->register();
