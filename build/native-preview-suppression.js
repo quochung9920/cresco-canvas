@@ -12,10 +12,6 @@
 		'.editor-post-preview',
 		'.editor-preview-dropdown',
 		'.editor-post-preview__dropdown',
-		'.edit-post-header__settings .components-dropdown:has(.editor-post-preview)',
-		'.edit-post-header__settings .components-dropdown:has(.editor-preview-dropdown)',
-		'.editor-header__settings .components-dropdown:has(.editor-post-preview)',
-		'.editor-header__settings .components-dropdown:has(.editor-preview-dropdown)',
 	].join( ',' );
 	var EXCLUDED_SELECTOR = [
 		'.cc-canvas-stage-toolbar-root',
@@ -42,7 +38,7 @@
 			return false;
 		}
 		var label = controlLabel( control );
-		return /(^|\s)(preview|xem trước|xem thu|xem thử)(\s|$)/i.test( label );
+		return /(^|\s)(preview|xem trước|xem truoc|xem thử|xem thu)(\s|$)/i.test( label );
 	}
 
 	function suppressNode( node ) {
@@ -63,10 +59,12 @@
 
 	function suppressNativePreview() {
 		document.querySelectorAll( DIRECT_SELECTORS ).forEach( suppressNode );
-		document.querySelectorAll( HEADER_SELECTOR + ' button, ' + HEADER_SELECTOR + ' a' ).forEach( function ( control ) {
-			if ( isPreviewControl( control ) ) {
-				suppressNode( control );
-			}
+		document.querySelectorAll( HEADER_SELECTOR ).forEach( function ( header ) {
+			header.querySelectorAll( 'button, a' ).forEach( function ( control ) {
+				if ( isPreviewControl( control ) ) {
+					suppressNode( control );
+				}
+			} );
 		} );
 	}
 
