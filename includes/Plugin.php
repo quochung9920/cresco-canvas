@@ -32,6 +32,7 @@ use CrescoCanvas\Interactions\InteractiveComponents;
 use CrescoCanvas\Migration\Migrator;
 use CrescoCanvas\Styles\DesignTokens;
 use CrescoCanvas\Styles\GlobalStyles;
+use CrescoCanvas\Styles\StyleEngine;
 use CrescoCanvas\Templates\EditorAssets as TemplateEditorAssets;
 use CrescoCanvas\Templates\TemplateLibrary;
 use CrescoCanvas\Theme\EditorAssets as ThemeEditorAssets;
@@ -93,6 +94,7 @@ final class Plugin {
 		( new FormCompletionEditorAssets() )->register();
 		( new FormAdministration() )->register();
 		( new EditorHub() )->register();
+		( new StyleEngine() )->register();
 		$styles->register();
 		$tokens->register();
 		( new Blocks() )->register();
