@@ -11,7 +11,8 @@
 	}
 
 	function mergeLegacy( attrs ) {
-		var managed = clone( attrs.crescoStyle || {} );
+		var metadata = attrs.metadata && typeof attrs.metadata === 'object' ? attrs.metadata : {};
+		var managed = clone( metadata.crescoStyle || attrs.crescoStyle || {} );
 		var legacy = attrs.style && typeof attrs.style === 'object' ? attrs.style : {};
 		[ 'dimensions', 'spacing', 'color', 'border', 'typography', 'effects', 'position' ].forEach( function ( group ) {
 			if ( ! managed[ group ] && legacy[ group ] && typeof legacy[ group ] === 'object' ) managed[ group ] = clone( legacy[ group ] );
