@@ -1,0 +1,15 @@
+.cresco-style-engine {
+	box-sizing: border-box;
+}
+
+.cresco-style-engine *,
+.cresco-style-engine *::before,
+.cresco-style-engine *::after {
+	box-sizing: inherit;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.cresco-style-engine {
+		scroll-behavior: auto;
+	}
+}
