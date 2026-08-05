@@ -30,9 +30,7 @@ final class SecurityHardening {
 
 	/** Bound public Cresco form requests and reject rapid duplicate submissions. */
 	public function protect_rest_request( $result, $server, $request ) {
-		if ( ! $request instanceof WP_REST_Request || null !== $result ) {
-			return $result;
-		}
+		if ( ! $request instanceof WP_REST_Request || null !== $result ) return $result;
 
 		$route = (string) $request->get_route();
 		$public_routes = array(
@@ -40,9 +38,7 @@ final class SecurityHardening {
 			'/cresco-canvas/v1/forms/submit-multipart',
 			'/cresco-canvas/v1/forms/verify-captcha',
 		);
-		if ( ! in_array( $route, $public_routes, true ) ) {
-			return $result;
-		}
+		if ( ! in_array( $route, $public_routes, true ) ) return $result;
 
 		$content_length = isset( $_SERVER['CONTENT_LENGTH'] ) ? absint( $_SERVER['CONTENT_LENGTH'] ) : strlen( (string) $request->get_body() );
 		$limit = str_contains( $route, 'multipart' ) ? self::MAX_MULTIPART_BYTES : self::MAX_JSON_BYTES;
@@ -60,11 +56,7 @@ final class SecurityHardening {
 		set_transient( $rate_key, $count + 1, self::RATE_WINDOW );
 
 		if ( str_contains( $route, '/forms/submit' ) ) {
-			$idempotency = sanitize_text_field( (string) $request->get_header( 'x-cresco-idempotency-key' ) );
-			if ( '' === $idempotency ) {
-				$idempotency = substr( hash( 'sha256', (string) $request->get_body() . '|' . $identity ), 0, 48 );
-			}
-			$idempotency = substr( preg_replace( '/[^a-zA-Z0-9_-]/', '', $idempotency ), 0, 80 );
+			$idempotency = substr( preg_replace( '/[^a-zA-Z0-9_-]/', '', sanitize_text_field( (string) $request->get_header( 'x-cresco-idempotency-key' ) ) ), 0, 80 );
 			if ( '' !== $idempotency ) {
 				$duplicate_key = 'cc_once_' . substr( hash( 'sha256', $form_id . '|' . $idempotency ), 0, 40 );
 				if ( get_transient( $duplicate_key ) ) {
@@ -73,27 +65,19 @@ final class SecurityHardening {
 				set_transient( $duplicate_key, 1, self::IDEMPOTENCY_TTL );
 			}
 		}
-
 		return $result;
 	}
 
 	/** Block Cresco-signed webhook traffic to unsafe network destinations. */
 	public function protect_outbound_request( $preempt, $args, $url ) {
-		if ( null !== $preempt || ! $this->is_cresco_webhook( $args ) ) {
-			return $preempt;
-		}
+		if ( null !== $preempt || ! $this->is_cresco_webhook( $args ) ) return $preempt;
 		$safe = $this->validate_public_https_url( (string) $url );
-		if ( is_wp_error( $safe ) ) {
-			return $safe;
-		}
-		return $preempt;
+		return is_wp_error( $safe ) ? $safe : $preempt;
 	}
 
 	/** Force conservative transport behavior for Cresco webhook requests. */
 	public function harden_webhook_args( $args, $url ) {
-		if ( ! $this->is_cresco_webhook( $args ) ) {
-			return $args;
-		}
+		if ( ! $this->is_cresco_webhook( $args ) ) return $args;
 		$args['redirection'] = 0;
 		$args['timeout'] = min( 8, max( 2, absint( $args['timeout'] ?? 5 ) ) );
 		$args['reject_unsafe_urls'] = true;
@@ -132,12 +116,11 @@ final class SecurityHardening {
 	}
 
 	private function resolve_addresses( $host ) {
-		if ( filter_var( $host, FILTER_VALIDATE_IP ) ) {
-			return array( $host );
-		}
+		if ( filter_var( $host, FILTER_VALIDATE_IP ) ) return array( $host );
 		$addresses = array();
 		if ( function_exists( 'dns_get_record' ) ) {
-			$records = @dns_get_record( $host, DNS_A | DNS_AAAA ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
+			$dns_type = defined( 'DNS_AAAA' ) ? DNS_A | DNS_AAAA : DNS_A;
+			$records = @dns_get_record( $host, $dns_type ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
 			foreach ( is_array( $records ) ? $records : array() as $record ) {
 				if ( ! empty( $record['ip'] ) ) $addresses[] = $record['ip'];
 				if ( ! empty( $record['ipv6'] ) ) $addresses[] = $record['ipv6'];
@@ -152,13 +135,7 @@ final class SecurityHardening {
 
 	private function request_form_id( WP_REST_Request $request ) {
 		$params = array_merge( (array) $request->get_json_params(), (array) $request->get_body_params() );
-		if ( ! empty( $params['formId'] ) ) {
-			return sanitize_key( (string) $params['formId'] );
-		}
-		if ( ! empty( $params['payload'] ) ) {
-			$decoded = json_decode( base64_decode( (string) $params['payload'], true ), true );
-			if ( is_array( $decoded ) && ! empty( $decoded['formId'] ) ) return sanitize_key( (string) $decoded['formId'] );
-		}
+		if ( ! empty( $params['formId'] ) ) return sanitize_key( (string) $params['formId'] );
 		return 'unknown';
 	}
 
