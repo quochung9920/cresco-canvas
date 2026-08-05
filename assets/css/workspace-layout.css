@@ -55,12 +55,32 @@
 	body.cresco-canvas-three-pane .cresco-canvas-workspace-left .interface-complementary-area,
 	body.cresco-canvas-three-pane .cresco-canvas-workspace-left .components-panel,
 	body.cresco-canvas-three-pane .cresco-canvas-workspace-left .components-panel__body,
-	body.cresco-canvas-three-pane .cresco-canvas-workspace-left .components-panel__body > div {
+	body.cresco-canvas-three-pane .cresco-canvas-workspace-left .components-panel__body > div,
+	body.cresco-canvas-three-pane .cresco-canvas-workspace-left .cresco-canvas-sidebar,
+	body.cresco-canvas-three-pane .cresco-canvas-workspace-left .cresco-canvas-hub,
+	body.cresco-canvas-three-pane .cresco-canvas-workspace-left .cresco-canvas-design-system,
+	body.cresco-canvas-three-pane .cresco-canvas-workspace-left .cresco-canvas-preview-sidebar,
+	body.cresco-canvas-three-pane .cresco-canvas-workspace-left [class*="cresco-canvas-"][class*="sidebar"] {
 		box-sizing: border-box !important;
 		flex-basis: auto !important;
 		width: 100% !important;
 		min-width: 0 !important;
-		max-width: none !important;
+		max-width: 100% !important;
+	}
+
+	body.cresco-canvas-three-pane .cresco-canvas-workspace-left .interface-complementary-area,
+	body.cresco-canvas-three-pane .cresco-canvas-workspace-left .components-panel,
+	body.cresco-canvas-three-pane .cresco-canvas-workspace-left .components-panel__body,
+	body.cresco-canvas-three-pane .cresco-canvas-workspace-left .components-panel__body > div,
+	body.cresco-canvas-three-pane .cresco-canvas-workspace-left .components-tab-panel__tab-content {
+		overflow-x: hidden !important;
+	}
+
+	body.cresco-canvas-three-pane .cresco-canvas-workspace-left input,
+	body.cresco-canvas-three-pane .cresco-canvas-workspace-left select,
+	body.cresco-canvas-three-pane .cresco-canvas-workspace-left textarea {
+		max-width: 100% !important;
+		min-width: 0 !important;
 	}
 
 	body.cresco-canvas-three-pane .cresco-canvas-workspace-left > *,
