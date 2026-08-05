@@ -20,6 +20,7 @@ final class Migrator {
 	const VERSION_OPTION = 'cresco_canvas_db_version';
 	const STATE_OPTION   = 'cresco_canvas_migration_state';
 	const LOCK_OPTION    = 'cresco_canvas_migration_lock';
+	const BACKUP_OPTION  = 'cresco_canvas_settings_backup_v3';
 	const LOCK_TTL       = 300;
 
 	public static function maybe_run() {
@@ -67,6 +68,7 @@ final class Migrator {
 			1 => array( self::class, 'migrate_to_version_one' ),
 			2 => array( self::class, 'migrate_to_version_two' ),
 			3 => array( self::class, 'migrate_to_version_three' ),
+			4 => array( self::class, 'migrate_to_version_four' ),
 		);
 	}
 
@@ -85,6 +87,15 @@ final class Migrator {
 
 	private static function migrate_to_version_three() {
 		$legacy   = (array) get_option( 'cresco_canvas_settings', array() );
+		$settings = GlobalStyles::sanitize_settings( $legacy );
+		update_option( 'cresco_canvas_settings', $settings, false );
+	}
+
+	private static function migrate_to_version_four() {
+		$legacy = (array) get_option( 'cresco_canvas_settings', array() );
+		if ( ! get_option( self::BACKUP_OPTION, false ) ) {
+			add_option( self::BACKUP_OPTION, $legacy, '', false );
+		}
 		$settings = GlobalStyles::sanitize_settings( $legacy );
 		update_option( 'cresco_canvas_settings', $settings, false );
 	}
