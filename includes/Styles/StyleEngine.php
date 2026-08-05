@@ -84,9 +84,9 @@ final class StyleEngine {
 	private function enqueue_shared_style() {
 		wp_enqueue_style( 'cresco-canvas-style-engine', CRESCO_CANVAS_URL . 'assets/css/style-engine.css', array(), CRESCO_CANVAS_VERSION );
 		$breakpoints = GlobalStyles::get_settings()['breakpoints'] ?? array();
-		$mobile = max( 320, absint( $breakpoints['mobile'] ?? 480 ) );
-		$tablet = max( $mobile + 1, absint( $breakpoints['tablet'] ?? 782 ) );
-		$laptop = max( $tablet + 1, absint( $breakpoints['laptop'] ?? 1200 ) );
+		$mobile = max( 0, absint( $breakpoints['mobile'] ?? 0 ) );
+		$tablet = max( $mobile + 1, absint( $breakpoints['tablet'] ?? 768 ) );
+		$laptop = max( $tablet + 1, absint( $breakpoints['laptop'] ?? 1025 ) );
 		$css = '@media (max-width:' . ( $tablet - 1 ) . 'px){.cresco-hide-mobile{display:none!important;}}';
 		$css .= '@media (min-width:' . $tablet . 'px) and (max-width:' . ( $laptop - 1 ) . 'px){.cresco-hide-tablet{display:none!important;}}';
 		$css .= '@media (min-width:' . $laptop . 'px){.cresco-hide-desktop{display:none!important;}}';
