@@ -27,23 +27,28 @@ final class FormAdministration {
 	}
 
 	public function columns( $columns ) {
-		$columns['cresco_form'] = __( 'Form', 'cresco-canvas' );
+		$columns['cresco_form']  = __( 'Form', 'cresco-canvas' );
 		$columns['cresco_email'] = __( 'Email', 'cresco-canvas' );
 		return $columns;
 	}
 
 	public function column( $column, $post_id ) {
-		if ( ! current_user_can( 'edit_post', $post_id ) ) return;
+		if ( ! current_user_can( 'edit_post', $post_id ) ) {
+			return;
+		}
+
 		$data = (array) get_post_meta( $post_id, '_cresco_submission_data', true );
 		if ( 'cresco_form' === $column ) {
 			echo esc_html( (string) get_post_meta( $post_id, '_cresco_form_id', true ) );
 		}
+
 		if ( 'cresco_email' === $column ) {
 			foreach ( $data as $value ) {
 				if ( is_string( $value ) && is_email( $value ) ) {
 					echo esc_html( $value );
 					break;
 				}
+			}
 		}
 	}
 
@@ -65,19 +70,21 @@ final class FormAdministration {
 				'meta_query'     => $form_id ? array( array( 'key' => '_cresco_form_id', 'value' => $form_id ) ) : array(),
 			)
 		);
-		$rows = array();
+		$rows    = array();
 		$headers = array( 'submission_id', 'submitted_at', 'form_id' );
 		foreach ( $query->posts as $post ) {
-			$data = (array) get_post_meta( $post->ID, '_cresco_submission_data', true );
+			$data    = (array) get_post_meta( $post->ID, '_cresco_submission_data', true );
 			$headers = array_values( array_unique( array_merge( $headers, array_map( 'sanitize_key', array_keys( $data ) ) ) ) );
-			$rows[] = array( 'submission_id' => $post->ID, 'submitted_at' => $post->post_date_gmt, 'form_id' => get_post_meta( $post->ID, '_cresco_form_id', true ) ) + $data;
+			$rows[]  = array( 'submission_id' => $post->ID, 'submitted_at' => $post->post_date_gmt, 'form_id' => get_post_meta( $post->ID, '_cresco_form_id', true ) ) + $data;
 		}
 		nocache_headers();
 		header( 'Content-Type: text/csv; charset=utf-8' );
 		header( 'Content-Disposition: attachment; filename=cresco-submissions-' . gmdate( 'Y-m-d' ) . '.csv' );
 		header( 'X-Content-Type-Options: nosniff' );
 		$output = fopen( 'php://output', 'w' );
-		if ( false === $output ) wp_die( esc_html__( 'The export stream could not be opened.', 'cresco-canvas' ) );
+		if ( false === $output ) {
+			wp_die( esc_html__( 'The export stream could not be opened.', 'cresco-canvas' ) );
+		}
 		fputcsv( $output, array_map( array( self::class, 'safe_csv_cell' ), $headers ) );
 		foreach ( $rows as $row ) {
 			fputcsv(
@@ -85,8 +92,12 @@ final class FormAdministration {
 				array_map(
 					static function ( $key ) use ( $row ) {
 						$value = $row[ $key ] ?? '';
-						if ( is_array( $value ) ) $value = implode( ', ', array_map( 'strval', $value ) );
-						if ( is_object( $value ) ) $value = wp_json_encode( $value );
+						if ( is_array( $value ) ) {
+							$value = implode( ', ', array_map( 'strval', $value ) );
+						}
+						if ( is_object( $value ) ) {
+							$value = wp_json_encode( $value );
+						}
 						return self::safe_csv_cell( $value );
 					},
 					$headers
@@ -120,7 +131,9 @@ final class FormAdministration {
 	/** Purge submissions whose signed retention date has passed. */
 	public function purge_expired() {
 		$ids = get_posts( array( 'post_type' => FormBuilder::POST_TYPE, 'post_status' => 'private', 'fields' => 'ids', 'posts_per_page' => 500, 'meta_key' => '_cresco_delete_after', 'meta_value' => time(), 'meta_compare' => '<=', 'meta_type' => 'NUMERIC' ) );
-		foreach ( $ids as $id ) wp_delete_post( $id, true );
+		foreach ( $ids as $id ) {
+			wp_delete_post( $id, true );
+		}
 	}
 
 	public function privacy_exporter( $exporters ) {
@@ -144,12 +157,16 @@ final class FormAdministration {
 
 	private function personal_records( $email, $erase, $page ) {
 		$email = sanitize_email( $email );
-		if ( ! $email ) return array();
-		$query = new \WP_Query( array( 'post_type' => FormBuilder::POST_TYPE, 'post_status' => 'private', 'posts_per_page' => 100, 'paged' => max( 1, absint( $page ) ) ) );
+		if ( ! $email ) {
+			return array();
+		}
+		$query  = new \WP_Query( array( 'post_type' => FormBuilder::POST_TYPE, 'post_status' => 'private', 'posts_per_page' => 100, 'paged' => max( 1, absint( $page ) ) ) );
 		$output = array();
 		foreach ( $query->posts as $post ) {
 			$data = (array) get_post_meta( $post->ID, '_cresco_submission_data', true );
-			if ( ! in_array( $email, array_filter( $data, 'is_string' ), true ) ) continue;
+			if ( ! in_array( $email, array_filter( $data, 'is_string' ), true ) ) {
+				continue;
+			}
 			if ( $erase ) {
 				wp_delete_post( $post->ID, true );
 			} else {
