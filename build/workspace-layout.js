@@ -10,6 +10,18 @@
 	var LEGACY_STORAGE_KEY = 'crescoCanvas.workspaceLeftWidth';
 	var WIDTH_PROPERTY = '--cc-workspace-left-width';
 	var ACTIVE_BREAKPOINT = 1180;
+	var CRESCO_PANEL_SELECTORS = [
+		'.cresco-canvas-sidebar',
+		'.cresco-canvas-hub',
+		'.cresco-canvas-design-system',
+		'.cresco-canvas-preview-sidebar',
+		'.cresco-canvas-widget-inspector',
+		'.cresco-canvas-templates-sidebar',
+		'.cresco-canvas-theme-builder-sidebar',
+		'.cresco-canvas-dynamic-sidebar',
+		'.cresco-canvas-interactions-sidebar',
+		'.cresco-canvas-forms-sidebar'
+	];
 
 	function cleanupLegacyResize() {
 		document.body.classList.remove( LEGACY_RESIZING_CLASS );
@@ -22,6 +34,10 @@
 		} catch ( error ) {
 			// Storage can be unavailable in hardened browser contexts.
 		}
+	}
+
+	function isVisible( node ) {
+		return Boolean( node && node.getClientRects().length && node.getAttribute( 'aria-hidden' ) !== 'true' );
 	}
 
 	function directChildOf( node, parent ) {
@@ -55,18 +71,33 @@
 		if ( right ) right.classList.add( RIGHT_CLASS );
 	}
 
+	function findCrescoPanel() {
+		for ( var index = 0; index < CRESCO_PANEL_SELECTORS.length; index += 1 ) {
+			var matches = document.querySelectorAll( CRESCO_PANEL_SELECTORS[ index ] );
+			for ( var matchIndex = 0; matchIndex < matches.length; matchIndex += 1 ) {
+				if ( isVisible( matches[ matchIndex ] ) ) return matches[ matchIndex ];
+			}
+		}
+
+		var complementaryAreas = document.querySelectorAll( '.interface-complementary-area' );
+		for ( var areaIndex = 0; areaIndex < complementaryAreas.length; areaIndex += 1 ) {
+			var area = complementaryAreas[ areaIndex ];
+			if ( isVisible( area ) && area.querySelector( '[class*="cresco-canvas-"]' ) ) return area;
+		}
+		return null;
+	}
+
 	function findListView() {
 		var selectors = [
 			'.edit-post-editor__list-view-container',
 			'.editor-list-view-sidebar',
 			'.edit-site-editor__list-view-panel',
-			'.interface-interface-skeleton__secondary-sidebar',
 			'[aria-label="List View"]',
 			'[aria-label="List view"]'
 		];
 		for ( var index = 0; index < selectors.length; index += 1 ) {
 			var node = document.querySelector( selectors[ index ] );
-			if ( node && node.offsetParent !== null ) return node;
+			if ( isVisible( node ) ) return node;
 		}
 		return null;
 	}
@@ -79,7 +110,7 @@
 		}
 
 		var bodyShell = document.querySelector( '.interface-interface-skeleton__body' );
-		var crescoPanel = document.querySelector( '.cresco-canvas-sidebar, .cresco-canvas-hub' );
+		var crescoPanel = findCrescoPanel();
 		var editorContent = document.querySelector( '.interface-interface-skeleton__content' );
 		var listView = findListView();
 
