@@ -60,10 +60,11 @@ final class GlobalStyles {
 				'controlHeight' => 'clamp(2.75rem, 2.55rem + 0.5vw, 3.125rem)',
 				'buttonPadding' => 'clamp(1rem, 0.8rem + 0.65vw, 1.5rem)',
 			),
+			/* Minimum width at which each responsive range begins. */
 			'breakpoints' => array(
-				'mobile' => 480,
-				'tablet' => 782,
-				'laptop' => 1200,
+				'mobile' => 0,
+				'tablet' => 768,
+				'laptop' => 1025,
 				'desktop' => 1440,
 				'wide' => 1920,
 			),
@@ -85,10 +86,7 @@ final class GlobalStyles {
 		foreach ( $defaults['fluidTokens'] as $key => $fallback ) {
 			$fluid[ $key ] = self::sanitize_fluid_value( $input['fluidTokens'][ $key ] ?? $fallback, $fallback );
 		}
-		$breakpoints = array();
-		foreach ( $defaults['breakpoints'] as $key => $fallback ) {
-			$breakpoints[ $key ] = min( 3840, max( 320, absint( $input['breakpoints'][ $key ] ?? $fallback ) ) );
-		}
+		$breakpoints = self::sanitize_breakpoints( $input['breakpoints'] ?? array(), $defaults['breakpoints'] );
 
 		return array(
 			'schemaVersion' => 4,
@@ -145,6 +143,49 @@ final class GlobalStyles {
 		if ( rest_sanitize_boolean( get_post_meta( $post_id, EditorIntegration::ENABLED_META, true ) ) ) return true;
 		$post = get_post( $post_id );
 		return $post && has_block( 'cresco/container', $post->post_content );
+	}
+
+	/**
+	 * Sanitize ordered range starts and transparently normalize the former defaults.
+	 *
+	 * @param mixed                $value    Submitted breakpoint map.
+	 * @param array<string, int>   $defaults Current defaults.
+	 * @return array<string, int>
+	 */
+	private static function sanitize_breakpoints( $value, $defaults ) {
+		$value = is_array( $value ) ? $value : array();
+		$legacy = array(
+			'mobile' => 480,
+			'tablet' => 782,
+			'laptop' => 1200,
+			'desktop' => 1440,
+			'wide' => 1920,
+		);
+
+		$is_legacy_default = true;
+		foreach ( $legacy as $key => $legacy_value ) {
+			if ( absint( $value[ $key ] ?? $legacy_value ) !== $legacy_value ) {
+				$is_legacy_default = false;
+				break;
+			}
+		}
+		if ( $is_legacy_default ) {
+			$value = $defaults;
+		}
+
+		$mobile = min( 767, max( 0, absint( $value['mobile'] ?? $defaults['mobile'] ) ) );
+		$tablet = min( 1024, max( $mobile + 1, absint( $value['tablet'] ?? $defaults['tablet'] ) ) );
+		$laptop = min( 1439, max( $tablet + 1, absint( $value['laptop'] ?? $defaults['laptop'] ) ) );
+		$desktop = min( 1919, max( $laptop + 1, absint( $value['desktop'] ?? $defaults['desktop'] ) ) );
+		$wide = min( 3840, max( $desktop + 1, absint( $value['wide'] ?? $defaults['wide'] ) ) );
+
+		return array(
+			'mobile' => $mobile,
+			'tablet' => $tablet,
+			'laptop' => $laptop,
+			'desktop' => $desktop,
+			'wide' => $wide,
+		);
 	}
 
 	private static function sanitize_fluid_value( $value, $fallback ) {
