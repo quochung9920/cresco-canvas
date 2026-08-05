@@ -14,6 +14,8 @@ use CrescoCanvas\Dynamic\AdvancedDynamicData;
 use CrescoCanvas\Dynamic\AdvancedEditorAssets;
 use CrescoCanvas\Dynamic\AdvancedQuery;
 use CrescoCanvas\Dynamic\AlphaFourEditorAssets;
+use CrescoCanvas\Dynamic\CompletionEditorAssets;
+use CrescoCanvas\Dynamic\DynamicCompletion;
 use CrescoCanvas\Dynamic\DynamicData;
 use CrescoCanvas\Dynamic\EditorAssets as DynamicEditorAssets;
 use CrescoCanvas\Dynamic\InteractiveEditorAssets;
@@ -73,6 +75,8 @@ final class Plugin {
 		( new AlphaFourEditorAssets() )->register();
 		( new InteractiveQuery() )->register();
 		( new InteractiveEditorAssets() )->register();
+		( new DynamicCompletion() )->register();
+		( new CompletionEditorAssets() )->register();
 		$styles->register();
 		$tokens->register();
 		( new Blocks() )->register();
