@@ -1,6 +1,6 @@
 {
   "name": "cresco-canvas",
-  "version": "0.9.0-alpha.3",
+  "version": "0.9.0-rc.1",
   "private": true,
   "description": "Build visually. Run natively.",
   "license": "GPL-2.0-or-later",
