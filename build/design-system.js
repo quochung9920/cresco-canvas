@@ -1,9 +1,9 @@
-( function ( wp ) {
+( function ( wp, window ) {
 	'use strict';
-	if ( ! wp || ! wp.plugins || ! wp.editor || ! wp.element || ! wp.components || ! wp.apiFetch || ! wp.data ) return;
+	var Cresco = window.CrescoCanvas;
+	if ( ! wp || ! wp.element || ! wp.components || ! wp.apiFetch || ! wp.data || ! wp.i18n || ! Cresco || ! Cresco.ui ) return;
 	var el = wp.element.createElement, Fragment = wp.element.Fragment, useEffect = wp.element.useEffect, useMemo = wp.element.useMemo, useState = wp.element.useState;
-	var __ = wp.i18n.__, apiFetch = wp.apiFetch, registerPlugin = wp.plugins.registerPlugin;
-	var PluginSidebar = wp.editor.PluginSidebar, PluginSidebarMoreMenuItem = wp.editor.PluginSidebarMoreMenuItem;
+	var __ = wp.i18n.__, apiFetch = wp.apiFetch;
 	var Button = wp.components.Button, Notice = wp.components.Notice, PanelBody = wp.components.PanelBody, Spinner = wp.components.Spinner, TabPanel = wp.components.TabPanel, TextControl = wp.components.TextControl, TextareaControl = wp.components.TextareaControl, ToggleControl = wp.components.ToggleControl;
 	var useSelect = wp.data.useSelect;
 	var bootstrap = window.crescoCanvasEditorSettings || { canManageSettings: false, restPath: '/cresco-canvas/v1/', version: 'unknown' };
@@ -113,7 +113,7 @@
 			el(PanelBody,{title:__('Global import and maintenance','cresco-canvas'),initialOpen:false},el(TextareaControl,{label:__('Global Design JSON only','cresco-canvas'),readOnly:true,rows:8,value:JSON.stringify(settings,null,2)}),el(TextareaControl,{label:__('Import Global Design or a complete blueprint','cresco-canvas'),rows:8,value:importValue,onChange:setImportValue}),el(Button,{variant:'secondary',disabled:!importValue.trim(),onClick:applyImport},__('Apply global values','cresco-canvas')),el(ToggleControl,{label:__('Remove data on uninstall','cresco-canvas'),checked:!!settings.removeDataOnUninstall,onChange:function(value){patch('removeDataOnUninstall',value);}})),
 			el('div',{className:'cc-ds-actions'},el(Button,{variant:'primary',isBusy:saving,disabled:saving,onClick:save},__('Save global design','cresco-canvas')),el(Button,{variant:'tertiary',disabled:saving,onClick:reset},__('Reset defaults','cresco-canvas')))
 		);
-		return el(Fragment,null,el(PluginSidebarMoreMenuItem,{target:'cresco-canvas-design-system'},__('Global Design','cresco-canvas')),el(PluginSidebar,{className:'cresco-canvas-design-system',icon:'admin-appearance',name:'cresco-canvas-design-system',title:__('Global Design','cresco-canvas')},content));
+		return el('div',{className:'cresco-canvas-design-system cc-global-design-view'},content);
 	}
-	registerPlugin('cresco-canvas-design-system',{icon:'admin-appearance',render:GlobalDesign});
-} )( window.wp );
+	Cresco.ui.registerView('global',GlobalDesign,{label:__('Global','cresco-canvas'),icon:'admin-appearance'});
+} )( window.wp, window );
