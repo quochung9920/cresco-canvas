@@ -85,6 +85,28 @@ final class EditorHub {
 			);
 		}
 
+		$visual_asset_file = CRESCO_CANVAS_PATH . 'build/visual-canvas.asset.php';
+		if (
+			is_readable( $visual_asset_file ) &&
+			is_readable( CRESCO_CANVAS_PATH . 'build/visual-canvas.js' ) &&
+			is_readable( CRESCO_CANVAS_PATH . 'assets/css/visual-canvas.css' )
+		) {
+			$visual_asset = require $visual_asset_file;
+			wp_enqueue_script(
+				'cresco-canvas-visual-canvas',
+				CRESCO_CANVAS_URL . 'build/visual-canvas.js',
+				(array) ( $visual_asset['dependencies'] ?? array() ),
+				(string) ( $visual_asset['version'] ?? CRESCO_CANVAS_VERSION ),
+				true
+			);
+			wp_enqueue_style(
+				'cresco-canvas-visual-canvas',
+				CRESCO_CANVAS_URL . 'assets/css/visual-canvas.css',
+				array( 'cresco-canvas-workspace-layout', 'wp-components' ),
+				(string) ( $visual_asset['version'] ?? CRESCO_CANVAS_VERSION )
+			);
+		}
+
 		$structure_asset_file = CRESCO_CANVAS_PATH . 'build/structure-navigator.asset.php';
 		if (
 			is_readable( $structure_asset_file ) &&
