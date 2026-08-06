@@ -9,8 +9,12 @@
 	var getBlockSupport = wp.blocks.getBlockSupport;
 	var INSPECTOR_SIDEBAR = 'cresco-canvas-widget-inspector/cresco-canvas-widget-inspector';
 	var EDITOR_STORES = [ 'core/edit-post', 'core/edit-site' ];
+	var MAX_INSPECTOR_RETRIES = 30;
+	var INSPECTOR_RETRY_DELAY = 75;
 	var lastSelectedClientId = null;
 	var scheduledClientId = null;
+	var retryAttempts = 0;
+	var retryTimer = null;
 
 	function clone( value ) {
 		return value && typeof value === 'object' ? JSON.parse( JSON.stringify( value ) ) : {};
@@ -122,11 +126,18 @@
 				if ( editor && typeof editor.getActiveGeneralSidebarName === 'function' ) {
 					return editor.getActiveGeneralSidebarName() || '';
 				}
+				if ( editor && typeof editor.getActiveComplementaryArea === 'function' ) {
+					return editor.getActiveComplementaryArea() || '';
+				}
 			} catch ( error ) {
 				// This store is not registered in the current editor.
 			}
 		}
 		return '';
+	}
+
+	function inspectorIsActive() {
+		return String( getActiveSidebarName() ).indexOf( 'cresco-canvas-widget-inspector' ) !== -1;
 	}
 
 	function openInspector() {
@@ -137,6 +148,10 @@
 					actions.openGeneralSidebar( INSPECTOR_SIDEBAR );
 					return true;
 				}
+				if ( actions && typeof actions.enableComplementaryArea === 'function' ) {
+					actions.enableComplementaryArea( 'core', INSPECTOR_SIDEBAR );
+					return true;
+				}
 			} catch ( error ) {
 				// This store is not registered in the current editor.
 			}
@@ -144,30 +159,58 @@
 		return false;
 	}
 
+	function clearInspectorRetry() {
+		if ( retryTimer ) window.clearTimeout( retryTimer );
+		retryTimer = null;
+		scheduledClientId = null;
+		retryAttempts = 0;
+	}
+
+	function confirmInspectorForSelection( clientId ) {
+		if ( getSelectedClientId() !== clientId ) {
+			clearInspectorRetry();
+			return;
+		}
+
+		if ( inspectorIsActive() ) {
+			lastSelectedClientId = clientId;
+			clearInspectorRetry();
+			markEditorState();
+			return;
+		}
+
+		openInspector();
+		retryAttempts += 1;
+		if ( retryAttempts >= MAX_INSPECTOR_RETRIES ) {
+			clearInspectorRetry();
+			return;
+		}
+
+		retryTimer = window.setTimeout( function () {
+			confirmInspectorForSelection( clientId );
+		}, INSPECTOR_RETRY_DELAY );
+	}
+
 	function openInspectorForSelection() {
 		var clientId = getSelectedClientId();
 		if ( ! clientId ) {
 			lastSelectedClientId = null;
-			scheduledClientId = null;
+			clearInspectorRetry();
 			return;
 		}
-		if ( clientId === lastSelectedClientId || clientId === scheduledClientId ) return;
 
+		if ( clientId === lastSelectedClientId ) return;
+		if ( clientId === scheduledClientId && retryTimer ) return;
+
+		clearInspectorRetry();
 		scheduledClientId = clientId;
-		window.setTimeout( function () {
-			if ( getSelectedClientId() !== clientId ) {
-				scheduledClientId = null;
-				return;
-			}
-			if ( openInspector() ) lastSelectedClientId = clientId;
-			scheduledClientId = null;
-		}, 0 );
+		confirmInspectorForSelection( clientId );
 	}
 
 	function markEditorState() {
 		var body = document.body;
 		if ( ! body ) return;
-		body.classList.toggle( 'cresco-native-inspector-active', String( getActiveSidebarName() ).indexOf( 'cresco-canvas-widget-inspector' ) !== -1 );
+		body.classList.toggle( 'cresco-native-inspector-active', inspectorIsActive() );
 	}
 
 	function handleEditorChange() {
