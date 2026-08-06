@@ -91,7 +91,7 @@
 				if ( nativeChanged ) patch.style = nextNative;
 				if ( managedChanged ) {
 					metadata.crescoStyle = nextManaged;
-					metadata.crescoStyleVersion = 1;
+					metadata.crescoStyleVersion = 2;
 					patch.metadata = metadata;
 				}
 				if ( Object.keys( patch ).length ) props.setAttributes( patch );
