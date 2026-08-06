@@ -103,11 +103,11 @@
 		return ( blocks || [] ).reduce( function ( total, block ) { return total + 1 + countBlocks( block.innerBlocks || [] ); }, 0 );
 	}
 
-	function collectExpanded( blocks, value ) {
+	function collectExpanded( blocks, value, expandedValue ) {
 		( blocks || [] ).forEach( function ( block ) {
 			if ( block.innerBlocks && block.innerBlocks.length ) {
-				value[ block.clientId ] = true;
-				collectExpanded( block.innerBlocks, value );
+				value[ block.clientId ] = expandedValue;
+				collectExpanded( block.innerBlocks, value, expandedValue );
 			}
 		} );
 		return value;
@@ -159,6 +159,8 @@
 			var index = buttons.indexOf( event.currentTarget );
 			if ( event.key === 'ArrowDown' && buttons[ index + 1 ] ) { event.preventDefault(); buttons[ index + 1 ].focus(); }
 			if ( event.key === 'ArrowUp' && buttons[ index - 1 ] ) { event.preventDefault(); buttons[ index - 1 ].focus(); }
+			if ( event.key === 'Home' && buttons[ 0 ] ) { event.preventDefault(); buttons[ 0 ].focus(); }
+			if ( event.key === 'End' && buttons.length ) { event.preventDefault(); buttons[ buttons.length - 1 ].focus(); }
 			if ( event.key === 'ArrowRight' && hasChildren && ! isExpanded ) { event.preventDefault(); props.toggleExpanded( block.clientId ); }
 			if ( event.key === 'ArrowLeft' && hasChildren && isExpanded ) { event.preventDefault(); props.toggleExpanded( block.clientId ); }
 		}
@@ -283,25 +285,35 @@
 		}
 
 		function dragOver( event, targetBlock ) {
-			if ( ! dragging || dragging === targetBlock.clientId || Cresco.adapter.isDescendant( targetBlock.clientId, dragging ) ) return;
+			var sourceClientId = event.dataTransfer.getData( DRAG_TYPE ) || dragging;
+			if ( ! sourceClientId || sourceClientId === targetBlock.clientId || Cresco.adapter.isDescendant( targetBlock.clientId, sourceClientId ) ) return;
 			var row = event.currentTarget;
 			var rect = row.getBoundingClientRect();
 			var ratio = rect.height ? ( event.clientY - rect.top ) / rect.height : 0.5;
-			var name = Cresco.adapter.getBlockName( dragging );
+			var name = Cresco.adapter.getBlockName( sourceClientId );
 			var descriptor = { targetClientId: targetBlock.clientId, zone: ratio < 0.28 ? 'before' : ratio > 0.72 ? 'after' : 'inside' };
-			if ( ! Cresco.adapter.pointForDescriptor( descriptor, [ name ], dragging ) ) descriptor.zone = ratio < 0.5 ? 'before' : 'after';
-			if ( ! Cresco.adapter.pointForDescriptor( descriptor, [ name ], dragging ) ) return;
+			if ( ! Cresco.adapter.pointForDescriptor( descriptor, [ name ], sourceClientId ) ) descriptor.zone = ratio < 0.5 ? 'before' : 'after';
+			if ( ! Cresco.adapter.pointForDescriptor( descriptor, [ name ], sourceClientId ) ) return;
 			event.preventDefault();
 			event.dataTransfer.dropEffect = 'move';
+			if ( sourceClientId !== dragging ) setDragging( sourceClientId );
 			setDrop( descriptor );
 		}
 
-		function dropBlock( event ) {
+		function dropBlock( event, targetBlock ) {
 			var clientId = event.dataTransfer.getData( DRAG_TYPE ) || dragging;
-			if ( ! clientId || ! drop ) return;
+			if ( ! clientId ) return;
+			var descriptor = drop;
+			if ( ! descriptor || descriptor.targetClientId !== targetBlock.clientId ) {
+				var row = event.currentTarget;
+				var rect = row.getBoundingClientRect();
+				var ratio = rect.height ? ( event.clientY - rect.top ) / rect.height : 0.5;
+				descriptor = { targetClientId: targetBlock.clientId, zone: ratio < 0.5 ? 'before' : 'after' };
+			}
+			if ( ! Cresco.adapter.pointForDescriptor( descriptor, [ Cresco.adapter.getBlockName( clientId ) ], clientId ) ) return;
 			event.preventDefault();
 			event.stopPropagation();
-			Cresco.dragDrop.moveBlock( clientId, drop );
+			Cresco.dragDrop.moveBlock( clientId, descriptor );
 			setDragging( null );
 			setDrop( null );
 		}
@@ -355,8 +367,8 @@
 				el( 'div', { className: 'cc-structure-navigator__tools' },
 					el( SearchControl, { label: __( 'Search widgets', 'cresco-canvas' ), placeholder: __( 'Search structure…', 'cresco-canvas' ), value: query, onChange: setQuery } ),
 					el( 'span', { className: 'cc-structure-navigator__tree-actions' },
-						el( 'button', { type: 'button', onClick: function () { setExpanded( collectExpanded( editorState.blocks, {} ) ); } }, __( 'Expand all', 'cresco-canvas' ) ),
-						el( 'button', { type: 'button', onClick: function () { setExpanded( {} ); } }, __( 'Collapse all', 'cresco-canvas' ) )
+						el( 'button', { type: 'button', onClick: function () { setExpanded( collectExpanded( editorState.blocks, {}, true ) ); } }, __( 'Expand all', 'cresco-canvas' ) ),
+						el( 'button', { type: 'button', onClick: function () { setExpanded( collectExpanded( editorState.blocks, {}, false ) ); } }, __( 'Collapse all', 'cresco-canvas' ) )
 					)
 				),
 				el( 'div', { className: 'cc-structure-navigator__tree' },
