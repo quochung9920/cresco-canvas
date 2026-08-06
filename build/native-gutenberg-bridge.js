@@ -7,14 +7,6 @@
 	var createElement = wp.element.createElement;
 	var useEffect = wp.element.useEffect;
 	var getBlockSupport = wp.blocks.getBlockSupport;
-	var INSPECTOR_SIDEBAR = 'cresco-canvas-widget-inspector/cresco-canvas-widget-inspector';
-	var EDITOR_STORES = [ 'core/edit-post', 'core/edit-site' ];
-	var MAX_INSPECTOR_RETRIES = 30;
-	var INSPECTOR_RETRY_DELAY = 75;
-	var lastSelectedClientId = null;
-	var scheduledClientId = null;
-	var retryAttempts = 0;
-	var retryTimer = null;
 
 	function clone( value ) {
 		return value && typeof value === 'object' ? JSON.parse( JSON.stringify( value ) ) : {};
@@ -22,9 +14,9 @@
 
 	function getPath( object, path ) {
 		var current = object;
-		for ( var i = 0; i < path.length; i++ ) {
-			if ( ! current || typeof current !== 'object' || ! Object.prototype.hasOwnProperty.call( current, path[ i ] ) ) return undefined;
-			current = current[ path[ i ] ];
+		for ( var index = 0; index < path.length; index += 1 ) {
+			if ( ! current || typeof current !== 'object' || ! Object.prototype.hasOwnProperty.call( current, path[ index ] ) ) return undefined;
+			current = current[ path[ index ] ];
 		}
 		return current;
 	}
@@ -32,9 +24,9 @@
 	function setPath( object, path, value ) {
 		var next = clone( object );
 		var cursor = next;
-		for ( var i = 0; i < path.length - 1; i++ ) {
-			if ( ! cursor[ path[ i ] ] || typeof cursor[ path[ i ] ] !== 'object' ) cursor[ path[ i ] ] = {};
-			cursor = cursor[ path[ i ] ];
+		for ( var index = 0; index < path.length - 1; index += 1 ) {
+			if ( ! cursor[ path[ index ] ] || typeof cursor[ path[ index ] ] !== 'object' ) cursor[ path[ index ] ] = {};
+			cursor = cursor[ path[ index ] ];
 		}
 		cursor[ path[ path.length - 1 ] ] = value;
 		return next;
@@ -58,13 +50,13 @@
 	function supports( blockName, path ) {
 		var parts = path.split( '.' );
 		var root = getBlockSupport( blockName, parts[ 0 ], false );
-		if ( parts.length === 1 ) return !! root;
-		for ( var i = 1; i < parts.length; i++ ) {
+		if ( parts.length === 1 ) return Boolean( root );
+		for ( var index = 1; index < parts.length; index += 1 ) {
 			if ( root === true ) return true;
 			if ( ! root || typeof root !== 'object' ) return false;
-			root = root[ parts[ i ] ];
+			root = root[ parts[ index ] ];
 		}
-		return !! root;
+		return Boolean( root );
 	}
 
 	addFilter( 'editor.BlockEdit', 'cresco-canvas/native-capability-bridge', createHigherOrderComponent( function ( BlockEdit ) {
@@ -108,117 +100,4 @@
 			return createElement( BlockEdit, props );
 		};
 	}, 'withCrescoNativeCapabilityBridge' ) );
-
-	function getSelectedClientId() {
-		if ( ! wp.data || ! wp.data.select ) return null;
-		try {
-			var blockEditor = wp.data.select( 'core/block-editor' );
-			return blockEditor && typeof blockEditor.getSelectedBlockClientId === 'function' ? blockEditor.getSelectedBlockClientId() : null;
-		} catch ( error ) {
-			return null;
-		}
-	}
-
-	function getActiveSidebarName() {
-		for ( var i = 0; i < EDITOR_STORES.length; i++ ) {
-			try {
-				var editor = wp.data.select( EDITOR_STORES[ i ] );
-				if ( editor && typeof editor.getActiveGeneralSidebarName === 'function' ) {
-					return editor.getActiveGeneralSidebarName() || '';
-				}
-				if ( editor && typeof editor.getActiveComplementaryArea === 'function' ) {
-					return editor.getActiveComplementaryArea() || '';
-				}
-			} catch ( error ) {
-				// This store is not registered in the current editor.
-			}
-		}
-		return '';
-	}
-
-	function inspectorIsActive() {
-		return String( getActiveSidebarName() ).indexOf( 'cresco-canvas-widget-inspector' ) !== -1;
-	}
-
-	function openInspector() {
-		for ( var i = 0; i < EDITOR_STORES.length; i++ ) {
-			try {
-				var actions = wp.data.dispatch( EDITOR_STORES[ i ] );
-				if ( actions && typeof actions.openGeneralSidebar === 'function' ) {
-					actions.openGeneralSidebar( INSPECTOR_SIDEBAR );
-					return true;
-				}
-				if ( actions && typeof actions.enableComplementaryArea === 'function' ) {
-					actions.enableComplementaryArea( 'core', INSPECTOR_SIDEBAR );
-					return true;
-				}
-			} catch ( error ) {
-				// This store is not registered in the current editor.
-			}
-		}
-		return false;
-	}
-
-	function clearInspectorRetry() {
-		if ( retryTimer ) window.clearTimeout( retryTimer );
-		retryTimer = null;
-		scheduledClientId = null;
-		retryAttempts = 0;
-	}
-
-	function confirmInspectorForSelection( clientId ) {
-		if ( getSelectedClientId() !== clientId ) {
-			clearInspectorRetry();
-			return;
-		}
-
-		if ( inspectorIsActive() ) {
-			lastSelectedClientId = clientId;
-			clearInspectorRetry();
-			markEditorState();
-			return;
-		}
-
-		openInspector();
-		retryAttempts += 1;
-		if ( retryAttempts >= MAX_INSPECTOR_RETRIES ) {
-			clearInspectorRetry();
-			return;
-		}
-
-		retryTimer = window.setTimeout( function () {
-			confirmInspectorForSelection( clientId );
-		}, INSPECTOR_RETRY_DELAY );
-	}
-
-	function openInspectorForSelection() {
-		var clientId = getSelectedClientId();
-		if ( ! clientId ) {
-			lastSelectedClientId = null;
-			clearInspectorRetry();
-			return;
-		}
-
-		if ( clientId === lastSelectedClientId ) return;
-		if ( clientId === scheduledClientId && retryTimer ) return;
-
-		clearInspectorRetry();
-		scheduledClientId = clientId;
-		confirmInspectorForSelection( clientId );
-	}
-
-	function markEditorState() {
-		var body = document.body;
-		if ( ! body ) return;
-		body.classList.toggle( 'cresco-native-inspector-active', inspectorIsActive() );
-	}
-
-	function handleEditorChange() {
-		markEditorState();
-		openInspectorForSelection();
-	}
-
-	if ( wp.data && wp.data.subscribe ) wp.data.subscribe( handleEditorChange );
-	if ( document.readyState === 'loading' ) document.addEventListener( 'DOMContentLoaded', handleEditorChange );
-	else handleEditorChange();
 } )( window.wp );
