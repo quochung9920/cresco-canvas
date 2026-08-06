@@ -49,6 +49,32 @@
 	overflow-wrap: anywhere !important;
 }
 
+/* Keep the Widgets view flush with the sidebar edges. */
+body.cresco-canvas-elementor-experience .cresco-canvas-sidebar .cc-elements-panel > .components-panel__body-title + div,
+body.cresco-canvas-elementor-experience .cresco-canvas-sidebar .cc-elements-library,
+body.cresco-canvas-elementor-experience .cresco-canvas-sidebar .cc-elements-grid-list {
+	margin: 0 !important;
+	padding: 0 !important;
+}
+
+body.cresco-canvas-elementor-experience .cresco-canvas-sidebar .cc-elements-library {
+	gap: 6px !important;
+}
+
+body.cresco-canvas-elementor-experience .cresco-canvas-sidebar .cc-elements-library > .components-search-control {
+	position: static !important;
+	top: auto !important;
+	margin: 0 !important;
+	padding: 0 !important;
+	border-bottom: 0 !important;
+	background: #fff !important;
+	backdrop-filter: none !important;
+}
+
+body.cresco-canvas-elementor-experience .cresco-canvas-sidebar .cc-elements-grid-list {
+	gap: 6px !important;
+}
+
 @media (max-width: 782px) {
 	.cresco-canvas-sidebar .cc-elements-grid-list {
 		grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
