@@ -21,6 +21,7 @@ const requiredFiles = [
 	'assets/css/dynamic-alpha5.css',
 	'assets/css/dynamic-completion.css',
 	'assets/css/editor-app-shell.css',
+	'assets/css/editor-app-shell-elements.css',
 	'assets/css/elements-usage-sort.css',
 	'assets/css/native-preview-suppression.css',
 	'assets/css/widget-inspector-persistent.css',
