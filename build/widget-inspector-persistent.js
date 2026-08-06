@@ -21,6 +21,18 @@
 	var HOST_ID = 'cresco-canvas-persistent-inspector';
 	var ROOT_ID = 'cresco-canvas-persistent-inspector-root';
 	var mountedRoot = null;
+	var competingPanelObserver = null;
+
+	var COMPETING_PANEL_SELECTORS = [
+		'.cresco-canvas-hub',
+		'.cresco-canvas-design-system',
+		'.cresco-canvas-sidebar',
+		'.cresco-canvas-templates-sidebar',
+		'.cresco-canvas-theme-builder-sidebar',
+		'.cresco-canvas-dynamic-sidebar',
+		'.cresco-canvas-interactions-sidebar',
+		'.cresco-canvas-forms-sidebar'
+	];
 
 	function clone( value ) {
 		return value && typeof value === 'object' ? JSON.parse( JSON.stringify( value ) ) : {};
@@ -69,6 +81,57 @@
 		return type && type.title ? String( type.title ) : String( block.name || 'Widget' );
 	}
 
+	function richTextToHTML( value ) {
+		if ( value == null ) return '';
+		if ( typeof value === 'string' ) return value;
+		try {
+			if ( wp.richText && typeof wp.richText.toHTMLString === 'function' ) {
+				return wp.richText.toHTMLString( { value: value } );
+			}
+		} catch ( error ) {}
+		try {
+			if ( value && typeof value.toHTMLString === 'function' ) return value.toHTMLString();
+		} catch ( error ) {}
+		if ( value && typeof value.originalHTML === 'string' ) return value.originalHTML;
+		return '';
+	}
+
+	function richTextFromHTML( value ) {
+		try {
+			if ( wp.richText && typeof wp.richText.create === 'function' ) {
+				return wp.richText.create( { html: String( value || '' ) } );
+			}
+		} catch ( error ) {}
+		return String( value || '' );
+	}
+
+	function isRichTextAttribute( blockType, key, value ) {
+		var schema = blockType && blockType.attributes ? blockType.attributes[ key ] : null;
+		if ( schema && ( schema.type === 'rich-text' || schema.source === 'rich-text' ) ) return true;
+		return Boolean( value && typeof value === 'object' && ( value.originalHTML !== undefined || value.formats !== undefined ) );
+	}
+
+	function isVisible( node ) {
+		return Boolean( node && node.id !== HOST_ID && node.getClientRects().length && node.getAttribute( 'aria-hidden' ) !== 'true' );
+	}
+
+	function syncCompetingPanels() {
+		var host = document.getElementById( HOST_ID );
+		if ( ! host || ! document.body ) return;
+		var suspended = false;
+		for ( var selectorIndex = 0; selectorIndex < COMPETING_PANEL_SELECTORS.length && ! suspended; selectorIndex += 1 ) {
+			var nodes = document.querySelectorAll( COMPETING_PANEL_SELECTORS[ selectorIndex ] );
+			for ( var nodeIndex = 0; nodeIndex < nodes.length; nodeIndex += 1 ) {
+				if ( isVisible( nodes[ nodeIndex ] ) && ! host.contains( nodes[ nodeIndex ] ) ) {
+					suspended = true;
+					break;
+				}
+			}
+		}
+		host.classList.toggle( 'is-suspended', suspended );
+		document.body.classList.toggle( 'cresco-persistent-inspector-suspended', suspended );
+	}
+
 	function PersistentInspector() {
 		var tabState = useState( 'content' );
 		var activeTab = tabState[ 0 ];
@@ -84,6 +147,7 @@
 		useEffect( function () {
 			if ( document.body ) document.body.classList.toggle( 'cresco-persistent-inspector-open', Boolean( selected ) );
 			if ( selected ) setActiveTab( 'content' );
+			window.setTimeout( syncCompetingPanels, 0 );
 			return function () {
 				if ( document.body ) document.body.classList.remove( 'cresco-persistent-inspector-open' );
 			};
@@ -136,6 +200,7 @@
 
 		var attributes = selected.attributes || {};
 		var style = managedStyle( attributes );
+		var blockType = getBlockType( selected.name );
 
 		function fieldExists( key ) {
 			return Object.prototype.hasOwnProperty.call( attributes, key );
@@ -161,10 +226,19 @@
 
 		function ContentTab() {
 			var fields = [];
-			if ( fieldExists( 'content' ) ) fields.push( el( TextareaControl, { key: 'content', label: 'Content', value: attributes.content || '', onChange: function ( value ) { update( { content: value } ); } } ) );
-			if ( fieldExists( 'text' ) ) fields.push( el( TextControl, { key: 'text', label: 'Text', value: attributes.text || '', onChange: function ( value ) { update( { text: value } ); } } ) );
-			if ( fieldExists( 'url' ) ) fields.push( el( TextControl, { key: 'url', label: 'Link URL', value: attributes.url || '', onChange: function ( value ) { update( { url: value } ); } } ) );
-			if ( fieldExists( 'alt' ) ) fields.push( el( TextControl, { key: 'alt', label: 'Alternative text', value: attributes.alt || '', onChange: function ( value ) { update( { alt: value } ); } } ) );
+			if ( fieldExists( 'content' ) ) {
+				var richContent = isRichTextAttribute( blockType, 'content', attributes.content );
+				fields.push( el( TextareaControl, {
+					key: 'content',
+					label: richContent ? 'Content' : 'Content',
+					help: richContent ? 'Formatting is preserved as HTML while editing here.' : undefined,
+					value: richContent ? richTextToHTML( attributes.content ) : String( attributes.content || '' ),
+					onChange: function ( value ) { update( { content: richContent ? richTextFromHTML( value ) : value } ); }
+				} ) );
+			}
+			if ( fieldExists( 'text' ) ) fields.push( el( TextControl, { key: 'text', label: 'Text', value: String( attributes.text || '' ), onChange: function ( value ) { update( { text: value } ); } } ) );
+			if ( fieldExists( 'url' ) ) fields.push( el( TextControl, { key: 'url', label: 'Link URL', value: String( attributes.url || '' ), onChange: function ( value ) { update( { url: value } ); } } ) );
+			if ( fieldExists( 'alt' ) ) fields.push( el( TextControl, { key: 'alt', label: 'Alternative text', value: String( attributes.alt || '' ), onChange: function ( value ) { update( { alt: value } ); } } ) );
 			if ( fieldExists( 'level' ) ) fields.push( el( SelectControl, { key: 'level', label: 'Heading level', value: String( attributes.level || 2 ), options: [ 1, 2, 3, 4, 5, 6 ].map( function ( level ) { return { label: 'H' + level, value: String( level ) }; } ), onChange: function ( value ) { update( { level: parseInt( value, 10 ) } ); } } ) );
 			if ( fieldExists( 'align' ) ) fields.push( el( SelectControl, { key: 'align', label: 'Alignment', value: attributes.align || '', options: [ { label: 'Default', value: '' }, { label: 'Wide', value: 'wide' }, { label: 'Full width', value: 'full' }, { label: 'Left', value: 'left' }, { label: 'Center', value: 'center' }, { label: 'Right', value: 'right' } ], onChange: function ( value ) { update( { align: value || undefined } ); } } ) );
 			return fields.length ? el( Fragment, null, fields ) : el( Notice, { status: 'info', isDismissible: false }, 'Edit this widget content directly on the canvas. Layout and appearance are available in the other tabs.' );
@@ -292,10 +366,28 @@
 		return true;
 	}
 
+	function startCompetingPanelObserver() {
+		if ( competingPanelObserver || ! document.body ) return;
+		competingPanelObserver = new MutationObserver( syncCompetingPanels );
+		competingPanelObserver.observe( document.body, {
+			childList: true,
+			subtree: true,
+			attributes: true,
+			attributeFilter: [ 'class', 'style', 'aria-hidden' ]
+		} );
+		syncCompetingPanels();
+	}
+
 	function start() {
-		if ( mount() ) return;
+		if ( mount() ) {
+			startCompetingPanelObserver();
+			return;
+		}
 		var observer = new MutationObserver( function () {
-			if ( mount() ) observer.disconnect();
+			if ( mount() ) {
+				observer.disconnect();
+				startCompetingPanelObserver();
+			}
 		} );
 		observer.observe( document.body, { childList: true, subtree: true } );
 	}
