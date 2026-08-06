@@ -1,7 +1,8 @@
-( function ( wp ) {
+( function ( wp, window ) {
 	'use strict';
 
-	if ( ! wp || ! wp.element || ! wp.data || ! wp.components || ! wp.blocks ) return;
+	var Cresco = window.CrescoCanvas;
+	if ( ! wp || ! wp.element || ! wp.data || ! wp.components || ! wp.blocks || ! wp.i18n || ! Cresco || ! Cresco.ui || ! Cresco.responsive ) return;
 
 	var el = wp.element.createElement;
 	var Fragment = wp.element.Fragment;
@@ -18,21 +19,7 @@
 	var Button = wp.components.Button;
 	var Notice = wp.components.Notice;
 	var getBlockType = wp.blocks.getBlockType;
-	var HOST_ID = 'cresco-canvas-persistent-inspector';
-	var ROOT_ID = 'cresco-canvas-persistent-inspector-root';
-	var mountedRoot = null;
-	var competingPanelObserver = null;
-
-	var COMPETING_PANEL_SELECTORS = [
-		'.cresco-canvas-hub',
-		'.cresco-canvas-design-system',
-		'.cresco-canvas-sidebar',
-		'.cresco-canvas-templates-sidebar',
-		'.cresco-canvas-theme-builder-sidebar',
-		'.cresco-canvas-dynamic-sidebar',
-		'.cresco-canvas-interactions-sidebar',
-		'.cresco-canvas-forms-sidebar'
-	];
+	var __ = wp.i18n.__;
 
 	function clone( value ) {
 		return value && typeof value === 'object' ? JSON.parse( JSON.stringify( value ) ) : {};
@@ -47,15 +34,14 @@
 		return current;
 	}
 
-	function setPath( object, path, value ) {
+	function deletePath( object, path ) {
 		var next = clone( object );
 		var current = next;
 		for ( var index = 0; index < path.length - 1; index += 1 ) {
-			if ( ! current[ path[ index ] ] || typeof current[ path[ index ] ] !== 'object' ) current[ path[ index ] ] = {};
+			if ( ! current || typeof current !== 'object' ) return next;
 			current = current[ path[ index ] ];
 		}
-		if ( value === undefined || value === '' ) delete current[ path[ path.length - 1 ] ];
-		else current[ path[ path.length - 1 ] ] = value;
+		if ( current && typeof current === 'object' ) delete current[ path[ path.length - 1 ] ];
 		return next;
 	}
 
@@ -65,32 +51,11 @@
 		return /^-?\d+(\.\d+)?$/.test( value ) ? value + 'px' : value;
 	}
 
-	function managedStyle( attributes ) {
-		var metadata = attributes && attributes.metadata && typeof attributes.metadata === 'object' ? attributes.metadata : {};
-		var managed = clone( metadata.crescoStyle || attributes.crescoStyle || {} );
-		var legacy = attributes && attributes.style && typeof attributes.style === 'object' ? attributes.style : {};
-		[ 'dimensions', 'spacing', 'color', 'border', 'typography', 'effects', 'position' ].forEach( function ( group ) {
-			if ( ! managed[ group ] && legacy[ group ] && typeof legacy[ group ] === 'object' ) managed[ group ] = clone( legacy[ group ] );
-		} );
-		return managed;
-	}
-
-	function labelForBlock( block ) {
-		if ( ! block ) return 'Widget';
-		var type = getBlockType( block.name );
-		return type && type.title ? String( type.title ) : String( block.name || 'Widget' );
-	}
-
 	function richTextToHTML( value ) {
 		if ( value == null ) return '';
 		if ( typeof value === 'string' ) return value;
 		try {
-			if ( wp.richText && typeof wp.richText.toHTMLString === 'function' ) {
-				return wp.richText.toHTMLString( { value: value } );
-			}
-		} catch ( error ) {}
-		try {
-			if ( value && typeof value.toHTMLString === 'function' ) return value.toHTMLString();
+			if ( wp.richText && typeof wp.richText.toHTMLString === 'function' ) return wp.richText.toHTMLString( { value: value } );
 		} catch ( error ) {}
 		if ( value && typeof value.originalHTML === 'string' ) return value.originalHTML;
 		return '';
@@ -98,9 +63,7 @@
 
 	function richTextFromHTML( value ) {
 		try {
-			if ( wp.richText && typeof wp.richText.create === 'function' ) {
-				return wp.richText.create( { html: String( value || '' ) } );
-			}
+			if ( wp.richText && typeof wp.richText.create === 'function' ) return wp.richText.create( { html: String( value || '' ) } );
 		} catch ( error ) {}
 		return String( value || '' );
 	}
@@ -111,47 +74,57 @@
 		return Boolean( value && typeof value === 'object' && ( value.originalHTML !== undefined || value.formats !== undefined ) );
 	}
 
-	function isVisible( node ) {
-		return Boolean( node && node.id !== HOST_ID && node.getClientRects().length && node.getAttribute( 'aria-hidden' ) !== 'true' );
+	function labelForBlock( block ) {
+		if ( ! block ) return __( 'Widget', 'cresco-canvas' );
+		var metadata = block.attributes && block.attributes.metadata;
+		if ( metadata && metadata.name ) return String( metadata.name );
+		var type = getBlockType( block.name );
+		return type && type.title ? String( type.title ) : String( block.name || __( 'Widget', 'cresco-canvas' ) ).replace( /^[^/]+\//, '' );
 	}
 
-	function syncCompetingPanels() {
-		var host = document.getElementById( HOST_ID );
-		if ( ! host || ! document.body ) return;
-		var suspended = false;
-		for ( var selectorIndex = 0; selectorIndex < COMPETING_PANEL_SELECTORS.length && ! suspended; selectorIndex += 1 ) {
-			var nodes = document.querySelectorAll( COMPETING_PANEL_SELECTORS[ selectorIndex ] );
-			for ( var nodeIndex = 0; nodeIndex < nodes.length; nodeIndex += 1 ) {
-				if ( isVisible( nodes[ nodeIndex ] ) && ! host.contains( nodes[ nodeIndex ] ) ) {
-					suspended = true;
-					break;
-				}
-			}
-		}
-		host.classList.toggle( 'is-suspended', suspended );
-		document.body.classList.toggle( 'cresco-persistent-inspector-suspended', suspended );
+	function DeviceSwitcher( props ) {
+		var devices = [
+			{ id: 'wide', label: __( 'Wide', 'cresco-canvas' ) },
+			{ id: 'desktop', label: __( 'Desktop', 'cresco-canvas' ) },
+			{ id: 'laptop', label: __( 'Laptop', 'cresco-canvas' ) },
+			{ id: 'tablet', label: __( 'Tablet', 'cresco-canvas' ) },
+			{ id: 'mobile', label: __( 'Mobile', 'cresco-canvas' ) }
+		];
+		return el( 'div', { className: 'cc-inspector-device-switcher', role: 'group', 'aria-label': __( 'Responsive device', 'cresco-canvas' ) },
+			devices.map( function ( item ) {
+				return el( 'button', {
+					key: item.id,
+					type: 'button',
+					className: props.device === item.id ? 'is-active' : '',
+					onClick: function () { props.onChange( item.id ); },
+					'aria-pressed': props.device === item.id
+				}, item.label );
+			} )
+		);
 	}
 
 	function PersistentInspector() {
-		var tabState = useState( 'content' );
-		var activeTab = tabState[ 0 ];
-		var setActiveTab = tabState[ 1 ];
-		var selected = useSelect( function ( select ) {
+		var tabPair = useState( 'content' );
+		var activeTab = tabPair[ 0 ];
+		var setActiveTab = tabPair[ 1 ];
+		var uiPair = useState( Cresco.ui.getState() );
+		var uiState = uiPair[ 0 ];
+		var setUiState = uiPair[ 1 ];
+		var editorState = useSelect( function ( select ) {
 			var editor = select( 'core/block-editor' );
 			var clientId = editor && editor.getSelectedBlockClientId ? editor.getSelectedBlockClientId() : null;
-			return clientId && editor.getBlock ? editor.getBlock( clientId ) : null;
+			return {
+				block: clientId && editor.getBlock ? editor.getBlock( clientId ) : null,
+				parents: clientId && editor.getBlockParents ? editor.getBlockParents( clientId ) : []
+			};
 		}, [] );
 		var dispatch = useDispatch( 'core/block-editor' );
-		var title = useMemo( function () { return labelForBlock( selected ); }, [ selected && selected.name ] );
+		var selected = editorState.block;
+		var device = uiState.device || 'wide';
+		var title = useMemo( function () { return labelForBlock( selected ); }, [ selected && selected.name, selected && selected.clientId ] );
 
-		useEffect( function () {
-			if ( document.body ) document.body.classList.toggle( 'cresco-persistent-inspector-open', Boolean( selected ) );
-			if ( selected ) setActiveTab( 'content' );
-			window.setTimeout( syncCompetingPanels, 0 );
-			return function () {
-				if ( document.body ) document.body.classList.remove( 'cresco-persistent-inspector-open' );
-			};
-		}, [ selected && selected.clientId ] );
+		useEffect( function () { return Cresco.ui.subscribe( setUiState ); }, [] );
+		useEffect( function () { if ( selected ) setActiveTab( 'content' ); }, [ selected && selected.clientId ] );
 
 		function update( patch ) {
 			if ( selected && dispatch && dispatch.updateBlockAttributes ) dispatch.updateBlockAttributes( selected.clientId, patch );
@@ -160,56 +133,72 @@
 		function updateManaged( path, value ) {
 			if ( ! selected ) return;
 			var attributes = selected.attributes || {};
-			var style = setPath( managedStyle( attributes ), path, value );
+			var style = Cresco.responsive.getManagedStyle( attributes );
+			style = Cresco.responsive.setValue( style, device, path, value );
 			var metadata = clone( attributes.metadata || {} );
 			metadata.crescoStyle = style;
-			metadata.crescoStyleVersion = 1;
+			metadata.crescoStyleVersion = 2;
 			var patch = { metadata: metadata };
 			if ( Object.prototype.hasOwnProperty.call( attributes, 'crescoStyle' ) ) {
 				patch.crescoStyle = style;
-				patch.crescoStyleVersion = 1;
+				patch.crescoStyleVersion = 2;
 			}
 			update( patch );
+		}
+
+		function styleValue( style, path, fallback ) {
+			return Cresco.responsive.getValue( style, device, path, fallback );
 		}
 
 		function resetGroup( group ) {
 			if ( ! selected ) return;
 			var attributes = selected.attributes || {};
-			var style = managedStyle( attributes );
-			delete style[ group ];
+			var style = Cresco.responsive.getManagedStyle( attributes );
+			style = device === 'wide' ? deletePath( style, [ group ] ) : deletePath( style, [ 'responsive', device, group ] );
 			var metadata = clone( attributes.metadata || {} );
 			metadata.crescoStyle = style;
-			metadata.crescoStyleVersion = 1;
+			metadata.crescoStyleVersion = 2;
 			update( { metadata: metadata } );
 		}
 
 		function duplicateSelected() {
-			if ( selected && dispatch && dispatch.duplicateBlocks ) dispatch.duplicateBlocks( [ selected.clientId ] );
+			if ( selected ) Cresco.adapter.duplicateBlocks( [ selected.clientId ] );
 		}
 
 		function removeSelected() {
-			if ( selected && dispatch && dispatch.removeBlock ) dispatch.removeBlock( selected.clientId );
+			if ( selected ) Cresco.adapter.removeBlocks( [ selected.clientId ] );
 		}
 
 		if ( ! selected ) {
 			return el( 'div', { className: 'cc-persistent-inspector__empty' },
-				el( 'strong', null, 'Select a widget' ),
-				el( 'p', null, 'Click any widget on the canvas to edit it here.' )
+				el( 'span', { className: 'dashicons dashicons-edit', 'aria-hidden': 'true' } ),
+				el( 'strong', null, __( 'Select a widget', 'cresco-canvas' ) ),
+				el( 'p', null, __( 'Click any widget on the canvas or in Structure to edit it here.', 'cresco-canvas' ) )
 			);
 		}
 
 		var attributes = selected.attributes || {};
-		var style = managedStyle( attributes );
+		var style = Cresco.responsive.getManagedStyle( attributes );
 		var blockType = getBlockType( selected.name );
+		var supports = blockType && blockType.supports ? blockType.supports : {};
 
 		function fieldExists( key ) {
 			return Object.prototype.hasOwnProperty.call( attributes, key );
 		}
 
-		function spacingControl( label, path ) {
-			var current = getPath( style, path, {} ) || {};
+		function section( titleText, children, actions ) {
 			return el( 'section', { className: 'cc-persistent-inspector__group' },
-				el( 'div', { className: 'cc-persistent-inspector__group-title' }, label ),
+				el( 'div', { className: 'cc-persistent-inspector__group-heading' },
+					el( 'div', { className: 'cc-persistent-inspector__group-title' }, titleText ),
+					actions || null
+				),
+				children
+			);
+		}
+
+		function spacingControl( label, path ) {
+			var current = styleValue( style, path, {} ) || {};
+			return section( label,
 				el( 'div', { className: 'cc-persistent-inspector__quad' },
 					[ 'top', 'right', 'bottom', 'left' ].map( function ( side ) {
 						return el( TextControl, {
@@ -220,8 +209,40 @@
 							onChange: function ( value ) { updateManaged( path.concat( side ), normalizeUnit( value ) ); }
 						} );
 					} )
-				)
+				),
+				el( Button, { size: 'small', variant: 'tertiary', onClick: function () { resetGroup( path[ 0 ] ); } }, __( 'Reset', 'cresco-canvas' ) )
 			);
+		}
+
+		function ContainerControls() {
+			if ( selected.name !== 'cresco/container' ) return null;
+			return section( __( 'Container layout', 'cresco-canvas' ), el( Fragment, null,
+				el( SelectControl, { label: __( 'Direction', 'cresco-canvas' ), value: attributes.direction || 'column', options: [ 'column', 'row', 'column-reverse', 'row-reverse' ].map( function ( value ) { return { label: value, value: value }; } ), onChange: function ( value ) { update( { direction: value } ); } } ),
+				el( SelectControl, { label: __( 'Justify content', 'cresco-canvas' ), value: attributes.justify || 'flex-start', options: [ 'flex-start', 'center', 'flex-end', 'space-between', 'space-around', 'space-evenly' ].map( function ( value ) { return { label: value, value: value }; } ), onChange: function ( value ) { update( { justify: value } ); } } ),
+				el( SelectControl, { label: __( 'Align items', 'cresco-canvas' ), value: attributes.align || 'stretch', options: [ 'stretch', 'flex-start', 'center', 'flex-end', 'baseline' ].map( function ( value ) { return { label: value, value: value }; } ), onChange: function ( value ) { update( { align: value } ); } } ),
+				el( RangeControl, { label: __( 'Gap', 'cresco-canvas' ), min: 0, max: 160, value: Number( attributes.gap || 0 ), onChange: function ( value ) { update( { gap: value } ); } } ),
+				el( TextControl, { label: __( 'Maximum width', 'cresco-canvas' ), value: String( attributes.maxWidth || '' ), placeholder: '1200', onChange: function ( value ) { update( { maxWidth: value === '' ? undefined : Number( value ) } ); } } )
+			) );
+		}
+
+		function MediaControls() {
+			if ( selected.name === 'core/image' ) {
+				return section( __( 'Image', 'cresco-canvas' ), el( Fragment, null,
+					fieldExists( 'alt' ) && el( TextControl, { label: __( 'Alternative text', 'cresco-canvas' ), value: String( attributes.alt || '' ), onChange: function ( value ) { update( { alt: value } ); } } ),
+					fieldExists( 'caption' ) && el( TextareaControl, { label: __( 'Caption', 'cresco-canvas' ), value: richTextToHTML( attributes.caption ), onChange: function ( value ) { update( { caption: richTextFromHTML( value ) } ); } } ),
+					fieldExists( 'aspectRatio' ) && el( TextControl, { label: __( 'Aspect ratio', 'cresco-canvas' ), value: String( attributes.aspectRatio || '' ), placeholder: '16/9', onChange: function ( value ) { update( { aspectRatio: value || undefined } ); } } ),
+					fieldExists( 'scale' ) && el( SelectControl, { label: __( 'Scale', 'cresco-canvas' ), value: attributes.scale || 'cover', options: [ { label: __( 'Cover', 'cresco-canvas' ), value: 'cover' }, { label: __( 'Contain', 'cresco-canvas' ), value: 'contain' } ], onChange: function ( value ) { update( { scale: value } ); } } ),
+					fieldExists( 'linkDestination' ) && el( SelectControl, { label: __( 'Link to', 'cresco-canvas' ), value: attributes.linkDestination || 'none', options: [ 'none', 'media', 'attachment', 'custom' ].map( function ( value ) { return { label: value, value: value }; } ), onChange: function ( value ) { update( { linkDestination: value } ); } } )
+				) );
+			}
+			if ( selected.name === 'core/gallery' ) {
+				return section( __( 'Gallery', 'cresco-canvas' ), el( Fragment, null,
+					fieldExists( 'columns' ) && el( RangeControl, { label: __( 'Columns', 'cresco-canvas' ), min: 1, max: 8, value: Number( attributes.columns || 3 ), onChange: function ( value ) { update( { columns: value } ); } } ),
+					fieldExists( 'imageCrop' ) && el( ToggleControl, { label: __( 'Crop images', 'cresco-canvas' ), checked: attributes.imageCrop !== false, onChange: function ( value ) { update( { imageCrop: value } ); } } ),
+					fieldExists( 'linkTo' ) && el( SelectControl, { label: __( 'Link to', 'cresco-canvas' ), value: attributes.linkTo || 'none', options: [ 'none', 'media', 'attachment' ].map( function ( value ) { return { label: value, value: value }; } ), onChange: function ( value ) { update( { linkTo: value } ); } } )
+				) );
+			}
+			return null;
 		}
 
 		function ContentTab() {
@@ -230,39 +251,44 @@
 				var richContent = isRichTextAttribute( blockType, 'content', attributes.content );
 				fields.push( el( TextareaControl, {
 					key: 'content',
-					label: richContent ? 'Content' : 'Content',
-					help: richContent ? 'Formatting is preserved as HTML while editing here.' : undefined,
+					label: __( 'Content', 'cresco-canvas' ),
+					help: richContent ? __( 'Inline formatting is preserved as HTML. Direct editing on the canvas remains recommended.', 'cresco-canvas' ) : undefined,
 					value: richContent ? richTextToHTML( attributes.content ) : String( attributes.content || '' ),
 					onChange: function ( value ) { update( { content: richContent ? richTextFromHTML( value ) : value } ); }
 				} ) );
 			}
-			if ( fieldExists( 'text' ) ) fields.push( el( TextControl, { key: 'text', label: 'Text', value: String( attributes.text || '' ), onChange: function ( value ) { update( { text: value } ); } } ) );
-			if ( fieldExists( 'url' ) ) fields.push( el( TextControl, { key: 'url', label: 'Link URL', value: String( attributes.url || '' ), onChange: function ( value ) { update( { url: value } ); } } ) );
-			if ( fieldExists( 'alt' ) ) fields.push( el( TextControl, { key: 'alt', label: 'Alternative text', value: String( attributes.alt || '' ), onChange: function ( value ) { update( { alt: value } ); } } ) );
-			if ( fieldExists( 'level' ) ) fields.push( el( SelectControl, { key: 'level', label: 'Heading level', value: String( attributes.level || 2 ), options: [ 1, 2, 3, 4, 5, 6 ].map( function ( level ) { return { label: 'H' + level, value: String( level ) }; } ), onChange: function ( value ) { update( { level: parseInt( value, 10 ) } ); } } ) );
-			if ( fieldExists( 'align' ) ) fields.push( el( SelectControl, { key: 'align', label: 'Alignment', value: attributes.align || '', options: [ { label: 'Default', value: '' }, { label: 'Wide', value: 'wide' }, { label: 'Full width', value: 'full' }, { label: 'Left', value: 'left' }, { label: 'Center', value: 'center' }, { label: 'Right', value: 'right' } ], onChange: function ( value ) { update( { align: value || undefined } ); } } ) );
-			return fields.length ? el( Fragment, null, fields ) : el( Notice, { status: 'info', isDismissible: false }, 'Edit this widget content directly on the canvas. Layout and appearance are available in the other tabs.' );
+			if ( fieldExists( 'text' ) ) fields.push( el( TextControl, { key: 'text', label: __( 'Text', 'cresco-canvas' ), value: String( attributes.text || '' ), onChange: function ( value ) { update( { text: value } ); } } ) );
+			if ( fieldExists( 'url' ) ) fields.push( el( TextControl, { key: 'url', label: __( 'Link URL', 'cresco-canvas' ), value: String( attributes.url || '' ), onChange: function ( value ) { update( { url: value } ); } } ) );
+			if ( fieldExists( 'linkTarget' ) ) fields.push( el( ToggleControl, { key: 'linkTarget', label: __( 'Open in a new tab', 'cresco-canvas' ), checked: attributes.linkTarget === '_blank', onChange: function ( value ) { update( { linkTarget: value ? '_blank' : undefined } ); } } ) );
+			if ( fieldExists( 'rel' ) ) fields.push( el( TextControl, { key: 'rel', label: __( 'Link relationship', 'cresco-canvas' ), value: String( attributes.rel || '' ), onChange: function ( value ) { update( { rel: value } ); } } ) );
+			if ( fieldExists( 'level' ) ) fields.push( el( SelectControl, { key: 'level', label: __( 'Heading level', 'cresco-canvas' ), value: String( attributes.level || 2 ), options: [ 1, 2, 3, 4, 5, 6 ].map( function ( level ) { return { label: 'H' + level, value: String( level ) }; } ), onChange: function ( value ) { update( { level: parseInt( value, 10 ) } ); } } ) );
+			if ( fieldExists( 'align' ) ) fields.push( el( SelectControl, { key: 'align', label: __( 'Alignment', 'cresco-canvas' ), value: attributes.align || '', options: [ { label: __( 'Default', 'cresco-canvas' ), value: '' }, { label: __( 'Wide', 'cresco-canvas' ), value: 'wide' }, { label: __( 'Full width', 'cresco-canvas' ), value: 'full' }, { label: __( 'Left', 'cresco-canvas' ), value: 'left' }, { label: __( 'Center', 'cresco-canvas' ), value: 'center' }, { label: __( 'Right', 'cresco-canvas' ), value: 'right' } ], onChange: function ( value ) { update( { align: value || undefined } ); } } ) );
+			if ( selected.name === 'core/spacer' && fieldExists( 'height' ) ) fields.push( el( TextControl, { key: 'height', label: __( 'Height', 'cresco-canvas' ), value: String( attributes.height || '' ), onChange: function ( value ) { update( { height: normalizeUnit( value ) } ); } } ) );
+			return el( Fragment, null,
+				el( ContainerControls ),
+				el( MediaControls ),
+				fields.length ? section( __( 'Content', 'cresco-canvas' ), el( Fragment, null, fields ) ) : null,
+				! fields.length && selected.name !== 'cresco/container' && selected.name !== 'core/image' && selected.name !== 'core/gallery' ? el( Notice, { status: 'info', isDismissible: false }, __( 'Edit this widget directly on the canvas. Style and advanced settings are available in the other tabs.', 'cresco-canvas' ) ) : null
+			);
 		}
 
 		function StyleTab() {
 			return el( Fragment, null,
-				el( 'section', { className: 'cc-persistent-inspector__group' },
-					el( 'div', { className: 'cc-persistent-inspector__group-title' }, 'Size' ),
-					el( TextControl, { label: 'Width', value: getPath( style, [ 'dimensions', 'width' ], '' ), placeholder: '100% or 640px', onChange: function ( value ) { updateManaged( [ 'dimensions', 'width' ], normalizeUnit( value ) ); } } ),
-					el( TextControl, { label: 'Maximum width', value: getPath( style, [ 'dimensions', 'maxWidth' ], '' ), placeholder: '1200px', onChange: function ( value ) { updateManaged( [ 'dimensions', 'maxWidth' ], normalizeUnit( value ) ); } } ),
-					el( TextControl, { label: 'Minimum height', value: getPath( style, [ 'dimensions', 'minHeight' ], '' ), placeholder: '320px', onChange: function ( value ) { updateManaged( [ 'dimensions', 'minHeight' ], normalizeUnit( value ) ); } } )
-				),
-				spacingControl( 'Margin', [ 'spacing', 'margin' ] ),
-				spacingControl( 'Padding', [ 'spacing', 'padding' ] ),
-				el( 'section', { className: 'cc-persistent-inspector__group' },
-					el( 'div', { className: 'cc-persistent-inspector__group-title' }, 'Appearance' ),
-					el( TextControl, { label: 'Text color', value: getPath( style, [ 'color', 'text' ], '' ), placeholder: '#101828', onChange: function ( value ) { updateManaged( [ 'color', 'text' ], value || undefined ); } } ),
-					el( TextControl, { label: 'Background color', value: getPath( style, [ 'color', 'background' ], '' ), placeholder: '#ffffff', onChange: function ( value ) { updateManaged( [ 'color', 'background' ], value || undefined ); } } ),
-					el( TextControl, { label: 'Border radius', value: getPath( style, [ 'border', 'radius' ], '' ), placeholder: '8px', onChange: function ( value ) { updateManaged( [ 'border', 'radius' ], normalizeUnit( value ) ); } } ),
-					el( TextControl, { label: 'Font size', value: getPath( style, [ 'typography', 'fontSize' ], '' ), placeholder: '18px', onChange: function ( value ) { updateManaged( [ 'typography', 'fontSize' ], normalizeUnit( value ) ); } } ),
-					el( TextControl, { label: 'Line height', value: getPath( style, [ 'typography', 'lineHeight' ], '' ), placeholder: '1.5', onChange: function ( value ) { updateManaged( [ 'typography', 'lineHeight' ], value || undefined ); } } )
-				),
-				el( Button, { variant: 'secondary', onClick: function () { resetGroup( 'spacing' ); resetGroup( 'dimensions' ); } }, 'Reset layout' )
+				el( DeviceSwitcher, { device: device, onChange: function ( next ) { Cresco.ui.setState( { device: next } ); } } ),
+				section( __( 'Size', 'cresco-canvas' ), el( Fragment, null,
+					el( TextControl, { label: __( 'Width', 'cresco-canvas' ), value: styleValue( style, [ 'dimensions', 'width' ], '' ), placeholder: '100% or 640px', onChange: function ( value ) { updateManaged( [ 'dimensions', 'width' ], normalizeUnit( value ) ); } } ),
+					el( TextControl, { label: __( 'Maximum width', 'cresco-canvas' ), value: styleValue( style, [ 'dimensions', 'maxWidth' ], '' ), placeholder: '1200px', onChange: function ( value ) { updateManaged( [ 'dimensions', 'maxWidth' ], normalizeUnit( value ) ); } } ),
+					el( TextControl, { label: __( 'Minimum height', 'cresco-canvas' ), value: styleValue( style, [ 'dimensions', 'minHeight' ], '' ), placeholder: '320px', onChange: function ( value ) { updateManaged( [ 'dimensions', 'minHeight' ], normalizeUnit( value ) ); } } )
+				), el( Button, { size: 'small', variant: 'tertiary', onClick: function () { resetGroup( 'dimensions' ); } }, __( 'Reset', 'cresco-canvas' ) ) ),
+				spacingControl( __( 'Margin', 'cresco-canvas' ), [ 'spacing', 'margin' ] ),
+				spacingControl( __( 'Padding', 'cresco-canvas' ), [ 'spacing', 'padding' ] ),
+				section( __( 'Appearance', 'cresco-canvas' ), el( Fragment, null,
+					el( TextControl, { label: __( 'Text color', 'cresco-canvas' ), value: styleValue( style, [ 'color', 'text' ], '' ), placeholder: '#101828', onChange: function ( value ) { updateManaged( [ 'color', 'text' ], value || undefined ); } } ),
+					el( TextControl, { label: __( 'Background color', 'cresco-canvas' ), value: styleValue( style, [ 'color', 'background' ], '' ), placeholder: '#ffffff', onChange: function ( value ) { updateManaged( [ 'color', 'background' ], value || undefined ); } } ),
+					el( TextControl, { label: __( 'Border radius', 'cresco-canvas' ), value: styleValue( style, [ 'border', 'radius' ], '' ), placeholder: '8px', onChange: function ( value ) { updateManaged( [ 'border', 'radius' ], normalizeUnit( value ) ); } } ),
+					el( TextControl, { label: __( 'Font size', 'cresco-canvas' ), value: styleValue( style, [ 'typography', 'fontSize' ], '' ), placeholder: 'clamp(1rem, 2vw, 2rem)', onChange: function ( value ) { updateManaged( [ 'typography', 'fontSize' ], normalizeUnit( value ) ); } } ),
+					el( TextControl, { label: __( 'Line height', 'cresco-canvas' ), value: styleValue( style, [ 'typography', 'lineHeight' ], '' ), placeholder: '1.5', onChange: function ( value ) { updateManaged( [ 'typography', 'lineHeight' ], value || undefined ); } } )
+				), el( 'span', { className: 'cc-inspector-native-badge' }, supports.color || supports.typography || supports.spacing ? __( 'Native-first', 'cresco-canvas' ) : __( 'Cresco style', 'cresco-canvas' ) ) )
 			);
 		}
 
@@ -274,52 +300,49 @@
 				update( { className: values.join( ' ' ) } );
 			}
 			return el( Fragment, null,
-				el( 'section', { className: 'cc-persistent-inspector__group' },
-					el( 'div', { className: 'cc-persistent-inspector__group-title' }, 'Effects' ),
-					el( RangeControl, { label: 'Opacity', min: 0, max: 100, value: Math.round( 100 * parseFloat( getPath( style, [ 'effects', 'opacity' ], 1 ) || 1 ) ), onChange: function ( value ) { updateManaged( [ 'effects', 'opacity' ], value / 100 ); } } ),
-					el( TextControl, { label: 'Transform', value: getPath( style, [ 'effects', 'transform' ], '' ), placeholder: 'translateY(-4px)', onChange: function ( value ) { updateManaged( [ 'effects', 'transform' ], value || undefined ); } } ),
-					el( TextControl, { label: 'Box shadow', value: getPath( style, [ 'effects', 'boxShadow' ], '' ), placeholder: '0 8px 24px rgba(0,0,0,.12)', onChange: function ( value ) { updateManaged( [ 'effects', 'boxShadow' ], value || undefined ); } } )
-				),
-				el( 'section', { className: 'cc-persistent-inspector__group' },
-					el( 'div', { className: 'cc-persistent-inspector__group-title' }, 'Responsive visibility' ),
-					el( ToggleControl, { label: 'Hide on desktop', checked: className.indexOf( 'cresco-hide-desktop' ) !== -1, onChange: function ( value ) { toggleClass( 'cresco-hide-desktop', value ); } } ),
-					el( ToggleControl, { label: 'Hide on tablet', checked: className.indexOf( 'cresco-hide-tablet' ) !== -1, onChange: function ( value ) { toggleClass( 'cresco-hide-tablet', value ); } } ),
-					el( ToggleControl, { label: 'Hide on mobile', checked: className.indexOf( 'cresco-hide-mobile' ) !== -1, onChange: function ( value ) { toggleClass( 'cresco-hide-mobile', value ); } } )
-				),
-				el( 'section', { className: 'cc-persistent-inspector__group' },
-					el( 'div', { className: 'cc-persistent-inspector__group-title' }, 'Position' ),
-					el( SelectControl, { label: 'Position', value: getPath( style, [ 'position', 'type' ], 'static' ), options: [ 'static', 'relative', 'absolute', 'fixed', 'sticky' ].map( function ( value ) { return { label: value.charAt( 0 ).toUpperCase() + value.slice( 1 ), value: value }; } ), onChange: function ( value ) { updateManaged( [ 'position', 'type' ], value ); } } ),
-					[ 'top', 'right', 'bottom', 'left' ].map( function ( side ) { return el( TextControl, { key: side, label: side.charAt( 0 ).toUpperCase() + side.slice( 1 ), value: getPath( style, [ 'position', side ], '' ), onChange: function ( value ) { updateManaged( [ 'position', side ], normalizeUnit( value ) ); } } ); } ),
-					el( TextControl, { label: 'Z-index', value: String( getPath( style, [ 'position', 'zIndex' ], '' ) ), onChange: function ( value ) { updateManaged( [ 'position', 'zIndex' ], value || undefined ); } } ),
-					el( SelectControl, { label: 'Overflow', value: getPath( style, [ 'position', 'overflow' ], 'visible' ), options: [ 'visible', 'hidden', 'clip', 'auto', 'scroll' ].map( function ( value ) { return { label: value.charAt( 0 ).toUpperCase() + value.slice( 1 ), value: value }; } ), onChange: function ( value ) { updateManaged( [ 'position', 'overflow' ], value ); } } )
-				),
-				el( 'section', { className: 'cc-persistent-inspector__group' },
-					el( 'div', { className: 'cc-persistent-inspector__group-title' }, 'HTML' ),
-					el( TextControl, { label: 'HTML anchor', value: attributes.anchor || '', onChange: function ( value ) { update( { anchor: String( value ).replace( /[^a-zA-Z0-9\-_:.]/g, '' ) } ); } } ),
-					el( TextControl, { label: 'Additional CSS classes', value: attributes.className || '', onChange: function ( value ) { update( { className: value } ); } } )
-				)
+				el( DeviceSwitcher, { device: device, onChange: function ( next ) { Cresco.ui.setState( { device: next } ); } } ),
+				section( __( 'Effects', 'cresco-canvas' ), el( Fragment, null,
+					el( RangeControl, { label: __( 'Opacity', 'cresco-canvas' ), min: 0, max: 100, value: Math.round( 100 * parseFloat( styleValue( style, [ 'effects', 'opacity' ], 1 ) || 1 ) ), onChange: function ( value ) { updateManaged( [ 'effects', 'opacity' ], value / 100 ); } } ),
+					el( TextControl, { label: __( 'Transform', 'cresco-canvas' ), value: styleValue( style, [ 'effects', 'transform' ], '' ), placeholder: 'translateY(-4px)', onChange: function ( value ) { updateManaged( [ 'effects', 'transform' ], value || undefined ); } } ),
+					el( TextControl, { label: __( 'Box shadow', 'cresco-canvas' ), value: styleValue( style, [ 'effects', 'boxShadow' ], '' ), placeholder: '0 8px 24px rgba(0,0,0,.12)', onChange: function ( value ) { updateManaged( [ 'effects', 'boxShadow' ], value || undefined ); } } )
+				), el( Button, { size: 'small', variant: 'tertiary', onClick: function () { resetGroup( 'effects' ); } }, __( 'Reset', 'cresco-canvas' ) ) ),
+				section( __( 'Responsive visibility', 'cresco-canvas' ), el( Fragment, null,
+					el( ToggleControl, { label: __( 'Hide on desktop and wider', 'cresco-canvas' ), checked: className.indexOf( 'cresco-hide-desktop' ) !== -1, onChange: function ( value ) { toggleClass( 'cresco-hide-desktop', value ); } } ),
+					el( ToggleControl, { label: __( 'Hide on tablet', 'cresco-canvas' ), checked: className.indexOf( 'cresco-hide-tablet' ) !== -1, onChange: function ( value ) { toggleClass( 'cresco-hide-tablet', value ); } } ),
+					el( ToggleControl, { label: __( 'Hide on mobile', 'cresco-canvas' ), checked: className.indexOf( 'cresco-hide-mobile' ) !== -1, onChange: function ( value ) { toggleClass( 'cresco-hide-mobile', value ); } } )
+				) ),
+				section( __( 'Position', 'cresco-canvas' ), el( Fragment, null,
+					el( SelectControl, { label: __( 'Position', 'cresco-canvas' ), value: styleValue( style, [ 'position', 'type' ], 'static' ), options: [ 'static', 'relative', 'absolute', 'fixed', 'sticky' ].map( function ( value ) { return { label: value.charAt( 0 ).toUpperCase() + value.slice( 1 ), value: value }; } ), onChange: function ( value ) { updateManaged( [ 'position', 'type' ], value ); } } ),
+					[ 'top', 'right', 'bottom', 'left' ].map( function ( side ) { return el( TextControl, { key: side, label: side.charAt( 0 ).toUpperCase() + side.slice( 1 ), value: styleValue( style, [ 'position', side ], '' ), onChange: function ( value ) { updateManaged( [ 'position', side ], normalizeUnit( value ) ); } } ); } ),
+					el( TextControl, { label: __( 'Z-index', 'cresco-canvas' ), value: String( styleValue( style, [ 'position', 'zIndex' ], '' ) ), onChange: function ( value ) { updateManaged( [ 'position', 'zIndex' ], value || undefined ); } } ),
+					el( SelectControl, { label: __( 'Overflow', 'cresco-canvas' ), value: styleValue( style, [ 'position', 'overflow' ], 'visible' ), options: [ 'visible', 'hidden', 'clip', 'auto', 'scroll' ].map( function ( value ) { return { label: value.charAt( 0 ).toUpperCase() + value.slice( 1 ), value: value }; } ), onChange: function ( value ) { updateManaged( [ 'position', 'overflow' ], value ); } } )
+				), el( Button, { size: 'small', variant: 'tertiary', onClick: function () { resetGroup( 'position' ); } }, __( 'Reset', 'cresco-canvas' ) ) ),
+				section( __( 'HTML', 'cresco-canvas' ), el( Fragment, null,
+					el( TextControl, { label: __( 'HTML anchor', 'cresco-canvas' ), value: attributes.anchor || '', onChange: function ( value ) { update( { anchor: String( value ).replace( /[^a-zA-Z0-9\-_:.]/g, '' ) } ); } } ),
+					el( TextControl, { label: __( 'Additional CSS classes', 'cresco-canvas' ), value: attributes.className || '', onChange: function ( value ) { update( { className: value } ); } } )
+				) )
 			);
 		}
 
 		var tabs = [
-			{ id: 'content', label: 'Content' },
-			{ id: 'style', label: 'Style' },
-			{ id: 'advanced', label: 'Advanced' }
+			{ id: 'content', label: __( 'Content', 'cresco-canvas' ) },
+			{ id: 'style', label: __( 'Style', 'cresco-canvas' ) },
+			{ id: 'advanced', label: __( 'Advanced', 'cresco-canvas' ) }
 		];
 
 		return el( Fragment, null,
 			el( 'header', { className: 'cc-persistent-inspector__header' },
 				el( 'div', { className: 'cc-persistent-inspector__title' },
-					el( 'span', null, 'Edit widget' ),
+					el( 'span', null, __( 'Edit widget', 'cresco-canvas' ) ),
 					el( 'strong', null, title ),
 					el( 'code', null, selected.name )
 				),
 				el( 'div', { className: 'cc-persistent-inspector__actions' },
-					el( Button, { icon: 'admin-page', label: 'Duplicate widget', onClick: duplicateSelected } ),
-					el( Button, { icon: 'trash', label: 'Delete widget', isDestructive: true, onClick: removeSelected } )
+					el( Button, { icon: 'admin-page', label: __( 'Duplicate widget', 'cresco-canvas' ), onClick: duplicateSelected } ),
+					el( Button, { icon: 'trash', label: __( 'Delete widget', 'cresco-canvas' ), isDestructive: true, onClick: removeSelected } )
 				)
 			),
-			el( 'nav', { className: 'cc-persistent-inspector__tabs', 'aria-label': 'Widget editing sections' },
+			el( 'nav', { className: 'cc-persistent-inspector__tabs', 'aria-label': __( 'Widget editing sections', 'cresco-canvas' ) },
 				tabs.map( function ( tab ) {
 					return el( 'button', { key: tab.id, type: 'button', className: activeTab === tab.id ? 'is-active' : '', onClick: function () { setActiveTab( tab.id ); } }, tab.label );
 				} )
@@ -332,66 +355,5 @@
 		);
 	}
 
-	function ensureHost() {
-		var existing = document.getElementById( HOST_ID );
-		if ( existing ) return existing;
-		var bodyShell = document.querySelector( '.interface-interface-skeleton__body' );
-		var content = document.querySelector( '.interface-interface-skeleton__content' );
-		if ( ! bodyShell || ! content ) return null;
-		var host = document.createElement( 'aside' );
-		host.id = HOST_ID;
-		host.className = 'cresco-canvas-widget-inspector cresco-canvas-persistent-inspector';
-		host.setAttribute( 'aria-label', 'Cresco widget editor' );
-		var root = document.createElement( 'div' );
-		root.id = ROOT_ID;
-		host.appendChild( root );
-		bodyShell.insertBefore( host, content );
-		return host;
-	}
-
-	function mount() {
-		var host = ensureHost();
-		if ( ! host || mountedRoot ) return Boolean( host );
-		var rootNode = document.getElementById( ROOT_ID );
-		if ( ! rootNode ) return false;
-		if ( typeof wp.element.createRoot === 'function' ) {
-			mountedRoot = wp.element.createRoot( rootNode );
-			mountedRoot.render( el( PersistentInspector ) );
-		} else if ( typeof wp.element.render === 'function' ) {
-			wp.element.render( el( PersistentInspector ), rootNode );
-			mountedRoot = true;
-		} else {
-			return false;
-		}
-		return true;
-	}
-
-	function startCompetingPanelObserver() {
-		if ( competingPanelObserver || ! document.body ) return;
-		competingPanelObserver = new MutationObserver( syncCompetingPanels );
-		competingPanelObserver.observe( document.body, {
-			childList: true,
-			subtree: true,
-			attributes: true,
-			attributeFilter: [ 'class', 'style', 'aria-hidden' ]
-		} );
-		syncCompetingPanels();
-	}
-
-	function start() {
-		if ( mount() ) {
-			startCompetingPanelObserver();
-			return;
-		}
-		var observer = new MutationObserver( function () {
-			if ( mount() ) {
-				observer.disconnect();
-				startCompetingPanelObserver();
-			}
-		} );
-		observer.observe( document.body, { childList: true, subtree: true } );
-	}
-
-	if ( document.readyState === 'loading' ) document.addEventListener( 'DOMContentLoaded', start, { once: true } );
-	else start();
-} )( window.wp );
+	Cresco.ui.registerView( 'edit', PersistentInspector, { label: __( 'Edit', 'cresco-canvas' ), icon: 'edit' } );
+} )( window.wp, window );
