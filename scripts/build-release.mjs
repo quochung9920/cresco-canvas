@@ -20,13 +20,12 @@ const requiredFiles = [
 	'assets/css/dynamic-alpha4.css',
 	'assets/css/dynamic-alpha5.css',
 	'assets/css/dynamic-completion.css',
-	'assets/css/editor-hub.css',
+	'assets/css/editor-app-shell.css',
 	'assets/css/elements-usage-sort.css',
 	'assets/css/native-preview-suppression.css',
-	'assets/css/workspace-layout.css',
-	'assets/css/widget-inspector.css',
 	'assets/css/widget-inspector-persistent.css',
 	'assets/css/structure-navigator.css',
+	'assets/css/structure-navigator-actions.css',
 	'assets/css/visual-canvas.css',
 	'assets/css/style-engine.css',
 	'assets/css/interactions.css',
@@ -52,22 +51,22 @@ const requiredFiles = [
 	'build/dynamic-completion.asset.php',
 	'build/dynamic-completion-frontend.js',
 	'build/dynamic-completion-frontend.asset.php',
-	'build/editor-hub.js',
-	'build/editor-hub.asset.php',
+	'build/editor-foundation.js',
+	'build/editor-foundation.asset.php',
+	'build/editor-app-shell.js',
+	'build/editor-app-shell.asset.php',
 	'build/elements-usage-sort.js',
 	'build/elements-usage-sort.asset.php',
 	'build/native-preview-suppression.js',
 	'build/native-preview-suppression.asset.php',
-	'build/workspace-layout.js',
-	'build/workspace-layout.asset.php',
-	'build/widget-inspector.js',
-	'build/widget-inspector.asset.php',
 	'build/widget-inspector-persistent.js',
 	'build/widget-inspector-persistent.asset.php',
 	'build/structure-navigator.js',
 	'build/structure-navigator.asset.php',
 	'build/visual-canvas.js',
 	'build/visual-canvas.asset.php',
+	'build/preview-foundation-bridge.js',
+	'build/preview-foundation-bridge.asset.php',
 	'build/style-engine-editor.js',
 	'build/style-engine-editor.asset.php',
 	'build/interactions-editor.js',
@@ -96,35 +95,27 @@ const requiredFiles = [
 ];
 
 const allowedRoots = [
-	'assets/css/design-system.css',
-	'assets/css/dynamic.css',
-	'assets/css/dynamic-advanced.css',
-	'assets/css/dynamic-alpha4.css',
-	'assets/css/dynamic-alpha5.css',
-	'assets/css/dynamic-completion.css',
-	'assets/css/editor-hub.css',
-	'assets/css/elements-usage-sort.css',
-	'assets/css/native-preview-suppression.css',
-	'assets/css/workspace-layout.css',
-	'assets/css/widget-inspector.css',
-	'assets/css/widget-inspector-persistent.css',
-	'assets/css/structure-navigator.css',
-	'assets/css/visual-canvas.css',
-	'assets/css/style-engine.css',
-	'assets/css/interactions.css',
-	'assets/css/interactions-editor.css',
-	'assets/css/forms.css',
-	'assets/css/forms-completion.css',
-	'assets/css/frontend.css',
-	'assets/css/preview.css',
-	'assets/css/templates.css',
-	'assets/css/theme-builder.css',
+	'assets/css',
 	'blocks',
 	'build',
 	'docs',
 	'includes',
 	'vendor',
 ];
+
+const excludedFiles = new Set( [
+	'assets/css/editor-hub.css',
+	'assets/css/workspace-layout.css',
+	'assets/css/widget-inspector.css',
+	'build/editor-hub.js',
+	'build/editor-hub.asset.php',
+	'build/workspace-layout.js',
+	'build/workspace-layout.asset.php',
+	'build/widget-inspector.js',
+	'build/widget-inspector.asset.php',
+	'build/widget-inspector-compat.js',
+	'build/widget-inspector-compat.asset.php',
+] );
 
 async function walk( relativePath ) {
 	const absolutePath = path.join( root, relativePath );
@@ -148,7 +139,7 @@ for ( const allowedRoot of allowedRoots ) {
 
 const archiveEntries = {};
 for ( const file of [ ...new Set( files ) ].sort() ) {
-	if ( file.endsWith( '.map' ) || file.includes( '/tests/' ) ) continue;
+	if ( excludedFiles.has( file ) || file.endsWith( '.map' ) || file.includes( '/tests/' ) ) continue;
 	const archiveName = `cresco-canvas/${ file.replaceAll( path.sep, '/' ) }`;
 	archiveEntries[ archiveName ] = [ new Uint8Array( await readFile( path.join( root, file ) ) ), { mtime: fixedDate } ];
 }
