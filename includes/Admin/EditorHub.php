@@ -113,6 +113,28 @@ final class EditorHub {
 			);
 		}
 
+		$structure_asset_file = CRESCO_CANVAS_PATH . 'build/structure-navigator.asset.php';
+		if (
+			is_readable( $structure_asset_file ) &&
+			is_readable( CRESCO_CANVAS_PATH . 'build/structure-navigator.js' ) &&
+			is_readable( CRESCO_CANVAS_PATH . 'assets/css/structure-navigator.css' )
+		) {
+			$structure_asset = require $structure_asset_file;
+			wp_enqueue_script(
+				'cresco-canvas-structure-navigator',
+				CRESCO_CANVAS_URL . 'build/structure-navigator.js',
+				(array) ( $structure_asset['dependencies'] ?? array() ),
+				(string) ( $structure_asset['version'] ?? CRESCO_CANVAS_VERSION ),
+				true
+			);
+			wp_enqueue_style(
+				'cresco-canvas-structure-navigator',
+				CRESCO_CANVAS_URL . 'assets/css/structure-navigator.css',
+				array( 'dashicons' ),
+				(string) ( $structure_asset['version'] ?? CRESCO_CANVAS_VERSION )
+			);
+		}
+
 		$bridge_asset_file = CRESCO_CANVAS_PATH . 'build/native-gutenberg-bridge.asset.php';
 		if ( is_readable( $bridge_asset_file ) && is_readable( CRESCO_CANVAS_PATH . 'build/native-gutenberg-bridge.js' ) ) {
 			$bridge_asset = require $bridge_asset_file;
