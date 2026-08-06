@@ -1,0 +1,243 @@
+#cresco-canvas-persistent-inspector {
+	display: none;
+	box-sizing: border-box;
+	width: 320px;
+	min-width: 320px;
+	max-width: 320px;
+	height: 100%;
+	border-right: 1px solid #d8dbe2;
+	background: #fff;
+	overflow: hidden;
+}
+
+body.cresco-persistent-inspector-open #cresco-canvas-persistent-inspector {
+	display: block;
+	order: 1;
+	flex: 0 0 320px;
+}
+
+body.cresco-persistent-inspector-open .interface-interface-skeleton__body {
+	display: flex !important;
+	align-items: stretch;
+	min-width: 0;
+	overflow: hidden;
+}
+
+body.cresco-persistent-inspector-open .interface-interface-skeleton__content {
+	order: 2 !important;
+	flex: 1 1 auto !important;
+	width: auto !important;
+	min-width: 0 !important;
+	max-width: none !important;
+}
+
+body.cresco-persistent-inspector-open .interface-interface-skeleton__sidebar:has(.cresco-canvas-sidebar),
+body.cresco-persistent-inspector-open .interface-interface-skeleton__sidebar:has(.cresco-canvas-widget-inspector),
+body.cresco-persistent-inspector-open .interface-interface-skeleton__secondary-sidebar:has(.cresco-canvas-sidebar),
+body.cresco-persistent-inspector-open .interface-interface-skeleton__secondary-sidebar:has(.cresco-canvas-widget-inspector) {
+	display: none !important;
+}
+
+#cresco-canvas-persistent-inspector-root {
+	height: 100%;
+	overflow: auto;
+	overscroll-behavior: contain;
+}
+
+.cc-persistent-inspector__header {
+	position: sticky;
+	top: 0;
+	z-index: 4;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 10px;
+	min-height: 68px;
+	padding: 12px 14px;
+	border-bottom: 1px solid #d8dbe2;
+	background: #1f2430;
+	color: #fff;
+}
+
+.cc-persistent-inspector__title {
+	display: grid;
+	min-width: 0;
+	gap: 2px;
+}
+
+.cc-persistent-inspector__title > span {
+	font-size: 10px;
+	font-weight: 700;
+	letter-spacing: .08em;
+	text-transform: uppercase;
+	color: #aeb6c5;
+}
+
+.cc-persistent-inspector__title strong {
+	overflow: hidden;
+	font-size: 15px;
+	line-height: 1.25;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.cc-persistent-inspector__title code {
+	overflow: hidden;
+	padding: 0;
+	background: transparent;
+	color: #aeb6c5;
+	font-size: 10px;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.cc-persistent-inspector__actions {
+	display: flex;
+	flex: 0 0 auto;
+	gap: 2px;
+}
+
+.cc-persistent-inspector__actions .components-button {
+	min-width: 34px;
+	height: 34px;
+	padding: 5px;
+	color: #fff;
+}
+
+.cc-persistent-inspector__actions .components-button:hover {
+	background: rgba(255,255,255,.12);
+	color: #fff;
+}
+
+.cc-persistent-inspector__tabs {
+	position: sticky;
+	top: 68px;
+	z-index: 3;
+	display: grid;
+	grid-template-columns: repeat(3,minmax(0,1fr));
+	border-bottom: 1px solid #d8dbe2;
+	background: rgba(255,255,255,.98);
+	backdrop-filter: blur(10px);
+}
+
+.cc-persistent-inspector__tabs button {
+	height: 44px;
+	margin: 0;
+	padding: 0 6px;
+	border: 0;
+	border-bottom: 2px solid transparent;
+	background: transparent;
+	color: #667085;
+	font: 600 12px/1 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+	cursor: pointer;
+}
+
+.cc-persistent-inspector__tabs button:hover {
+	background: #f6f7f9;
+	color: #101828;
+}
+
+.cc-persistent-inspector__tabs button.is-active {
+	border-bottom-color: #6c5ce7;
+	color: #6c5ce7;
+}
+
+.cc-persistent-inspector__tabs button:focus-visible {
+	outline: 2px solid #6c5ce7;
+	outline-offset: -3px;
+}
+
+.cc-persistent-inspector__body {
+	display: grid;
+	gap: 14px;
+	padding: 14px;
+}
+
+.cc-persistent-inspector__group {
+	display: grid;
+	gap: 10px;
+	padding: 12px;
+	border: 1px solid #e1e4ea;
+	border-radius: 8px;
+	background: #fff;
+}
+
+.cc-persistent-inspector__group-title {
+	font-size: 12px;
+	font-weight: 700;
+	color: #344054;
+}
+
+.cc-persistent-inspector__quad {
+	display: grid;
+	grid-template-columns: repeat(4,minmax(0,1fr));
+	gap: 6px;
+}
+
+.cc-persistent-inspector__quad .components-base-control,
+.cc-persistent-inspector__quad .components-base-control__field {
+	margin: 0 !important;
+}
+
+.cc-persistent-inspector__quad .components-input-control__label,
+.cc-persistent-inspector__quad .components-base-control__label {
+	font-size: 10px !important;
+	text-align: center;
+}
+
+.cc-persistent-inspector__body .components-base-control {
+	margin-bottom: 0 !important;
+}
+
+.cc-persistent-inspector__body input,
+.cc-persistent-inspector__body select,
+.cc-persistent-inspector__body textarea {
+	max-width: 100%;
+}
+
+.cc-persistent-inspector__empty {
+	display: grid;
+	place-content: center;
+	height: 100%;
+	padding: 32px 20px;
+	text-align: center;
+	color: #667085;
+}
+
+.cc-persistent-inspector__empty strong {
+	margin-bottom: 6px;
+	color: #101828;
+	font-size: 15px;
+}
+
+.cc-persistent-inspector__empty p {
+	margin: 0;
+	font-size: 12px;
+	line-height: 1.5;
+}
+
+@media (max-width: 1179px) {
+	body.cresco-persistent-inspector-open #cresco-canvas-persistent-inspector {
+		position: fixed;
+		inset: 46px auto 0 0;
+		z-index: 100000;
+		width: min(320px,90vw);
+		min-width: 0;
+		max-width: 90vw;
+		box-shadow: 12px 0 30px rgba(16,24,40,.18);
+	}
+}
+
+@media (forced-colors: active) {
+	#cresco-canvas-persistent-inspector,
+	.cc-persistent-inspector__group,
+	.cc-persistent-inspector__tabs {
+		border-color: CanvasText;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.cc-persistent-inspector__tabs button {
+		scroll-behavior: auto;
+	}
+}
