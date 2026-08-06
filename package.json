@@ -22,6 +22,7 @@
     "test:unit": "wp-scripts test-unit-js --runInBand",
     "test:e2e": "playwright test",
     "test:e2e:report": "playwright show-report",
+    "check:editor-runtime": "node scripts/check-editor-runtime.mjs",
     "check:version": "node scripts/check-version.mjs",
     "package": "node scripts/build-release.mjs",
     "package:verify": "node scripts/verify-reproducible-build.mjs"
