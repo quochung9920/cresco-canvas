@@ -49,10 +49,20 @@ final class EditorIntegration {
 			return;
 		}
 
-		$editor_asset = $this->editor_asset();
-		if ( null === $editor_asset ) {
+		$foundation_asset = $this->foundation_asset();
+		$editor_asset     = $this->editor_asset();
+		if ( null === $foundation_asset || null === $editor_asset ) {
 			return;
 		}
+
+		wp_enqueue_script(
+			'cresco-canvas-editor-foundation',
+			CRESCO_CANVAS_URL . 'build/editor-foundation.js',
+			(array) $foundation_asset['dependencies'],
+			(string) $foundation_asset['version'],
+			true
+		);
+		wp_set_script_translations( 'cresco-canvas-editor-foundation', 'cresco-canvas' );
 
 		wp_enqueue_style(
 			'cresco-canvas-editor',
@@ -171,6 +181,7 @@ final class EditorIntegration {
 		if (
 			! $this->is_page_editor() ||
 			(
+				null !== $this->foundation_asset() &&
 				null !== $this->editor_asset() &&
 				null !== $this->elements_usage_asset() &&
 				null !== $this->preview_asset() &&
@@ -185,8 +196,19 @@ final class EditorIntegration {
 		printf(
 			'<div class="notice notice-warning"><p><strong>%1$s</strong> %2$s</p></div>',
 			esc_html__( 'Some Cresco Canvas tools are unavailable.', 'cresco-canvas' ),
-			esc_html__( 'A compiled editor, Elements ranking, Design System, viewport, or preview-suppression asset is missing. Gutenberg remains fully usable; install a release ZIP or run the production build to restore Cresco tools.', 'cresco-canvas' )
+			esc_html__( 'A compiled editor foundation, Elements view, Design System, viewport, or preview-suppression asset is missing. WordPress native controls remain available; install a release ZIP or run the production build to restore Cresco tools.', 'cresco-canvas' )
 		);
+	}
+
+	/** @return array<string, mixed>|null */
+	private function foundation_asset() {
+		$script_path = CRESCO_CANVAS_PATH . 'build/editor-foundation.js';
+		$asset_path  = CRESCO_CANVAS_PATH . 'build/editor-foundation.asset.php';
+		if ( ! is_readable( $script_path ) || ! is_readable( $asset_path ) ) {
+			return null;
+		}
+		$asset = require $asset_path;
+		return is_array( $asset ) && isset( $asset['dependencies'], $asset['version'] ) ? $asset : null;
 	}
 
 	/** @return array<string, mixed>|null */
