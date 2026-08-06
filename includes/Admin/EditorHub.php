@@ -57,14 +57,14 @@ final class EditorHub {
 			);
 		}
 
-		$bridge_asset_file = CRESCO_CANVAS_PATH . 'build/native-gutenberg-bridge.asset.php';
-		if ( is_readable( $bridge_asset_file ) && is_readable( CRESCO_CANVAS_PATH . 'build/native-gutenberg-bridge.js' ) ) {
-			$bridge_asset = require $bridge_asset_file;
+		$compat_asset_file = CRESCO_CANVAS_PATH . 'build/widget-inspector-compat.asset.php';
+		if ( is_readable( $compat_asset_file ) && is_readable( CRESCO_CANVAS_PATH . 'build/widget-inspector-compat.js' ) ) {
+			$compat_asset = require $compat_asset_file;
 			wp_enqueue_script(
-				'cresco-canvas-native-gutenberg-bridge',
-				CRESCO_CANVAS_URL . 'build/native-gutenberg-bridge.js',
-				(array) ( $bridge_asset['dependencies'] ?? array() ),
-				(string) ( $bridge_asset['version'] ?? CRESCO_CANVAS_VERSION ),
+				'cresco-canvas-widget-inspector-compat',
+				CRESCO_CANVAS_URL . 'build/widget-inspector-compat.js',
+				(array) ( $compat_asset['dependencies'] ?? array() ),
+				(string) ( $compat_asset['version'] ?? CRESCO_CANVAS_VERSION ),
 				true
 			);
 		}
@@ -72,10 +72,14 @@ final class EditorHub {
 		$inspector_asset_file = CRESCO_CANVAS_PATH . 'build/widget-inspector.asset.php';
 		if ( is_readable( $inspector_asset_file ) && is_readable( CRESCO_CANVAS_PATH . 'build/widget-inspector.js' ) ) {
 			$inspector_asset = require $inspector_asset_file;
+			$inspector_dependencies = (array) ( $inspector_asset['dependencies'] ?? array() );
+			if ( wp_script_is( 'cresco-canvas-widget-inspector-compat', 'enqueued' ) ) {
+				$inspector_dependencies[] = 'cresco-canvas-widget-inspector-compat';
+			}
 			wp_enqueue_script(
 				'cresco-canvas-widget-inspector',
 				CRESCO_CANVAS_URL . 'build/widget-inspector.js',
-				(array_merge( (array) ( $inspector_asset['dependencies'] ?? array() ), array( 'cresco-canvas-native-gutenberg-bridge' ) )),
+				array_values( array_unique( $inspector_dependencies ) ),
 				(string) ( $inspector_asset['version'] ?? CRESCO_CANVAS_VERSION ),
 				true
 			);
@@ -84,6 +88,22 @@ final class EditorHub {
 				CRESCO_CANVAS_URL . 'assets/css/widget-inspector.css',
 				array( 'cresco-canvas-workspace-layout' ),
 				(string) ( $inspector_asset['version'] ?? CRESCO_CANVAS_VERSION )
+			);
+		}
+
+		$bridge_asset_file = CRESCO_CANVAS_PATH . 'build/native-gutenberg-bridge.asset.php';
+		if ( is_readable( $bridge_asset_file ) && is_readable( CRESCO_CANVAS_PATH . 'build/native-gutenberg-bridge.js' ) ) {
+			$bridge_asset = require $bridge_asset_file;
+			$bridge_dependencies = (array) ( $bridge_asset['dependencies'] ?? array() );
+			if ( wp_script_is( 'cresco-canvas-widget-inspector', 'enqueued' ) ) {
+				$bridge_dependencies[] = 'cresco-canvas-widget-inspector';
+			}
+			wp_enqueue_script(
+				'cresco-canvas-native-gutenberg-bridge',
+				CRESCO_CANVAS_URL . 'build/native-gutenberg-bridge.js',
+				array_values( array_unique( $bridge_dependencies ) ),
+				(string) ( $bridge_asset['version'] ?? CRESCO_CANVAS_VERSION ),
+				true
 			);
 		}
 	}
