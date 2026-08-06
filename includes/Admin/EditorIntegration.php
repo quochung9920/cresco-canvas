@@ -91,23 +91,6 @@ final class EditorIntegration {
 		);
 		wp_set_script_translations( 'cresco-canvas-editor', 'cresco-canvas' );
 
-		$elements_usage_asset = $this->elements_usage_asset();
-		if ( null !== $elements_usage_asset ) {
-			wp_enqueue_style(
-				'cresco-canvas-elements-usage',
-				CRESCO_CANVAS_URL . 'assets/css/elements-usage-sort.css',
-				array( 'cresco-canvas-editor' ),
-				(string) $elements_usage_asset['version']
-			);
-			wp_enqueue_script(
-				'cresco-canvas-elements-usage',
-				CRESCO_CANVAS_URL . 'build/elements-usage-sort.js',
-				array( 'cresco-canvas-editor' ),
-				(string) $elements_usage_asset['version'],
-				true
-			);
-		}
-
 		$design_system_asset = $this->design_system_asset();
 		if ( null !== $design_system_asset ) {
 			wp_enqueue_style(
@@ -183,7 +166,6 @@ final class EditorIntegration {
 			(
 				null !== $this->foundation_asset() &&
 				null !== $this->editor_asset() &&
-				null !== $this->elements_usage_asset() &&
 				null !== $this->preview_asset() &&
 				null !== $this->native_preview_suppression_asset() &&
 				null !== $this->design_system_asset()
@@ -216,18 +198,6 @@ final class EditorIntegration {
 		$script_path = CRESCO_CANVAS_PATH . 'build/editor.js';
 		$style_path  = CRESCO_CANVAS_PATH . 'build/editor.css';
 		$asset_path  = CRESCO_CANVAS_PATH . 'build/editor.asset.php';
-		if ( ! is_readable( $script_path ) || ! is_readable( $style_path ) || ! is_readable( $asset_path ) ) {
-			return null;
-		}
-		$asset = require $asset_path;
-		return is_array( $asset ) && isset( $asset['dependencies'], $asset['version'] ) ? $asset : null;
-	}
-
-	/** @return array<string, mixed>|null */
-	private function elements_usage_asset() {
-		$script_path = CRESCO_CANVAS_PATH . 'build/elements-usage-sort.js';
-		$style_path  = CRESCO_CANVAS_PATH . 'assets/css/elements-usage-sort.css';
-		$asset_path  = CRESCO_CANVAS_PATH . 'build/elements-usage-sort.asset.php';
 		if ( ! is_readable( $script_path ) || ! is_readable( $style_path ) || ! is_readable( $asset_path ) ) {
 			return null;
 		}
