@@ -17,28 +17,39 @@
 	var ROOT_ID = 'cresco-canvas-app-shell-root';
 	var mountedRoot = null;
 
-	function ViewBoundary( props ) {
-		Component.call( this, props );
-		this.state = { error: null };
-	}
-	ViewBoundary.prototype = Object.create( Component.prototype );
-	ViewBoundary.prototype.constructor = ViewBoundary;
-	ViewBoundary.getDerivedStateFromError = function ( error ) { return { error: error }; };
-	ViewBoundary.prototype.componentDidCatch = function ( error, info ) {
-		Cresco.diagnostics.report( 'error', 'view-' + this.props.view, error && error.message ? error.message : String( error ), { componentStack: info && info.componentStack ? info.componentStack : '' } );
-	};
-	ViewBoundary.prototype.componentDidUpdate = function ( previousProps ) {
-		if ( previousProps.view !== this.props.view && this.state.error ) this.setState( { error: null } );
-	};
-	ViewBoundary.prototype.render = function () {
-		if ( this.state.error ) {
-			return el( 'div', { className: 'cc-app-shell__error' },
-				el( Notice, { status: 'error', isDismissible: false }, __( 'This editor panel encountered an error. Native WordPress controls are still available.', 'cresco-canvas' ) ),
-				el( Button, { variant: 'secondary', onClick: function () { window.location.reload(); } }, __( 'Reload editor', 'cresco-canvas' ) )
+	class ViewBoundary extends Component {
+		constructor( props ) {
+			super( props );
+			this.state = { error: null };
+		}
+
+		static getDerivedStateFromError( error ) {
+			return { error: error };
+		}
+
+		componentDidCatch( error, info ) {
+			Cresco.diagnostics.report(
+				'error',
+				'view-' + this.props.view,
+				error && error.message ? error.message : String( error ),
+				{ componentStack: info && info.componentStack ? info.componentStack : '' }
 			);
 		}
-		return this.props.children;
-	};
+
+		componentDidUpdate( previousProps ) {
+			if ( previousProps.view !== this.props.view && this.state.error ) this.setState( { error: null } );
+		}
+
+		render() {
+			if ( this.state.error ) {
+				return el( 'div', { className: 'cc-app-shell__error' },
+					el( Notice, { status: 'error', isDismissible: false }, __( 'This editor panel encountered an error. Native WordPress controls are still available.', 'cresco-canvas' ) ),
+					el( Button, { variant: 'secondary', onClick: function () { window.location.reload(); } }, __( 'Reload editor', 'cresco-canvas' ) )
+				);
+			}
+			return this.props.children;
+		}
+	}
 
 	function AppShell() {
 		var statePair = useState( Cresco.ui.getState() );
