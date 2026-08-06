@@ -125,6 +125,22 @@ final class EditorHub {
 			);
 		}
 
+		$preview_bridge_asset_file = CRESCO_CANVAS_PATH . 'build/preview-foundation-bridge.asset.php';
+		if (
+			wp_script_is( 'cresco-canvas-preview', 'enqueued' ) &&
+			is_readable( $preview_bridge_asset_file ) &&
+			is_readable( CRESCO_CANVAS_PATH . 'build/preview-foundation-bridge.js' )
+		) {
+			$preview_bridge_asset = require $preview_bridge_asset_file;
+			wp_enqueue_script(
+				'cresco-canvas-preview-foundation-bridge',
+				CRESCO_CANVAS_URL . 'build/preview-foundation-bridge.js',
+				(array) ( $preview_bridge_asset['dependencies'] ?? array() ),
+				(string) ( $preview_bridge_asset['version'] ?? CRESCO_CANVAS_VERSION ),
+				true
+			);
+		}
+
 		$bridge_asset_file = CRESCO_CANVAS_PATH . 'build/native-gutenberg-bridge.asset.php';
 		if ( is_readable( $bridge_asset_file ) && is_readable( CRESCO_CANVAS_PATH . 'build/native-gutenberg-bridge.js' ) ) {
 			$bridge_asset = require $bridge_asset_file;
