@@ -29,6 +29,8 @@ for ( const file of runtimeFiles ) {
 const integration = await readFile( 'includes/Admin/EditorIntegration.php', 'utf8' );
 const hub = await readFile( 'includes/Admin/EditorHub.php', 'utf8' );
 const packaging = await readFile( 'scripts/build-release.mjs', 'utf8' );
+const webpack = await readFile( 'webpack.config.js', 'utf8' );
+const formerEditorEntry = await readFile( 'src/editor/index.tsx', 'utf8' );
 
 const requiredIntegrationTokens = [
 	"'cresco-canvas-editor-foundation'",
@@ -94,9 +96,19 @@ for ( const file of excludedLegacyFiles ) {
 	if ( ! packaging.includes( `'${ file }'` ) ) errors.push( `Legacy package exclusion is missing ${ file }` );
 }
 
+if ( /editor\s*:\s*path\.resolve/.test( webpack ) ) {
+	errors.push( 'webpack.config.js must not overwrite the reviewed build/editor.js runtime.' );
+}
+if ( ! /clean\s*:\s*false/.test( webpack ) ) {
+	errors.push( 'webpack.config.js must preserve checked-in editor runtimes with output.clean=false.' );
+}
+if ( formerEditorEntry.includes( 'registerPlugin' ) || formerEditorEntry.includes( 'SettingsSidebar' ) ) {
+	errors.push( 'src/editor/index.tsx still registers the deprecated PluginSidebar.' );
+}
+
 if ( errors.length ) {
 	process.stderr.write( `${ errors.join( '\n' ) }\n` );
 	process.exit( 1 );
 }
 
-process.stdout.write( `Checked ${ runtimeFiles.length } editor runtimes and verified integration/package gates.\n` );
+process.stdout.write( `Checked ${ runtimeFiles.length } editor runtimes and verified integration, build, and package gates.\n` );
