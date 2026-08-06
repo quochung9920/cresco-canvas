@@ -27,13 +27,20 @@ final class EditorHub {
 		if (
 			is_readable( $app_asset_file ) &&
 			is_readable( CRESCO_CANVAS_PATH . 'build/editor-app-shell.js' ) &&
-			is_readable( CRESCO_CANVAS_PATH . 'assets/css/editor-app-shell.css' )
+			is_readable( CRESCO_CANVAS_PATH . 'assets/css/editor-app-shell.css' ) &&
+			is_readable( CRESCO_CANVAS_PATH . 'assets/css/editor-app-shell-elements.css' )
 		) {
 			$app_asset = require $app_asset_file;
 			wp_enqueue_style(
 				'cresco-canvas-editor-app-shell',
 				CRESCO_CANVAS_URL . 'assets/css/editor-app-shell.css',
 				array( 'cresco-canvas-editor', 'wp-components', 'dashicons' ),
+				(string) ( $app_asset['version'] ?? CRESCO_CANVAS_VERSION )
+			);
+			wp_enqueue_style(
+				'cresco-canvas-editor-app-shell-elements',
+				CRESCO_CANVAS_URL . 'assets/css/editor-app-shell-elements.css',
+				array( 'cresco-canvas-editor-app-shell' ),
 				(string) ( $app_asset['version'] ?? CRESCO_CANVAS_VERSION )
 			);
 		}
