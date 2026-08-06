@@ -10,10 +10,15 @@
 	overflow: hidden;
 }
 
-body.cresco-persistent-inspector-open #cresco-canvas-persistent-inspector {
+body.cresco-persistent-inspector-open:not(.cresco-persistent-inspector-suspended) #cresco-canvas-persistent-inspector {
 	display: block;
 	order: 1;
 	flex: 0 0 320px;
+}
+
+body.cresco-persistent-inspector-suspended #cresco-canvas-persistent-inspector,
+#cresco-canvas-persistent-inspector.is-suspended {
+	display: none !important;
 }
 
 body.cresco-persistent-inspector-open .interface-interface-skeleton__body {
@@ -31,10 +36,10 @@ body.cresco-persistent-inspector-open .interface-interface-skeleton__content {
 	max-width: none !important;
 }
 
-body.cresco-persistent-inspector-open .interface-interface-skeleton__sidebar:has(.cresco-canvas-sidebar),
-body.cresco-persistent-inspector-open .interface-interface-skeleton__sidebar:has(.cresco-canvas-widget-inspector),
-body.cresco-persistent-inspector-open .interface-interface-skeleton__secondary-sidebar:has(.cresco-canvas-sidebar),
-body.cresco-persistent-inspector-open .interface-interface-skeleton__secondary-sidebar:has(.cresco-canvas-widget-inspector) {
+body.cresco-persistent-inspector-open:not(.cresco-persistent-inspector-suspended) .interface-interface-skeleton__sidebar:has(.cresco-canvas-sidebar),
+body.cresco-persistent-inspector-open:not(.cresco-persistent-inspector-suspended) .interface-interface-skeleton__sidebar:has(.cresco-canvas-widget-inspector),
+body.cresco-persistent-inspector-open:not(.cresco-persistent-inspector-suspended) .interface-interface-skeleton__secondary-sidebar:has(.cresco-canvas-sidebar),
+body.cresco-persistent-inspector-open:not(.cresco-persistent-inspector-suspended) .interface-interface-skeleton__secondary-sidebar:has(.cresco-canvas-widget-inspector) {
 	display: none !important;
 }
 
@@ -217,7 +222,7 @@ body.cresco-persistent-inspector-open .interface-interface-skeleton__secondary-s
 }
 
 @media (max-width: 1179px) {
-	body.cresco-persistent-inspector-open #cresco-canvas-persistent-inspector {
+	body.cresco-persistent-inspector-open:not(.cresco-persistent-inspector-suspended) #cresco-canvas-persistent-inspector {
 		position: fixed;
 		inset: 46px auto 0 0;
 		z-index: 100000;
