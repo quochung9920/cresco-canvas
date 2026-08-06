@@ -91,6 +91,28 @@ final class EditorHub {
 			);
 		}
 
+		$persistent_asset_file = CRESCO_CANVAS_PATH . 'build/widget-inspector-persistent.asset.php';
+		if (
+			is_readable( $persistent_asset_file ) &&
+			is_readable( CRESCO_CANVAS_PATH . 'build/widget-inspector-persistent.js' ) &&
+			is_readable( CRESCO_CANVAS_PATH . 'assets/css/widget-inspector-persistent.css' )
+		) {
+			$persistent_asset = require $persistent_asset_file;
+			wp_enqueue_script(
+				'cresco-canvas-widget-inspector-persistent',
+				CRESCO_CANVAS_URL . 'build/widget-inspector-persistent.js',
+				(array) ( $persistent_asset['dependencies'] ?? array() ),
+				(string) ( $persistent_asset['version'] ?? CRESCO_CANVAS_VERSION ),
+				true
+			);
+			wp_enqueue_style(
+				'cresco-canvas-widget-inspector-persistent',
+				CRESCO_CANVAS_URL . 'assets/css/widget-inspector-persistent.css',
+				array( 'cresco-canvas-workspace-layout', 'wp-components' ),
+				(string) ( $persistent_asset['version'] ?? CRESCO_CANVAS_VERSION )
+			);
+		}
+
 		$bridge_asset_file = CRESCO_CANVAS_PATH . 'build/native-gutenberg-bridge.asset.php';
 		if ( is_readable( $bridge_asset_file ) && is_readable( CRESCO_CANVAS_PATH . 'build/native-gutenberg-bridge.js' ) ) {
 			$bridge_asset = require $bridge_asset_file;
