@@ -5,6 +5,7 @@ import process from 'node:process';
 const runtimeFiles = [
 	'build/editor-foundation.js',
 	'build/editor.js',
+	'build/design-system.js',
 	'build/widget-inspector-persistent.js',
 	'build/editor-app-shell.js',
 	'build/visual-canvas.js',
@@ -32,8 +33,10 @@ const packaging = await readFile( 'scripts/build-release.mjs', 'utf8' );
 const requiredIntegrationTokens = [
 	"'cresco-canvas-editor-foundation'",
 	"'cresco-canvas-editor'",
+	"'cresco-canvas-design-system'",
 	'build/editor-foundation.js',
 	'build/editor.js',
+	'build/design-system.js',
 ];
 
 const requiredHubTokens = [
@@ -48,6 +51,7 @@ const requiredHubTokens = [
 const requiredPackageFiles = [
 	'build/editor-foundation.js',
 	'build/editor-app-shell.js',
+	'build/design-system.js',
 	'build/widget-inspector-persistent.js',
 	'build/visual-canvas.js',
 	'build/structure-navigator.js',
@@ -72,13 +76,16 @@ const forbiddenEnqueueTokens = [
 	"'cresco-canvas-workspace-layout'",
 	"'cresco-canvas-widget-inspector'",
 	"'cresco-canvas-widget-inspector-compat'",
+	"'cresco-canvas-elements-usage'",
 ];
 for ( const token of forbiddenEnqueueTokens ) {
-	if ( hub.includes( token ) ) errors.push( `Legacy runtime is still enqueued: ${ token }` );
+	if ( hub.includes( token ) || integration.includes( token ) ) errors.push( `Legacy runtime is still enqueued: ${ token }` );
 }
 
 const excludedLegacyFiles = [
 	'build/editor-hub.js',
+	'build/elements-usage-sort.js',
+	'assets/css/elements-usage-sort.css',
 	'build/workspace-layout.js',
 	'build/widget-inspector.js',
 	'build/widget-inspector-compat.js',
