@@ -50,10 +50,14 @@ jobs:
           ! unzip -Z1 dist/cresco-canvas.zip | grep -E '(^|/)(node_modules|src|tests|\.github)(/|$)|\.map$'
           unzip -Z1 dist/cresco-canvas.zip | grep -q 'cresco-canvas/build/editor-foundation.js'
           unzip -Z1 dist/cresco-canvas.zip | grep -q 'cresco-canvas/build/editor-app-shell.js'
+          unzip -Z1 dist/cresco-canvas.zip | grep -q 'cresco-canvas/build/design-system.js'
           unzip -Z1 dist/cresco-canvas.zip | grep -q 'cresco-canvas/build/visual-canvas.js'
+          unzip -Z1 dist/cresco-canvas.zip | grep -q 'cresco-canvas/assets/css/editor-app-shell-elements.css'
           unzip -Z1 dist/cresco-canvas.zip | grep -q 'cresco-canvas/assets/css/structure-navigator-actions.css'
           ! unzip -Z1 dist/cresco-canvas.zip | grep -q 'cresco-canvas/build/widget-inspector.js'
           ! unzip -Z1 dist/cresco-canvas.zip | grep -q 'cresco-canvas/build/editor-hub.js'
+          ! unzip -Z1 dist/cresco-canvas.zip | grep -q 'cresco-canvas/build/elements-usage-sort.js'
+          ! unzip -Z1 dist/cresco-canvas.zip | grep -q 'cresco-canvas/assets/css/elements-usage-sort.css'
       - name: Record frontend CSS size
         run: |
           gzip -c assets/css/frontend.css > /tmp/cresco-frontend.css.gz
