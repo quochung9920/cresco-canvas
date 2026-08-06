@@ -39,6 +39,7 @@ const requiredIntegrationTokens = [
 const requiredHubTokens = [
 	"'cresco-canvas-widget-inspector-persistent'",
 	"'cresco-canvas-editor-app-shell'",
+	"'cresco-canvas-editor-app-shell-elements'",
 	"'cresco-canvas-visual-canvas'",
 	"'cresco-canvas-structure-navigator'",
 	"'cresco-canvas-preview-foundation-bridge'",
@@ -52,6 +53,7 @@ const requiredPackageFiles = [
 	'build/structure-navigator.js',
 	'build/preview-foundation-bridge.js',
 	'assets/css/editor-app-shell.css',
+	'assets/css/editor-app-shell-elements.css',
 	'assets/css/structure-navigator-actions.css',
 ];
 
