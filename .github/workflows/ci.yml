@@ -34,6 +34,7 @@ jobs:
       - name: Report development dependency advisories
         continue-on-error: true
         run: npm audit --audit-level=high
+      - run: npm run check:editor-runtime
       - run: npm run typecheck
       - run: npm run lint:js
       - run: npm run lint:css
@@ -47,6 +48,12 @@ jobs:
         run: |
           unzip -t dist/cresco-canvas.zip
           ! unzip -Z1 dist/cresco-canvas.zip | grep -E '(^|/)(node_modules|src|tests|\.github)(/|$)|\.map$'
+          unzip -Z1 dist/cresco-canvas.zip | grep -q 'cresco-canvas/build/editor-foundation.js'
+          unzip -Z1 dist/cresco-canvas.zip | grep -q 'cresco-canvas/build/editor-app-shell.js'
+          unzip -Z1 dist/cresco-canvas.zip | grep -q 'cresco-canvas/build/visual-canvas.js'
+          unzip -Z1 dist/cresco-canvas.zip | grep -q 'cresco-canvas/assets/css/structure-navigator-actions.css'
+          ! unzip -Z1 dist/cresco-canvas.zip | grep -q 'cresco-canvas/build/widget-inspector.js'
+          ! unzip -Z1 dist/cresco-canvas.zip | grep -q 'cresco-canvas/build/editor-hub.js'
       - name: Record frontend CSS size
         run: |
           gzip -c assets/css/frontend.css > /tmp/cresco-frontend.css.gz
@@ -54,7 +61,7 @@ jobs:
           wc -c assets/css/frontend.css /tmp/cresco-frontend.css.gz
       - uses: actions/upload-artifact@v4
         with:
-          name: cresco-canvas-0.4.0-alpha.1
+          name: cresco-canvas-release-candidate
           path: |
             dist/cresco-canvas.zip
             dist/cresco-canvas.zip.sha256
@@ -130,6 +137,7 @@ jobs:
           php-version: "8.3"
           tools: composer:v2
       - run: npm ci
+      - run: npm run check:editor-runtime
       - run: npm run build
       - run: composer install --no-dev --no-interaction --optimize-autoloader
       - name: Select WordPress and PHP test versions
@@ -159,6 +167,7 @@ jobs:
           php-version: "8.3"
           tools: composer:v2
       - run: npm ci
+      - run: npm run check:editor-runtime
       - run: npm run build
       - run: composer install --no-dev --no-interaction --optimize-autoloader
       - run: npx playwright install --with-deps chromium firefox webkit
