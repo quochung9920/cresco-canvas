@@ -1,7 +1,11 @@
 (() => {
 	'use strict';
 
-	const { registerPlugin } = window.wp.plugins;
+	const Cresco = window.CrescoCanvas;
+	if (!Cresco || !Cresco.ui || !Cresco.dragDrop) {
+		return;
+	}
+
 	const apiFetch = window.wp.apiFetch;
 	const {
 		Button,
@@ -13,7 +17,6 @@
 		ToggleControl,
 	} = window.wp.components;
 	const { useDispatch, useSelect } = window.wp.data;
-	const { PluginSidebar, PluginSidebarMoreMenuItem } = window.wp.editor;
 	const {
 		Fragment,
 		createElement: h,
@@ -28,7 +31,6 @@
 	const ENABLED_META = '_cresco_canvas_enabled';
 	const FAVORITES_KEY = 'crescoCanvas.elementFavorites';
 	const RECENT_KEY = 'crescoCanvas.elementRecent';
-	const DRAG_MIME = 'application/x-cresco-canvas-element';
 	const MAX_RECENT = 8;
 
 	function normalizeApiError(error) {
@@ -154,6 +156,7 @@
 		definition('html', __('Custom HTML', 'cresco-canvas'), __('Restricted native HTML block.', 'cresco-canvas'), 'utility', ['html', 'code', 'custom'], 'html', () => [block('core/html', { content: '<div>Custom HTML</div>' })]),
 	];
 
+	elements.forEach((element) => Cresco.dragDrop.registerFactory(element));
 	const validElementIds = new Set(elements.map((element) => element.id));
 
 	function sanitizeElementIds(value, limit = Number.POSITIVE_INFINITY) {
@@ -212,22 +215,8 @@
 		try {
 			window.localStorage.setItem(key, JSON.stringify(ids));
 		} catch (error) {
-			// Storage is optional. The library remains functional without it.
+			// Storage is optional.
 		}
-	}
-
-	function canContainElements(blockName) {
-		return ['cresco/container', 'core/group', 'core/cover', 'core/column'].includes(blockName || '');
-	}
-
-	function resolveInsertionPoint(selectedClientId, blockEditorSelect) {
-		if (selectedClientId && canContainElements(blockEditorSelect.getBlockName(selectedClientId))) {
-			return { index: blockEditorSelect.getBlockOrder(selectedClientId).length, rootClientId: selectedClientId };
-		}
-		if (selectedClientId) {
-			return { index: Math.max(0, blockEditorSelect.getBlockIndex(selectedClientId) + 1), rootClientId: blockEditorSelect.getBlockRootClientId(selectedClientId) || undefined };
-		}
-		return { index: blockEditorSelect.getBlockOrder().length };
 	}
 
 	function ElementsLibrary({ onElementInserted }) {
@@ -236,31 +225,20 @@
 		const [favorites, setFavorites] = useState(() => readStoredIds(FAVORITES_KEY));
 		const [recent, setRecent] = useState(() => readStoredIds(RECENT_KEY, MAX_RECENT));
 		const [libraryNotice, setLibraryNotice] = useState(null);
-		const selectedClientId = useSelect((select) => select('core/block-editor').getSelectedBlockClientId(), []);
-		const blockEditorSelect = useSelect((select) => select('core/block-editor'), []);
-		const { insertBlocks, selectBlock } = useDispatch('core/block-editor');
 
-		const insertDefinition = useCallback((definitionToInsert, targetClientId) => {
+		const insertDefinition = useCallback((definitionToInsert) => {
 			setLibraryNotice(null);
 			try {
-				const blocks = definitionToInsert.create();
-				if (!blocks.length) {
-					throw new Error('Element factory returned no blocks.');
-				}
-				const unavailableBlockNames = findUnavailableBlockNames(blocks);
+				const previewBlocks = definitionToInsert.create();
+				const unavailableBlockNames = findUnavailableBlockNames(previewBlocks);
 				if (unavailableBlockNames.length > 0) {
 					setLibraryNotice({ message: sprintf(__('%1$s cannot be added because these WordPress blocks are unavailable: %2$s.', 'cresco-canvas'), definitionToInsert.label, unavailableBlockNames.join(', ')), status: 'error' });
 					return;
 				}
-				const insertionPoint = resolveInsertionPoint(targetClientId ?? selectedClientId, blockEditorSelect);
-				const blockedRootNames = typeof blockEditorSelect.canInsertBlockType === 'function' ? [...new Set(blocks.map((current) => current.name).filter((blockName) => !blockEditorSelect.canInsertBlockType(blockName, insertionPoint.rootClientId)))] : [];
-				if (blockedRootNames.length > 0) {
-					setLibraryNotice({ message: sprintf(__('%1$s cannot be inserted at the selected location. Restricted blocks: %2$s.', 'cresco-canvas'), definitionToInsert.label, blockedRootNames.join(', ')), status: 'warning' });
+				const result = Cresco.dragDrop.insertElement(definitionToInsert.id);
+				if (!result.ok) {
+					setLibraryNotice({ message: result.error === 'restricted' ? sprintf(__('%s cannot be inserted at the selected location.', 'cresco-canvas'), definitionToInsert.label) : sprintf(__('%s could not be added.', 'cresco-canvas'), definitionToInsert.label), status: 'warning' });
 					return;
-				}
-				insertBlocks(blocks, insertionPoint.index, insertionPoint.rootClientId);
-				if (blocks[0]) {
-					selectBlock(blocks[0].clientId);
 				}
 				setRecent((current) => {
 					const nextRecent = prependRecentElement(current, definitionToInsert.id);
@@ -271,72 +249,11 @@
 				if (onElementInserted) {
 					onElementInserted();
 				}
+				Cresco.ui.open('edit');
 			} catch (error) {
 				setLibraryNotice({ message: sprintf(__('%s could not be added. Reload the editor and try again.', 'cresco-canvas'), definitionToInsert.label), status: 'error' });
 			}
-		}, [blockEditorSelect, insertBlocks, onElementInserted, selectBlock, selectedClientId]);
-
-		const insertById = useCallback((id, targetClientId) => {
-			const found = elements.find((element) => element.id === id);
-			if (!found) {
-				setLibraryNotice({ message: __('This dragged element is no longer available.', 'cresco-canvas'), status: 'error' });
-				return;
-			}
-			insertDefinition(found, targetClientId);
-		}, [insertDefinition]);
-
-		useEffect(() => {
-			const documents = new Set();
-			const iframeListeners = new Map();
-			const onDragOver = (event) => {
-				if (event.dataTransfer && Array.from(event.dataTransfer.types).includes(DRAG_MIME)) {
-					event.preventDefault();
-					event.dataTransfer.dropEffect = 'copy';
-				}
-			};
-			const onDrop = (event) => {
-				const id = event.dataTransfer ? event.dataTransfer.getData(DRAG_MIME) : '';
-				if (!id) {
-					return;
-				}
-				event.preventDefault();
-				const target = event.target;
-				const blockTarget = target && typeof target.closest === 'function' ? target.closest('[data-block]') : null;
-				insertById(id, blockTarget ? blockTarget.dataset.block : null);
-			};
-			const attachDocument = (targetDocument) => {
-				if (!targetDocument || documents.has(targetDocument)) {
-					return;
-				}
-				documents.add(targetDocument);
-				targetDocument.addEventListener('dragover', onDragOver);
-				targetDocument.addEventListener('drop', onDrop);
-			};
-			const attachIframe = (iframe) => {
-				if (iframeListeners.has(iframe)) {
-					return;
-				}
-				const onLoad = () => attachDocument(iframe.contentDocument);
-				iframeListeners.set(iframe, onLoad);
-				iframe.addEventListener('load', onLoad);
-				onLoad();
-			};
-			const scanForCanvas = () => document.querySelectorAll('iframe[name="editor-canvas"]').forEach(attachIframe);
-			attachDocument(document);
-			scanForCanvas();
-			const observer = new MutationObserver(scanForCanvas);
-			observer.observe(document.documentElement, { childList: true, subtree: true });
-			return () => {
-				observer.disconnect();
-				for (const [iframe, onLoad] of iframeListeners) {
-					iframe.removeEventListener('load', onLoad);
-				}
-				for (const targetDocument of documents) {
-					targetDocument.removeEventListener('dragover', onDragOver);
-					targetDocument.removeEventListener('drop', onDrop);
-				}
-			};
-		}, [insertById]);
+		}, [onElementInserted]);
 
 		const visibleElements = useMemo(() => {
 			const matches = elements.filter((element) => {
@@ -363,13 +280,24 @@
 		}
 
 		return h('div', { className: 'cc-elements-library' },
-			h('div', { className: 'cc-elements-library__intro' }, h('strong', null, __('Cresco Elements', 'cresco-canvas')), h('p', null, __('Click an element to insert it, or drag it onto the editor canvas.', 'cresco-canvas'))),
+			h('div', { className: 'cc-elements-library__intro' }, h('strong', null, __('Cresco Elements', 'cresco-canvas')), h('p', null, __('Click an element to insert it, or drag it onto the canvas.', 'cresco-canvas'))),
 			h(SearchControl, { label: __('Search elements', 'cresco-canvas'), onChange: setQuery, placeholder: __('Search elements…', 'cresco-canvas'), value: query }),
 			h('div', { 'aria-label': __('Element categories', 'cresco-canvas'), className: 'cc-elements-filters', role: 'group' }, [['all', __('All', 'cresco-canvas')], ['favorites', __('Favorites', 'cresco-canvas')], ['recent', __('Recent', 'cresco-canvas')], ...Object.entries(categoryLabels)].map(([id, label]) => h(Button, { isPressed: filter === id, key: id, onClick: () => setFilter(id), variant: 'tertiary' }, label))),
 			libraryNotice ? h(Notice, { isDismissible: true, onRemove: () => setLibraryNotice(null), status: libraryNotice.status }, libraryNotice.message) : null,
 			h('div', { className: 'cc-elements-grid-list' }, visibleElements.map((element) => {
 				const isFavorite = favorites.includes(element.id);
-				return h('div', { className: 'cc-element-card', draggable: true, key: element.id, onDragStart: (event) => { event.dataTransfer.effectAllowed = 'copy'; event.dataTransfer.setData(DRAG_MIME, element.id); } }, h(Button, { className: 'cc-element-card__insert', icon: element.icon, onClick: () => insertDefinition(element), showTooltip: true, text: element.description }, h('span', null, element.label)), h(Button, { 'aria-label': isFavorite ? sprintf(__('Remove %s from favorites', 'cresco-canvas'), element.label) : sprintf(__('Add %s to favorites', 'cresco-canvas'), element.label), className: 'cc-element-card__favorite', icon: isFavorite ? 'star-filled' : 'star-empty', isPressed: isFavorite, onClick: () => toggleFavorite(element.id), size: 'small' }));
+				return h('div', {
+					className: 'cc-element-card',
+					draggable: true,
+					key: element.id,
+					onDragStart: (event) => {
+						event.dataTransfer.effectAllowed = 'copy';
+						event.dataTransfer.setData(Cresco.dragDrop.MIME, element.id);
+					},
+				},
+				h(Button, { className: 'cc-element-card__insert', icon: element.icon, onClick: () => insertDefinition(element), showTooltip: true, text: element.description }, h('span', null, element.label)),
+				h(Button, { 'aria-label': isFavorite ? sprintf(__('Remove %s from favorites', 'cresco-canvas'), element.label) : sprintf(__('Add %s to favorites', 'cresco-canvas'), element.label), className: 'cc-element-card__favorite', icon: isFavorite ? 'star-filled' : 'star-empty', isPressed: isFavorite, onClick: () => toggleFavorite(element.id), size: 'small' })
+				);
 			})),
 			visibleElements.length === 0 ? h('p', { className: 'cc-elements-empty' }, __('No matching elements were found.', 'cresco-canvas')) : null
 		);
@@ -382,7 +310,7 @@
 
 	function GlobalSettingsPanel({ onChange, onSave, saving, settings }) {
 		return h(Fragment, null,
-			h(PanelBody, { initialOpen: false, title: __('Global design', 'cresco-canvas') }, h('div', { className: 'cc-settings-grid' },
+			h(PanelBody, { initialOpen: true, title: __('Global design', 'cresco-canvas') }, h('div', { className: 'cc-settings-grid' },
 				h(ColorField, { field: 'primary', label: __('Primary color', 'cresco-canvas'), onChange, settings }),
 				h(ColorField, { field: 'text', label: __('Text color', 'cresco-canvas'), onChange, settings }),
 				h(ColorField, { field: 'background', label: __('Page background', 'cresco-canvas'), onChange, settings }),
@@ -394,13 +322,34 @@
 		);
 	}
 
-	function SettingsSidebar() {
-		const bootstrap = window.crescoCanvasEditorSettings;
-		const [globalSettings, setGlobalSettings] = useState(null);
-		const [loading, setLoading] = useState(bootstrap.canManageSettings);
-		const [saving, setSaving] = useState(false);
-		const [notice, setNotice] = useState('');
-		const [noticeStatus, setNoticeStatus] = useState('success');
+	function applyPageScope(pageUsesCanvas, globalSettings) {
+		const updateDocument = (targetDocument) => {
+			if (!targetDocument) {
+				return;
+			}
+			const wrapper = targetDocument.querySelector('.editor-styles-wrapper');
+			if (!wrapper) {
+				return;
+			}
+			wrapper.classList.toggle('cresco-canvas-editor-scope', pageUsesCanvas);
+			if (globalSettings) {
+				const tokens = { '--cc-background': globalSettings.background, '--cc-container-max': `${globalSettings.containerMax}px`, '--cc-content-max': `${globalSettings.contentMax}px`, '--cc-font': globalSettings.fontFamily, '--cc-muted': globalSettings.muted, '--cc-primary': globalSettings.primary, '--cc-radius': `${globalSettings.radius}px`, '--cc-text': globalSettings.text };
+				for (const [property, value] of Object.entries(tokens)) {
+					wrapper.style.setProperty(property, value);
+				}
+			}
+		};
+		updateDocument(document);
+		document.querySelectorAll('iframe[name="editor-canvas"]').forEach((iframe) => {
+			try {
+				updateDocument(iframe.contentDocument);
+			} catch (error) {
+				// Same-origin editor iframe is expected, but native fallback remains available.
+			}
+		});
+	}
+
+	function WidgetsWorkspace() {
 		const pageMeta = useSelect((select) => {
 			const value = select('core/editor').getEditedPostAttribute('meta');
 			return value && typeof value === 'object' ? value : {};
@@ -414,6 +363,33 @@
 				editPost({ meta: { ...pageMeta, [ENABLED_META]: true } });
 			}
 		}, [editPost, pageMeta]);
+
+		useEffect(() => {
+			applyPageScope(pageUsesCanvas, null);
+		}, [pageUsesCanvas]);
+
+		return h('div', { className: 'cc-editor-view cc-editor-view--widgets' },
+			h(ElementsLibrary, { onElementInserted: enablePageStyles }),
+			h(PanelBody, { initialOpen: false, title: __('Page styling', 'cresco-canvas') },
+				h(ToggleControl, { checked: Boolean(pageMeta[ENABLED_META]), help: __('Applies Cresco global colors, typography, and spacing tokens on this Page.', 'cresco-canvas'), label: __('Enable Cresco page styles', 'cresco-canvas'), onChange: (enabled) => editPost({ meta: { ...pageMeta, [ENABLED_META]: enabled } }) }),
+				h('p', { className: 'cc-native-note' }, __('This setting is saved with the normal WordPress Save or Update action.', 'cresco-canvas'))
+			)
+		);
+	}
+
+	function GlobalWorkspace() {
+		const bootstrap = window.crescoCanvasEditorSettings;
+		const [globalSettings, setGlobalSettings] = useState(null);
+		const [loading, setLoading] = useState(Boolean(bootstrap.canManageSettings));
+		const [saving, setSaving] = useState(false);
+		const [notice, setNotice] = useState('');
+		const [noticeStatus, setNoticeStatus] = useState('success');
+		const pageMeta = useSelect((select) => {
+			const value = select('core/editor').getEditedPostAttribute('meta');
+			return value && typeof value === 'object' ? value : {};
+		}, []);
+		const hasCanvasBlock = useSelect((select) => containsCrescoBlock(select('core/block-editor').getBlocks()), []);
+		const pageUsesCanvas = Boolean(pageMeta[ENABLED_META]) || hasCanvasBlock;
 
 		const loadSettings = useCallback(async () => {
 			if (!bootstrap.canManageSettings) {
@@ -437,45 +413,7 @@
 		}, [loadSettings]);
 
 		useEffect(() => {
-			const iframeListeners = new Map();
-			const updateDocument = (targetDocument) => {
-				if (!targetDocument) {
-					return;
-				}
-				const wrapper = targetDocument.querySelector('.editor-styles-wrapper');
-				if (!wrapper) {
-					return;
-				}
-				wrapper.classList.toggle('cresco-canvas-editor-scope', pageUsesCanvas);
-				if (globalSettings) {
-					const tokens = { '--cc-background': globalSettings.background, '--cc-container-max': `${globalSettings.containerMax}px`, '--cc-content-max': `${globalSettings.contentMax}px`, '--cc-font': globalSettings.fontFamily, '--cc-muted': globalSettings.muted, '--cc-primary': globalSettings.primary, '--cc-radius': `${globalSettings.radius}px`, '--cc-text': globalSettings.text };
-					for (const [property, value] of Object.entries(tokens)) {
-						wrapper.style.setProperty(property, value);
-					}
-				}
-			};
-			const attachIframe = (iframe) => {
-				if (iframeListeners.has(iframe)) {
-					return;
-				}
-				const onLoad = () => updateDocument(iframe.contentDocument);
-				iframeListeners.set(iframe, onLoad);
-				iframe.addEventListener('load', onLoad);
-				onLoad();
-			};
-			const scan = () => {
-				updateDocument(document);
-				document.querySelectorAll('iframe[name="editor-canvas"]').forEach(attachIframe);
-			};
-			scan();
-			const observer = new MutationObserver(scan);
-			observer.observe(document.documentElement, { childList: true, subtree: true });
-			return () => {
-				observer.disconnect();
-				for (const [iframe, onLoad] of iframeListeners) {
-					iframe.removeEventListener('load', onLoad);
-				}
-			};
+			applyPageScope(pageUsesCanvas, globalSettings);
 		}, [globalSettings, pageUsesCanvas]);
 
 		async function saveGlobalSettings() {
@@ -498,21 +436,15 @@
 			}
 		}
 
-		return h(Fragment, null,
-			h(PluginSidebarMoreMenuItem, { target: 'cresco-canvas-settings' }, __('Cresco Canvas', 'cresco-canvas')),
-			h(PluginSidebar, { className: 'cresco-canvas-sidebar', icon: 'layout', name: 'cresco-canvas-settings', title: __('Cresco Canvas', 'cresco-canvas') },
-				notice ? h(Notice, { isDismissible: true, onRemove: () => setNotice(''), status: noticeStatus }, notice) : null,
-				h(PanelBody, { className: 'cc-elements-panel', initialOpen: true, title: __('Elements', 'cresco-canvas') }, h(ElementsLibrary, { onElementInserted: enablePageStyles })),
-				h(PanelBody, { initialOpen: false, title: __('Page styling', 'cresco-canvas') }, h(ToggleControl, { checked: Boolean(pageMeta[ENABLED_META]), help: __('Applies Cresco global colors, typography, and spacing tokens on this Page. Pages containing a Cresco block are detected automatically.', 'cresco-canvas'), label: __('Enable Cresco page styles', 'cresco-canvas'), onChange: (enabled) => editPost({ meta: { ...pageMeta, [ENABLED_META]: enabled } }) }), h('p', { className: 'cc-native-note' }, __('This setting is saved by the normal Gutenberg Save or Update button.', 'cresco-canvas'))),
-				bootstrap.canManageSettings && loading ? h('div', { 'aria-label': __('Loading global design', 'cresco-canvas'), className: 'cc-sidebar-loading' }, h(Spinner)) : null,
-				bootstrap.canManageSettings && globalSettings ? h(GlobalSettingsPanel, { onChange: setGlobalSettings, onSave: saveGlobalSettings, saving, settings: globalSettings }) : null,
-				bootstrap.canManageSettings && !loading && !globalSettings ? h('div', { className: 'cc-sidebar-retry' }, h(Button, { onClick: loadSettings, variant: 'secondary' }, __('Retry loading settings', 'cresco-canvas'))) : null
-			)
+		return h('div', { className: 'cc-editor-view cc-editor-view--global' },
+			notice ? h(Notice, { isDismissible: true, onRemove: () => setNotice(''), status: noticeStatus }, notice) : null,
+			!bootstrap.canManageSettings ? h(Notice, { isDismissible: false, status: 'warning' }, __('You do not have permission to change global design settings.', 'cresco-canvas')) : null,
+			bootstrap.canManageSettings && loading ? h('div', { 'aria-label': __('Loading global design', 'cresco-canvas'), className: 'cc-sidebar-loading' }, h(Spinner)) : null,
+			bootstrap.canManageSettings && globalSettings ? h(GlobalSettingsPanel, { onChange: setGlobalSettings, onSave: saveGlobalSettings, saving, settings: globalSettings }) : null,
+			bootstrap.canManageSettings && !loading && !globalSettings ? h('div', { className: 'cc-sidebar-retry' }, h(Button, { onClick: loadSettings, variant: 'secondary' }, __('Retry loading settings', 'cresco-canvas'))) : null
 		);
 	}
 
-	registerPlugin('cresco-canvas', {
-		icon: 'layout',
-		render: SettingsSidebar,
-	});
+	Cresco.ui.registerView('widgets', WidgetsWorkspace, { label: __('Widgets', 'cresco-canvas'), icon: 'screenoptions' });
+	Cresco.ui.registerView('global', GlobalWorkspace, { label: __('Global', 'cresco-canvas'), icon: 'admin-appearance' });
 })();
