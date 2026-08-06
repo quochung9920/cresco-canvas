@@ -1,6 +1,6 @@
 <?php
 /**
- * Unified Cresco Canvas editor hub.
+ * Unified Cresco Canvas editor application.
  *
  * @package CrescoCanvas
  */
@@ -17,52 +17,27 @@ final class EditorHub {
 		add_action( 'enqueue_block_editor_assets', array( $this, 'enqueue' ), 100 );
 	}
 
-	/** Load the single Cresco Canvas entry point after feature modules. */
+	/** Load registered views, one app shell, Visual Canvas, and Structure. */
 	public function enqueue() {
-		$asset_file = CRESCO_CANVAS_PATH . 'build/editor-hub.asset.php';
-		if ( ! is_readable( $asset_file ) || ! is_readable( CRESCO_CANVAS_PATH . 'build/editor-hub.js' ) ) {
+		if ( ! wp_script_is( 'cresco-canvas-editor-foundation', 'enqueued' ) ) {
 			return;
 		}
 
-		$asset = require $asset_file;
-		wp_enqueue_script(
-			'cresco-canvas-editor-hub',
-			CRESCO_CANVAS_URL . 'build/editor-hub.js',
-			(array) ( $asset['dependencies'] ?? array() ),
-			(string) ( $asset['version'] ?? CRESCO_CANVAS_VERSION ),
-			true
-		);
-		wp_enqueue_style(
-			'cresco-canvas-editor-hub',
-			CRESCO_CANVAS_URL . 'assets/css/editor-hub.css',
-			array(),
-			CRESCO_CANVAS_VERSION
-		);
-
-		$workspace_asset_file = CRESCO_CANVAS_PATH . 'build/workspace-layout.asset.php';
-		if ( is_readable( $workspace_asset_file ) && is_readable( CRESCO_CANVAS_PATH . 'build/workspace-layout.js' ) ) {
-			$workspace_asset = require $workspace_asset_file;
-			wp_enqueue_script(
-				'cresco-canvas-workspace-layout',
-				CRESCO_CANVAS_URL . 'build/workspace-layout.js',
-				(array) ( $workspace_asset['dependencies'] ?? array() ),
-				(string) ( $workspace_asset['version'] ?? CRESCO_CANVAS_VERSION ),
-				true
-			);
+		$app_asset_file = CRESCO_CANVAS_PATH . 'build/editor-app-shell.asset.php';
+		if (
+			is_readable( $app_asset_file ) &&
+			is_readable( CRESCO_CANVAS_PATH . 'build/editor-app-shell.js' ) &&
+			is_readable( CRESCO_CANVAS_PATH . 'assets/css/editor-app-shell.css' )
+		) {
+			$app_asset = require $app_asset_file;
 			wp_enqueue_style(
-				'cresco-canvas-workspace-layout',
-				CRESCO_CANVAS_URL . 'assets/css/workspace-layout.css',
-				array( 'cresco-canvas-editor-hub' ),
-				(string) ( $workspace_asset['version'] ?? CRESCO_CANVAS_VERSION )
+				'cresco-canvas-editor-app-shell',
+				CRESCO_CANVAS_URL . 'assets/css/editor-app-shell.css',
+				array( 'cresco-canvas-editor', 'wp-components', 'dashicons' ),
+				(string) ( $app_asset['version'] ?? CRESCO_CANVAS_VERSION )
 			);
 		}
 
-		/*
-		 * The former PluginSidebar-based widget inspector and compatibility router
-		 * are intentionally no longer enqueued. The persistent inspector below is
-		 * the single widget editing surface, avoiding sidebar activation races in
-		 * different Gutenberg versions.
-		 */
 		$persistent_asset_file = CRESCO_CANVAS_PATH . 'build/widget-inspector-persistent.asset.php';
 		if (
 			is_readable( $persistent_asset_file ) &&
@@ -77,12 +52,24 @@ final class EditorHub {
 				(string) ( $persistent_asset['version'] ?? CRESCO_CANVAS_VERSION ),
 				true
 			);
+			wp_set_script_translations( 'cresco-canvas-widget-inspector-persistent', 'cresco-canvas' );
 			wp_enqueue_style(
 				'cresco-canvas-widget-inspector-persistent',
 				CRESCO_CANVAS_URL . 'assets/css/widget-inspector-persistent.css',
-				array( 'cresco-canvas-workspace-layout', 'wp-components' ),
+				array( 'cresco-canvas-editor-app-shell', 'wp-components' ),
 				(string) ( $persistent_asset['version'] ?? CRESCO_CANVAS_VERSION )
 			);
+		}
+
+		if ( isset( $app_asset ) ) {
+			wp_enqueue_script(
+				'cresco-canvas-editor-app-shell',
+				CRESCO_CANVAS_URL . 'build/editor-app-shell.js',
+				(array) ( $app_asset['dependencies'] ?? array() ),
+				(string) ( $app_asset['version'] ?? CRESCO_CANVAS_VERSION ),
+				true
+			);
+			wp_set_script_translations( 'cresco-canvas-editor-app-shell', 'cresco-canvas' );
 		}
 
 		$visual_asset_file = CRESCO_CANVAS_PATH . 'build/visual-canvas.asset.php';
@@ -99,10 +86,11 @@ final class EditorHub {
 				(string) ( $visual_asset['version'] ?? CRESCO_CANVAS_VERSION ),
 				true
 			);
+			wp_set_script_translations( 'cresco-canvas-visual-canvas', 'cresco-canvas' );
 			wp_enqueue_style(
 				'cresco-canvas-visual-canvas',
 				CRESCO_CANVAS_URL . 'assets/css/visual-canvas.css',
-				array( 'cresco-canvas-workspace-layout', 'wp-components' ),
+				array( 'cresco-canvas-editor-app-shell', 'wp-components' ),
 				(string) ( $visual_asset['version'] ?? CRESCO_CANVAS_VERSION )
 			);
 		}
@@ -111,7 +99,8 @@ final class EditorHub {
 		if (
 			is_readable( $structure_asset_file ) &&
 			is_readable( CRESCO_CANVAS_PATH . 'build/structure-navigator.js' ) &&
-			is_readable( CRESCO_CANVAS_PATH . 'assets/css/structure-navigator.css' )
+			is_readable( CRESCO_CANVAS_PATH . 'assets/css/structure-navigator.css' ) &&
+			is_readable( CRESCO_CANVAS_PATH . 'assets/css/structure-navigator-actions.css' )
 		) {
 			$structure_asset = require $structure_asset_file;
 			wp_enqueue_script(
@@ -121,10 +110,17 @@ final class EditorHub {
 				(string) ( $structure_asset['version'] ?? CRESCO_CANVAS_VERSION ),
 				true
 			);
+			wp_set_script_translations( 'cresco-canvas-structure-navigator', 'cresco-canvas' );
 			wp_enqueue_style(
 				'cresco-canvas-structure-navigator',
 				CRESCO_CANVAS_URL . 'assets/css/structure-navigator.css',
-				array( 'dashicons' ),
+				array( 'dashicons', 'wp-components' ),
+				(string) ( $structure_asset['version'] ?? CRESCO_CANVAS_VERSION )
+			);
+			wp_enqueue_style(
+				'cresco-canvas-structure-navigator-actions',
+				CRESCO_CANVAS_URL . 'assets/css/structure-navigator-actions.css',
+				array( 'cresco-canvas-structure-navigator' ),
 				(string) ( $structure_asset['version'] ?? CRESCO_CANVAS_VERSION )
 			);
 		}
