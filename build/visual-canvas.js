@@ -98,12 +98,12 @@
 
 	function rootId( clientId ) {
 		var select = blockSelect();
-		if ( ! select || ! clientId || ! select.getBlockRootClientId ) return undefined;
-		return select.getBlockRootClientId( clientId ) || undefined;
+		if ( ! select || ! clientId || ! select.getBlockRootClientId ) return '';
+		return select.getBlockRootClientId( clientId ) || '';
 	}
 
 	function sameRoot( left, right ) {
-		return ( left || undefined ) === ( right || undefined );
+		return ( left || '' ) === ( right || '' );
 	}
 
 	function isDescendantOf( candidateId, ancestorId ) {
@@ -166,7 +166,7 @@
 		var destinationRoot;
 		var destinationIndex;
 		if ( ! descriptor.targetClientId || descriptor.zone === 'root-end' ) {
-			destinationRoot = undefined;
+			destinationRoot = '';
 			destinationIndex = select.getBlockOrder ? select.getBlockOrder().length : 0;
 		} else if ( descriptor.zone === 'inside' ) {
 			destinationRoot = descriptor.targetClientId;
@@ -467,7 +467,7 @@
 		targetDocument.addEventListener( 'scroll', scroll, true );
 		state.listeners.push( [ 'click', clickCapture, true ], [ 'dragover', dragOver, true ], [ 'drop', dropCapture, true ], [ 'scroll', scroll, true ] );
 		state.observer = new MutationObserver( scheduleRender );
-		state.observer.observe( targetDocument.body, { childList: true, subtree: true, attributes: true, attributeFilter: [ 'class', 'style', 'data-block' ] } );
+		state.observer.observe( targetDocument.body, { childList: true, subtree: true } );
 		updateSelection( targetDocument );
 	}
 
