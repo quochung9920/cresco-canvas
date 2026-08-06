@@ -62,7 +62,7 @@ html.cc-visual-canvas-frame [data-block] {
 	display: flex;
 	height: 36px;
 	align-items: center;
-	max-width: min(360px, calc(100vw - 16px));
+	max-width: min(440px, calc(100vw - 16px));
 	overflow: hidden;
 	border: 1px solid #171a21;
 	border-radius: 7px;
@@ -115,7 +115,8 @@ html.cc-visual-canvas-frame [data-block] {
 .cc-visual-selection__action:hover,
 .cc-visual-selection__action:focus-visible {
 	background: rgb(255 255 255 / 11%);
-	outline: none;
+	outline: 2px solid #fff;
+	outline-offset: -3px;
 }
 
 .cc-visual-selection__action.is-destructive:hover,
@@ -209,9 +210,60 @@ html.cc-visual-canvas-frame [data-block] {
 	top: -22px;
 }
 
+.cc-visual-mode-control {
+	position: fixed;
+	right: 18px;
+	bottom: 18px;
+	z-index: 100002;
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 6px;
+	border: 1px solid #d0d5dd;
+	border-radius: 10px;
+	background: rgb(255 255 255 / 96%);
+	box-shadow: 0 10px 30px rgb(16 24 40 / 18%);
+	color: #344054;
+	font-size: 11px;
+}
+
+.cc-visual-mode-control__button {
+	min-height: 32px;
+	padding: 0 12px;
+	border: 0;
+	border-radius: 6px;
+	background: #5b4bd8;
+	color: #fff;
+	font-size: 12px;
+	font-weight: 650;
+	cursor: pointer;
+}
+
+.cc-visual-mode-control.is-native .cc-visual-mode-control__button {
+	background: #344054;
+}
+
+.cc-visual-mode-control__button:hover,
+.cc-visual-mode-control__button:focus-visible {
+	filter: brightness(1.06);
+	outline: 2px solid #101828;
+	outline-offset: 2px;
+}
+
+.cc-visual-mode-control__hint {
+	padding-right: 4px;
+	white-space: nowrap;
+}
+
 @media (max-width: 782px) {
-	.cc-visual-selection__label {
+	.cc-visual-selection__label,
+	.cc-visual-mode-control__hint {
 		display: none;
+	}
+
+	.cc-visual-mode-control {
+		right: 10px;
+		bottom: 10px;
 	}
 }
 
