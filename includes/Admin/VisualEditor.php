@@ -28,12 +28,12 @@ final class VisualEditor {
 	/** Register a hidden wp-admin screen dedicated to Cresco Canvas. */
 	public function register_screen() {
 		$this->hook_suffix = (string) add_submenu_page(
-		null,
-		__( 'Cresco Canvas', 'cresco-canvas' ),
-		__( 'Cresco Canvas', 'cresco-canvas' ),
-		'edit_pages',
-		self::PAGE_SLUG,
-		array( $this, 'render_screen' )
+			null,
+			__( 'Cresco Canvas', 'cresco-canvas' ),
+			__( 'Cresco Canvas', 'cresco-canvas' ),
+			'edit_pages',
+			self::PAGE_SLUG,
+			array( $this, 'render_screen' )
 		);
 	}
 
@@ -92,9 +92,9 @@ final class VisualEditor {
 			return;
 		}
 
-		$asset_file = CRESCO_CANVAS_PATH . 'build/standalone-visual-editor.asset.php';
+		$asset_file  = CRESCO_CANVAS_PATH . 'build/standalone-visual-editor.asset.php';
 		$script_file = CRESCO_CANVAS_PATH . 'build/standalone-visual-editor.js';
-		$style_file = CRESCO_CANVAS_PATH . 'assets/css/standalone-visual-editor.css';
+		$style_file  = CRESCO_CANVAS_PATH . 'assets/css/standalone-visual-editor.css';
 		if ( ! is_readable( $asset_file ) || ! is_readable( $script_file ) || ! is_readable( $style_file ) ) {
 			return;
 		}
@@ -107,6 +107,10 @@ final class VisualEditor {
 			CRESCO_CANVAS_URL . 'assets/css/standalone-visual-editor.css',
 			array( 'wp-components', 'wp-edit-blocks' ),
 			(string) ( $asset['version'] ?? CRESCO_CANVAS_VERSION )
+		);
+		wp_add_inline_style(
+			'cresco-canvas-standalone-visual-editor',
+			'html.wp-toolbar{padding-top:0!important}body.admin_page_cresco-canvas-editor,body.toplevel_page_cresco-canvas-editor{margin:0!important}'
 		);
 		wp_enqueue_script(
 			'cresco-canvas-standalone-visual-editor',
@@ -121,14 +125,14 @@ final class VisualEditor {
 			'cresco-canvas-standalone-visual-editor',
 			'window.crescoCanvasStandaloneSettings = ' . wp_json_encode(
 				array(
-					'postId'       => $post_id,
-					'postType'     => 'page',
-					'apiPath'      => '/wp/v2/pages/' . $post_id,
-					'editUrl'      => get_edit_post_link( $post_id, 'raw' ),
-					'previewUrl'   => get_preview_post_link( $post_id ),
-					'adminPagesUrl'=> admin_url( 'edit.php?post_type=page' ),
-					'version'      => CRESCO_CANVAS_VERSION,
-					'breakpoints'  => array(
+					'postId'        => $post_id,
+					'postType'      => 'page',
+					'apiPath'       => '/wp/v2/pages/' . $post_id,
+					'editUrl'       => get_edit_post_link( $post_id, 'raw' ),
+					'previewUrl'    => get_preview_post_link( $post_id ),
+					'adminPagesUrl' => admin_url( 'edit.php?post_type=page' ),
+					'version'       => CRESCO_CANVAS_VERSION,
+					'breakpoints'   => array(
 						'wide'    => 1920,
 						'desktop' => 1440,
 						'laptop'  => 1366,
