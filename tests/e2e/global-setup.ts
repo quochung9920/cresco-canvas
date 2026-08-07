@@ -43,6 +43,16 @@ export default function globalSetup() {
 		'--post_content=Session fallback content',
 		'--porcelain',
 	] );
+	wp( [
+		'post',
+		'create',
+		'--post_type=page',
+		'--post_status=publish',
+		'--post_title=Cresco E2E Foundation Session',
+		'--post_name=cresco-e2e-foundation-session',
+		'--post_content=Foundation fallback content',
+		'--porcelain',
+	] );
 }
 
 function findFixtureIds(): string[] {
@@ -50,6 +60,7 @@ function findFixtureIds(): string[] {
 		'cresco-e2e-plain',
 		'cresco-e2e-canvas',
 		'cresco-e2e-session',
+		'cresco-e2e-foundation-session',
 	].flatMap( ( slug ) => {
 		const output = wp( [
 			'post',
