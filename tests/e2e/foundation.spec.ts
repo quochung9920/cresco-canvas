@@ -1,287 +1,158 @@
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test, type Page } from '@playwright/test';
 
-interface WordPressBrowserApi {
-	blocks: {
-		createBlock: (
-			name: string,
-			attributes?: Record< string, unknown >
-		) => unknown;
-	};
-	data: {
-		dispatch: ( store: string ) => {
-			autosave?: () => Promise< unknown >;
-			insertBlocks?: ( blocks: unknown ) => void;
-			redo?: () => void;
-			savePost?: () => Promise< unknown >;
-			undo?: () => void;
-		};
-		select: ( store: string ) => {
-			getBlockCount?: () => number;
-			getBlockName?: ( clientId: string ) => string | null;
-			getCurrentPostId?: () => number;
-			getEditedPostAttribute?: ( attribute: string ) => unknown;
-			getSelectedBlockClientId?: () => string | null;
-			isEditedPostDirty?: () => boolean;
-		};
-	};
-}
-
 async function login( page: Page ) {
 	await page.goto( '/wp-login.php' );
-	await page.getByLabel( 'Username or Email Address' ).fill( 'admin' );
-	await page.getByLabel( 'Password', { exact: true } ).fill( 'password' );
-	await page.getByRole( 'button', { name: 'Log In' } ).click();
+	if ( await page.locator( '#user_login' ).isVisible().catch( () => false ) ) {
+		await page.locator( '#user_login' ).fill( 'admin' );
+		await page.locator( '#user_pass' ).fill( 'password' );
+		await page.locator( '#wp-submit' ).click();
+	}
+	await expect( page.locator( '#wpadminbar' ) ).toBeVisible();
 }
 
-async function openCanvasFixtureInGutenberg( page: Page ) {
+async function openStandaloneEditor( page: Page, title: string ) {
 	await page.goto( '/wp-admin/edit.php?post_type=page' );
-	const row = page.locator( 'tr', { hasText: 'Cresco E2E Canvas' } );
-
-	await expect(
-		row.getByRole( 'link', { name: 'Edit in Canvas' } )
-	).toHaveCount( 0 );
-	await expect(
-		row.getByRole( 'link', { name: 'WordPress Editor' } )
-	).toHaveCount( 0 );
-	await row.locator( 'a.row-title' ).click();
-	await expect( page.locator( 'body' ) ).toHaveClass( /block-editor-page/ );
-	await expect(
-		page.getByRole( 'button', { name: 'Cresco Canvas' } ).first()
-	).toBeVisible();
+	const row = page.locator( 'tr' ).filter( { hasText: title } ).first();
+	await expect( row ).toBeVisible();
+	await row.hover();
+	await row.getByRole( 'link', { name: 'Edit with Cresco Canvas' } ).click();
+	await expect( page.locator( '.cc-standalone-app' ) ).toBeVisible();
 }
 
-async function saveNativePost( page: Page ) {
-	await page.evaluate( async () => {
-		const wordpress = ( window as unknown as { wp: WordPressBrowserApi } )
-			.wp;
-		const result = wordpress.data.dispatch( 'core/editor' ).savePost?.();
-		await result;
-	} );
-
-	await expect
-		.poll( () =>
-			page.evaluate( () => {
-				const wordpress = (
-					window as unknown as { wp: WordPressBrowserApi }
-				 ).wp;
-				return Boolean(
-					wordpress.data.select( 'core/editor' ).isEditedPostDirty?.()
-				);
-			} )
-		)
-		.toBe( false );
+async function openAiPanel( page: Page ) {
+	await page
+		.locator( '.cc-standalone-tabs button' )
+		.filter( { hasText: 'AI' } )
+		.first()
+		.click();
+	await expect( page.locator( '.cc-ai-panel' ) ).toBeVisible();
 }
 
-test( 'non-Cresco Pages do not receive frontend assets or scope', async ( {
+test( 'non-Cresco Pages do not receive Cresco frontend scope or assets', async ( {
 	page,
 } ) => {
 	await page.goto( '/?pagename=cresco-e2e-plain' );
-	await expect( page.locator( 'body' ) ).not.toHaveClass(
-		/cresco-canvas-page/
-	);
-	await expect( page.locator( '#cresco-canvas-frontend-css' ) ).toHaveCount(
-		0
-	);
+	await expect( page.locator( 'body' ) ).not.toHaveClass( /cresco-canvas-page/ );
+	await expect( page.locator( '#cresco-canvas-frontend-css' ) ).toHaveCount( 0 );
+	await expect( page.getByText( 'Plain Core content' ) ).toBeVisible();
 } );
 
-test( 'legacy Cresco block Pages retain scoped frontend output', async ( {
+test( 'legacy Cresco block Pages retain their native fallback output', async ( {
 	page,
 } ) => {
 	await page.goto( '/?pagename=cresco-e2e-canvas' );
 	await expect( page.locator( 'body' ) ).toHaveClass( /cresco-canvas-page/ );
-	await expect( page.locator( '#cresco-canvas-frontend-css' ) ).toHaveCount(
-		1
-	);
+	await expect( page.locator( '#cresco-canvas-frontend-css' ) ).toHaveCount( 1 );
 	await expect( page.getByText( 'Canvas fixture' ) ).toBeVisible();
+	await expect( page.locator( '.cresco-session-root' ) ).toHaveCount( 0 );
 } );
 
-test( 'normal Edit opens Gutenberg with Cresco integrated directly', async ( {
+test( 'Page row action opens the standalone Cresco Editor instead of replacing Gutenberg', async ( {
 	page,
 } ) => {
 	await login( page );
-	await openCanvasFixtureInGutenberg( page );
-
-	await page.getByRole( 'button', { name: 'Cresco Canvas' } ).first().click();
-	await expect( page.locator( '.cresco-canvas-sidebar' ) ).toBeVisible();
-	await expect(
-		page.getByRole( 'checkbox', { name: 'Enable Cresco page styles' } )
-	).toBeVisible();
+	await openStandaloneEditor( page, 'Cresco E2E Foundation Session' );
+	await expect( page.locator( '#cresco-canvas-standalone-editor' ) ).toBeVisible();
+	await expect( page.locator( '.cc-standalone-tabs button' ) ).toHaveCount( 4 );
+	await expect( page.locator( '.cc-session-canvas' ) ).toBeVisible();
+	await expect( page.locator( '.block-editor-page' ) ).toHaveCount( 0 );
 } );
 
-test( 'Cresco Elements search inserts a native block and enables Page styles', async ( {
+test( 'saved Cresco Session renders the frontend while preserving WordPress fallback content', async ( {
 	page,
 } ) => {
 	await login( page );
-	await openCanvasFixtureInGutenberg( page );
-	await page.getByRole( 'button', { name: 'Cresco Canvas' } ).first().click();
+	await openStandaloneEditor( page, 'Cresco E2E Foundation Session' );
+	await openAiPanel( page );
 
-	const initialCount = await page.evaluate( () => {
-		const wordpress = ( window as unknown as { wp: WordPressBrowserApi } )
-			.wp;
-		return (
-			wordpress.data.select( 'core/block-editor' ).getBlockCount?.() ?? 0
-		);
-	} );
+	const session = {
+		schema: 'cresco-session/v1',
+		version: 1,
+		documentId: 'foundation-e2e',
+		nodes: [
+			{
+				id: 'foundation-shell',
+				type: 'container',
+				props: {
+					layout: 'flex',
+					direction: 'column',
+					align: 'center',
+					justify: 'center',
+					columns: 2,
+				},
+				style: {
+					paddingTop: '{spacing.xl}',
+					paddingBottom: '{spacing.xl}',
+					background: '{colors.background}',
+				},
+				responsive: {},
+				customCSS: {},
+				children: [
+					{
+						id: 'foundation-title',
+						type: 'heading',
+						props: { text: 'Cresco Session frontend verified', level: 1 },
+						style: { color: '{colors.text}' },
+						responsive: { mobile: { fontSize: '36px' } },
+						customCSS: {
+							base: '& { text-wrap: balance; }',
+						},
+						children: [],
+					},
+				],
+			},
+		],
+	};
 
-	await page.getByLabel( 'Search elements' ).fill( 'Heading' );
-	const headingButton = page
-		.locator( '.cc-element-card__insert' )
-		.filter( { hasText: 'Heading' } )
-		.first();
-	await expect( headingButton ).toBeVisible();
-	await headingButton.click();
+	await page.locator( '.cc-ai-card textarea' ).fill( JSON.stringify( session ) );
+	await page.getByRole( 'button', { name: 'Validate import' } ).click();
+	await expect( page.locator( '.cc-ai-import-summary' ) ).toBeVisible();
+	await page.getByRole( 'button', { name: 'Apply to Cresco Editor' } ).click();
+	await page.getByRole( 'button', { name: 'Update' } ).click();
+	await expect( page.getByRole( 'button', { name: 'Saved' } ) ).toBeDisabled();
 
-	await expect
-		.poll( () =>
-			page.evaluate( () => {
-				const wordpress = (
-					window as unknown as { wp: WordPressBrowserApi }
-				 ).wp;
-				const blockEditor = wordpress.data.select( 'core/block-editor' );
-				const editor = wordpress.data.select( 'core/editor' );
-				const selectedClientId =
-					blockEditor.getSelectedBlockClientId?.() ?? null;
-				const meta = editor.getEditedPostAttribute?.( 'meta' );
-
-				return {
-					count: blockEditor.getBlockCount?.() ?? 0,
-					enabled:
-						typeof meta === 'object' &&
-						meta !== null &&
-						Boolean(
-							( meta as Record< string, unknown > )[ '_cresco_canvas_enabled' ]
-						),
-					selectedName: selectedClientId
-						? blockEditor.getBlockName?.( selectedClientId )
-						: null,
-				};
-			} )
-		)
-		.toEqual( {
-			count: initialCount + 1,
-			enabled: true,
-			selectedName: 'core/heading',
-		} );
-} );
-
-test( 'native Gutenberg document and history services remain available', async ( {
-	page,
-} ) => {
-	await login( page );
-	await openCanvasFixtureInGutenberg( page );
-
-	const result = await page.evaluate( async () => {
-		const wordpress = ( window as unknown as { wp: WordPressBrowserApi } )
-			.wp;
-		const editorDispatch = wordpress.data.dispatch( 'core/editor' );
-		const editorSelect = wordpress.data.select( 'core/editor' );
-		const blockDispatch = wordpress.data.dispatch( 'core/block-editor' );
-		const blockSelect = wordpress.data.select( 'core/block-editor' );
-		const initialCount = blockSelect.getBlockCount?.() ?? -1;
-
-		blockDispatch.insertBlocks?.(
-			wordpress.blocks.createBlock( 'core/paragraph', {
-				content: 'Native history probe',
-			} )
-		);
-		await new Promise( ( resolve ) => requestAnimationFrame( resolve ) );
-		const insertedCount = blockSelect.getBlockCount?.() ?? -1;
-		editorDispatch.undo?.();
-		await new Promise( ( resolve ) => requestAnimationFrame( resolve ) );
-		const undoneCount = blockSelect.getBlockCount?.() ?? -1;
-		editorDispatch.redo?.();
-		await new Promise( ( resolve ) => requestAnimationFrame( resolve ) );
-		const redoneCount = blockSelect.getBlockCount?.() ?? -1;
-		editorDispatch.undo?.();
-
-		return {
-			autosave: typeof editorDispatch.autosave === 'function',
-			currentPostId: editorSelect.getCurrentPostId?.() ?? 0,
-			initialCount,
-			insertedCount,
-			redoneCount,
-			savePost: typeof editorDispatch.savePost === 'function',
-			status: editorSelect.getEditedPostAttribute?.( 'status' ),
-			undoneCount,
+	const fallbackContent = await page.evaluate( async () => {
+		const runtime = window as unknown as {
+			wp: { apiFetch: ( options: { path: string } ) => Promise< any > };
+			crescoCanvasStandaloneSettings: { postId: number };
 		};
-	} );
-
-	expect( result ).toMatchObject( {
-		autosave: true,
-		insertedCount: result.initialCount + 1,
-		redoneCount: result.initialCount + 1,
-		savePost: true,
-		undoneCount: result.initialCount,
-	} );
-	expect( result.currentPostId ).toBeGreaterThan( 0 );
-	expect( typeof result.status ).toBe( 'string' );
-} );
-
-test( 'Gutenberg owns Page edits and persists Cresco metadata', async ( {
-	page,
-} ) => {
-	await login( page );
-	await openCanvasFixtureInGutenberg( page );
-
-	await page.evaluate( () => {
-		const wordpress = ( window as unknown as { wp: WordPressBrowserApi } )
-			.wp;
-		const paragraph = wordpress.blocks.createBlock( 'core/paragraph', {
-			content: 'Native Gutenberg save verified',
+		const result = await runtime.wp.apiFetch( {
+			path: `/wp/v2/pages/${ runtime.crescoCanvasStandaloneSettings.postId }?context=edit&_fields=content`,
 		} );
-		wordpress.data
-			.dispatch( 'core/block-editor' )
-			.insertBlocks?.( paragraph );
+		return result.content?.raw || '';
 	} );
+	expect( fallbackContent ).toContain( 'Foundation fallback content' );
 
-	await expect
-		.poll( () =>
-			page.evaluate( () => {
-				const wordpress = (
-					window as unknown as { wp: WordPressBrowserApi }
-				 ).wp;
-				return Boolean(
-					wordpress.data.select( 'core/editor' ).isEditedPostDirty?.()
-				);
-			} )
-		)
-		.toBe( true );
-
-	await page.getByRole( 'button', { name: 'Cresco Canvas' } ).first().click();
-	await page
-		.getByRole( 'checkbox', { name: 'Enable Cresco page styles' } )
-		.check();
-	await saveNativePost( page );
-
-	await page.goto( '/?pagename=cresco-e2e-canvas' );
-	await expect(
-		page.getByText( 'Native Gutenberg save verified' ).first()
-	).toBeVisible();
+	await page.goto( '/?pagename=cresco-e2e-foundation-session' );
 	await expect( page.locator( 'body' ) ).toHaveClass( /cresco-canvas-page/ );
+	await expect( page.locator( '#cresco-canvas-frontend-css' ) ).toHaveCount( 1 );
+	await expect(
+		page.locator( '.cresco-session-root[data-cresco-document="foundation-e2e"]' )
+	).toBeVisible();
+	await expect( page.getByText( 'Cresco Session frontend verified' ) ).toBeVisible();
+	await expect( page.getByText( 'Foundation fallback content' ) ).toHaveCount( 0 );
+	await expect( page.locator( '[data-cresco-id="foundation-title"]' ) ).toBeVisible();
 } );
 
-test( 'the retired custom Page REST route is no longer exposed', async ( {
+test( 'the retired custom Page REST collection remains unavailable', async ( {
 	page,
 } ) => {
 	await login( page );
-	const response = await page.request.get(
-		'/wp-json/cresco-canvas/v1/pages'
-	);
+	const response = await page.request.get( '/wp-json/cresco-canvas/v1/pages' );
 	expect( response.status() ).toBe( 404 );
 	expect( await response.json() ).toMatchObject( { code: 'rest_no_route' } );
 } );
 
-test( 'Cresco Gutenberg sidebar has no serious automated accessibility violations', async ( {
+test( 'standalone Cresco Editor has no serious automated accessibility violations', async ( {
 	page,
 } ) => {
 	await login( page );
-	await openCanvasFixtureInGutenberg( page );
-	await page.getByRole( 'button', { name: 'Cresco Canvas' } ).first().click();
-	await expect( page.locator( '.cresco-canvas-sidebar' ) ).toBeVisible();
+	await openStandaloneEditor( page, 'Cresco E2E Foundation Session' );
+	await expect( page.locator( '#cresco-canvas-standalone-editor' ) ).toBeVisible();
 
 	const results = await new AxeBuilder( { page } )
-		.include( '.cresco-canvas-sidebar' )
+		.include( '#cresco-canvas-standalone-editor' )
 		.analyze();
 	const releaseBlocking = results.violations.filter( ( violation ) =>
 		[ 'critical', 'serious' ].includes( violation.impact || '' )
