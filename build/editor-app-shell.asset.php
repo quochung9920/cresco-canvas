@@ -7,5 +7,5 @@ return array(
 		'wp-element',
 		'wp-i18n',
 	),
-	'version'      => '1.0.0-rc.1-editor-app-shell.5',
+	'version'      => '1.0.0-rc.1-editor-app-shell.6',
 );
