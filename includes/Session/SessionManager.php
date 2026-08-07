@@ -266,8 +266,8 @@ final class SessionManager {
 	private static function sanitize_css_value( $value ) {
 		$value = trim( wp_strip_all_tags( (string) $value ) );
 		if ( '' === $value || strlen( $value ) > 180 ) return '';
-		if ( preg_match( '/[;{}<>]/', $value ) || preg_match( '/(?:url\s*\(|expression\s*\(|javascript:|behavior\s*:|-moz-binding)/i', $value ) ) return '';
 		if ( preg_match( '/^\{[a-zA-Z0-9._-]+\}$/', $value ) ) return $value;
+		if ( preg_match( '/[;{}<>]/', $value ) || preg_match( '/(?:url\s*\(|expression\s*\(|javascript:|behavior\s*:|-moz-binding)/i', $value ) ) return '';
 		return preg_match( "/^[#a-zA-Z0-9.,%+\-*\/() _\"']+$/", $value ) ? $value : '';
 	}
 
