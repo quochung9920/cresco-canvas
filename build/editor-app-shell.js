@@ -15,7 +15,47 @@
 	var __ = wp.i18n.__;
 	var HOST_ID = 'cresco-canvas-app-shell';
 	var ROOT_ID = 'cresco-canvas-app-shell-root';
+	var READY_CLASS = 'cresco-app-shell-ready';
+	var FAILED_CLASS = 'cresco-app-shell-failed';
+	var BOOT_TIMEOUT = 8000;
 	var mountedRoot = null;
+	var bootTimer = null;
+
+	function report( code, error ) {
+		if ( Cresco.diagnostics && typeof Cresco.diagnostics.report === 'function' ) {
+			Cresco.diagnostics.report( 'error', code, error && error.message ? error.message : String( error || code ), { stack: error && error.stack ? error.stack : '' } );
+		}
+	}
+
+	function markReady() {
+		if ( bootTimer ) {
+			window.clearTimeout( bootTimer );
+			bootTimer = null;
+		}
+		if ( ! document.body ) return;
+		document.body.classList.add( READY_CLASS );
+		document.body.classList.remove( FAILED_CLASS );
+	}
+
+	function failOpen( error ) {
+		report( 'app-shell-bootstrap', error );
+		if ( bootTimer ) {
+			window.clearTimeout( bootTimer );
+			bootTimer = null;
+		}
+		if ( document.body ) {
+			document.body.classList.remove( READY_CLASS, 'cresco-app-shell-open', 'cresco-app-shell-closed', 'cresco-canvas-three-pane' );
+			document.body.classList.add( FAILED_CLASS );
+		}
+		document.documentElement.style.removeProperty( '--cc-app-shell-width' );
+		var host = document.getElementById( HOST_ID );
+		if ( host && host.parentNode ) host.parentNode.removeChild( host );
+		try {
+			Cresco.ui.setState( { open: false, visualMode: false } );
+		} catch ( stateError ) {
+			report( 'app-shell-fallback-state', stateError );
+		}
+	}
 
 	class ViewBoundary extends Component {
 		constructor( props ) {
@@ -28,12 +68,14 @@
 		}
 
 		componentDidCatch( error, info ) {
-			Cresco.diagnostics.report(
-				'error',
-				'view-' + this.props.view,
-				error && error.message ? error.message : String( error ),
-				{ componentStack: info && info.componentStack ? info.componentStack : '' }
-			);
+			if ( Cresco.diagnostics && typeof Cresco.diagnostics.report === 'function' ) {
+				Cresco.diagnostics.report(
+					'error',
+					'view-' + this.props.view,
+					error && error.message ? error.message : String( error ),
+					{ componentStack: info && info.componentStack ? info.componentStack : '' }
+				);
+			}
 		}
 
 		componentDidUpdate( previousProps ) {
@@ -63,7 +105,10 @@
 			return editor && editor.getSelectedBlockClientId ? editor.getSelectedBlockClientId() : null;
 		}, [] );
 
-		useEffect( function () { return Cresco.ui.subscribe( setState ); }, [] );
+		useEffect( function () {
+			markReady();
+			return Cresco.ui.subscribe( setState );
+		}, [] );
 		useEffect( function () {
 			function refreshViews() { setViewRevision( function ( value ) { return value + 1; } ); }
 			window.addEventListener( 'cresco-canvas:views', refreshViews );
@@ -168,24 +213,51 @@
 		return host;
 	}
 
+	function verifyMounted() {
+		window.requestAnimationFrame( function () {
+			window.requestAnimationFrame( function () {
+				var rootNode = document.getElementById( ROOT_ID );
+				if ( rootNode && rootNode.querySelector( '.cc-app-shell, .cc-app-shell-launcher' ) ) markReady();
+				else failOpen( new Error( 'Cresco App Shell did not render.' ) );
+			} );
+		} );
+	}
+
 	function mount() {
-		var host = ensureHost();
-		if ( ! host || mountedRoot ) return Boolean( host );
-		var rootNode = document.getElementById( ROOT_ID );
-		if ( ! rootNode ) return false;
-		if ( typeof wp.element.createRoot === 'function' ) {
-			mountedRoot = wp.element.createRoot( rootNode );
-			mountedRoot.render( el( AppShell ) );
-		} else if ( typeof wp.element.render === 'function' ) {
-			wp.element.render( el( AppShell ), rootNode );
-			mountedRoot = true;
-		} else return false;
-		return true;
+		try {
+			var host = ensureHost();
+			if ( ! host ) return false;
+			if ( mountedRoot ) return true;
+			var rootNode = document.getElementById( ROOT_ID );
+			if ( ! rootNode ) return false;
+			if ( typeof wp.element.createRoot === 'function' ) {
+				mountedRoot = wp.element.createRoot( rootNode );
+				mountedRoot.render( el( AppShell ) );
+			} else if ( typeof wp.element.render === 'function' ) {
+				wp.element.render( el( AppShell ), rootNode );
+				mountedRoot = true;
+			} else {
+				throw new Error( 'WordPress element renderer is unavailable.' );
+			}
+			verifyMounted();
+			return true;
+		} catch ( error ) {
+			failOpen( error );
+			return false;
+		}
 	}
 
 	function start() {
+		if ( ! document.body ) return;
+		bootTimer = window.setTimeout( function () {
+			if ( ! document.body.classList.contains( READY_CLASS ) ) failOpen( new Error( 'Cresco App Shell timed out while waiting for the editor.' ) );
+		}, BOOT_TIMEOUT );
 		if ( mount() ) return;
 		var observer = new MutationObserver( function () {
+			if ( document.body.classList.contains( FAILED_CLASS ) ) {
+				observer.disconnect();
+				return;
+			}
 			if ( mount() ) observer.disconnect();
 		} );
 		observer.observe( document.documentElement, { childList: true, subtree: true } );
