@@ -24,6 +24,7 @@ use CrescoCanvas\Forms\FormEnhancements;
 use CrescoCanvas\Interactions\InteractiveComponents;
 use CrescoCanvas\Migration\Migrator;
 use CrescoCanvas\Security\SecurityHardening;
+use CrescoCanvas\Session\SessionManager;
 use CrescoCanvas\Styles\DesignTokens;
 use CrescoCanvas\Styles\GlobalStyles;
 use CrescoCanvas\Styles\StyleEngine;
@@ -62,13 +63,14 @@ final class Plugin {
 
 		( new SecurityHardening() )->register();
 
-		// Gutenberg remains the WordPress-native data/fallback editor. Cresco's
-		// visual application runs on its own admin screen and talks to the same
-		// block/post REST data instead of moving or hiding Gutenberg DOM nodes.
+		// Cresco owns the standalone visual workflow and the authoritative
+		// cresco-session/v1 document. WordPress remains the host, media layer,
+		// permissions system, routing layer, and native fallback environment.
 		( new EditorIntegration() )->register();
+		( new SessionManager() )->register();
 		( new VisualEditor() )->register();
 
-		// Backend/domain services stay shared by both editors and front-end render.
+		// Backend/domain services stay available to the editor and frontend.
 		( new RestApi() )->register();
 		( new TemplateLibrary() )->register();
 		( new ThemeBuilder() )->register();
