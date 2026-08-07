@@ -1,0 +1,14 @@
+{
+  "schema": "cresco-session/v1",
+  "title": "Basic Template",
+  "pages": [
+    {
+      "id": "home",
+      "title": "Home",
+      "structure": [
+        { "type": "hero", "props": { "heading": "Welcome to Cresco" } },
+        { "type": "section", "props": { "text": "Basic template content" } }
+      ]
+    }
+  ]
+}

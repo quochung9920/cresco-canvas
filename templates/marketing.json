@@ -1,0 +1,14 @@
+{
+  "schema": "cresco-session/v1",
+  "title": "Marketing Template",
+  "pages": [
+    {
+      "id": "landing",
+      "title": "Landing",
+      "structure": [
+        { "type": "hero", "props": { "heading": "Product headline" } },
+        { "type": "features", "props": { "items": ["Fast", "Reliable", "Accessible"] } }
+      ]
+    }
+  ]
+}

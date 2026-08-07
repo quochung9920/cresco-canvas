@@ -1,0 +1,14 @@
+{
+  "schema": "cresco-session/v1",
+  "title": "Blog Template",
+  "pages": [
+    {
+      "id": "post",
+      "title": "Sample Post",
+      "structure": [
+        { "type": "header", "props": { "title": "Blog Title" } },
+        { "type": "content", "props": { "text": "Post content goes here..." } }
+      ]
+    }
+  ]
+}
