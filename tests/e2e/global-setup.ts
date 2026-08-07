@@ -33,10 +33,24 @@ export default function globalSetup() {
 		'--post_content=<!-- wp:cresco/container --><div class="wp-block-cresco-container cc-container"><p>Canvas fixture</p></div><!-- /wp:cresco/container -->',
 		'--porcelain',
 	] );
+	wp( [
+		'post',
+		'create',
+		'--post_type=page',
+		'--post_status=publish',
+		'--post_title=Cresco E2E Session',
+		'--post_name=cresco-e2e-session',
+		'--post_content=Session fallback content',
+		'--porcelain',
+	] );
 }
 
 function findFixtureIds(): string[] {
-	return [ 'cresco-e2e-plain', 'cresco-e2e-canvas' ].flatMap( ( slug ) => {
+	return [
+		'cresco-e2e-plain',
+		'cresco-e2e-canvas',
+		'cresco-e2e-session',
+	].flatMap( ( slug ) => {
 		const output = wp( [
 			'post',
 			'list',
