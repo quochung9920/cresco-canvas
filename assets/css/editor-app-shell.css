@@ -1,32 +1,42 @@
 :root {
-	--cc-app-shell-width: 320px;
+	--cc-app-shell-panel-width: 320px;
+	--cc-editor-header-height: 48px;
 }
 
 body.cresco-app-shell-open .interface-interface-skeleton__body {
-	display: flex !important;
-	align-items: stretch;
+	box-sizing: border-box;
 	min-width: 0;
+	padding-inline-start: var(--cc-app-shell-panel-width) !important;
 }
 
 body.cresco-app-shell-open #cresco-canvas-app-shell {
+	position: fixed;
+	z-index: 100001;
+	inset-block: var(--cc-editor-header-height) 0;
+	inset-inline-start: 0;
 	display: block;
-	order: 1;
-	flex: 0 0 var(--cc-app-shell-width);
-	width: var(--cc-app-shell-width);
-	min-width: 300px;
-	max-width: 420px;
+	width: var(--cc-app-shell-panel-width);
+	min-width: var(--cc-app-shell-panel-width);
+	max-width: var(--cc-app-shell-panel-width);
+	height: auto;
 	min-height: 0;
 }
 
 body.cresco-app-shell-open .interface-interface-skeleton__content {
-	order: 2;
-	flex: 1 1 auto;
 	min-width: 0 !important;
 	max-width: none !important;
 }
 
 body.cresco-app-shell-closed #cresco-canvas-app-shell {
 	display: contents;
+}
+
+body.cresco-app-shell-failed #cresco-canvas-app-shell {
+	display: none !important;
+}
+
+body.cresco-app-shell-failed .interface-interface-skeleton__body {
+	padding-inline-start: 0 !important;
 }
 
 #cresco-canvas-app-shell,
@@ -41,7 +51,7 @@ body.cresco-app-shell-closed #cresco-canvas-app-shell {
 	height: 100%;
 	min-height: 0;
 	grid-template-rows: auto auto minmax(0, 1fr) auto;
-	border-right: 1px solid #d0d5dd;
+	border-inline-end: 1px solid #d0d5dd;
 	background: #fff;
 	box-shadow: 8px 0 28px rgb(16 24 40 / 6%);
 	color: #101828;
@@ -154,6 +164,7 @@ body.cresco-app-shell-closed #cresco-canvas-app-shell {
 .cc-app-shell__content {
 	min-height: 0;
 	overflow: auto;
+	overflow-x: hidden;
 	overscroll-behavior: contain;
 	background: #fff;
 	scrollbar-width: thin;
@@ -218,31 +229,9 @@ body.cresco-app-shell-closed #cresco-canvas-app-shell {
 	line-height: 14px;
 }
 
-.cc-app-shell__resize {
-	position: absolute;
-	top: 0;
-	right: -4px;
-	bottom: 0;
-	z-index: 4;
-	width: 8px;
-	cursor: ew-resize;
-	touch-action: none;
-}
-
-.cc-app-shell__resize:hover::after,
-.cc-app-shell__resize:focus-visible::after {
-	position: absolute;
-	top: 0;
-	right: 3px;
-	bottom: 0;
-	width: 2px;
-	background: #5b4bd8;
-	content: "";
-}
-
 .cc-app-shell-launcher {
 	position: fixed !important;
-	left: 8px;
+	inset-inline-start: 8px;
 	top: 58px;
 	z-index: 100003;
 	box-shadow: 0 6px 18px rgb(16 24 40 / 18%);
@@ -294,24 +283,23 @@ body.cresco-app-shell-closed #cresco-canvas-app-shell {
 }
 
 @media (max-width: 1100px) {
+	body.cresco-app-shell-open .interface-interface-skeleton__body {
+		padding-inline-start: 0 !important;
+	}
+
 	body.cresco-app-shell-open #cresco-canvas-app-shell {
-		position: fixed;
-		inset: 46px auto 0 0;
-		z-index: 100001;
-		height: auto;
+		inset-block-start: 46px;
+		width: min(320px, 88vw);
+		min-width: 0;
+		max-width: min(320px, 88vw);
 		box-shadow: 14px 0 36px rgb(16 24 40 / 24%);
 	}
 }
 
 @media (max-width: 600px) {
 	body.cresco-app-shell-open #cresco-canvas-app-shell {
-		width: min(92vw, 360px);
-		min-width: 0;
-		max-width: none;
-	}
-
-	.cc-app-shell__resize {
-		display: none;
+		width: min(92vw, 320px);
+		max-width: min(92vw, 320px);
 	}
 }
 
