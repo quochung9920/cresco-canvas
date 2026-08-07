@@ -7,5 +7,5 @@ return array(
 		'wp-data',
 		'wp-i18n',
 	),
-	'version'      => '1.0.0-rc.1-visual-canvas.3',
+	'version'      => '1.0.0-rc.1-visual-canvas.4',
 );
