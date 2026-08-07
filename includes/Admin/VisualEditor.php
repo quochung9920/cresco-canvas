@@ -17,6 +17,9 @@ final class VisualEditor {
 	/** @var string */
 	private $hook_suffix = '';
 
+	/** @var string */
+	private $asset_error = '';
+
 	/** Register the standalone editor entry points. */
 	public function register() {
 		add_action( 'admin_menu', array( $this, 'register_screen' ) );
@@ -71,14 +74,26 @@ final class VisualEditor {
 		);
 	}
 
-	/** Render only a stable mount point. React owns the editor UI. */
+	/** Render a stable mount point with a server-rendered startup fallback. */
 	public function render_screen() {
 		$post_id = $this->requested_post_id();
 		if ( ! $post_id || 'page' !== get_post_type( $post_id ) || ! current_user_can( 'edit_post', $post_id ) ) {
 			wp_die( esc_html__( 'You do not have permission to edit this Page with Cresco Canvas.', 'cresco-canvas' ) );
 		}
 
-		echo '<div id="cresco-canvas-standalone-editor" class="cresco-canvas-standalone-editor" aria-live="polite"></div>';
+		echo '<div id="cresco-canvas-standalone-editor" class="cresco-canvas-standalone-editor" aria-live="polite">';
+		if ( $this->asset_error ) {
+			echo '<div class="cc-standalone-loading cc-standalone-server-fallback" role="alert">';
+			echo '<strong>' . esc_html__( 'Cresco Canvas could not start.', 'cresco-canvas' ) . '</strong>';
+			echo '<span>' . esc_html( $this->asset_error ) . '</span>';
+			echo '</div>';
+		} else {
+			echo '<div class="cc-standalone-loading cc-standalone-server-fallback">';
+			echo '<span class="spinner is-active" aria-hidden="true"></span>';
+			echo '<span>' . esc_html__( 'Loading Cresco Canvas…', 'cresco-canvas' ) . '</span>';
+			echo '</div>';
+		}
+		echo '</div>';
 	}
 
 	/** Load the visual editor without loading Gutenberg's post-editor shell. */
@@ -97,11 +112,28 @@ final class VisualEditor {
 		$script_file    = CRESCO_CANVAS_PATH . 'build/standalone-visual-editor.js';
 		$style_file     = CRESCO_CANVAS_PATH . 'assets/css/standalone-visual-editor.css';
 		$bootstrap_file = CRESCO_CANVAS_PATH . 'build/standalone-content-bootstrap.js';
-		if ( ! is_readable( $asset_file ) || ! is_readable( $script_file ) || ! is_readable( $style_file ) || ! is_readable( $bootstrap_file ) ) {
+		$required_files = array(
+			'build/standalone-visual-editor.asset.php' => $asset_file,
+			'build/standalone-visual-editor.js'        => $script_file,
+			'assets/css/standalone-visual-editor.css'  => $style_file,
+			'build/standalone-content-bootstrap.js'    => $bootstrap_file,
+		);
+		$missing_files = array();
+		foreach ( $required_files as $relative_path => $absolute_path ) {
+			if ( ! is_readable( $absolute_path ) ) {
+				$missing_files[] = $relative_path;
+			}
+		}
+		if ( $missing_files ) {
+			$this->asset_error = sprintf(
+				/* translators: %s: Comma-separated list of missing build files. */
+				__( 'Required runtime assets are missing: %s. Run npm run build and reload the editor.', 'cresco-canvas' ),
+				implode( ', ', $missing_files )
+			);
 			return;
 		}
 
-		$asset = require $asset_file;
+		$asset           = require $asset_file;
 		$editor_settings = array(
 			'postId'         => $post_id,
 			'postType'       => 'page',
@@ -147,8 +179,29 @@ final class VisualEditor {
 			'window.crescoCanvasStandaloneSettings = ' . wp_json_encode( $editor_settings ) . ';',
 			'before'
 		);
+		wp_add_inline_script(
+			'cresco-canvas-standalone-content-bootstrap',
+			$this->boot_watchdog_script(),
+			'after'
+		);
 
-		$dependencies = array_values( array_unique( array_merge( (array) ( $asset['dependencies'] ?? array() ), array( 'cresco-canvas-standalone-content-bootstrap' ) ) ) );
+		/*
+		 * Core block registration is useful to the editor, but it is deliberately
+		 * not a hard dependency of the Cresco runtime. On a standalone wp-admin
+		 * screen the block-library package can bring editor-context dependencies;
+		 * if that chain is unavailable, WordPress would otherwise omit the Cresco
+		 * runtime script entirely and leave only the gray canvas behind.
+		 */
+		wp_enqueue_script( 'wp-block-library' );
+
+		$dependencies = array_values(
+			array_unique(
+				array_merge(
+					array_diff( (array) ( $asset['dependencies'] ?? array() ), array( 'wp-block-library' ) ),
+					array( 'cresco-canvas-standalone-content-bootstrap' )
+				)
+			)
+		);
 		wp_enqueue_script(
 			'cresco-canvas-standalone-visual-editor',
 			CRESCO_CANVAS_URL . 'build/standalone-visual-editor.js',
@@ -157,6 +210,27 @@ final class VisualEditor {
 			true
 		);
 		wp_set_script_translations( 'cresco-canvas-standalone-visual-editor', 'cresco-canvas' );
+	}
+
+	/** Build a small dependency-free watchdog that replaces a stuck startup fallback. */
+	private function boot_watchdog_script() {
+		$generic_message = wp_json_encode( __( 'The visual editor runtime did not start. Check the browser Console and Network tabs, then reload the page.', 'cresco-canvas' ) );
+		$missing_message = wp_json_encode( __( 'Missing WordPress JavaScript packages: ', 'cresco-canvas' ) );
+
+		return '(function(window,document){"use strict";'
+			. 'var generic=' . $generic_message . ',missingPrefix=' . $missing_message . ';'
+			. 'window.setTimeout(function(){'
+			. 'var root=document.getElementById("cresco-canvas-standalone-editor");'
+			. 'if(!root||!root.querySelector(".cc-standalone-server-fallback")){return;}'
+			. 'var wp=window.wp||{},required={element:"wp.element",blocks:"wp.blocks",blockEditor:"wp.blockEditor",components:"wp.components",apiFetch:"wp.apiFetch",data:"wp.data",i18n:"wp.i18n"},missing=[];'
+			. 'Object.keys(required).forEach(function(key){if(!wp[key]){missing.push(required[key]);}});'
+			. 'var fallback=root.querySelector(".cc-standalone-server-fallback");'
+			. 'if(!fallback){return;}'
+			. 'fallback.setAttribute("role","alert");fallback.innerHTML="";'
+			. 'var title=document.createElement("strong");title.textContent="Cresco Canvas could not start.";fallback.appendChild(title);'
+			. 'var detail=document.createElement("span");detail.textContent=missing.length?missingPrefix+missing.join(", "):generic;fallback.appendChild(detail);'
+			. '},2500);'
+			. '})(window,document);';
 	}
 
 	/** Build the standalone editor URL for a Page. */
