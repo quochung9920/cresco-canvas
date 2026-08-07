@@ -3,9 +3,9 @@
  * Cresco Canvas uninstall policy.
  *
  * User-authored page content in post_content is never removed. Plugin-owned
- * settings, private submissions, scheduled jobs, temporary caches, and
- * Cresco-created uploads are deleted only after an administrator explicitly
- * opts in through the Global Design setting.
+ * settings, Cresco Session documents, private submissions, scheduled jobs,
+ * temporary caches, and Cresco-created uploads are deleted only after an
+ * administrator explicitly opts in through the Global Design setting.
  *
  * @package CrescoCanvas
  */
@@ -73,6 +73,7 @@ function cresco_canvas_uninstall_site_data() {
 		delete_option( $option );
 	}
 
+	delete_post_meta_by_key( '_cresco_canvas_document' );
 	delete_post_meta_by_key( '_cresco_canvas_enabled' );
 	delete_post_meta_by_key( '_cresco_canvas_editor_preference' );
 	delete_post_meta_by_key( '_cresco_submission_data' );
