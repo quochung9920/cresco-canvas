@@ -12,31 +12,22 @@ use CrescoCanvas\Admin\VisualEditor;
 use CrescoCanvas\API\RestApi;
 use CrescoCanvas\Blocks\Blocks;
 use CrescoCanvas\Dynamic\AdvancedDynamicData;
-use CrescoCanvas\Dynamic\AdvancedEditorAssets;
 use CrescoCanvas\Dynamic\AdvancedQuery;
-use CrescoCanvas\Dynamic\AlphaFourEditorAssets;
-use CrescoCanvas\Dynamic\CompletionEditorAssets;
 use CrescoCanvas\Dynamic\DynamicCompletion;
 use CrescoCanvas\Dynamic\DynamicData;
-use CrescoCanvas\Dynamic\EditorAssets as DynamicEditorAssets;
-use CrescoCanvas\Dynamic\InteractiveEditorAssets;
 use CrescoCanvas\Dynamic\InteractiveQuery;
 use CrescoCanvas\Dynamic\StructuredDynamicData;
-use CrescoCanvas\Forms\CompletionEditorAssets as FormCompletionEditorAssets;
 use CrescoCanvas\Forms\FormAdministration;
 use CrescoCanvas\Forms\FormBuilder;
 use CrescoCanvas\Forms\FormCompletion;
 use CrescoCanvas\Forms\FormEnhancements;
-use CrescoCanvas\Interactions\EditorAssets as InteractionEditorAssets;
 use CrescoCanvas\Interactions\InteractiveComponents;
 use CrescoCanvas\Migration\Migrator;
 use CrescoCanvas\Security\SecurityHardening;
 use CrescoCanvas\Styles\DesignTokens;
 use CrescoCanvas\Styles\GlobalStyles;
 use CrescoCanvas\Styles\StyleEngine;
-use CrescoCanvas\Templates\EditorAssets as TemplateEditorAssets;
 use CrescoCanvas\Templates\TemplateLibrary;
-use CrescoCanvas\Theme\EditorAssets as ThemeEditorAssets;
 use CrescoCanvas\Theme\ThemeBuilder;
 use CrescoCanvas\Theme\ThemeDiagnostics;
 
@@ -71,34 +62,27 @@ final class Plugin {
 
 		( new SecurityHardening() )->register();
 
-		// Gutenberg remains the data/fallback editor. Cresco no longer mounts its
-		// visual application inside Gutenberg's React/DOM tree.
+		// Gutenberg remains the WordPress-native data/fallback editor. Cresco's
+		// visual application runs on its own admin screen and talks to the same
+		// block/post REST data instead of moving or hiding Gutenberg DOM nodes.
 		( new EditorIntegration() )->register();
 		( new VisualEditor() )->register();
 
+		// Backend/domain services stay shared by both editors and front-end render.
 		( new RestApi() )->register();
 		( new TemplateLibrary() )->register();
-		( new TemplateEditorAssets() )->register();
 		( new ThemeBuilder() )->register();
 		( new ThemeDiagnostics() )->register();
-		( new ThemeEditorAssets() )->register();
 		( new DynamicData() )->register();
-		( new DynamicEditorAssets() )->register();
 		( new AdvancedDynamicData() )->register();
-		( new AdvancedEditorAssets() )->register();
 		( new StructuredDynamicData() )->register();
 		( new AdvancedQuery() )->register();
-		( new AlphaFourEditorAssets() )->register();
 		( new InteractiveQuery() )->register();
-		( new InteractiveEditorAssets() )->register();
 		( new DynamicCompletion() )->register();
-		( new CompletionEditorAssets() )->register();
 		( new InteractiveComponents() )->register();
-		( new InteractionEditorAssets() )->register();
 		( new FormBuilder() )->register();
 		( new FormEnhancements() )->register();
 		( new FormCompletion() )->register();
-		( new FormCompletionEditorAssets() )->register();
 		( new FormAdministration() )->register();
 		( new StyleEngine() )->register();
 		$styles->register();
