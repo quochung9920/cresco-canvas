@@ -7,8 +7,8 @@
 
 namespace CrescoCanvas;
 
-use CrescoCanvas\Admin\EditorHub;
 use CrescoCanvas\Admin\EditorIntegration;
+use CrescoCanvas\Admin\VisualEditor;
 use CrescoCanvas\API\RestApi;
 use CrescoCanvas\Blocks\Blocks;
 use CrescoCanvas\Dynamic\AdvancedDynamicData;
@@ -70,7 +70,12 @@ final class Plugin {
 		$tokens        = new DesignTokens();
 
 		( new SecurityHardening() )->register();
+
+		// Gutenberg remains the data/fallback editor. Cresco no longer mounts its
+		// visual application inside Gutenberg's React/DOM tree.
 		( new EditorIntegration() )->register();
+		( new VisualEditor() )->register();
+
 		( new RestApi() )->register();
 		( new TemplateLibrary() )->register();
 		( new TemplateEditorAssets() )->register();
@@ -95,7 +100,6 @@ final class Plugin {
 		( new FormCompletion() )->register();
 		( new FormCompletionEditorAssets() )->register();
 		( new FormAdministration() )->register();
-		( new EditorHub() )->register();
 		( new StyleEngine() )->register();
 		$styles->register();
 		$tokens->register();
