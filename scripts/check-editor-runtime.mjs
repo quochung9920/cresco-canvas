@@ -2,18 +2,7 @@ import { readFile } from 'node:fs/promises';
 import { spawnSync } from 'node:child_process';
 import process from 'node:process';
 
-const runtimeFiles = [
-	'build/editor-foundation.js',
-	'build/editor.js',
-	'build/design-system.js',
-	'build/widget-inspector-persistent.js',
-	'build/editor-app-shell.js',
-	'build/visual-canvas.js',
-	'build/structure-navigator.js',
-	'build/preview-foundation-bridge.js',
-	'build/style-engine-editor.js',
-];
-
+const runtimeFiles = [ 'build/standalone-visual-editor.js' ];
 const errors = [];
 
 for ( const file of runtimeFiles ) {
@@ -22,88 +11,129 @@ for ( const file of runtimeFiles ) {
 		encoding: 'utf8',
 	} );
 	if ( result.status !== 0 ) {
-		errors.push( `${ file }: ${ result.stderr || result.stdout || 'syntax check failed' }` );
+		errors.push(
+			`${ file }: ${ result.stderr || result.stdout || 'syntax check failed' }`
+		);
 	}
 }
 
-const integration = await readFile( 'includes/Admin/EditorIntegration.php', 'utf8' );
-const hub = await readFile( 'includes/Admin/EditorHub.php', 'utf8' );
+const visualEditor = await readFile( 'includes/Admin/VisualEditor.php', 'utf8' );
+const sessionManager = await readFile(
+	'includes/Session/SessionManager.php',
+	'utf8'
+);
+const runtime = await readFile( 'build/standalone-visual-editor.js', 'utf8' );
+const asset = await readFile(
+	'build/standalone-visual-editor.asset.php',
+	'utf8'
+);
 const packaging = await readFile( 'scripts/build-release.mjs', 'utf8' );
-const webpack = await readFile( 'webpack.config.js', 'utf8' );
-const formerEditorEntry = await readFile( 'src/editor/index.tsx', 'utf8' );
+const sessionSpec = await readFile( 'docs/CRESCO_SESSION_V1.md', 'utf8' );
 
-const requiredIntegrationTokens = [
-	"'cresco-canvas-editor-foundation'",
-	"'cresco-canvas-editor'",
-	"'cresco-canvas-design-system'",
-	'build/editor-foundation.js',
-	'build/editor.js',
-	'build/design-system.js',
+const requiredVisualEditorTokens = [
+	"'sessionPath'",
+	"'validatePath'",
+	"'aiContextPath'",
+	'build/standalone-visual-editor.js',
+	'assets/css/standalone-visual-editor.css',
+	'GlobalStyles::css',
 ];
+for ( const token of requiredVisualEditorTokens ) {
+	if ( ! visualEditor.includes( token ) ) {
+		errors.push( `VisualEditor is missing ${ token }` );
+	}
+}
 
-const requiredHubTokens = [
-	"'cresco-canvas-widget-inspector-persistent'",
-	"'cresco-canvas-editor-app-shell'",
-	"'cresco-canvas-editor-app-shell-elements'",
-	"'cresco-canvas-visual-canvas'",
-	"'cresco-canvas-structure-navigator'",
-	"'cresco-canvas-preview-foundation-bridge'",
+const requiredSessionTokens = [
+	"const SCHEMA = 'cresco-session/v1'",
+	"const META_KEY = '_cresco_canvas_document'",
+	"'/session/(?P<postId>\\d+)'",
+	"'/session/validate'",
+	"'/ai-context/(?P<postId>\\d+)'",
+	'sanitize_custom_css',
+	'compile_session_css',
+	'data-cresco-part',
 ];
+for ( const token of requiredSessionTokens ) {
+	if ( ! sessionManager.includes( token ) ) {
+		errors.push( `SessionManager is missing ${ token }` );
+	}
+}
 
-const requiredPackageFiles = [
-	'build/editor-foundation.js',
-	'build/editor-app-shell.js',
-	'build/design-system.js',
-	'build/widget-inspector-persistent.js',
-	'build/visual-canvas.js',
-	'build/structure-navigator.js',
-	'build/preview-foundation-bridge.js',
-	'assets/css/editor-app-shell.css',
-	'assets/css/editor-app-shell-elements.css',
-	'assets/css/structure-navigator-actions.css',
+const requiredRuntimeTokens = [
+	'settings.aiContextPath',
+	'settings.sessionPath',
+	'settings.validatePath',
+	'Copy AI Context',
+	'Apply to Cresco Editor',
+	'cc-session-canvas',
+	'data-cresco-id',
+	'customCSS',
 ];
-
-for ( const token of requiredIntegrationTokens ) {
-	if ( ! integration.includes( token ) ) errors.push( `EditorIntegration is missing ${ token }` );
-}
-for ( const token of requiredHubTokens ) {
-	if ( ! hub.includes( token ) ) errors.push( `EditorHub is missing ${ token }` );
-}
-for ( const file of requiredPackageFiles ) {
-	if ( ! packaging.includes( `'${ file }'` ) ) errors.push( `Release package does not require ${ file }` );
+for ( const token of requiredRuntimeTokens ) {
+	if ( ! runtime.includes( token ) ) {
+		errors.push( `Standalone editor runtime is missing ${ token }` );
+	}
 }
 
-const forbiddenEnqueueTokens = [
-	"'cresco-canvas-editor-hub'",
-	"'cresco-canvas-workspace-layout'",
-	"'cresco-canvas-widget-inspector'",
-	"'cresco-canvas-widget-inspector-compat'",
-	"'cresco-canvas-elements-usage'",
+const forbiddenRuntimeTokens = [
+	'BlockEditorProvider',
+	'BlockInspector',
+	'wp.blocks.parse',
+	'wp.blocks.serialize',
+	'core/block-editor',
 ];
-for ( const token of forbiddenEnqueueTokens ) {
-	if ( hub.includes( token ) || integration.includes( token ) ) errors.push( `Legacy runtime is still enqueued: ${ token }` );
+for ( const token of forbiddenRuntimeTokens ) {
+	if ( runtime.includes( token ) ) {
+		errors.push(
+			`Standalone editor must not depend on the retired Gutenberg document runtime: ${ token }`
+		);
+	}
 }
 
-const excludedLegacyFiles = [
-	'build/editor-hub.js',
-	'build/elements-usage-sort.js',
-	'assets/css/elements-usage-sort.css',
-	'build/workspace-layout.js',
-	'build/widget-inspector.js',
-	'build/widget-inspector-compat.js',
+const requiredDependencies = [
+	"'wp-api-fetch'",
+	"'wp-components'",
+	"'wp-element'",
+	"'wp-i18n'",
 ];
-for ( const file of excludedLegacyFiles ) {
-	if ( ! packaging.includes( `'${ file }'` ) ) errors.push( `Legacy package exclusion is missing ${ file }` );
+for ( const token of requiredDependencies ) {
+	if ( ! asset.includes( token ) ) {
+		errors.push( `Standalone asset manifest is missing ${ token }` );
+	}
+}
+for ( const token of [ "'wp-block-editor'", "'wp-blocks'", "'wp-data'" ] ) {
+	if ( asset.includes( token ) ) {
+		errors.push( `Standalone asset manifest still depends on ${ token }` );
+	}
 }
 
-if ( /editor\s*:\s*path\.resolve/.test( webpack ) ) {
-	errors.push( 'webpack.config.js must not overwrite the reviewed build/editor.js runtime.' );
+for ( const file of [
+	'docs/CRESCO_SESSION_V1.md',
+	'assets/css/standalone-visual-editor.css',
+	'build/standalone-visual-editor.js',
+	'build/standalone-visual-editor.asset.php',
+	'includes/Session/SessionManager.php',
+] ) {
+	if ( ! packaging.includes( `'${ file }'` ) ) {
+		errors.push( `Release package does not require ${ file }` );
+	}
 }
-if ( ! /clean\s*:\s*false/.test( webpack ) ) {
-	errors.push( 'webpack.config.js must preserve checked-in editor runtimes with output.clean=false.' );
+
+for ( const token of [
+	'Global Design + Widget Contract + Current Session',
+	'Validate -> Apply -> Update',
+	'Every node has a stable, unique `id`',
+] ) {
+	if ( ! sessionSpec.includes( token ) ) {
+		errors.push( `Cresco Session specification is missing: ${ token }` );
+	}
 }
-if ( formerEditorEntry.includes( 'registerPlugin' ) || formerEditorEntry.includes( 'SettingsSidebar' ) ) {
-	errors.push( 'src/editor/index.tsx still registers the deprecated PluginSidebar.' );
+
+if ( visualEditor.includes( 'standalone-content-bootstrap.js' ) ) {
+	errors.push(
+		'VisualEditor still loads the retired standalone content bootstrap.'
+	);
 }
 
 if ( errors.length ) {
@@ -111,4 +141,6 @@ if ( errors.length ) {
 	process.exit( 1 );
 }
 
-process.stdout.write( `Checked ${ runtimeFiles.length } editor runtimes and verified integration, build, and package gates.\n` );
+process.stdout.write(
+	'Checked the authoritative Cresco Session editor runtime, REST contract, AI interchange, dependencies, and package gates.\n'
+);
