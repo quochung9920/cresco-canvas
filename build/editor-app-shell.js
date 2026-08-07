@@ -5,7 +5,6 @@
 	if ( ! wp || ! wp.element || ! wp.data || ! wp.components || ! wp.i18n || ! Cresco || ! Cresco.ui ) return;
 
 	var el = wp.element.createElement;
-	var Component = wp.element.Component;
 	var useEffect = wp.element.useEffect;
 	var useMemo = wp.element.useMemo;
 	var useState = wp.element.useState;
@@ -57,42 +56,6 @@
 		}
 	}
 
-	class ViewBoundary extends Component {
-		constructor( props ) {
-			super( props );
-			this.state = { error: null };
-		}
-
-		static getDerivedStateFromError( error ) {
-			return { error: error };
-		}
-
-		componentDidCatch( error, info ) {
-			if ( Cresco.diagnostics && typeof Cresco.diagnostics.report === 'function' ) {
-				Cresco.diagnostics.report(
-					'error',
-					'view-' + this.props.view,
-					error && error.message ? error.message : String( error ),
-					{ componentStack: info && info.componentStack ? info.componentStack : '' }
-				);
-			}
-		}
-
-		componentDidUpdate( previousProps ) {
-			if ( previousProps.view !== this.props.view && this.state.error ) this.setState( { error: null } );
-		}
-
-		render() {
-			if ( this.state.error ) {
-				return el( 'div', { className: 'cc-app-shell__error' },
-					el( Notice, { status: 'error', isDismissible: false }, __( 'This editor panel encountered an error. Native WordPress controls are still available.', 'cresco-canvas' ) ),
-					el( Button, { variant: 'secondary', onClick: function () { window.location.reload(); } }, __( 'Reload editor', 'cresco-canvas' ) )
-				);
-			}
-			return this.props.children;
-		}
-	}
-
 	function AppShell() {
 		var statePair = useState( Cresco.ui.getState() );
 		var state = statePair[ 0 ];
@@ -124,7 +87,14 @@
 			document.documentElement.style.setProperty( '--cc-app-shell-width', state.width + 'px' );
 		}, [ state.open, state.width ] );
 
-		var view = useMemo( function () { return Cresco.ui.getView( state.activeView ); }, [ state.activeView, viewRevision ] );
+		var view = useMemo( function () {
+			try {
+				return Cresco.ui.getView( state.activeView );
+			} catch ( error ) {
+				report( 'app-shell-view-' + state.activeView, error );
+				return null;
+			}
+		}, [ state.activeView, viewRevision ] );
 		var ViewComponent = view && view.component;
 		var tabs = [
 			{ id: 'widgets', icon: 'screenoptions', label: __( 'Widgets', 'cresco-canvas' ) },
@@ -185,7 +155,7 @@
 				} )
 			),
 			el( 'div', { className: 'cc-app-shell__content', key: state.activeView + '-' + viewRevision },
-				ViewComponent ? el( ViewBoundary, { view: state.activeView }, el( ViewComponent ) ) : el( Notice, { status: 'info', isDismissible: false }, state.activeView === 'edit' ? __( 'Select a widget on the canvas to edit it.', 'cresco-canvas' ) : __( 'This Cresco workspace is loading.', 'cresco-canvas' ) )
+				ViewComponent ? el( ViewComponent ) : el( Notice, { status: 'info', isDismissible: false }, state.activeView === 'edit' ? __( 'Select a widget on the canvas to edit it.', 'cresco-canvas' ) : __( 'This Cresco workspace is loading.', 'cresco-canvas' ) )
 			),
 			el( 'footer', { className: 'cc-app-shell__footer' },
 				el( 'button', { type: 'button', onClick: function () { Cresco.ui.setState( { visualMode: ! state.visualMode } ); } },
