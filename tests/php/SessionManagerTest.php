@@ -112,6 +112,6 @@ final class SessionManagerTest extends TestCase {
 		self::assertStringContainsString( 'padding-top:var(--cc-space-xl);', $css );
 		self::assertStringContainsString( 'color:var(--cc-text);', $css );
 		self::assertStringContainsString( '[data-cresco-id="hero"]:hover { opacity: .9; }', $css );
-		self::assertStringContainsString( '@media (max-width:1024px)', $css );
+		self::assertStringContainsString( '@media (max-width:767px)', $css );
 	}
 }
