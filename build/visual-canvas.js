@@ -10,12 +10,15 @@
 	var OVERLAY_ID = 'cc-visual-canvas-overlay';
 	var FRAME_STYLE_ID = 'cc-visual-canvas-style';
 	var CONTROL_ID = 'cc-visual-mode-control';
+	var FAILED_CLASS = 'cresco-app-shell-failed';
 	var documents = new Map();
 	var currentState = Cresco.ui.getState();
 	var activeDrag = null;
 	var temporaryNative = false;
 	var renderQueued = false;
 	var storeUnsubscribe = null;
+	var editorReady = false;
+	var scanQueued = false;
 
 	function currentScriptUrl() {
 		var scripts = Array.prototype.slice.call( document.scripts || [] );
@@ -39,12 +42,22 @@
 
 	var CSS_URL = visualCssUrl();
 
+	function appShellFailed() {
+		return Boolean( document.body && document.body.classList.contains( FAILED_CLASS ) );
+	}
+
 	function visualEnabled() {
-		return currentState.visualMode !== false && ! temporaryNative;
+		return editorReady && ! appShellFailed() && currentState.visualMode !== false && ! temporaryNative;
 	}
 
 	function canvasNode( targetDocument ) {
 		return targetDocument.querySelector( '.block-editor-block-list__layout, .editor-styles-wrapper, .edit-post-visual-editor, .editor-visual-editor' );
+	}
+
+	function hasEditorCanvas( targetDocument ) {
+		if ( ! targetDocument || ! targetDocument.body ) return false;
+		var node = canvasNode( targetDocument );
+		return Boolean( node && node.isConnected );
 	}
 
 	function findBlockNode( targetDocument, clientId ) {
@@ -308,7 +321,7 @@
 	}
 
 	function attachDocument( targetDocument ) {
-		if ( ! targetDocument || ! targetDocument.body || documents.has( targetDocument ) ) return;
+		if ( ! targetDocument || ! targetDocument.body || documents.has( targetDocument ) || ! hasEditorCanvas( targetDocument ) ) return;
 		injectStyles( targetDocument );
 		var overlay = createOverlay( targetDocument );
 		var state = { nodes: new Map(), observer: null, overlay: overlay, resizeObserver: null, selectedNode: null };
@@ -374,37 +387,8 @@
 		updateSelection( targetDocument );
 	}
 
-	function scanDocuments() {
-		attachDocument( document );
-		document.querySelectorAll( 'iframe[name="editor-canvas"]' ).forEach( function ( iframe ) {
-			try {
-				if ( iframe.contentDocument && iframe.contentDocument.body ) attachDocument( iframe.contentDocument );
-				if ( ! iframe._ccVisualCanvasLoad ) {
-					iframe._ccVisualCanvasLoad = function () { try { attachDocument( iframe.contentDocument ); } catch ( error ) {} };
-					iframe.addEventListener( 'load', iframe._ccVisualCanvasLoad );
-				}
-			} catch ( error ) {}
-		} );
-	}
-
-	function syncClasses() {
-		var enabled = visualEnabled();
-		document.body.classList.toggle( ROOT_CLASS, enabled );
-		document.body.classList.toggle( 'cresco-visual-canvas-native', ! enabled );
-		documents.forEach( function ( state, targetDocument ) {
-			targetDocument.documentElement.classList.toggle( FRAME_CLASS, enabled );
-		} );
-		var control = document.getElementById( CONTROL_ID );
-		if ( control ) {
-			control.classList.toggle( 'is-native', ! enabled );
-			var label = control.querySelector( '.cc-visual-mode-control__label' );
-			if ( label ) label.textContent = enabled ? __( 'Cresco canvas', 'cresco-canvas' ) : __( 'Native controls', 'cresco-canvas' );
-		}
-		queueRender();
-	}
-
 	function ensureControl() {
-		if ( document.getElementById( CONTROL_ID ) || ! document.body ) return;
+		if ( ! editorReady || appShellFailed() || document.getElementById( CONTROL_ID ) || ! document.body ) return;
 		var control = document.createElement( 'div' );
 		control.id = CONTROL_ID;
 		control.className = 'cc-visual-mode-control';
@@ -421,12 +405,61 @@
 		button.addEventListener( 'click', function () { Cresco.ui.setState( { visualMode: ! currentState.visualMode } ); } );
 	}
 
+	function syncClasses() {
+		var enabled = visualEnabled();
+		if ( ! document.body ) return;
+		document.body.classList.toggle( ROOT_CLASS, enabled );
+		document.body.classList.toggle( 'cresco-visual-canvas-native', editorReady && ! enabled );
+		documents.forEach( function ( state, targetDocument ) {
+			targetDocument.documentElement.classList.toggle( FRAME_CLASS, enabled );
+		} );
+		var control = document.getElementById( CONTROL_ID );
+		if ( control ) {
+			control.hidden = ! editorReady || appShellFailed();
+			control.classList.toggle( 'is-native', ! enabled );
+			var label = control.querySelector( '.cc-visual-mode-control__label' );
+			if ( label ) label.textContent = enabled ? __( 'Cresco canvas', 'cresco-canvas' ) : __( 'Native controls', 'cresco-canvas' );
+		}
+		queueRender();
+	}
+
+	function scanDocuments() {
+		var ready = false;
+		if ( hasEditorCanvas( document ) ) {
+			ready = true;
+			attachDocument( document );
+		}
+		document.querySelectorAll( 'iframe[name="editor-canvas"]' ).forEach( function ( iframe ) {
+			try {
+				if ( iframe.contentDocument && hasEditorCanvas( iframe.contentDocument ) ) {
+					ready = true;
+					attachDocument( iframe.contentDocument );
+				}
+				if ( ! iframe._ccVisualCanvasLoad ) {
+					iframe._ccVisualCanvasLoad = function () { scheduleScan(); };
+					iframe.addEventListener( 'load', iframe._ccVisualCanvasLoad );
+				}
+			} catch ( error ) {}
+		} );
+		if ( editorReady !== ready ) editorReady = ready;
+		if ( editorReady ) ensureControl();
+		syncClasses();
+	}
+
+	function scheduleScan() {
+		if ( scanQueued ) return;
+		scanQueued = true;
+		window.requestAnimationFrame( function () {
+			scanQueued = false;
+			scanDocuments();
+		} );
+	}
+
 	function start() {
 		if ( ! document.body ) return;
-		ensureControl();
 		scanDocuments();
-		var scanObserver = new MutationObserver( scanDocuments );
-		scanObserver.observe( document.documentElement, { childList: true, subtree: true } );
+		var scanObserver = new MutationObserver( scheduleScan );
+		scanObserver.observe( document.documentElement, { childList: true, subtree: true, attributes: true, attributeFilter: [ 'class' ] } );
 		Cresco.ui.subscribe( function ( next ) { currentState = next; syncClasses(); } );
 		window.addEventListener( 'resize', queueRender, { passive: true } );
 		window.addEventListener( 'keydown', function ( event ) {
@@ -437,7 +470,6 @@
 		} );
 		window.addEventListener( 'blur', function () { if ( temporaryNative ) { temporaryNative = false; syncClasses(); } } );
 		if ( wp.data.subscribe ) storeUnsubscribe = wp.data.subscribe( queueRender );
-		syncClasses();
 	}
 
 	if ( document.readyState === 'loading' ) document.addEventListener( 'DOMContentLoaded', start, { once: true } );
