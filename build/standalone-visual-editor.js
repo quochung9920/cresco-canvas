@@ -15,6 +15,7 @@
 	var serialize = wp.blocks.serialize;
 	var createBlock = wp.blocks.createBlock;
 	var getBlockType = wp.blocks.getBlockType;
+	var rawHandler = wp.blocks.rawHandler;
 	var BlockEditorProvider = wp.blockEditor.BlockEditorProvider;
 	var BlockList = wp.blockEditor.BlockList;
 	var BlockTools = wp.blockEditor.BlockTools;
@@ -82,19 +83,84 @@
 		return String( title || '' );
 	}
 
+	function normalizeContent( raw ) {
+		raw = typeof raw === 'string' ? raw : '';
+		if ( ! raw.trim() ) return [];
+		try {
+			var parsed = parse( raw );
+			if ( parsed && parsed.length ) return parsed;
+		} catch ( error ) {}
+		if ( typeof rawHandler === 'function' ) {
+			try {
+				var converted = rawHandler( { HTML: raw } );
+				if ( converted && converted.length ) return converted;
+			} catch ( error ) {}
+		}
+		return [ createBlock( 'core/html', { content: raw } ) ];
+	}
+
 	function blockLabel( block ) {
 		if ( ! block ) return __( 'Widget', 'cresco-canvas' );
 		var type = getBlockType( block.name );
 		return type && type.title ? String( type.title ) : String( block.name || '' ).replace( /^[^/]+\//, '' );
 	}
 
-	function flattenBlocks( blocks, depth, output ) {
+	function flattenBlocks( blocks, depth, output, parentId ) {
 		output = output || [];
-		( blocks || [] ).forEach( function ( block ) {
-			output.push( { block: block, depth: depth || 0 } );
-			flattenBlocks( block.innerBlocks || [], ( depth || 0 ) + 1, output );
+		( blocks || [] ).forEach( function ( block, index ) {
+			output.push( { block: block, depth: depth || 0, parentId: parentId || '', index: index } );
+			flattenBlocks( block.innerBlocks || [], ( depth || 0 ) + 1, output, block.clientId );
 		} );
 		return output;
+	}
+
+	function mapTree( blocks, parentId, callback ) {
+		var changed = false;
+		var next = ( blocks || [] ).map( function ( block, index ) {
+			var result = callback( block, index, parentId || '', blocks );
+			if ( result !== block ) changed = true;
+			if ( result && result.innerBlocks && result.innerBlocks.length ) {
+				var inner = mapTree( result.innerBlocks, result.clientId, callback );
+				if ( inner !== result.innerBlocks ) {
+					result = Object.assign( {}, result, { innerBlocks: inner } );
+					changed = true;
+				}
+			}
+			return result;
+		} ).filter( Boolean );
+		return changed || next.length !== ( blocks || [] ).length ? next : blocks;
+	}
+
+	function findBlock( blocks, clientId ) {
+		var found = null;
+		flattenBlocks( blocks ).some( function ( item ) {
+			if ( item.block.clientId !== clientId ) return false;
+			found = item.block;
+			return true;
+		} );
+		return found;
+	}
+
+	function removeFromTree( blocks, clientId ) {
+		return mapTree( blocks, '', function ( block ) { return block.clientId === clientId ? null : block; } );
+	}
+
+	function transformSiblingList( blocks, parentId, transform ) {
+		if ( ! parentId ) return transform( blocks || [] );
+		return mapTree( blocks, '', function ( block ) {
+			if ( block.clientId !== parentId ) return block;
+			return Object.assign( {}, block, { innerBlocks: transform( block.innerBlocks || [] ) } );
+		} );
+	}
+
+	function cloneBlock( block ) {
+		if ( ! block ) return null;
+		try {
+			var cloned = normalizeContent( serialize( [ block ] ) );
+			return cloned[ 0 ] || null;
+		} catch ( error ) {
+			return null;
+		}
 	}
 
 	function VisualEditorApp() {
@@ -104,8 +170,8 @@
 		var dirtyState = useState( false ), dirty = dirtyState[ 0 ], setDirty = dirtyState[ 1 ];
 		var noticeState = useState( null ), notice = noticeState[ 0 ], setNotice = noticeState[ 1 ];
 		var blocksState = useState( [] ), blocks = blocksState[ 0 ], setBlocks = blocksState[ 1 ];
-		var titleState = useState( '' ), title = titleState[ 0 ], setTitle = titleState[ 1 ];
-		var statusState = useState( 'draft' ), status = statusState[ 0 ], setStatus = statusState[ 1 ];
+		var titleState = useState( settings.initialTitle || '' ), title = titleState[ 0 ], setTitle = titleState[ 1 ];
+		var statusState = useState( settings.initialStatus || 'draft' ), status = statusState[ 0 ], setStatus = statusState[ 1 ];
 		var modeState = useState( 'widgets' ), mode = modeState[ 0 ], setMode = modeState[ 1 ];
 		var searchState = useState( '' ), search = searchState[ 0 ], setSearch = searchState[ 1 ];
 		var deviceState = useState( 'wide' ), device = deviceState[ 0 ], setDevice = deviceState[ 1 ];
@@ -117,6 +183,7 @@
 		var historyIndexRef = useRef( -1 );
 		var historyTimerRef = useRef( null );
 		var stageRef = useRef( null );
+		var lastSavedRef = useRef( '' );
 
 		function snapshot( nextBlocks ) {
 			var content = serialize( nextBlocks || [] );
@@ -129,21 +196,38 @@
 
 		function scheduleSnapshot( nextBlocks ) {
 			window.clearTimeout( historyTimerRef.current );
-			historyTimerRef.current = window.setTimeout( function () { snapshot( nextBlocks ); }, 450 );
+			historyTimerRef.current = window.setTimeout( function () { snapshot( nextBlocks ); }, 350 );
+		}
+
+		function applyLoadedContent( raw, nextTitle, nextStatus ) {
+			var parsed = normalizeContent( raw );
+			setBlocks( parsed );
+			if ( typeof nextTitle === 'string' ) setTitle( nextTitle );
+			if ( nextStatus ) setStatus( nextStatus );
+			historyRef.current = [];
+			historyIndexRef.current = -1;
+			snapshot( parsed );
+			lastSavedRef.current = serialize( parsed );
+			setDirty( false );
+			setLoaded( true );
+			return parsed;
 		}
 
 		useEffect( function () {
-			apiFetch( { path: settings.apiPath + '?context=edit&_fields=id,title,content,status,slug,template,meta' } ).then( function ( post ) {
-				var raw = post && post.content && typeof post.content.raw === 'string' ? post.content.raw : '';
-				var parsed = raw ? parse( raw ) : [];
-				setBlocks( parsed );
-				setTitle( titleText( post.title ) );
-				setStatus( post.status || 'draft' );
-				snapshot( parsed );
-				setLoaded( true );
+			var bootstrapRaw = typeof settings.initialContent === 'string' ? settings.initialContent : '';
+			applyLoadedContent( bootstrapRaw, settings.initialTitle || '', settings.initialStatus || 'draft' );
+			setLoading( false );
+
+			apiFetch( { path: settings.apiPath + '?context=edit&_fields=id,title,content,status,slug,template,meta,modified' } ).then( function ( post ) {
+				var restRaw = post && post.content && typeof post.content.raw === 'string' ? post.content.raw : bootstrapRaw;
+				var restTitle = titleText( post && post.title );
+				var restStatus = post && post.status ? post.status : settings.initialStatus || 'draft';
+				if ( restRaw !== bootstrapRaw || restTitle !== ( settings.initialTitle || '' ) || restStatus !== ( settings.initialStatus || 'draft' ) ) {
+					applyLoadedContent( restRaw, restTitle, restStatus );
+				}
 			} ).catch( function ( error ) {
-				setNotice( { type: 'error', text: error && error.message ? error.message : __( 'The Page could not be loaded.', 'cresco-canvas' ) } );
-			} ).finally( function () { setLoading( false ); } );
+				setNotice( { type: 'warning', text: __( 'Cresco loaded the Page from WordPress directly, but live REST refresh was unavailable.', 'cresco-canvas' ) + ( error && error.message ? ' ' + error.message : '' ) } );
+			} );
 
 			apiFetch( { path: '/cresco-canvas/v1/settings' } ).then( function ( value ) {
 				setGlobalSettings( value );
@@ -176,8 +260,9 @@
 		}, [ loaded ] );
 
 		function changeBlocks( nextBlocks ) {
+			nextBlocks = Array.isArray( nextBlocks ) ? nextBlocks : [];
 			setBlocks( nextBlocks );
-			setDirty( true );
+			setDirty( serialize( nextBlocks ) !== lastSavedRef.current );
 			scheduleSnapshot( nextBlocks );
 		}
 
@@ -196,34 +281,82 @@
 
 		function savePage() {
 			if ( saving ) return;
+			var content = serialize( blocks );
 			setSaving( true );
 			setNotice( null );
 			apiFetch( {
 				path: settings.apiPath,
 				method: 'POST',
-				data: { title: title, content: serialize( blocks ) }
-			} ).then( function () {
+				data: { title: title, content: content, status: status }
+			} ).then( function ( post ) {
+				lastSavedRef.current = content;
 				setDirty( false );
-				setNotice( { type: 'success', text: __( 'Page saved.', 'cresco-canvas' ) } );
+				if ( post && post.status ) setStatus( post.status );
+				setNotice( { type: 'success', text: __( 'Page saved to WordPress. Gutenberg will read the same content.', 'cresco-canvas' ) } );
 			} ).catch( function ( error ) {
 				setNotice( { type: 'error', text: error && error.message ? error.message : __( 'Page could not be saved.', 'cresco-canvas' ) } );
 			} ).finally( function () { setSaving( false ); } );
+		}
+
+		function reloadFromWordPress() {
+			if ( dirty && ! window.confirm( __( 'Discard unsaved Cresco changes and reload the latest WordPress content?', 'cresco-canvas' ) ) ) return;
+			setLoading( true );
+			apiFetch( { path: settings.apiPath + '?context=edit&_fields=id,title,content,status' } ).then( function ( post ) {
+				var raw = post && post.content && typeof post.content.raw === 'string' ? post.content.raw : settings.initialContent || '';
+				applyLoadedContent( raw, titleText( post.title ), post.status || 'draft' );
+				setNotice( { type: 'success', text: __( 'Latest WordPress/Gutenberg content loaded.', 'cresco-canvas' ) } );
+			} ).catch( function ( error ) {
+				setNotice( { type: 'error', text: error && error.message ? error.message : __( 'Could not reload WordPress content.', 'cresco-canvas' ) } );
+			} ).finally( function () { setLoading( false ); } );
 		}
 
 		function undo() {
 			window.clearTimeout( historyTimerRef.current );
 			if ( historyIndexRef.current <= 0 ) return;
 			historyIndexRef.current -= 1;
-			setBlocks( parse( historyRef.current[ historyIndexRef.current ] || '' ) );
-			setDirty( true );
+			changeBlocks( normalizeContent( historyRef.current[ historyIndexRef.current ] || '' ) );
 		}
 
 		function redo() {
 			window.clearTimeout( historyTimerRef.current );
 			if ( historyIndexRef.current >= historyRef.current.length - 1 ) return;
 			historyIndexRef.current += 1;
-			setBlocks( parse( historyRef.current[ historyIndexRef.current ] || '' ) );
-			setDirty( true );
+			changeBlocks( normalizeContent( historyRef.current[ historyIndexRef.current ] || '' ) );
+		}
+
+		function removeBlock( clientId ) {
+			if ( ! clientId ) return;
+			changeBlocks( removeFromTree( blocks, clientId ) );
+			var dispatch = wp.data.dispatch( 'core/block-editor' );
+			if ( dispatch && dispatch.clearSelectedBlock ) dispatch.clearSelectedBlock();
+		}
+
+		function duplicateBlock( clientId, parentId, index ) {
+			var original = findBlock( blocks, clientId );
+			var copy = cloneBlock( original );
+			if ( ! copy ) return;
+			var next = transformSiblingList( blocks, parentId, function ( siblings ) {
+				var result = siblings.slice();
+				result.splice( index + 1, 0, copy );
+				return result;
+			} );
+			changeBlocks( next );
+			window.requestAnimationFrame( function () {
+				var dispatch = wp.data.dispatch( 'core/block-editor' );
+				if ( dispatch && dispatch.selectBlock ) dispatch.selectBlock( copy.clientId );
+			} );
+		}
+
+		function moveBlock( clientId, parentId, index, direction ) {
+			var next = transformSiblingList( blocks, parentId, function ( siblings ) {
+				var target = index + direction;
+				if ( target < 0 || target >= siblings.length ) return siblings;
+				var result = siblings.slice();
+				var item = result.splice( index, 1 )[ 0 ];
+				result.splice( target, 0, item );
+				return result;
+			} );
+			if ( next !== blocks ) changeBlocks( next );
 		}
 
 		function saveGlobal() {
@@ -273,10 +406,7 @@
 							event.dataTransfer.setData( DRAG_MIME, item.id );
 							event.dataTransfer.effectAllowed = 'copy';
 						}
-					},
-						h( 'span', { className: 'dashicons dashicons-' + item.icon, 'aria-hidden': 'true' } ),
-						h( 'span', null, item.label )
-					);
+					}, h( 'span', { className: 'dashicons dashicons-' + item.icon, 'aria-hidden': 'true' } ), h( 'span', null, item.label ) );
 				} ) )
 			);
 		}
@@ -298,16 +428,19 @@
 			var flat = flattenBlocks( blocks );
 			if ( ! flat.length ) return h( 'div', { className: 'cc-standalone-structure-empty' }, __( 'No widgets yet.', 'cresco-canvas' ) );
 			return flat.map( function ( item ) {
-				return h( 'button', {
-					key: item.block.clientId,
-					type: 'button',
-					className: 'cc-standalone-structure-item' + ( selectedClientId === item.block.clientId ? ' is-selected' : '' ),
-					style: { paddingInlineStart: ( 12 + item.depth * 14 ) + 'px' },
-					onClick: function () {
+				var siblings = item.parentId ? ( findBlock( blocks, item.parentId ) || {} ).innerBlocks || [] : blocks;
+				return h( 'div', { key: item.block.clientId, className: 'cc-standalone-structure-row' + ( selectedClientId === item.block.clientId ? ' is-selected' : '' ), style: { paddingInlineStart: ( 8 + item.depth * 14 ) + 'px' } },
+					h( 'button', { type: 'button', className: 'cc-standalone-structure-item', onClick: function () {
 						var dispatch = wp.data.dispatch( 'core/block-editor' );
 						if ( dispatch && dispatch.selectBlock ) dispatch.selectBlock( item.block.clientId );
-					}
-				}, blockLabel( item.block ) );
+					} }, blockLabel( item.block ) ),
+					h( 'div', { className: 'cc-standalone-structure-actions' },
+						h( 'button', { type: 'button', disabled: item.index <= 0, title: __( 'Move up', 'cresco-canvas' ), onClick: function () { moveBlock( item.block.clientId, item.parentId, item.index, -1 ); } }, '↑' ),
+						h( 'button', { type: 'button', disabled: item.index >= siblings.length - 1, title: __( 'Move down', 'cresco-canvas' ), onClick: function () { moveBlock( item.block.clientId, item.parentId, item.index, 1 ); } }, '↓' ),
+						h( 'button', { type: 'button', title: __( 'Duplicate', 'cresco-canvas' ), onClick: function () { duplicateBlock( item.block.clientId, item.parentId, item.index ); } }, '⧉' ),
+						h( 'button', { type: 'button', className: 'is-destructive', title: __( 'Delete', 'cresco-canvas' ), onClick: function () { removeBlock( item.block.clientId ); } }, '×' )
+					)
+				);
 			} );
 		}
 
@@ -328,6 +461,7 @@
 					h( 'div', { className: 'cc-standalone-header-actions' },
 						h( Button, { variant: 'tertiary', disabled: historyIndexRef.current <= 0, onClick: undo }, __( 'Undo', 'cresco-canvas' ) ),
 						h( Button, { variant: 'tertiary', disabled: historyIndexRef.current >= historyRef.current.length - 1, onClick: redo }, __( 'Redo', 'cresco-canvas' ) ),
+						h( Button, { variant: 'tertiary', onClick: reloadFromWordPress }, __( 'Reload', 'cresco-canvas' ) ),
 						settings.previewUrl ? h( Button, { variant: 'secondary', href: settings.previewUrl, target: '_blank' }, __( 'Preview', 'cresco-canvas' ) ) : null,
 						h( Button, { variant: 'primary', isBusy: saving, disabled: saving || ! dirty, onClick: savePage }, saving ? __( 'Saving…', 'cresco-canvas' ) : dirty ? __( 'Update', 'cresco-canvas' ) : __( 'Saved', 'cresco-canvas' ) )
 					)
