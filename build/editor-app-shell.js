@@ -49,11 +49,6 @@
 		document.documentElement.style.removeProperty( '--cc-app-shell-width' );
 		var host = document.getElementById( HOST_ID );
 		if ( host && host.parentNode ) host.parentNode.removeChild( host );
-		try {
-			Cresco.ui.setState( { open: false, visualMode: false } );
-		} catch ( stateError ) {
-			report( 'app-shell-fallback-state', stateError );
-		}
 	}
 
 	function AppShell() {
@@ -102,22 +97,6 @@
 			{ id: 'global', icon: 'admin-appearance', label: __( 'Global', 'cresco-canvas' ) }
 		];
 
-		function beginResize( event ) {
-			if ( event.button !== 0 ) return;
-			event.preventDefault();
-			var startX = event.clientX;
-			var startWidth = state.width;
-			function move( moveEvent ) { Cresco.ui.setState( { width: startWidth + moveEvent.clientX - startX } ); }
-			function end() {
-				window.removeEventListener( 'pointermove', move );
-				window.removeEventListener( 'pointerup', end );
-				window.removeEventListener( 'pointercancel', end );
-			}
-			window.addEventListener( 'pointermove', move );
-			window.addEventListener( 'pointerup', end );
-			window.addEventListener( 'pointercancel', end );
-		}
-
 		if ( ! state.open ) {
 			return el( Button, {
 				className: 'cc-app-shell-launcher',
@@ -163,23 +142,21 @@
 					state.visualMode ? __( 'Cresco canvas', 'cresco-canvas' ) : __( 'Native controls', 'cresco-canvas' )
 				),
 				el( 'span', null, state.device )
-			),
-			el( 'div', { className: 'cc-app-shell__resize', role: 'separator', 'aria-label': __( 'Resize Cresco panel', 'cresco-canvas' ), onPointerDown: beginResize } )
+			)
 		);
 	}
 
 	function ensureHost() {
 		var existing = document.getElementById( HOST_ID );
 		if ( existing ) return existing;
-		var shellBody = document.querySelector( '.interface-interface-skeleton__body' );
 		var content = document.querySelector( '.interface-interface-skeleton__content' );
-		if ( ! shellBody || ! content ) return null;
+		if ( ! document.body || ! content ) return null;
 		var host = document.createElement( 'div' );
 		host.id = HOST_ID;
 		var root = document.createElement( 'div' );
 		root.id = ROOT_ID;
 		host.appendChild( root );
-		shellBody.insertBefore( host, content );
+		document.body.appendChild( host );
 		return host;
 	}
 
@@ -187,7 +164,7 @@
 		window.requestAnimationFrame( function () {
 			window.requestAnimationFrame( function () {
 				var rootNode = document.getElementById( ROOT_ID );
-				if ( rootNode && rootNode.querySelector( '.cc-app-shell, .cc-app-shell-launcher' ) ) markReady();
+				if ( rootNode && rootNode.isConnected && rootNode.querySelector( '.cc-app-shell, .cc-app-shell-launcher' ) ) markReady();
 				else failOpen( new Error( 'Cresco App Shell did not render.' ) );
 			} );
 		} );
