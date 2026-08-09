@@ -1,0 +1,25 @@
+.cc-session-canvas {
+	container-type: inline-size;
+}
+
+.cc-session-canvas [data-cresco-widget="container"][data-cresco-content-width="full"] {
+	width: 100cqw !important;
+	max-width: none !important;
+	margin-left: calc(50% - 50cqw) !important;
+	margin-right: calc(50% - 50cqw) !important;
+}
+
+.cresco-session-root [data-cresco-widget="container"][data-cresco-content-width="full"] {
+	width: 100vw !important;
+	max-width: none !important;
+	margin-left: calc(50% - 50vw) !important;
+	margin-right: calc(50% - 50vw) !important;
+}
+
+.cc-session-canvas [data-cresco-widget="container"][data-cresco-content-width="boxed"],
+.cresco-session-root [data-cresco-widget="container"][data-cresco-content-width="boxed"] {
+	width: 100% !important;
+	max-width: var(--cc-container-max) !important;
+	margin-left: auto !important;
+	margin-right: auto !important;
+}
