@@ -20,6 +20,7 @@
 	};
 	var resizeTimer = null;
 	var settingsOpenTimer = null;
+	var mutationSyncScheduled = false;
 
 	function readState() {
 		try {
@@ -111,7 +112,7 @@
 			dialog.removeAttribute( 'aria-modal' );
 			var title = dialog.querySelector( '.cc-site-settings-header-title' );
 			var back = dialog.querySelector( '.cc-site-settings-header-slot:first-child .cc-site-settings-header-button' );
-			if ( title && ! back ) title.textContent = SETTINGS_LABEL;
+			if ( title && ! back && String( title.textContent || '' ).trim() !== SETTINGS_LABEL ) title.textContent = SETTINGS_LABEL;
 			if ( back ) {
 				back.setAttribute( 'aria-label', BACK_TO_SETTINGS_LABEL );
 				back.title = BACK_TO_SETTINGS_LABEL;
@@ -374,6 +375,30 @@
 		}, 80 );
 	}
 
+	function mutationTargetInsideSettingsCenter( target ) {
+		if ( ! target || target === app || ! target.closest ) return false;
+		return !! target.closest( '.cc-settings-center-inline, .cc-page-settings-dialog' );
+	}
+
+	function mutationNeedsSync( records ) {
+		return Array.prototype.some.call( records || [], function ( record ) {
+			var target = record && record.target ? record.target : null;
+			if ( mutationTargetInsideSettingsCenter( target ) ) return false;
+			if ( target === app ) return true;
+			if ( ! target || ! target.closest ) return true;
+			return !! target.closest( '.cc-standalone-header, .cc-standalone-tabs, .cc-standalone-left, .cc-standalone-right' );
+		} );
+	}
+
+	function scheduleMutationSync( records ) {
+		if ( mutationSyncScheduled || ! mutationNeedsSync( records ) ) return;
+		mutationSyncScheduled = true;
+		window.requestAnimationFrame( function () {
+			mutationSyncScheduled = false;
+			sync();
+		} );
+	}
+
 	function boot() {
 		app = document.querySelector( '.cc-standalone-app' );
 		if ( ! app ) {
@@ -387,10 +412,7 @@
 		document.addEventListener( 'keydown', handleKeydown );
 		window.addEventListener( 'resize', handleResize );
 		if ( window.MutationObserver ) {
-			new window.MutationObserver( function () {
-				ensureChrome();
-				sync();
-			} ).observe( app, { childList: true, subtree: true } );
+			new window.MutationObserver( scheduleMutationSync ).observe( app, { childList: true, subtree: true } );
 		}
 	}
 
