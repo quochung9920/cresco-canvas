@@ -80,12 +80,16 @@ test.describe( 'Cresco standalone UI v3 shell', () => {
 		await expect( settingsPanel.locator( '.cc-global-simple-editor' ) ).toBeHidden();
 		await expect( settingsPanel.getByRole( 'button', { name: 'Copy Global Config' } ) ).toBeHidden();
 
+		await page.keyboard.press( 'Escape' );
+		await expect( settingsCenter ).toBeVisible();
+
 		await openPanel( page, 'Edit' );
 		const inspector = page.locator( '.cc-inspector' );
 		await expect( inspector ).toBeVisible();
 		await expect( inspector.locator( '.cc-global-simple-editor' ) ).toHaveCount( 0 );
 		await expect( inspector.locator( '.cc-inspector-v2-tabs' ) ).toBeVisible();
 		await expect( page.getByRole( 'region', { name: 'Settings Center' } ) ).toHaveCount( 0 );
+		await expect( page.locator( 'body' ) ).not.toHaveClass( /cc-page-settings-open/ );
 
 		await openPanel( page, 'Settings' );
 		await expect( page.getByRole( 'region', { name: 'Settings Center' } ) ).toBeVisible();
