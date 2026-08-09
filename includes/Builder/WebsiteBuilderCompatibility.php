@@ -8,15 +8,17 @@
 namespace CrescoCanvas\Builder;
 
 use CrescoCanvas\Admin\VisualEditor;
+use CrescoCanvas\Session\SessionManager;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
 final class WebsiteBuilderCompatibility {
-	/** Keep the Website Builder as the only UI runtime on its standalone screen. */
+	/** Keep the Website Builder as the only UI runtime and normalize legacy contracts. */
 	public function register() {
 		add_action( 'admin_enqueue_scripts', array( $this, 'remove_legacy_editor_assets' ), 999 );
+		add_action( 'wp_enqueue_scripts', array( $this, 'replace_frontend_compiled_styles' ), 999 );
 	}
 
 	public function remove_legacy_editor_assets() {
@@ -57,6 +59,37 @@ final class WebsiteBuilderCompatibility {
 
 		foreach ( $scripts as $handle ) wp_dequeue_script( $handle );
 		foreach ( $styles as $handle ) wp_dequeue_style( $handle );
+	}
+
+	/**
+	 * WebsiteRenderer originally interpreted breakpoint starts as max-widths.
+	 * Replace only that builder-generated inline fragment with the authoritative
+	 * range-aware compiler while leaving third-party inline CSS on the handle.
+	 */
+	public function replace_frontend_compiled_styles() {
+		if ( ! is_singular( 'page' ) ) return;
+		$post_id = get_queried_object_id();
+		if ( WebsiteBuilder::BUILDER_VERSION !== (string) get_post_meta( $post_id, WebsiteBuilder::BUILDER_META, true ) ) return;
+		$raw = (string) get_post_meta( $post_id, SessionManager::META_KEY, true );
+		$decoded = $raw ? json_decode( $raw, true ) : null;
+		$session = is_array( $decoded ) ? WebsiteBuilder::sanitize_session( $decoded ) : null;
+		if ( ! is_array( $session ) ) return;
+
+		$handle = 'cresco-canvas-website-builder-frontend';
+		$styles = wp_styles();
+		if ( ! isset( $styles->registered[ $handle ] ) ) return;
+		$registered = $styles->registered[ $handle ];
+		$after = isset( $registered->extra['after'] ) && is_array( $registered->extra['after'] ) ? $registered->extra['after'] : array();
+		$registered->extra['after'] = array_values(
+			array_filter(
+				$after,
+				static function ( $css ) {
+					return false === strpos( (string) $css, '.cresco-website-builder-root [data-cresco-id=' );
+				}
+			)
+		);
+		$compiled = WebsiteBuilderCssCompiler::compile( $session );
+		if ( '' !== $compiled ) wp_add_inline_style( $handle, $compiled );
 	}
 
 	/**
