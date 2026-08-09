@@ -224,9 +224,10 @@ final class PageSettings {
 
 	public function inject_ai_context( $response, $handler, $request ) {
 		unset( $handler );
-		if ( ! $request instanceof WP_REST_Request || ! method_exists( $response, 'get_data' ) || ! method_exists( $response, 'set_data' ) ) return $response;
+		if ( ! $request instanceof WP_REST_Request ) return $response;
 		$route = (string) $request->get_route();
 		if ( ! preg_match( '#^/cresco-canvas/v1/ai-context/(\d+)$#', $route, $matches ) ) return $response;
+		if ( ! is_object( $response ) || ! method_exists( $response, 'get_data' ) || ! method_exists( $response, 'set_data' ) ) return $response;
 		$post_id = absint( $matches[1] );
 		$data    = $response->get_data();
 		if ( ! is_array( $data ) ) return $response;
