@@ -34,13 +34,7 @@ jobs:
       - name: Report development dependency advisories
         continue-on-error: true
         run: npm audit --audit-level=high
-      - run: npm run check:editor-runtime
-      - run: npm run typecheck
-      - run: npm run lint:js
-      - run: npm run lint:css
-      - run: npm run lint:md
-      - run: npm run test:unit
-      - run: npm run check:version
+      - run: npm run check:quality
       - run: npm run build
       - run: composer install --no-dev --no-interaction --optimize-autoloader
       - run: npm run package:verify
@@ -52,11 +46,16 @@ jobs:
           unzip -Z1 dist/cresco-canvas.zip | grep -q 'cresco-canvas/build/editor-app-shell.js'
           unzip -Z1 dist/cresco-canvas.zip | grep -q 'cresco-canvas/build/design-system.js'
           unzip -Z1 dist/cresco-canvas.zip | grep -q 'cresco-canvas/build/visual-canvas.js'
+          unzip -Z1 dist/cresco-canvas.zip | grep -q 'cresco-canvas/build/standalone-visual-editor.js'
+          unzip -Z1 dist/cresco-canvas.zip | grep -q 'cresco-canvas/build/standalone-page-settings.js'
+          unzip -Z1 dist/cresco-canvas.zip | grep -q 'cresco-canvas/build/global-config-import.js'
+          unzip -Z1 dist/cresco-canvas.zip | grep -q 'cresco-canvas/build/viewport-shell.js'
           unzip -Z1 dist/cresco-canvas.zip | grep -q 'cresco-canvas/assets/css/editor-app-shell-elements.css'
           unzip -Z1 dist/cresco-canvas.zip | grep -q 'cresco-canvas/assets/css/structure-navigator-actions.css'
           ! unzip -Z1 dist/cresco-canvas.zip | grep -q 'cresco-canvas/build/widget-inspector.js'
           ! unzip -Z1 dist/cresco-canvas.zip | grep -q 'cresco-canvas/build/editor-hub.js'
           ! unzip -Z1 dist/cresco-canvas.zip | grep -q 'cresco-canvas/build/elements-usage-sort.js'
+          ! unzip -Z1 dist/cresco-canvas.zip | grep -q 'cresco-canvas/build/standalone-content-bootstrap.js'
           ! unzip -Z1 dist/cresco-canvas.zip | grep -q 'cresco-canvas/assets/css/elements-usage-sort.css'
       - name: Record frontend CSS size
         run: |
@@ -141,6 +140,7 @@ jobs:
           php-version: "8.3"
           tools: composer:v2
       - run: npm ci
+      - run: npm run check:hygiene
       - run: npm run check:editor-runtime
       - run: npm run build
       - run: composer install --no-dev --no-interaction --optimize-autoloader
@@ -171,6 +171,7 @@ jobs:
           php-version: "8.3"
           tools: composer:v2
       - run: npm ci
+      - run: npm run check:hygiene
       - run: npm run check:editor-runtime
       - run: npm run build
       - run: composer install --no-dev --no-interaction --optimize-autoloader
