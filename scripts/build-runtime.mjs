@@ -15,4 +15,19 @@ for ( const file of manifest.reviewed ) {
 	await copyFile( source, destination );
 }
 
-process.stdout.write( `Restored ${ manifest.reviewed.length } reviewed runtime outputs from authoritative source.\n` );
+// A small number of generated production runtimes are authored as reviewed,
+// framework-free sources rather than webpack entries. They stay in `generated`
+// so the integrity gate can distinguish the checked-in development loader from
+// the exact clean-build output. A clean build always replaces that loader with
+// the authoritative source before packaging.
+let passthroughGenerated = 0;
+for ( const [ output, sourcePath ] of Object.entries( manifest.generated || {} ) ) {
+	if ( ! String( sourcePath ).startsWith( 'runtime-src/build/' ) ) continue;
+	const source = path.join( root, sourcePath );
+	const destination = path.join( root, 'build', output );
+	await mkdir( path.dirname( destination ), { recursive: true } );
+	await copyFile( source, destination );
+	passthroughGenerated += 1;
+}
+
+process.stdout.write( `Restored ${ manifest.reviewed.length } reviewed runtime outputs and ${ passthroughGenerated } passthrough generated output(s) from authoritative source.\n` );
