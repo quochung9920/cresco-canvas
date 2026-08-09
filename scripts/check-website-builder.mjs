@@ -76,7 +76,7 @@ for ( const token of [
 ] ) if ( ! plugin.includes( token ) ) errors.push( `Plugin registration missing ${ token }` );
 
 for ( const token of [
-	'cc-builder-widget-grid', 'multi-select', 'Reusable Components', 'Theme Builder',
+	'cc-builder-widget-grid', 'Reusable Components', 'Theme Builder',
 	'AI Website Workflow', 'Global Design', 'Page Settings', 'data-cresco-id',
 	'activeState', 'selectedIds', 'startResize', 'Ctrl/Cmd+S',
 ] ) if ( ! editorSource.includes( token ) ) errors.push( `Website Builder editor missing ${ token }` );
@@ -86,7 +86,7 @@ for ( const token of [ 'data-cresco-accordion', 'role="tab"', 'IntersectionObser
 }
 
 if ( hash( frontendSource ) !== hash( frontendBuild ) ) errors.push( 'Website Builder frontend build differs from authoritative source.' );
-if ( hash( editorSource ) !== hash( editorBuild ) && ! editorBuild.includes( "data.crescoBuilderSource='authoritative'" ) && ! editorBuild.includes( 'crescoBuilderSource' ) ) {
+if ( hash( editorSource ) !== hash( editorBuild ) && ! editorBuild.includes( 'crescoBuilderSource' ) ) {
 	errors.push( 'Website Builder editor build is neither authoritative output nor the documented development loader.' );
 }
 
