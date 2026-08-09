@@ -9,6 +9,7 @@ namespace CrescoCanvas;
 
 use CrescoCanvas\Admin\EditorIntegration;
 use CrescoCanvas\Admin\VisualEditor;
+use CrescoCanvas\AI\AIInterchange;
 use CrescoCanvas\API\RestApi;
 use CrescoCanvas\Blocks\Blocks;
 use CrescoCanvas\Dynamic\AdvancedDynamicData;
@@ -71,6 +72,7 @@ final class Plugin {
 		// permissions system, routing layer, and native fallback environment.
 		( new EditorIntegration() )->register();
 		( new SessionManager() )->register();
+		( new AIInterchange() )->register();
 		( new HistoryManager() )->register();
 		( new PageSettings() )->register();
 		( new VisualEditor() )->register();

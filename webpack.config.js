@@ -13,6 +13,10 @@ module.exports = {
 			process.cwd(),
 			'src/standalone/widget-control-enhancements.js'
 		),
+		'standalone-ai-bridge': path.resolve(
+			process.cwd(),
+			'src/standalone/standalone-ai-bridge.js'
+		),
 	},
 	output: {
 		...defaultConfig.output,
