@@ -8,6 +8,7 @@
 namespace CrescoCanvas\API;
 
 use CrescoCanvas\Styles\DesignTokens;
+use CrescoCanvas\Styles\GlobalConfigImporter;
 use CrescoCanvas\Styles\GlobalStyles;
 use WP_REST_Request;
 use WP_REST_Response;
@@ -26,6 +27,7 @@ final class RestApi {
 			array( 'methods' => WP_REST_Server::EDITABLE, 'callback' => array( $this, 'save_settings' ), 'permission_callback' => array( $this, 'can_manage_settings' ) ),
 			'schema' => array( $this, 'settings_schema' ),
 		) );
+		register_rest_route( 'cresco-canvas/v1', '/settings/import-preview', array( 'methods' => WP_REST_Server::CREATABLE, 'callback' => array( $this, 'preview_settings_import' ), 'permission_callback' => array( $this, 'can_manage_settings' ) ) );
 		register_rest_route( 'cresco-canvas/v1', '/settings/reset', array( 'methods' => WP_REST_Server::CREATABLE, 'callback' => array( $this, 'reset_settings' ), 'permission_callback' => array( $this, 'can_manage_settings' ) ) );
 		register_rest_route( 'cresco-canvas/v1', '/design-tokens', array( 'methods' => WP_REST_Server::READABLE, 'callback' => array( $this, 'get_design_tokens' ), 'permission_callback' => array( $this, 'can_manage_settings' ) ) );
 	}
@@ -38,6 +40,13 @@ final class RestApi {
 		$settings = GlobalStyles::sanitize_settings( (array) $request->get_json_params() );
 		update_option( 'cresco_canvas_settings', $settings, false );
 		return new WP_REST_Response( $settings );
+	}
+
+	public function preview_settings_import( WP_REST_Request $request ) {
+		$payload = (array) $request->get_json_params();
+		$input = array_key_exists( 'input', $payload ) ? $payload['input'] : $payload;
+		$result = GlobalConfigImporter::preview( $input );
+		return is_wp_error( $result ) ? $result : new WP_REST_Response( $result );
 	}
 
 	public function reset_settings() {
