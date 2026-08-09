@@ -30,11 +30,13 @@ final class EditorExperience {
 			return;
 		}
 
-		$script      = CRESCO_CANVAS_PATH . 'build/editor-experience-v2.js';
-		$sync_script = CRESCO_CANVAS_PATH . 'build/editor-experience-v2-sync.js';
-		$style       = CRESCO_CANVAS_PATH . 'assets/css/editor-experience-v2.css';
-		$polish      = CRESCO_CANVAS_PATH . 'assets/css/editor-experience-v2-polish.css';
-		if ( ! is_readable( $script ) || ! is_readable( $sync_script ) || ! is_readable( $style ) || ! is_readable( $polish ) ) {
+		$script       = CRESCO_CANVAS_PATH . 'build/editor-experience-v2.js';
+		$sync_script  = CRESCO_CANVAS_PATH . 'build/editor-experience-v2-sync.js';
+		$tools_script = CRESCO_CANVAS_PATH . 'build/editor-experience-v2-tools.js';
+		$style        = CRESCO_CANVAS_PATH . 'assets/css/editor-experience-v2.css';
+		$polish       = CRESCO_CANVAS_PATH . 'assets/css/editor-experience-v2-polish.css';
+		$tools_style  = CRESCO_CANVAS_PATH . 'assets/css/editor-experience-v2-tools.css';
+		if ( ! is_readable( $script ) || ! is_readable( $sync_script ) || ! is_readable( $tools_script ) || ! is_readable( $style ) || ! is_readable( $polish ) || ! is_readable( $tools_style ) ) {
 			return;
 		}
 
@@ -48,6 +50,12 @@ final class EditorExperience {
 			'cresco-canvas-editor-experience-v2-polish',
 			CRESCO_CANVAS_URL . 'assets/css/editor-experience-v2-polish.css',
 			array( 'cresco-canvas-editor-experience-v2' ),
+			self::VERSION
+		);
+		wp_enqueue_style(
+			'cresco-canvas-editor-experience-v2-tools',
+			CRESCO_CANVAS_URL . 'assets/css/editor-experience-v2-tools.css',
+			array( 'cresco-canvas-editor-experience-v2-polish' ),
 			self::VERSION
 		);
 
@@ -73,6 +81,13 @@ final class EditorExperience {
 			'cresco-canvas-editor-experience-v2-sync',
 			CRESCO_CANVAS_URL . 'build/editor-experience-v2-sync.js',
 			array( 'cresco-canvas-editor-experience-v2' ),
+			self::VERSION,
+			true
+		);
+		wp_enqueue_script(
+			'cresco-canvas-editor-experience-v2-tools',
+			CRESCO_CANVAS_URL . 'build/editor-experience-v2-tools.js',
+			array( 'cresco-canvas-editor-experience-v2-sync' ),
 			self::VERSION,
 			true
 		);
