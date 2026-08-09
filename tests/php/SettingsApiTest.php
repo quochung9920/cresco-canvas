@@ -29,10 +29,28 @@ final class SettingsApiTest extends TestCase {
 
 		self::assertSame( 2560, $settings['containerMax'] );
 		self::assertSame( '#abcdef', $settings['primary'] );
-		self::assertSame( 2, $settings['schemaVersion'] );
+		self::assertSame( 4, $settings['schemaVersion'] );
 		self::assertArrayNotHasKey( 'editorPreference', $settings );
 		self::assertArrayNotHasKey( 'editorPreference', $api->settings_schema()['properties'] );
 		self::assertFalse( $api->settings_schema()['additionalProperties'] );
 		self::assertSame( $settings, get_option( 'cresco_canvas_settings' ) );
+	}
+
+	public function test_import_preview_does_not_save_until_settings_are_applied(): void {
+		$api = new RestApi();
+		$response = $api->preview_settings_import(
+			new WP_REST_Request(
+				array(
+					'input' => '--bg: oklch(98% 0.005 250); --blue: oklch(55% 0.15 235); font-family: Poppins, sans-serif;',
+				)
+			)
+		);
+		$result = $response->get_data();
+
+		self::assertTrue( $result['valid'] );
+		self::assertSame( 'oklch(98% 0.005 250)', $result['settings']['background'] );
+		self::assertSame( 'oklch(55% 0.15 235)', $result['settings']['primary'] );
+		self::assertSame( 'Poppins, sans-serif', $result['settings']['fontFamily'] );
+		self::assertSame( array(), get_option( 'cresco_canvas_settings', array() ) );
 	}
 }
