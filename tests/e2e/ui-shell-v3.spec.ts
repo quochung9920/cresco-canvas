@@ -25,6 +25,18 @@ async function openPanel( page: Page, label: 'Widgets' | 'Edit' | 'Settings' | '
 	await expect( button ).toHaveClass( /is-active/ );
 }
 
+async function expectSettingsOverlayAligned( page: Page ) {
+	const panelBox = await page.locator( '.cc-global-panel.cc-settings-center-host' ).boundingBox();
+	const overlayBox = await page.locator( '.cc-page-settings-overlay.cc-settings-center-inline' ).boundingBox();
+	expect( panelBox ).not.toBeNull();
+	expect( overlayBox ).not.toBeNull();
+	if ( ! panelBox || ! overlayBox ) return;
+	expect( Math.abs( panelBox.x - overlayBox.x ) ).toBeLessThanOrEqual( 2 );
+	expect( Math.abs( panelBox.y - overlayBox.y ) ).toBeLessThanOrEqual( 2 );
+	expect( Math.abs( panelBox.width - overlayBox.width ) ).toBeLessThanOrEqual( 2 );
+	expect( Math.abs( panelBox.height - overlayBox.height ) ).toBeLessThanOrEqual( 2 );
+}
+
 test.describe( 'Cresco standalone UI v3 shell', () => {
 	test( 'toggles desktop panels and exposes compact drawers', async ( { page } ) => {
 		await page.setViewportSize( { width: 1440, height: 900 } );
@@ -55,7 +67,7 @@ test.describe( 'Cresco standalone UI v3 shell', () => {
 		await expect( structure ).toBeFocused();
 	} );
 
-	test( 'replaces Global with one Settings Center and keeps Edit isolated', async ( { page } ) => {
+	test( 'uses one non-reparented Settings Center and keeps Edit isolated', async ( { page } ) => {
 		await page.setViewportSize( { width: 1440, height: 900 } );
 		await login( page );
 		await openStandaloneEditor( page );
@@ -63,6 +75,7 @@ test.describe( 'Cresco standalone UI v3 shell', () => {
 		const tabs = page.locator( '.cc-standalone-tabs button' );
 		await expect( tabs.filter( { hasText: 'Settings' } ) ).toHaveCount( 1 );
 		await expect( tabs.filter( { hasText: 'Global' } ) ).toHaveCount( 0 );
+		await expect( tabs.filter( { hasText: 'Settings' } ) ).toHaveAttribute( 'data-cresco-settings-tab', 'true' );
 		await expect( page.locator( '.cc-page-settings-trigger' ) ).toBeHidden();
 
 		const structureItem = page.locator( '.cc-standalone-structure-item' ).first();
@@ -73,44 +86,54 @@ test.describe( 'Cresco standalone UI v3 shell', () => {
 		await openPanel( page, 'Settings' );
 		const settingsPanel = page.locator( '.cc-global-panel.cc-settings-center-host' );
 		await expect( settingsPanel ).toBeVisible();
-		const settingsCenter = settingsPanel.getByRole( 'region', { name: 'Settings Center' } );
+		const settingsCenter = page.getByRole( 'region', { name: 'Settings Center' } );
 		await expect( settingsCenter ).toBeVisible();
 		await expect( settingsCenter.getByRole( 'button', { name: 'Global Colors' } ) ).toBeVisible();
 		await expect( settingsCenter.getByRole( 'button', { name: 'Layout' } ) ).toBeVisible();
-		await expect( settingsPanel.locator( '.cc-global-simple-editor' ) ).toBeHidden();
-		await expect( settingsPanel.getByRole( 'button', { name: 'Copy Global Config' } ) ).toBeHidden();
+		await expect( page.locator( '.cc-page-settings-overlay' ) ).toHaveCount( 1 );
+		await expect( page.locator( '.cc-page-settings-dialog' ) ).toHaveCount( 1 );
+		expect(
+			await page.locator( '.cc-page-settings-overlay' ).evaluate( ( node ) =>
+				node.parentElement?.classList.contains( 'cc-standalone-app' ) || false
+			)
+		).toBe( true );
+		await expectSettingsOverlayAligned( page );
 
 		await page.keyboard.press( 'Escape' );
 		await expect( settingsCenter ).toBeVisible();
 
 		await openPanel( page, 'Edit' );
+		await expect( tabs.filter( { hasText: 'Edit' } ).first() ).toBeFocused();
 		const inspector = page.locator( '.cc-inspector' );
 		await expect( inspector ).toBeVisible();
 		await expect( inspector.locator( '.cc-global-simple-editor' ) ).toHaveCount( 0 );
 		await expect( inspector.locator( '.cc-inspector-v2-tabs' ) ).toBeVisible();
 		await expect( page.getByRole( 'region', { name: 'Settings Center' } ) ).toHaveCount( 0 );
 		await expect( page.locator( 'body' ) ).not.toHaveClass( /cc-page-settings-open/ );
-
-		await openPanel( page, 'Settings' );
-		await expect( page.getByRole( 'region', { name: 'Settings Center' } ) ).toBeVisible();
 	} );
 
-	test( 'keeps Settings responsive across repeated tab switches', async ( { page } ) => {
+	test( 'keeps Settings responsive across repeated tab switches without DOM growth', async ( { page } ) => {
+		test.slow();
 		await page.setViewportSize( { width: 1440, height: 900 } );
 		await login( page );
 		await openStandaloneEditor( page );
 
-		for ( let index = 0; index < 20; index += 1 ) {
+		for ( let index = 0; index < 30; index += 1 ) {
 			await openPanel( page, 'Settings' );
 			await expect( page.getByRole( 'region', { name: 'Settings Center' } ) ).toBeVisible();
 			await expect( page.locator( '.cc-page-settings-overlay' ) ).toHaveCount( 1 );
-			await openPanel( page, index % 2 === 0 ? 'Edit' : 'Widgets' );
+			await expect( page.locator( '.cc-page-settings-dialog' ) ).toHaveCount( 1 );
+			await expect( page.locator( '.cc-ui-v3-panel-controls' ) ).toHaveCount( 1 );
+			await openPanel( page, index % 3 === 0 ? 'AI' : index % 2 === 0 ? 'Edit' : 'Widgets' );
 			await expect( page.getByRole( 'region', { name: 'Settings Center' } ) ).toHaveCount( 0 );
 		}
 
 		await openPanel( page, 'Settings' );
 		await expect( page.getByRole( 'region', { name: 'Settings Center' } ) ).toBeVisible();
 		await expect( page.locator( '.cc-page-settings-overlay' ) ).toHaveCount( 1 );
+		await expect( page.locator( '.cc-page-settings-dialog' ) ).toHaveCount( 1 );
+		await expect( page.locator( '#cresco-ui-v3-panel-ownership' ) ).toHaveCount( 1 );
+		await expectSettingsOverlayAligned( page );
 		await expect( page.locator( '.cc-standalone-tabs button' ).filter( { hasText: 'Edit' } ) ).toBeEnabled();
 		await expect( page.locator( '.cc-standalone-tabs button' ).filter( { hasText: 'Widgets' } ) ).toBeEnabled();
 	} );

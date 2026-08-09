@@ -6,6 +6,7 @@
 	var SETTINGS_LABEL = __( 'Settings', 'cresco-canvas' );
 	var SETTINGS_CENTER_LABEL = __( 'Settings Center', 'cresco-canvas' );
 	var BACK_TO_SETTINGS_LABEL = __( 'Back to Settings', 'cresco-canvas' );
+	var PAGE_SETTINGS_LABEL = __( 'Page Settings', 'cresco-canvas' );
 	var STORAGE_KEY = 'cresco-ui-v3:' + String( settings.postId || 'page' );
 	var OWNERSHIP_STYLE_ID = 'cresco-ui-v3-panel-ownership';
 	var app = null;
@@ -21,6 +22,9 @@
 	var resizeTimer = null;
 	var settingsOpenTimer = null;
 	var mutationSyncScheduled = false;
+	var mutationObserver = null;
+	var bootTimer = null;
+	var destroyed = false;
 
 	function readState() {
 		try {
@@ -52,11 +56,9 @@
 			'.cc-inspector .cc-global-simple-editor{display:none!important;}',
 			'.cc-global-panel .cc-inspector-v2-tabs{display:none!important;}',
 			'.cc-global-panel.cc-settings-center-host{height:100%;min-height:0;padding:0!important;overflow:hidden;}',
-			'.cc-global-panel.cc-settings-center-host > :not(.cc-page-settings-overlay){display:none!important;}',
-			'.cc-global-panel.cc-settings-center-host > .cc-page-settings-overlay{display:block!important;}',
-			'.cc-global-panel.cc-settings-center-host .cc-global-simple-editor{display:none!important;}',
-			'.cc-page-settings-overlay.cc-settings-center-inline{position:static!important;inset:auto!important;z-index:auto!important;width:100%!important;height:100%!important;min-height:0!important;background:transparent!important;backdrop-filter:none!important;}',
-			'.cc-settings-center-inline .cc-page-settings-dialog{width:100%!important;height:100%!important;min-height:100%!important;border-left:0!important;box-shadow:none!important;}',
+			'.cc-global-panel.cc-settings-center-host > *{visibility:hidden!important;pointer-events:none!important;}',
+			'.cc-page-settings-overlay.cc-settings-center-inline{position:fixed!important;inset:auto!important;z-index:38!important;display:block!important;place-items:stretch!important;min-width:0!important;min-height:0!important;background:transparent!important;backdrop-filter:none!important;}',
+			'.cc-settings-center-inline .cc-page-settings-dialog{width:100%!important;height:100%!important;min-height:0!important;border-left:0!important;box-shadow:none!important;}',
 			'.cc-settings-center-inline .cc-page-settings-close{display:none!important;}'
 		].join( '' );
 		document.head.appendChild( style );
@@ -72,38 +74,55 @@
 
 	function settingsTab() {
 		if ( ! app ) return null;
+		var explicit = app.querySelector( '.cc-standalone-tabs button[data-cresco-settings-tab="true"]' );
+		if ( explicit ) return explicit;
 		var tabs = app.querySelectorAll( '.cc-standalone-tabs button' );
 		if ( tabs.length < 3 ) return null;
 		return tabs[ 2 ];
 	}
 
+	function settingsPanel() {
+		return app ? app.querySelector( '.cc-global-panel' ) : null;
+	}
+
 	function syncSettingsEntry() {
 		var tab = settingsTab();
 		if ( ! tab ) return;
-		tab.dataset.crescoSettingsTab = 'true';
-		tab.setAttribute( 'aria-label', SETTINGS_LABEL );
+		if ( tab.dataset.crescoSettingsTab !== 'true' ) tab.dataset.crescoSettingsTab = 'true';
+		if ( tab.getAttribute( 'aria-label' ) !== SETTINGS_LABEL ) tab.setAttribute( 'aria-label', SETTINGS_LABEL );
 		var icon = tab.querySelector( '.dashicons' );
-		if ( icon ) icon.className = 'dashicons dashicons-admin-settings';
+		if ( icon && icon.className !== 'dashicons dashicons-admin-settings' ) icon.className = 'dashicons dashicons-admin-settings';
 		var labels = tab.querySelectorAll( 'span' );
 		if ( labels.length && String( labels[ labels.length - 1 ].textContent || '' ).trim() !== SETTINGS_LABEL ) labels[ labels.length - 1 ].textContent = SETTINGS_LABEL;
 
 		var trigger = app.querySelector( '.cc-page-settings-trigger' );
 		if ( trigger ) {
 			trigger.tabIndex = -1;
-			trigger.setAttribute( 'aria-hidden', 'true' );
+			if ( trigger.getAttribute( 'aria-hidden' ) !== 'true' ) trigger.setAttribute( 'aria-hidden', 'true' );
 		}
 	}
 
-	function moveSettingsCenterInline() {
+	function positionSettingsCenterInline( panel, overlay ) {
+		if ( ! panel || ! overlay || overlay.hidden ) return false;
+		var rect = panel.getBoundingClientRect();
+		if ( rect.width < 1 || rect.height < 1 ) return false;
+		overlay.style.left = Math.round( rect.left ) + 'px';
+		overlay.style.top = Math.round( rect.top ) + 'px';
+		overlay.style.width = Math.round( rect.width ) + 'px';
+		overlay.style.height = Math.round( rect.height ) + 'px';
+		return true;
+	}
+
+	function mountSettingsCenterInline() {
 		if ( ! app ) return false;
 		var tab = settingsTab();
-		var panel = app.querySelector( '.cc-global-panel' );
+		var panel = settingsPanel();
 		var overlay = app.querySelector( '.cc-page-settings-overlay' );
 		if ( ! tab || ! tab.classList.contains( 'is-active' ) || ! panel || ! overlay || overlay.hidden ) return false;
 
 		panel.classList.add( 'cc-settings-center-host' );
+		panel.setAttribute( 'aria-hidden', 'true' );
 		overlay.classList.add( 'cc-settings-center-inline' );
-		if ( overlay.parentNode !== panel ) panel.appendChild( overlay );
 
 		var dialog = overlay.querySelector( '.cc-page-settings-dialog' );
 		if ( dialog ) {
@@ -114,15 +133,34 @@
 			var back = dialog.querySelector( '.cc-site-settings-header-slot:first-child .cc-site-settings-header-button' );
 			if ( title && ! back && String( title.textContent || '' ).trim() !== SETTINGS_LABEL ) title.textContent = SETTINGS_LABEL;
 			if ( back ) {
-				back.setAttribute( 'aria-label', BACK_TO_SETTINGS_LABEL );
-				back.title = BACK_TO_SETTINGS_LABEL;
+				if ( back.getAttribute( 'aria-label' ) !== BACK_TO_SETTINGS_LABEL ) back.setAttribute( 'aria-label', BACK_TO_SETTINGS_LABEL );
+				if ( back.title !== BACK_TO_SETTINGS_LABEL ) back.title = BACK_TO_SETTINGS_LABEL;
 			}
 		}
-		return true;
+		return positionSettingsCenterInline( panel, overlay );
+	}
+
+	function clearInlinePresentation() {
+		if ( ! app ) return;
+		var panel = settingsPanel();
+		if ( panel ) {
+			panel.classList.remove( 'cc-settings-center-host' );
+			panel.removeAttribute( 'aria-hidden' );
+		}
+		var overlay = app.querySelector( '.cc-page-settings-overlay' );
+		if ( ! overlay ) return;
+		overlay.classList.remove( 'cc-settings-center-inline' );
+		[ 'left', 'top', 'width', 'height' ].forEach( function ( property ) { overlay.style.removeProperty( property ); } );
+		var dialog = overlay.querySelector( '.cc-page-settings-dialog' );
+		if ( dialog ) {
+			dialog.setAttribute( 'role', 'dialog' );
+			dialog.setAttribute( 'aria-modal', 'true' );
+			dialog.setAttribute( 'aria-label', PAGE_SETTINGS_LABEL );
+		}
 	}
 
 	function openSettingsCenter( attempt ) {
-		if ( ! app ) return;
+		if ( ! app || destroyed ) return;
 		attempt = Number( attempt || 0 );
 		var tab = settingsTab();
 		if ( ! tab || ! tab.classList.contains( 'is-active' ) ) return;
@@ -134,19 +172,17 @@
 		var overlay = app.querySelector( '.cc-page-settings-overlay' );
 		if ( ! overlay || overlay.hidden ) trigger.click();
 		window.requestAnimationFrame( function () {
-			if ( ! moveSettingsCenterInline() && attempt < 12 ) {
-				settingsOpenTimer = window.setTimeout( function () { openSettingsCenter( attempt + 1 ); }, 40 );
-			}
+			if ( destroyed ) return;
+			if ( ! mountSettingsCenterInline() && attempt < 12 ) settingsOpenTimer = window.setTimeout( function () { openSettingsCenter( attempt + 1 ); }, 40 );
 		} );
 	}
 
 	function cleanupSettingsCenter() {
 		window.clearTimeout( settingsOpenTimer );
-		var close = app ? app.querySelector( '.cc-settings-center-inline .cc-page-settings-close' ) : null;
-		if ( close ) {
-			close.click();
-			return;
-		}
+		var overlay = app ? app.querySelector( '.cc-page-settings-overlay' ) : null;
+		var close = overlay && ! overlay.hidden ? overlay.querySelector( '.cc-page-settings-close' ) : null;
+		if ( close ) close.click();
+		clearInlinePresentation();
 		if ( document.body ) document.body.classList.remove( 'cc-page-settings-open' );
 		if ( app ) app.classList.remove( 'cc-site-settings-guide-enabled' );
 	}
@@ -175,7 +211,7 @@
 		} );
 
 		var tab = settingsTab();
-		if ( tab && tab.classList.contains( 'is-active' ) ) moveSettingsCenterInline();
+		if ( tab && tab.classList.contains( 'is-active' ) ) mountSettingsCenterInline();
 		else cleanupSettingsCenter();
 	}
 
@@ -304,7 +340,7 @@
 	}
 
 	function sync() {
-		if ( ! app ) return;
+		if ( ! app || destroyed ) return;
 		ensureChrome();
 		var currentMode = mode();
 		if ( currentMode === 'desktop' ) {
@@ -341,11 +377,14 @@
 		var tab = event.target.closest( '.cc-standalone-tabs button' );
 		if ( tab ) {
 			window.requestAnimationFrame( syncPanelOwnership );
-			if ( tab.dataset.crescoSettingsTab === 'true' ) {
+			if ( tab.dataset.crescoSettingsTab === 'true' || tab === settingsTab() ) {
 				window.clearTimeout( settingsOpenTimer );
 				settingsOpenTimer = window.setTimeout( function () { openSettingsCenter( 0 ); }, 0 );
 			} else {
 				cleanupSettingsCenter();
+				window.requestAnimationFrame( function () {
+					if ( document.body.contains( tab ) ) tab.focus();
+				} );
 			}
 		}
 	}
@@ -391,7 +430,7 @@
 	}
 
 	function scheduleMutationSync( records ) {
-		if ( mutationSyncScheduled || ! mutationNeedsSync( records ) ) return;
+		if ( destroyed || mutationSyncScheduled || ! mutationNeedsSync( records ) ) return;
 		mutationSyncScheduled = true;
 		window.requestAnimationFrame( function () {
 			mutationSyncScheduled = false;
@@ -399,23 +438,43 @@
 		} );
 	}
 
+	function destroy() {
+		if ( destroyed ) return;
+		destroyed = true;
+		window.clearTimeout( bootTimer );
+		window.clearTimeout( resizeTimer );
+		window.clearTimeout( settingsOpenTimer );
+		if ( mutationObserver ) mutationObserver.disconnect();
+		document.removeEventListener( 'click', handleDocumentClick, true );
+		document.removeEventListener( 'keydown', handleKeydown, true );
+		window.removeEventListener( 'resize', handleResize );
+		window.removeEventListener( 'pagehide', destroy );
+		cleanupSettingsCenter();
+		if ( app ) delete app.dataset.crescoUiV3Bound;
+	}
+
 	function boot() {
+		if ( destroyed ) return;
 		app = document.querySelector( '.cc-standalone-app' );
 		if ( ! app ) {
-			window.setTimeout( boot, 80 );
+			bootTimer = window.setTimeout( boot, 80 );
 			return;
 		}
+		if ( app.dataset.crescoUiV3Bound === 'true' ) return;
+		app.dataset.crescoUiV3Bound = 'true';
 		readState();
 		ensureChrome();
 		sync();
 		document.addEventListener( 'click', handleDocumentClick, true );
-		document.addEventListener( 'keydown', handleKeydown );
+		document.addEventListener( 'keydown', handleKeydown, true );
 		window.addEventListener( 'resize', handleResize );
+		window.addEventListener( 'pagehide', destroy );
 		if ( window.MutationObserver ) {
-			new window.MutationObserver( scheduleMutationSync ).observe( app, { childList: true, subtree: true } );
+			mutationObserver = new window.MutationObserver( scheduleMutationSync );
+			mutationObserver.observe( app, { childList: true, subtree: true } );
 		}
 	}
 
-	if ( document.readyState === 'loading' ) document.addEventListener( 'DOMContentLoaded', boot );
+	if ( document.readyState === 'loading' ) document.addEventListener( 'DOMContentLoaded', boot, { once: true } );
 	else boot();
 } )( window, document );
