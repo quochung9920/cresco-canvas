@@ -1,30 +1,35 @@
-# Accessibility Audit
+# Accessibility Audit — 1.0.0-rc.1
 
-Target: WCAG 2.2 AA for critical editor workflows and generated interactive components.
+Target: WCAG 2.2 AA for critical Cresco editor workflows and frontend output.
 
-## Milestone 0.3 review
+This file separates automated evidence from manual verification. A configured test is not a pass.
 
-| Area | Evidence | Status |
+## Automated gate
+
+| Area | Test/evidence | Current status before release workflow |
 | --- | --- | --- |
-| Standard editor semantics | Cresco extends Gutenberg with public `PluginSidebar`, `PanelBody`, `Notice`, `ToggleControl`, `TextControl`, `Button`, and `Spinner` components | PASS (code review) |
-| Form labels | WordPress controls provide labels; native color inputs use explicit `for`/`id` pairs | PASS (code review) |
-| Keyboard focus | Native controls plus visible `:focus-visible` treatment for color inputs | PASS (code review) |
-| Loading and errors | Spinner has an accessible label; REST failures render dismissible WordPress notices and retry action | PASS (code review) |
-| Document recovery | Core Gutenberg autosave/revision/lock/recovery UI remains the only workflow; missing Cresco assets never replace the editor | PASS (architecture review) |
-| RTL build | Generated RTL CSS exists and the WordPress handle is marked `rtl: replace` | PASS (code/build review) |
-| Automated serious/critical issues | Playwright runs axe against the Cresco sidebar in Chromium, Firefox, and WebKit | NOT TESTED locally; CI configured |
-| Full keyboard workflow | Open sidebar, configure Page/global settings, add/edit/save/revise blocks | NOT TESTED manually |
-| Screen reader | NVDA/JAWS/VoiceOver names, status announcements, and reading order | NOT TESTED manually |
-| Browser zoom/reflow | 200% and 400% zoom | NOT TESTED manually |
-| High contrast/forced colors | No dedicated validation | NOT TESTED |
-| Mobile/touch editor | Core responsive editor exists; interaction validation not performed | NOT TESTED |
+| Standalone editor | axe serious/critical scan in `tests/e2e/accessibility-release.spec.ts` | NOT RUN |
+| Settings Center | axe serious/critical scan in the same suite | NOT RUN |
+| Frontend Cresco output | axe serious/critical scan after save/preview | NOT RUN |
+| Browser coverage | Chromium, Firefox, WebKit release matrix | NOT RUN |
 
-The E2E assertion blocks serious or critical axe findings within the Cresco sidebar. Automated checks cannot establish announcement quality, focus intent, keyboard efficiency, touch usability, or cognitive accessibility.
+A serious or critical axe violation fails the automated gate. Automated scans cannot prove announcement quality, focus intent, keyboard efficiency, zoom usability, or screen-reader comprehension.
 
-## Known gaps
+## Manual verification required
 
-- Native Gutenberg substantially reduces custom accessibility surface, but it does not waive testing of Cresco controls.
-- Manual assistive-technology evidence is required before Gate 3 can pass.
-- Interactive Cresco frontend components are not implemented yet; their keyboard, focus, ARIA, reduced-motion, and server-fallback requirements remain future scope.
+| Check | Status |
+| --- | --- |
+| Keyboard-only: open editor, insert/edit, Settings, History, save, preview | MANUAL REQUIRED |
+| Focus visibility, order, modal/off-canvas containment and return | MANUAL REQUIRED |
+| `prefers-reduced-motion` behavior | MANUAL REQUIRED |
+| 200% zoom/reflow | MANUAL REQUIRED |
+| 400% zoom/reflow | MANUAL REQUIRED |
+| RTL workflow | MANUAL REQUIRED |
+| Forced colors/high contrast | MANUAL REQUIRED |
+| NVDA critical smoke | MANUAL REQUIRED |
+| VoiceOver critical smoke | MANUAL REQUIRED |
+| Dedicated Edge critical smoke | MANUAL REQUIRED |
 
-Gate 3 remains `NOT VERIFIED`.
+No screen-reader or manual accessibility pass may be claimed until a human record exists for the exact release candidate.
+
+Accessibility remains a P0 commercial gate in `docs/COMMERCIAL_HARDENING.md` and `docs/RELEASE_CHECKLIST.md`.

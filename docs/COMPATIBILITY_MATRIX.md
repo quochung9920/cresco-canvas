@@ -1,31 +1,42 @@
-# Compatibility Matrix
+# Compatibility Matrix — 1.0.0-rc.1
 
-The declared minimum remains WordPress 6.7 and PHP 8.1 for backward compatibility. CI also covers maintained/current environments and WordPress trunk as experimental evidence.
+Declared minimums remain WordPress 6.7 and PHP 8.1. This matrix describes the release gate configuration; it does not claim results before jobs execute.
 
-Version under assessment: `0.3.0-alpha.1`. The editor smoke test must use the normal Page **Edit** action and confirm that Cresco loads inside Gutenberg; any alternate Cresco editor screen is a failure.
+Every cell is one of `PASS`, `FAIL`, `NOT RUN`, `SKIPPED`, `INFRA FAILURE`, or `NOT SUPPORTED`.
 
-Every cell is one of `PASS`, `FAIL`, `NOT TESTED`, or `NOT SUPPORTED`.
+## Optimized WordPress/PHP release matrix
 
-| WordPress | PHP | Clean activation | Editor smoke | Status |
-| --- | --- | --- | --- | --- |
-| 6.7 | 8.1 | NOT TESTED | NOT TESTED | Required CI job configured |
-| 6.9 | 8.3 | NOT TESTED | NOT TESTED | Required CI job configured |
-| 7.0.1 | 8.5 | NOT TESTED | NOT TESTED | Required CI job configured |
-| trunk | 8.5 | NOT TESTED | NOT TESTED | Experimental, non-blocking CI job configured |
+| WordPress | PHP | Purpose | Clean activation | Critical editor smoke | Current status |
+| --- | --- | --- | --- | --- | --- |
+| 6.7.5 | 8.1 | minimum supported boundary | NOT RUN | NOT RUN | NOT RUN |
+| 6.9.5 | 8.2 | latest-minus-one line + PHP 8.2 | NOT RUN | NOT RUN | NOT RUN |
+| 7.0.2 | 8.3 | current stable + release-default PHP | NOT RUN | NOT RUN | NOT RUN |
+| 7.0.2 | 8.4 | current stable + newest supported PHP | NOT RUN | NOT RUN | NOT RUN |
 
-## Additional dimensions
+PHPUnit separately executes on PHP 8.1, 8.2, 8.3, and 8.4.
 
-| Dimension | Status | Notes |
+## Browser and theme dimensions
+
+| Dimension | Gate | Current status |
 | --- | --- | --- |
-| PHP syntax/unit: 8.1, 8.2, 8.3, 8.4, 8.5 | NOT TESTED | Required matrix configured |
-| Chromium | NOT TESTED | Playwright project configured |
-| Firefox | NOT TESTED | Playwright project configured |
-| WebKit | NOT TESTED | Playwright project configured |
-| Multisite activation/uninstall | NOT TESTED | Uninstall iterates sites; runtime evidence absent |
-| RTL | NOT TESTED | RTL build generated; manual behavior absent |
-| Twenty Twenty-Five/theme baseline | NOT TESTED | `wp-env` default theme only |
-| Third-party themes/plugins | NOT TESTED | No supported list is advertised |
-| WooCommerce | NOT SUPPORTED | Post-1.0 scope |
-| Configured public post types | NOT SUPPORTED | Pages-first implementation |
+| Chromium | critical Playwright suite | NOT RUN |
+| Firefox | critical Playwright suite | NOT RUN |
+| WebKit/Safari engine | critical Playwright suite | NOT RUN |
+| Microsoft Edge | manual Chromium-compatible smoke | MANUAL REQUIRED |
+| Twenty Twenty-Five | modern block-theme Page Settings/frontend smoke | NOT RUN |
+| Twenty Twenty-One | classic-theme Page Settings/frontend smoke | NOT RUN |
 
-This document must be updated from actual CI run URLs and manual evidence before any compatibility claim is promoted. Gate 5 remains `NOT VERIFIED`.
+## Integration dimensions
+
+| Dimension | Gate | Current status |
+| --- | --- | --- |
+| ACF | install/activate + critical editor smoke | NOT RUN |
+| WooCommerce | install/activate + critical editor smoke | NOT RUN |
+| Multisite | network activation/site smoke | NOT RUN |
+| Object cache | compatibility smoke | MANUAL REQUIRED |
+| Page cache | compatibility smoke | MANUAL REQUIRED |
+| Common optimization/minification behavior | compatibility smoke | MANUAL REQUIRED |
+| Security plugin behavior | compatibility smoke | MANUAL REQUIRED |
+| CDN/proxy behavior | compatibility smoke | MANUAL REQUIRED |
+
+The matrix is updated only from actual release-run evidence. Workflow configuration alone is not compatibility evidence.

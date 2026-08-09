@@ -22,9 +22,9 @@ module.exports = {
 		...defaultConfig.output,
 		path: path.resolve( process.cwd(), 'build' ),
 		filename: '[name].js',
-		// The editor application consists of reviewed, checked-in runtimes with
-		// separate asset manifests. Do not delete or overwrite them when the
-		// Container and Preview bundles are rebuilt.
+		// Webpack owns only the entries above. The release build may delete the
+		// whole output directory; scripts/build-runtime.mjs restores reviewed
+		// runtime sources after webpack finishes.
 		clean: false,
 	},
 };

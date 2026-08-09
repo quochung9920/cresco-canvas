@@ -1,23 +1,20 @@
 import { createHash } from 'node:crypto';
-import { mkdir, readFile, readdir, writeFile } from 'node:fs/promises';
+import { execFileSync } from 'node:child_process';
+import { mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { zipSync } from 'fflate';
+import { collectReleaseFiles } from './release-files.mjs';
 
 const root = process.cwd();
 const outputDirectory = path.join( root, 'dist' );
-const archivePath = path.join( outputDirectory, 'cresco-canvas.zip' );
+const packageJson = JSON.parse( await readFile( path.join( root, 'package.json' ), 'utf8' ) );
+const version = packageJson.version;
+const archiveName = `cresco-canvas-${ version }.zip`;
+const archivePath = path.join( outputDirectory, archiveName );
 const fixedDate = new Date( '1980-01-01T00:00:00.000Z' );
-
-const requiredFiles = [
-	'cresco-canvas.php',
-	'uninstall.php',
-	'README.md',
-	'CHANGELOG.md',
-	'LICENSE',
+const releaseOwnershipContract = [
 	'docs/CRESCO_SESSION_V1.md',
-	'assets/css/frontend.css',
 	'assets/css/container-width.css',
-	'assets/css/design-system.css',
 	'assets/css/standalone-visual-editor.css',
 	'assets/css/standalone-inspector-v2.css',
 	'assets/css/standalone-ui-v3.css',
@@ -25,26 +22,6 @@ const requiredFiles = [
 	'assets/css/standalone-history.css',
 	'assets/css/global-config-import.css',
 	'assets/css/viewport-shell.css',
-	'assets/css/dynamic.css',
-	'assets/css/dynamic-advanced.css',
-	'assets/css/dynamic-alpha4.css',
-	'assets/css/dynamic-alpha5.css',
-	'assets/css/dynamic-completion.css',
-	'assets/css/editor-app-shell.css',
-	'assets/css/editor-app-shell-elements.css',
-	'assets/css/native-preview-suppression.css',
-	'assets/css/widget-inspector-persistent.css',
-	'assets/css/structure-navigator.css',
-	'assets/css/structure-navigator-actions.css',
-	'assets/css/visual-canvas.css',
-	'assets/css/style-engine.css',
-	'assets/css/interactions.css',
-	'assets/css/interactions-editor.css',
-	'assets/css/forms.css',
-	'assets/css/forms-completion.css',
-	'assets/css/preview.css',
-	'assets/css/templates.css',
-	'assets/css/theme-builder.css',
 	'build/standalone-visual-editor.js',
 	'build/standalone-visual-editor.asset.php',
 	'build/standalone-inspector-v2.js',
@@ -53,129 +30,93 @@ const requiredFiles = [
 	'build/standalone-history.js',
 	'build/global-config-import.js',
 	'build/viewport-shell.js',
-	'build/design-system.js',
-	'build/design-system.asset.php',
-	'build/dynamic.js',
-	'build/dynamic.asset.php',
-	'build/dynamic-advanced.js',
-	'build/dynamic-advanced.asset.php',
-	'build/dynamic-alpha4.js',
-	'build/dynamic-alpha4.asset.php',
-	'build/dynamic-alpha5.js',
-	'build/dynamic-alpha5.asset.php',
-	'build/dynamic-alpha5-frontend.js',
-	'build/dynamic-alpha5-frontend.asset.php',
-	'build/dynamic-completion.js',
-	'build/dynamic-completion.asset.php',
-	'build/dynamic-completion-frontend.js',
-	'build/dynamic-completion-frontend.asset.php',
-	'build/editor-foundation.js',
-	'build/editor-foundation.asset.php',
-	'build/editor-app-shell.js',
-	'build/editor-app-shell.asset.php',
-	'build/native-preview-suppression.js',
-	'build/native-preview-suppression.asset.php',
-	'build/widget-inspector-persistent.js',
-	'build/widget-inspector-persistent.asset.php',
-	'build/structure-navigator.js',
-	'build/structure-navigator.asset.php',
-	'build/visual-canvas.js',
-	'build/visual-canvas.asset.php',
-	'build/preview-foundation-bridge.js',
-	'build/preview-foundation-bridge.asset.php',
-	'build/style-engine-editor.js',
-	'build/style-engine-editor.asset.php',
-	'build/interactions-editor.js',
-	'build/interactions-editor.asset.php',
-	'build/interactions-frontend.js',
-	'build/interactions-frontend.asset.php',
-	'build/forms-frontend.js',
-	'build/forms-frontend.asset.php',
-	'build/forms-completion.js',
-	'build/forms-completion.asset.php',
-	'build/forms-completion-editor.js',
-	'build/forms-completion-editor.asset.php',
-	'build/editor.js',
-	'build/editor.asset.php',
-	'build/editor.css',
-	'build/container.js',
-	'build/container.asset.php',
-	'build/preview.js',
-	'build/preview.asset.php',
-	'build/templates.js',
-	'build/templates.asset.php',
-	'build/theme-builder.js',
-	'build/theme-builder.asset.php',
 	'includes/Page/PageSettings.php',
 	'includes/Page/canvas-template.php',
 	'includes/Session/HistoryManager.php',
 	'includes/Session/SessionManager.php',
-	'includes/Theme/renderer.php',
-	'vendor/autoload.php',
 ];
+const files = await collectReleaseFiles( root );
+for ( const required of releaseOwnershipContract ) {
+	if ( ! files.includes( required ) ) throw new Error( `Required production runtime is not in release allowlist: ${ required }` );
+}
+const sha256 = ( bytes ) => createHash( 'sha256' ).update( bytes ).digest( 'hex' );
 
-const allowedRoots = [
-	'assets/css',
-	'blocks',
-	'build',
-	'docs',
-	'includes',
-	'vendor',
-];
-
-// Keep known retired editor adapters out of production packages even if a
-// stale local build happens to recreate them.
-const excludedFiles = new Set( [
-	'assets/css/editor-hub.css',
-	'assets/css/elements-usage-sort.css',
-	'assets/css/workspace-layout.css',
-	'assets/css/widget-inspector.css',
-	'build/editor-hub.js',
-	'build/editor-hub.asset.php',
-	'build/elements-usage-sort.js',
-	'build/elements-usage-sort.asset.php',
-	'build/workspace-layout.js',
-	'build/workspace-layout.asset.php',
-	'build/widget-inspector.js',
-	'build/widget-inspector.asset.php',
-	'build/widget-inspector-compat.js',
-	'build/widget-inspector-compat.asset.php',
-	'build/standalone-content-bootstrap.js',
-	'build/standalone-content-bootstrap.asset.php',
-	'build/native-gutenberg-bridge.js',
-	'build/native-gutenberg-bridge.asset.php',
-] );
-
-async function walk( relativePath ) {
-	const absolutePath = path.join( root, relativePath );
-	const entries = await readdir( absolutePath, { withFileTypes: true } );
-	const files = [];
-	for ( const entry of entries.sort( ( left, right ) => left.name.localeCompare( right.name ) ) ) {
-		const child = path.join( relativePath, entry.name );
-		if ( entry.isDirectory() ) files.push( ...( await walk( child ) ) );
-		else if ( entry.isFile() ) files.push( child );
+function gitValue( args, fallback = 'unknown' ) {
+	try {
+		return execFileSync( 'git', args, { cwd: root, encoding: 'utf8', stdio: [ 'ignore', 'pipe', 'ignore' ] } ).trim() || fallback;
+	} catch {
+		return fallback;
 	}
-	return files;
 }
 
-for ( const file of requiredFiles ) await readFile( path.join( root, file ) );
-
-const files = [ 'cresco-canvas.php', 'uninstall.php', 'README.md', 'CHANGELOG.md', 'LICENSE' ];
-for ( const allowedRoot of allowedRoots ) {
-	if ( path.extname( allowedRoot ) ) files.push( allowedRoot );
-	else files.push( ...( await walk( allowedRoot ) ) );
-}
+await rm( outputDirectory, { recursive: true, force: true } );
+await mkdir( outputDirectory, { recursive: true } );
 
 const archiveEntries = {};
-for ( const file of [ ...new Set( files ) ].sort() ) {
-	if ( excludedFiles.has( file ) || file.endsWith( '.map' ) || file.includes( '/tests/' ) ) continue;
-	const archiveName = `cresco-canvas/${ file.replaceAll( path.sep, '/' ) }`;
-	archiveEntries[ archiveName ] = [ new Uint8Array( await readFile( path.join( root, file ) ) ), { mtime: fixedDate } ];
+const fileChecksums = [];
+for ( const file of files ) {
+	const bytes = new Uint8Array( await readFile( path.join( root, file ) ) );
+	const archiveNameForFile = `cresco-canvas/${ file.replaceAll( path.sep, '/' ) }`;
+	archiveEntries[ archiveNameForFile ] = [ bytes, { mtime: fixedDate } ];
+	fileChecksums.push( { file, sha256: sha256( bytes ) } );
 }
 
 const archive = zipSync( archiveEntries, { level: 9 } );
-const checksum = createHash( 'sha256' ).update( archive ).digest( 'hex' );
-await mkdir( outputDirectory, { recursive: true } );
+const checksum = sha256( archive );
 await writeFile( archivePath, archive );
-await writeFile( `${ archivePath }.sha256`, `${ checksum }  cresco-canvas.zip\n` );
-process.stdout.write( `Created dist/cresco-canvas.zip (${ archive.length } bytes)\nSHA-256: ${ checksum }\n` );
+await writeFile( path.join( outputDirectory, 'SHA256SUMS' ), `${ checksum }  ${ archiveName }\n` );
+
+const sourceCommit = process.env.GITHUB_SHA || gitValue( [ 'rev-parse', 'HEAD' ] );
+const sourceRef = process.env.GITHUB_REF_NAME || gitValue( [ 'branch', '--show-current' ] );
+const sbom = {
+	spdxVersion: 'SPDX-2.3',
+	dataLicense: 'CC0-1.0',
+	SPDXID: 'SPDXRef-DOCUMENT',
+	name: `Cresco Canvas ${ version } release file inventory`,
+	documentNamespace: `urn:cresco-canvas:${ version }:${ sourceCommit }`,
+	creationInfo: {
+		creators: [ 'Tool: Cresco Canvas release pipeline' ],
+		created: '1980-01-01T00:00:00Z',
+	},
+	packages: [
+		{
+			name: 'cresco-canvas',
+			SPDXID: 'SPDXRef-Package-Cresco-Canvas',
+			versionInfo: version,
+			downloadLocation: 'NOASSERTION',
+			filesAnalyzed: true,
+			licenseConcluded: 'GPL-2.0-or-later',
+			licenseDeclared: 'GPL-2.0-or-later',
+			copyrightText: 'NOASSERTION',
+			checksums: [ { algorithm: 'SHA256', checksumValue: checksum } ],
+		},
+	],
+	files: fileChecksums.map( ( item, index ) => ( {
+		fileName: `./cresco-canvas/${ item.file }`,
+		SPDXID: `SPDXRef-File-${ index + 1 }`,
+		checksums: [ { algorithm: 'SHA256', checksumValue: item.sha256 } ],
+		licenseConcluded: 'NOASSERTION',
+		copyrightText: 'NOASSERTION',
+	} ) ),
+	relationships: fileChecksums.map( ( item, index ) => ( {
+		spdxElementId: 'SPDXRef-Package-Cresco-Canvas',
+		relationshipType: 'CONTAINS',
+		relatedSpdxElement: `SPDXRef-File-${ index + 1 }`,
+	} ) ),
+};
+await writeFile( path.join( outputDirectory, `${ archiveName }.spdx.json` ), `${ JSON.stringify( sbom, null, 2 ) }\n` );
+
+const provenance = {
+	schema: 'cresco-release-provenance/v1',
+	artifact: archiveName,
+	sha256: checksum,
+	version,
+	source: { commit: sourceCommit, ref: sourceRef },
+	builder: process.env.GITHUB_ACTIONS === 'true' ? 'github-actions' : 'local',
+	node: process.version,
+	signed: false,
+	signingStatus: 'not-configured',
+};
+await writeFile( path.join( outputDirectory, `${ archiveName }.provenance.json` ), `${ JSON.stringify( provenance, null, 2 ) }\n` );
+
+process.stdout.write( `Created dist/${ archiveName } (${ archive.length } bytes)\nSHA-256: ${ checksum }\nFiles: ${ files.length }\n` );

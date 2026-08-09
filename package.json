@@ -1,52 +1,50 @@
 {
-  "name": "cresco-canvas",
-  "version": "1.0.0-rc.1",
-  "private": true,
-  "description": "Build visually. Run natively.",
-  "license": "GPL-2.0-or-later",
-  "engines": {
-    "node": ">=20.19.0",
-    "npm": ">=10.0.0"
-  },
-  "overrides": {
-    "adm-zip": "0.6.0",
-    "serialize-javascript": "7.0.7"
-  },
-  "scripts": {
-    "build": "wp-scripts build",
-    "start": "wp-scripts start",
-    "typecheck": "tsc --noEmit",
-    "lint:js": "wp-scripts lint-js src tests scripts webpack.config.js playwright.config.ts",
-    "lint:css": "wp-scripts lint-style 'assets/css/**/*.css' 'blocks/**/*.css' 'src/**/*.scss'",
-    "lint:md": "wp-scripts lint-md-docs README.md CHANGELOG.md 'docs/**/*.md'",
-    "test:unit": "wp-scripts test-unit-js --runInBand",
-    "test:e2e": "playwright test",
-    "test:e2e:report": "playwright show-report",
-    "check:hygiene": "node scripts/check-repository-hygiene.mjs",
-    "check:editor-runtime": "node scripts/check-editor-runtime.mjs",
-    "check:version": "node scripts/check-version.mjs",
-    "check:quality": "npm run check:hygiene && npm run check:editor-runtime && npm run typecheck && npm run lint:js && npm run lint:css && npm run lint:md && npm run test:unit && npm run check:version",
-    "package": "node scripts/build-release.mjs",
-    "package:verify": "node scripts/verify-reproducible-build.mjs"
-  },
-  "devDependencies": {
-    "@axe-core/playwright": "4.12.1",
-    "@playwright/test": "1.62.1",
-    "@types/jest": "30.0.0",
-    "@types/react": "18.3.31",
-    "@types/react-dom": "18.3.7",
-    "@wordpress/api-fetch": "7.52.0",
-    "@wordpress/block-editor": "16.1.0",
-    "@wordpress/blocks": "15.25.0",
-    "@wordpress/components": "38.0.0",
-    "@wordpress/data": "10.52.0",
-    "@wordpress/element": "8.4.0",
-    "@wordpress/editor": "14.52.0",
-    "@wordpress/env": "11.12.0",
-    "@wordpress/i18n": "6.25.0",
-    "@wordpress/plugins": "7.52.0",
-    "@wordpress/scripts": "34.0.0",
-    "fflate": "0.8.3",
-    "typescript": "5.9.3"
-  }
+	"name": "cresco-canvas",
+	"version": "1.0.0-rc.1",
+	"private": true,
+	"description": "Build visually. Run natively.",
+	"license": "GPL-2.0-or-later",
+	"engines": {
+		"node": ">=20.19.0",
+		"npm": ">=10.0.0"
+	},
+	"overrides": {
+		"adm-zip": "0.6.0",
+		"serialize-javascript": "7.0.7"
+	},
+	"scripts": {
+		"build": "wp-scripts build && node scripts/build-runtime.mjs",
+		"start": "wp-scripts start",
+		"typecheck": "tsc --noEmit",
+		"lint:js": "wp-scripts lint-js src tests scripts webpack.config.js playwright.config.ts playwright.performance.config.ts",
+		"lint:css": "wp-scripts lint-style 'assets/css/**/*.css' 'blocks/**/*.css' 'src/**/*.scss'",
+		"lint:md": "wp-scripts lint-md-docs README.md CHANGELOG.md 'docs/**/*.md' 'runtime-src/**/*.md'",
+		"test:unit": "wp-scripts test-unit-js --runInBand",
+		"test:e2e": "playwright test",
+		"test:critical": "playwright test tests/e2e/release-critical.spec.ts --project=chromium",
+		"test:accessibility": "playwright test tests/e2e/accessibility-release.spec.ts --project=chromium",
+		"test:performance": "playwright test --config=playwright.performance.config.ts",
+		"test:zip-install": "node scripts/release-zip-smoke.mjs",
+		"test:upgrade": "node scripts/upgrade-smoke.mjs",
+		"check:hygiene": "node scripts/check-repository-hygiene.mjs",
+		"check:build-integrity": "node scripts/check-build-integrity.mjs",
+		"check:editor-runtime": "node scripts/check-editor-runtime.mjs",
+		"check:version": "node scripts/check-version.mjs && node scripts/check-stable-release.mjs",
+		"check:quality": "npm run check:hygiene && npm run check:editor-runtime && npm run typecheck && npm run lint:js && npm run lint:css && npm run lint:md && npm run test:unit && npm run check:version",
+		"package": "node scripts/build-release.mjs",
+		"package:verify": "node scripts/verify-package.mjs && node scripts/verify-reproducible-build.mjs"
+	},
+	"devDependencies": {
+		"@axe-core/playwright": "^4.11.0",
+		"@playwright/test": "^1.62.1",
+		"@types/jest": "^30.0.0",
+		"@types/node": "^24.2.0",
+		"@types/react": "^18.3.25",
+		"@types/react-dom": "^18.3.7",
+		"@wordpress/env": "^10.33.0",
+		"@wordpress/scripts": "^34.0.0",
+		"fflate": "^0.8.2",
+		"jest-environment-jsdom": "^30.0.5",
+		"typescript": "^5.9.2"
+	}
 }
