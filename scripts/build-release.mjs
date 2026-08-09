@@ -15,6 +15,7 @@ const requiredFiles = [
 	'CHANGELOG.md',
 	'LICENSE',
 	'docs/CRESCO_SESSION_V1.md',
+	'assets/css/frontend.css',
 	'assets/css/container-width.css',
 	'assets/css/design-system.css',
 	'assets/css/standalone-visual-editor.css',
