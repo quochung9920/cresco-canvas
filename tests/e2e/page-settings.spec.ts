@@ -19,11 +19,10 @@ async function openStandaloneEditor( page: Page ) {
 	await expect( page.locator( '.cc-standalone-app.cc-ui-v3-ready' ) ).toBeVisible();
 }
 
-async function openSiteSettingsView( dialog: Locator, name: string ) {
-	if ( await dialog.getByRole( 'button', { name: 'Back to Site Settings' } ).isVisible().catch( () => false ) ) {
-		await dialog.getByRole( 'button', { name: 'Back to Site Settings' } ).click();
-	}
-	await dialog.getByRole( 'button', { name } ).click();
+async function openSiteSettingsView( settingsCenter: Locator, name: string ) {
+	const back = settingsCenter.getByRole( 'button', { name: /Back to (Settings|Site Settings)/ } );
+	if ( await back.isVisible().catch( () => false ) ) await back.click();
+	await settingsCenter.getByRole( 'button', { name } ).click();
 }
 
 test.describe.serial( 'Cresco Page Settings', () => {
@@ -32,19 +31,20 @@ test.describe.serial( 'Cresco Page Settings', () => {
 		await login( page );
 		await openStandaloneEditor( page );
 
-		const trigger = page.getByRole( 'button', { name: 'Page Settings' } );
-		await expect( trigger ).toBeVisible();
-		await trigger.click();
+		await expect( page.locator( '.cc-page-settings-trigger' ) ).toBeHidden();
+		const settingsTab = page.locator( '.cc-standalone-tabs button' ).filter( { hasText: 'Settings' } ).first();
+		await settingsTab.click();
+		await expect( settingsTab ).toHaveClass( /is-active/ );
 
-		const dialog = page.getByRole( 'dialog', { name: 'Page Settings' } );
-		await expect( dialog ).toBeVisible();
-		await expect( dialog.getByRole( 'button', { name: 'Global Colors' } ) ).toBeVisible();
-		await expect( dialog.getByRole( 'button', { name: 'Layout' } ) ).toBeVisible();
+		const settingsCenter = page.getByRole( 'region', { name: 'Settings Center' } );
+		await expect( settingsCenter ).toBeVisible();
+		await expect( settingsCenter.getByRole( 'button', { name: 'Global Colors' } ) ).toBeVisible();
+		await expect( settingsCenter.getByRole( 'button', { name: 'Layout' } ) ).toBeVisible();
 
-		await openSiteSettingsView( dialog, 'Layout' );
-		const layout = dialog.locator( '[name="layout"]' );
-		const title = dialog.locator( '[name="pageTitle"]' );
-		const root = dialog.locator( '[name="contentRoot"]' );
+		await openSiteSettingsView( settingsCenter, 'Layout' );
+		const layout = settingsCenter.locator( '[name="layout"]' );
+		const title = settingsCenter.locator( '[name="pageTitle"]' );
+		const root = settingsCenter.locator( '[name="contentRoot"]' );
 
 		await expect( layout ).toHaveValue( 'full-width' );
 		await expect( title ).toHaveValue( 'hide' );
@@ -56,24 +56,27 @@ test.describe.serial( 'Cresco Page Settings', () => {
 		await root.selectOption( 'theme' );
 		await title.selectOption( 'show' );
 
-		await openSiteSettingsView( dialog, 'Page Header' );
-		await dialog.locator( '[name="header"]' ).selectOption( 'hide' );
-		await openSiteSettingsView( dialog, 'Page Footer' );
-		await dialog.locator( '[name="footer"]' ).selectOption( 'hide' );
-		await dialog.getByRole( 'button', { name: 'Save Page Settings' } ).click();
-		await expect( dialog.locator( '.cc-page-settings-status' ) ).toContainText( 'Page Settings saved' );
+		await openSiteSettingsView( settingsCenter, 'Page Header' );
+		await settingsCenter.locator( '[name="header"]' ).selectOption( 'hide' );
+		await openSiteSettingsView( settingsCenter, 'Page Footer' );
+		await settingsCenter.locator( '[name="footer"]' ).selectOption( 'hide' );
+		await settingsCenter.getByRole( 'button', { name: 'Save Page Settings' } ).click();
+		await expect( settingsCenter.locator( '.cc-page-settings-status' ) ).toContainText( 'Page Settings saved' );
 
-		await openSiteSettingsView( dialog, 'Layout' );
+		await openSiteSettingsView( settingsCenter, 'Layout' );
 		await layout.selectOption( 'full-width' );
 		await title.selectOption( 'hide' );
 		await expect( title ).toHaveValue( 'hide' );
-		await openSiteSettingsView( dialog, 'Page Header' );
-		await dialog.locator( '[name="header"]' ).selectOption( 'inherit' );
-		await openSiteSettingsView( dialog, 'Page Footer' );
-		await dialog.locator( '[name="footer"]' ).selectOption( 'inherit' );
-		await dialog.getByRole( 'button', { name: 'Save Page Settings' } ).click();
-		await expect( dialog.locator( '.cc-page-settings-status' ) ).toContainText( 'Page Settings saved' );
-		await dialog.getByRole( 'button', { name: 'Close Page Settings' } ).click();
+		await openSiteSettingsView( settingsCenter, 'Page Header' );
+		await settingsCenter.locator( '[name="header"]' ).selectOption( 'inherit' );
+		await openSiteSettingsView( settingsCenter, 'Page Footer' );
+		await settingsCenter.locator( '[name="footer"]' ).selectOption( 'inherit' );
+		await settingsCenter.getByRole( 'button', { name: 'Save Page Settings' } ).click();
+		await expect( settingsCenter.locator( '.cc-page-settings-status' ) ).toContainText( 'Page Settings saved' );
+
+		const widgetsTab = page.locator( '.cc-standalone-tabs button' ).filter( { hasText: 'Widgets' } ).first();
+		await widgetsTab.click();
+		await expect( page.getByRole( 'region', { name: 'Settings Center' } ) ).toHaveCount( 0 );
 
 		const previewHref = await page.getByRole( 'link', { name: 'Preview' } ).getAttribute( 'href' );
 		expect( previewHref ).toBeTruthy();
