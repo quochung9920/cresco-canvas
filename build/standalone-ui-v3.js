@@ -2,6 +2,10 @@
 	'use strict';
 
 	var settings = window.crescoCanvasStandaloneSettings || {};
+	var __ = window.wp && window.wp.i18n && window.wp.i18n.__ ? window.wp.i18n.__ : function ( text ) { return text; };
+	var SETTINGS_LABEL = __( 'Settings', 'cresco-canvas' );
+	var SETTINGS_CENTER_LABEL = __( 'Settings Center', 'cresco-canvas' );
+	var BACK_TO_SETTINGS_LABEL = __( 'Back to Settings', 'cresco-canvas' );
 	var STORAGE_KEY = 'cresco-ui-v3:' + String( settings.postId || 'page' );
 	var OWNERSHIP_STYLE_ID = 'cresco-ui-v3-panel-ownership';
 	var app = null;
@@ -76,11 +80,11 @@
 		var tab = settingsTab();
 		if ( ! tab ) return;
 		tab.dataset.crescoSettingsTab = 'true';
-		tab.setAttribute( 'aria-label', 'Settings' );
+		tab.setAttribute( 'aria-label', SETTINGS_LABEL );
 		var icon = tab.querySelector( '.dashicons' );
 		if ( icon ) icon.className = 'dashicons dashicons-admin-settings';
 		var labels = tab.querySelectorAll( 'span' );
-		if ( labels.length && String( labels[ labels.length - 1 ].textContent || '' ).trim() !== 'Settings' ) labels[ labels.length - 1 ].textContent = 'Settings';
+		if ( labels.length && String( labels[ labels.length - 1 ].textContent || '' ).trim() !== SETTINGS_LABEL ) labels[ labels.length - 1 ].textContent = SETTINGS_LABEL;
 
 		var trigger = app.querySelector( '.cc-page-settings-trigger' );
 		if ( trigger ) {
@@ -103,14 +107,14 @@
 		var dialog = overlay.querySelector( '.cc-page-settings-dialog' );
 		if ( dialog ) {
 			dialog.setAttribute( 'role', 'region' );
-			dialog.setAttribute( 'aria-label', 'Settings Center' );
+			dialog.setAttribute( 'aria-label', SETTINGS_CENTER_LABEL );
 			dialog.removeAttribute( 'aria-modal' );
 			var title = dialog.querySelector( '.cc-site-settings-header-title' );
-			if ( title && String( title.textContent || '' ).trim() === 'Site Settings' ) title.textContent = 'Settings';
-			var back = dialog.querySelector( '[aria-label="Back to Site Settings"]' );
+			var back = dialog.querySelector( '.cc-site-settings-header-slot:first-child .cc-site-settings-header-button' );
+			if ( title && ! back ) title.textContent = SETTINGS_LABEL;
 			if ( back ) {
-				back.setAttribute( 'aria-label', 'Back to Settings' );
-				back.title = 'Back to Settings';
+				back.setAttribute( 'aria-label', BACK_TO_SETTINGS_LABEL );
+				back.title = BACK_TO_SETTINGS_LABEL;
 			}
 		}
 		return true;
@@ -332,8 +336,8 @@
 			return;
 		}
 		var center = app ? app.querySelector( '.cc-settings-center-inline .cc-page-settings-dialog' ) : null;
-		var title = center ? center.querySelector( '.cc-site-settings-header-title' ) : null;
-		if ( title && String( title.textContent || '' ).trim() === 'Settings' ) {
+		var back = center ? center.querySelector( '.cc-site-settings-header-slot:first-child .cc-site-settings-header-button' ) : null;
+		if ( center && ! back ) {
 			event.preventDefault();
 			event.stopImmediatePropagation();
 		}
