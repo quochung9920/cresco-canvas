@@ -26,6 +26,18 @@ final class PageSettings {
 	const META_KEY = '_cresco_canvas_page_settings';
 	const VERSION  = 1;
 
+	/** @var array<int,array<string,mixed>> */
+	private static $settings_cache = array();
+
+	/** @var array<int,array<string,mixed>> */
+	private static $effective_cache = array();
+
+	/** @var array<int,bool> */
+	private static $uses_cresco_cache = array();
+
+	/** @var int|null */
+	private $current_page_id = null;
+
 	public function register() {
 		add_action( 'init', array( $this, 'register_meta' ), 6 );
 		add_action( 'rest_api_init', array( $this, 'register_routes' ) );
@@ -86,7 +98,7 @@ final class PageSettings {
 		return new WP_REST_Response(
 			array(
 				'settings'  => $settings,
-				'effective' => self::effective( $settings ),
+				'effective' => self::effective_for_post( $post_id ),
 			)
 		);
 	}
@@ -102,10 +114,13 @@ final class PageSettings {
 		}
 		update_post_meta( $post_id, self::META_KEY, $json );
 		update_post_meta( $post_id, EditorIntegration::ENABLED_META, true );
+		self::$settings_cache[ $post_id ]    = $settings;
+		self::$effective_cache[ $post_id ]   = self::effective( $settings );
+		self::$uses_cresco_cache[ $post_id ] = true;
 		return new WP_REST_Response(
 			array(
 				'settings'  => $settings,
-				'effective' => self::effective( $settings ),
+				'effective' => self::$effective_cache[ $post_id ],
 				'savedAt'   => gmdate( 'c' ),
 			)
 		);
@@ -136,10 +151,18 @@ final class PageSettings {
 	}
 
 	public static function get( $post_id ) {
-		$raw = get_post_meta( absint( $post_id ), self::META_KEY, true );
-		if ( is_array( $raw ) ) return self::sanitize( $raw );
+		$post_id = absint( $post_id );
+		if ( ! $post_id ) return self::defaults();
+		if ( isset( self::$settings_cache[ $post_id ] ) ) return self::$settings_cache[ $post_id ];
+
+		$raw = get_post_meta( $post_id, self::META_KEY, true );
+		if ( is_array( $raw ) ) {
+			self::$settings_cache[ $post_id ] = self::sanitize( $raw );
+			return self::$settings_cache[ $post_id ];
+		}
 		$decoded = is_string( $raw ) && '' !== $raw ? json_decode( $raw, true ) : null;
-		return self::sanitize( is_array( $decoded ) ? $decoded : array() );
+		self::$settings_cache[ $post_id ] = self::sanitize( is_array( $decoded ) ? $decoded : array() );
+		return self::$settings_cache[ $post_id ];
 	}
 
 	/** Return settings after applying layout guarantees. */
@@ -160,7 +183,7 @@ final class PageSettings {
 	public function body_classes( $classes ) {
 		$post_id = $this->current_cresco_page_id();
 		if ( ! $post_id ) return $classes;
-		$settings  = self::effective( self::get( $post_id ) );
+		$settings  = self::effective_for_post( $post_id );
 		$classes[] = 'cresco-page-layout-' . sanitize_html_class( $settings['layout'] );
 		$classes[] = 'cresco-page-root-' . sanitize_html_class( $settings['contentRoot'] );
 		if ( 'hide' === $settings['pageTitle'] ) $classes[] = 'cresco-page-title-hidden';
@@ -172,7 +195,7 @@ final class PageSettings {
 	public function filter_page_title( $title, $post_id ) {
 		if ( is_admin() || ! is_singular( 'page' ) || absint( $post_id ) !== (int) get_queried_object_id() ) return $title;
 		if ( ! self::post_uses_cresco( $post_id ) ) return $title;
-		$settings = self::effective( self::get( $post_id ) );
+		$settings = self::effective_for_post( $post_id );
 		if ( 'hide' !== $settings['pageTitle'] ) return $title;
 		return in_the_loop() && is_main_query() ? '' : $title;
 	}
@@ -207,7 +230,7 @@ final class PageSettings {
 	public function template_include( $template ) {
 		$post_id = $this->current_cresco_page_id();
 		if ( ! $post_id ) return $template;
-		$settings = self::get( $post_id );
+		$settings = self::effective_for_post( $post_id );
 		if ( 'canvas' !== $settings['layout'] ) return $template;
 		$canvas_template = CRESCO_CANVAS_PATH . 'includes/Page/canvas-template.php';
 		return is_readable( $canvas_template ) ? $canvas_template : $template;
@@ -232,7 +255,7 @@ final class PageSettings {
 		$data    = $response->get_data();
 		if ( ! is_array( $data ) ) return $response;
 		$data['pageSettings']          = self::get( $post_id );
-		$data['pageSettingsEffective'] = self::effective( $data['pageSettings'] );
+		$data['pageSettingsEffective'] = self::effective_for_post( $post_id );
 		$data['instructions']          = isset( $data['instructions'] ) && is_array( $data['instructions'] ) ? $data['instructions'] : array();
 		$data['instructions'][]        = 'Page Settings control the WordPress/theme shell and are not part of cresco-session/v1.';
 		$response->set_data( $data );
@@ -243,7 +266,7 @@ final class PageSettings {
 	private function should_suppress_template_part( $block ) {
 		$post_id = $this->current_cresco_page_id();
 		if ( ! $post_id ) return false;
-		$settings = self::effective( self::get( $post_id ) );
+		$settings = self::effective_for_post( $post_id );
 		$area     = self::template_part_area( $block );
 		if ( 'header' === $area ) return 'hide' === $settings['header'];
 		if ( 'footer' === $area ) return 'hide' === $settings['footer'];
@@ -261,6 +284,8 @@ final class PageSettings {
 	 * @return string header, footer, or empty string.
 	 */
 	public static function template_part_area( $block ) {
+		static $entity_area_cache = array();
+
 		$attrs = is_array( $block ) ? (array) ( $block['attrs'] ?? array() ) : array();
 		$area  = sanitize_key( (string) ( $attrs['area'] ?? '' ) );
 		if ( in_array( $area, array( 'header', 'footer' ), true ) ) return $area;
@@ -273,8 +298,12 @@ final class PageSettings {
 			$theme = sanitize_key( (string) ( $attrs['theme'] ?? '' ) );
 			if ( ! $theme && function_exists( 'get_stylesheet' ) ) $theme = sanitize_key( (string) get_stylesheet() );
 			if ( $theme ) {
-				$template = get_block_template( $theme . '//' . $slug, 'wp_template_part' );
-				$resolved = is_object( $template ) && isset( $template->area ) ? sanitize_key( (string) $template->area ) : '';
+				$cache_key = $theme . '//' . $slug;
+				if ( ! array_key_exists( $cache_key, $entity_area_cache ) ) {
+					$template                        = get_block_template( $cache_key, 'wp_template_part' );
+					$entity_area_cache[ $cache_key ] = is_object( $template ) && isset( $template->area ) ? sanitize_key( (string) $template->area ) : '';
+				}
+				$resolved = $entity_area_cache[ $cache_key ];
 				if ( in_array( $resolved, array( 'header', 'footer' ), true ) ) return $resolved;
 			}
 		}
@@ -284,18 +313,38 @@ final class PageSettings {
 	}
 
 	private function current_cresco_page_id() {
-		if ( is_admin() || ! is_singular( 'page' ) ) return 0;
-		$post_id = (int) get_queried_object_id();
-		return $post_id > 0 && self::post_uses_cresco( $post_id ) ? $post_id : 0;
+		if ( null !== $this->current_page_id ) return $this->current_page_id;
+		if ( is_admin() || ! is_singular( 'page' ) ) {
+			$this->current_page_id = 0;
+			return 0;
+		}
+		$post_id               = (int) get_queried_object_id();
+		$this->current_page_id = $post_id > 0 && self::post_uses_cresco( $post_id ) ? $post_id : 0;
+		return $this->current_page_id;
 	}
 
 	public static function post_uses_cresco( $post_id ) {
 		$post_id = absint( $post_id );
 		if ( ! $post_id || 'page' !== get_post_type( $post_id ) ) return false;
-		if ( rest_sanitize_boolean( get_post_meta( $post_id, EditorIntegration::ENABLED_META, true ) ) ) return true;
-		if ( '' !== (string) get_post_meta( $post_id, SessionManager::META_KEY, true ) ) return true;
-		$post = get_post( $post_id );
-		return $post && has_block( 'cresco/container', $post->post_content );
+		if ( array_key_exists( $post_id, self::$uses_cresco_cache ) ) return self::$uses_cresco_cache[ $post_id ];
+
+		$uses_cresco = rest_sanitize_boolean( get_post_meta( $post_id, EditorIntegration::ENABLED_META, true ) );
+		if ( ! $uses_cresco ) $uses_cresco = '' !== (string) get_post_meta( $post_id, SessionManager::META_KEY, true );
+		if ( ! $uses_cresco ) {
+			$post        = get_post( $post_id );
+			$uses_cresco = (bool) ( $post && has_block( 'cresco/container', $post->post_content ) );
+		}
+		self::$uses_cresco_cache[ $post_id ] = $uses_cresco;
+		return $uses_cresco;
+	}
+
+	private static function effective_for_post( $post_id ) {
+		$post_id = absint( $post_id );
+		if ( ! $post_id ) return self::effective( self::defaults() );
+		if ( ! isset( self::$effective_cache[ $post_id ] ) ) {
+			self::$effective_cache[ $post_id ] = self::effective( self::get( $post_id ) );
+		}
+		return self::$effective_cache[ $post_id ];
 	}
 
 	private static function enum( $value, $allowed, $fallback ) {
