@@ -141,6 +141,11 @@
 
 	function cleanupSettingsCenter() {
 		window.clearTimeout( settingsOpenTimer );
+		var close = app ? app.querySelector( '.cc-settings-center-inline .cc-page-settings-close' ) : null;
+		if ( close ) {
+			close.click();
+			return;
+		}
 		if ( document.body ) document.body.classList.remove( 'cc-page-settings-open' );
 		if ( app ) app.classList.remove( 'cc-site-settings-guide-enabled' );
 	}
