@@ -98,6 +98,53 @@ test.describe.serial( 'Cresco editor reliability', () => {
 		await expect( page.locator( '.cc-canvas-widget-heading' ) ).toHaveCount( 2 );
 	} );
 
+	test( 'shows inherited versus overridden responsive values and resets one override', async ( { page } ) => {
+		await importSession( page );
+		await page.locator( '.cc-standalone-structure-item' ).filter( { hasText: 'reliability-heading' } ).click();
+		await expect( page.locator( '.cc-inspector-v2' ) ).toBeVisible();
+		await page.locator( '.cc-inspector-v2-tabs' ).getByRole( 'tab', { name: 'Style' } ).click();
+
+		const inspector = page.locator( '.cc-inspector-v2' );
+		const fontSizeControl = inspector.locator( '.components-base-control' ).filter( { has: page.locator( '.components-base-control__label', { hasText: 'Font size' } ) } ).first();
+		const fontSizeInput = fontSizeControl.locator( 'input' );
+		const badge = fontSizeControl.locator( '.cc-inspector-v2-responsive-badge' );
+
+		await inspector.locator( '.cc-inspector-device-switcher' ).getByRole( 'button', { name: 'Tablet' } ).click();
+		await expect( fontSizeInput ).toHaveValue( '' );
+		await expect( badge ).toContainText( 'Inherited' );
+		await expect( badge ).toContainText( 'Laptop' );
+		await expect( fontSizeControl.locator( '.cc-inspector-v2-reset-override' ) ).toHaveCount( 0 );
+
+		await inspector.locator( '.cc-inspector-device-switcher' ).getByRole( 'button', { name: 'Mobile' } ).click();
+		await expect( fontSizeInput ).toHaveValue( '36px' );
+		await expect( badge ).toContainText( 'Override' );
+		await expect( badge ).toContainText( 'Mobile' );
+		const reset = fontSizeControl.locator( '.cc-inspector-v2-reset-override' );
+		await expect( reset ).toHaveCount( 1 );
+		await reset.click();
+		await expect( fontSizeInput ).toHaveValue( '' );
+		await expect( badge ).toContainText( 'Inherited' );
+		await expect( badge ).toContainText( 'Tablet' );
+	} );
+
+	test( 'marks inspector controls with server widget capabilities without duplicating enhancers', async ( { page } ) => {
+		await importSession( page );
+		await page.locator( '.cc-standalone-structure-item' ).filter( { hasText: 'reliability-heading' } ).click();
+		await page.locator( '.cc-inspector-v2-tabs' ).getByRole( 'tab', { name: 'Style' } ).click();
+		const inspector = page.locator( '.cc-inspector-v2' );
+		const capabilityControls = inspector.locator( '[data-cresco-capability]' );
+		await expect( capabilityControls.first() ).toBeVisible();
+		await expect( capabilityControls.first() ).toHaveAttribute( 'data-cresco-capability-supported', 'true' );
+
+		for ( let index = 0; index < 8; index += 1 ) {
+			await inspector.locator( '.cc-inspector-device-switcher' ).getByRole( 'button', { name: index % 2 ? 'Desktop' : 'Mobile' } ).click();
+		}
+		const labels = inspector.locator( '.components-base-control__label' );
+		const badges = inspector.locator( '.cc-inspector-v2-responsive-badge' );
+		expect( await badges.count() ).toBeLessThanOrEqual( await labels.count() );
+		await expect( inspector.locator( '.cc-inspector-v2-tabs' ) ).toHaveCount( 1 );
+	} );
+
 	test( 'restores a saved Session revision through History', async ( { page } ) => {
 		test.slow();
 		await importSession( page );
@@ -121,5 +168,4 @@ test.describe.serial( 'Cresco editor reliability', () => {
 		await expect( page.locator( '.cc-standalone-app.cc-ui-v3-ready' ) ).toBeVisible();
 		await expect( page.locator( '.cc-session-canvas' ) ).toContainText( 'History version A' );
 	} );
-
 } );
