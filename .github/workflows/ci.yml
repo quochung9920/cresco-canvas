@@ -2,9 +2,6 @@ name: Cresco Canvas CI
 
 on:
   push:
-    branches:
-      - main
-      - commercial/release-quality
   pull_request:
   workflow_dispatch:
 

@@ -7,6 +7,7 @@
 
 namespace CrescoCanvas\Admin;
 
+use CrescoCanvas\Session\SessionManager;
 use CrescoCanvas\Styles\GlobalStyles;
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -92,7 +93,7 @@ final class VisualEditor {
 		}
 
 		$asset = require $required['build/standalone-visual-editor.asset.php'];
-		$editor_ux_version = CRESCO_CANVAS_VERSION . '-editor-core.1';
+		$editor_ux_version = CRESCO_CANVAS_VERSION . '-editor-core.2';
 		$editor_settings = array(
 			'postId' => $post_id,
 			'postType' => 'page',
@@ -109,6 +110,7 @@ final class VisualEditor {
 			'initialTitle' => (string) $post->post_title,
 			'version' => CRESCO_CANVAS_VERSION,
 			'previewWidths' => array( 'wide' => 1920, 'desktop' => 1440, 'laptop' => 1366, 'tablet' => 768, 'mobile' => 390 ),
+			'widgetCatalog' => SessionManager::widget_catalog(),
 		);
 
 		wp_enqueue_media( array( 'post' => $post_id ) );
@@ -127,7 +129,7 @@ final class VisualEditor {
 		wp_add_inline_script( 'cresco-canvas-standalone-visual-editor', 'window.crescoCanvasStandaloneSettings = ' . wp_json_encode( $editor_settings ) . ';', 'before' );
 		wp_set_script_translations( 'cresco-canvas-standalone-visual-editor', 'cresco-canvas' );
 
-		wp_enqueue_script( 'cresco-canvas-standalone-inspector-v2', CRESCO_CANVAS_URL . 'build/standalone-inspector-v2.js', array( 'cresco-canvas-standalone-visual-editor' ), CRESCO_CANVAS_VERSION, true );
+		wp_enqueue_script( 'cresco-canvas-standalone-inspector-v2', CRESCO_CANVAS_URL . 'build/standalone-inspector-v2.js', array( 'cresco-canvas-standalone-visual-editor' ), $editor_ux_version, true );
 		wp_enqueue_script( 'cresco-canvas-widget-control-enhancements', CRESCO_CANVAS_URL . 'build/widget-control-enhancements.js', array( 'cresco-canvas-standalone-inspector-v2' ), CRESCO_CANVAS_VERSION, true );
 		wp_enqueue_script( 'cresco-canvas-viewport-shell', CRESCO_CANVAS_URL . 'build/viewport-shell.js', array( 'cresco-canvas-standalone-visual-editor' ), CRESCO_CANVAS_VERSION, true );
 		wp_enqueue_script( 'cresco-canvas-global-config-import', CRESCO_CANVAS_URL . 'build/global-config-import.js', array( 'cresco-canvas-standalone-visual-editor', 'wp-api-fetch', 'wp-i18n' ), CRESCO_CANVAS_VERSION, true );

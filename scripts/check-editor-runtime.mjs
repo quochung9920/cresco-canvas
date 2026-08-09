@@ -51,6 +51,8 @@ const requiredVisualEditorTokens = [
 	"'aiContextPath'",
 	"'historyPath'",
 	"'pageSettingsPath'",
+	"'widgetCatalog' => SessionManager::widget_catalog()",
+	'use CrescoCanvas\\Session\\SessionManager;',
 	'build/standalone-visual-editor.js',
 	'build/standalone-inspector-v2.js',
 	'build/standalone-ui-v3.js',
@@ -157,6 +159,14 @@ for ( const token of [
 	'Boxed is constrained by the Global container maximum width.',
 	'cc-inspector-v2-section-toggle',
 	'sessionStorage',
+	'widgetCatalog',
+	'Inherited · ',
+	'Override · ',
+	'cc-inspector-v2-reset-override',
+	'dataset.crescoCapability',
+	'dataset.crescoCapabilitySupported',
+	'.cc-standalone-left-content',
+	'mutationObserver.disconnect()',
 ] ) {
 	if ( ! inspectorV2.includes( token ) ) {
 		errors.push( `Standalone Inspector v2 is missing ${ token }` );
@@ -293,5 +303,5 @@ if ( errors.length ) {
 }
 
 process.stdout.write(
-	'Checked the authoritative Cresco Session editor runtime, Inspector v2, unified Settings Center, UI v3, History, Page Settings, Global/viewport helpers, REST contract, AI interchange, dependencies, and package gates.\n'
+	'Checked the authoritative Cresco Session editor runtime, capability-aware Inspector v2, responsive inheritance UX, unified Settings Center, UI v3, History, Page Settings, Global/viewport helpers, REST contract, AI interchange, dependencies, and package gates.\n'
 );

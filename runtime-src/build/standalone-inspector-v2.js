@@ -2,9 +2,45 @@
 	'use strict';
 
 	var STORAGE_PREFIX = 'cresco-inspector-v2:';
+	var DEVICE_PARENT = { Desktop: 'Widescreen', Laptop: 'Desktop', Tablet: 'Laptop', Mobile: 'Tablet' };
+	var STYLE_LABEL_TO_KEY = {
+		'width': 'width',
+		'maximum width': 'maxWidth',
+		'minimum height': 'minHeight',
+		'gap': 'gap',
+		'padding top': 'paddingTop',
+		'padding right': 'paddingRight',
+		'padding bottom': 'paddingBottom',
+		'padding left': 'paddingLeft',
+		'margin top': 'marginTop',
+		'margin right': 'marginRight',
+		'margin bottom': 'marginBottom',
+		'margin left': 'marginLeft',
+		'text color': 'color',
+		'background': 'background',
+		'font size': 'fontSize',
+		'font weight': 'fontWeight',
+		'line height': 'lineHeight',
+		'letter spacing': 'letterSpacing',
+		'text align': 'textAlign',
+		'border radius': 'borderRadius',
+		'box shadow': 'boxShadow',
+		'opacity': 'opacity',
+		'position': 'position',
+		'top': 'top',
+		'right': 'right',
+		'bottom': 'bottom',
+		'left': 'left',
+		'z-index': 'zIndex',
+		'overflow': 'overflow'
+	};
 	var activeTab = 'primary';
 	var lastWidgetId = '';
 	var scheduled = false;
+	var destroyed = false;
+	var mutationObserver = null;
+	var observerRoot = null;
+	var bootTimer = null;
 
 	function text( node ) {
 		return node ? String( node.textContent || '' ).replace( /\s+/g, ' ' ).trim() : '';
@@ -42,6 +78,18 @@
 		return label.replace( /[^a-z0-9_-]+/g, '-' ) || 'widget';
 	}
 
+	function widgetDefinition( type ) {
+		var settings = window.crescoCanvasStandaloneSettings || {};
+		var catalog = settings.widgetCatalog && typeof settings.widgetCatalog === 'object' ? settings.widgetCatalog : {};
+		return catalog[ type ] && typeof catalog[ type ] === 'object' ? catalog[ type ] : null;
+	}
+
+	function supportsStyle( type, key ) {
+		var definition = widgetDefinition( type );
+		if ( ! definition || ! Array.isArray( definition.style ) ) return true;
+		return definition.style.indexOf( key ) !== -1;
+	}
+
 	function primaryTabLabel( type ) {
 		return type === 'container' || type === 'columns' ? 'Layout' : 'Content';
 	}
@@ -50,22 +98,22 @@
 		return type === 'container' || type === 'columns' ? 'layout' : 'edit';
 	}
 
-	function storageKey( inspector, sectionKey ) {
+	function storageKey( inspector, sectionKeyValue ) {
 		var settings = window.crescoCanvasStandaloneSettings || {};
-		return STORAGE_PREFIX + String( settings.postId || 'page' ) + ':' + selectedWidgetId( inspector ) + ':' + sectionKey;
+		return STORAGE_PREFIX + String( settings.postId || 'page' ) + ':' + selectedWidgetId( inspector ) + ':' + sectionKeyValue;
 	}
 
-	function getStoredOpen( inspector, sectionKey, fallback ) {
+	function getStoredOpen( inspector, sectionKeyValue, fallback ) {
 		try {
-			var value = window.sessionStorage.getItem( storageKey( inspector, sectionKey ) );
+			var value = window.sessionStorage.getItem( storageKey( inspector, sectionKeyValue ) );
 			if ( value === '1' ) return true;
 			if ( value === '0' ) return false;
 		} catch ( error ) {}
 		return fallback;
 	}
 
-	function setStoredOpen( inspector, sectionKey, value ) {
-		try { window.sessionStorage.setItem( storageKey( inspector, sectionKey ), value ? '1' : '0' ); } catch ( error ) {}
+	function setStoredOpen( inspector, sectionKeyValue, value ) {
+		try { window.sessionStorage.setItem( storageKey( inspector, sectionKeyValue ), value ? '1' : '0' ); } catch ( error ) {}
 	}
 
 	function sectionHeading( section ) {
@@ -117,6 +165,7 @@
 		button.type = 'button';
 		button.className = 'cc-inspector-v2-tab';
 		button.dataset.tab = name;
+		button.setAttribute( 'role', 'tab' );
 		button.addEventListener( 'click', function () {
 			activeTab = name;
 			applyTabVisibility( button.closest( '.cc-inspector' ) );
@@ -231,22 +280,86 @@
 		addSubTitleBefore( baseControlByLabel( section, 'Opacity' ), 'Visibility & Position' );
 	}
 
+	function controlInput( control ) {
+		return control ? control.querySelector( 'input, textarea, select' ) : null;
+	}
+
+	function controlHasValue( control ) {
+		var input = controlInput( control );
+		if ( ! input ) return false;
+		if ( input.type === 'checkbox' || input.type === 'radio' ) return input.checked;
+		return String( input.value || '' ).trim() !== '';
+	}
+
+	function setNativeValue( input, value ) {
+		if ( ! input ) return;
+		var prototype = input instanceof window.HTMLTextAreaElement ? window.HTMLTextAreaElement.prototype : input instanceof window.HTMLSelectElement ? window.HTMLSelectElement.prototype : window.HTMLInputElement.prototype;
+		var descriptor = Object.getOwnPropertyDescriptor( prototype, 'value' );
+		if ( descriptor && descriptor.set ) descriptor.set.call( input, value );
+		else input.value = value;
+		input.dispatchEvent( new window.Event( 'input', { bubbles: true } ) );
+		input.dispatchEvent( new window.Event( 'change', { bubbles: true } ) );
+	}
+
+	function ensureResetButton( control, label, device, inherited ) {
+		if ( ! control ) return;
+		var existing = control.querySelector( ':scope > .cc-inspector-v2-reset-override' );
+		if ( device === 'Widescreen' || inherited ) {
+			if ( existing ) existing.remove();
+			return;
+		}
+		if ( existing ) return;
+		var button = document.createElement( 'button' );
+		button.type = 'button';
+		button.className = 'cc-inspector-v2-reset-override';
+		button.textContent = 'Reset';
+		button.setAttribute( 'aria-label', 'Reset ' + label + ' to inherited ' + ( DEVICE_PARENT[ device ] || 'base' ) + ' value' );
+		button.addEventListener( 'click', function ( event ) {
+			event.preventDefault();
+			event.stopPropagation();
+			setNativeValue( controlInput( control ), '' );
+			scheduleEnhance();
+		} );
+		control.appendChild( button );
+	}
+
 	function addResponsiveBadges( inspector ) {
 		var device = currentDevice( inspector );
 		inspector.querySelectorAll( ':scope > .cc-inspector-section' ).forEach( function ( section ) {
 			var key = sectionKey( section );
 			if ( key === 'content' || key === 'container' ) return;
 			section.querySelectorAll( '.components-base-control__label' ).forEach( function ( label ) {
+				var control = label.closest( '.components-base-control' ) || label.parentElement;
+				var inherited = device !== 'Widescreen' && ! controlHasValue( control );
 				var badge = label.querySelector( ':scope > .cc-inspector-v2-responsive-badge' );
 				if ( ! badge ) {
 					badge = document.createElement( 'span' );
 					badge.className = 'cc-inspector-v2-responsive-badge';
-					badge.setAttribute( 'aria-hidden', 'true' );
 					label.appendChild( badge );
 				}
-				if ( badge.textContent !== device ) badge.textContent = device;
-				var title = 'Editing ' + device + ' value';
+				badge.classList.toggle( 'is-inherited', inherited );
+				badge.classList.toggle( 'is-override', device !== 'Widescreen' && ! inherited );
+				var badgeText = device === 'Widescreen' ? 'Base' : inherited ? 'Inherited · ' + ( DEVICE_PARENT[ device ] || 'Base' ) : 'Override · ' + device;
+				if ( badge.textContent !== badgeText ) badge.textContent = badgeText;
+				var title = device === 'Widescreen' ? 'Base value' : inherited ? 'Inherited from ' + ( DEVICE_PARENT[ device ] || 'Base' ) : 'Overrides ' + ( DEVICE_PARENT[ device ] || 'Base' );
 				if ( badge.title !== title ) badge.title = title;
+				ensureResetButton( control, labelText( label ), device, inherited );
+			} );
+		} );
+	}
+
+	function applyCapabilities( inspector, type ) {
+		inspector.querySelectorAll( ':scope > .cc-inspector-section' ).forEach( function ( section ) {
+			var category = categoryForSection( section );
+			if ( category !== 'style' && category !== 'advanced' ) return;
+			section.querySelectorAll( '.components-base-control' ).forEach( function ( control ) {
+				var label = control.querySelector( '.components-base-control__label, label' );
+				var styleKey = label ? STYLE_LABEL_TO_KEY[ normalize( labelText( label ) ) ] : '';
+				if ( ! styleKey ) return;
+				var supported = supportsStyle( type, styleKey );
+				if ( control.hidden === supported ) control.hidden = ! supported;
+				control.dataset.crescoCapability = styleKey;
+				control.dataset.crescoCapabilitySupported = supported ? 'true' : 'false';
 			} );
 		} );
 	}
@@ -316,6 +429,7 @@
 			if ( button.classList.contains( 'is-active' ) !== selected ) button.classList.toggle( 'is-active', selected );
 			var selectedText = selected ? 'true' : 'false';
 			if ( button.getAttribute( 'aria-selected' ) !== selectedText ) button.setAttribute( 'aria-selected', selectedText );
+			button.tabIndex = selected ? 0 : -1;
 		} );
 		inspector.querySelectorAll( ':scope > .cc-inspector-section' ).forEach( function ( section ) {
 			var hide = section.dataset.inspectorTab !== activeTab;
@@ -338,34 +452,79 @@
 		renameHeader( inspector );
 		ensureTabs( inspector, type );
 		classifySections( inspector );
+		applyCapabilities( inspector, type );
 		enhanceContainerRules( inspector, type );
 		addResponsiveBadges( inspector );
 		applyTabVisibility( inspector );
 	}
 
 	function scheduleEnhance() {
-		if ( scheduled ) return;
+		if ( scheduled || destroyed ) return;
 		scheduled = true;
 		window.requestAnimationFrame( function () {
 			scheduled = false;
+			if ( destroyed ) return;
 			var inspector = document.querySelector( '.cc-inspector' );
 			if ( inspector ) enhanceInspector( inspector );
 		} );
 	}
 
-	function boot() {
-		scheduleEnhance();
-		if ( window.MutationObserver ) {
-			new window.MutationObserver( scheduleEnhance ).observe( document.body, { childList: true, subtree: true } );
-		}
-		document.addEventListener( 'change', function ( event ) {
-			if ( event.target && event.target.closest && event.target.closest( '.cc-inspector' ) ) scheduleEnhance();
-		} );
-		document.addEventListener( 'click', function ( event ) {
-			if ( event.target && event.target.closest && event.target.closest( '.cc-inspector-device-switcher' ) ) scheduleEnhance();
+	function mutationNeedsEnhance( records ) {
+		return Array.prototype.some.call( records || [], function ( record ) {
+			var target = record && record.target ? record.target : null;
+			if ( ! target || ! target.closest ) return true;
+			return !! target.closest( '.cc-inspector, .cc-standalone-left-content' );
 		} );
 	}
 
-	if ( document.readyState === 'loading' ) document.addEventListener( 'DOMContentLoaded', boot );
+	function handleMutation( records ) {
+		if ( mutationNeedsEnhance( records ) ) scheduleEnhance();
+	}
+
+	function observeInspectorHost() {
+		if ( destroyed ) return false;
+		var nextRoot = document.querySelector( '.cc-standalone-left-content' );
+		if ( ! nextRoot ) return false;
+		if ( observerRoot === nextRoot && mutationObserver ) return true;
+		if ( mutationObserver ) mutationObserver.disconnect();
+		observerRoot = nextRoot;
+		if ( window.MutationObserver ) {
+			mutationObserver = new window.MutationObserver( handleMutation );
+			mutationObserver.observe( observerRoot, { childList: true, subtree: true } );
+		}
+		return true;
+	}
+
+	function handleChange( event ) {
+		if ( event.target && event.target.closest && event.target.closest( '.cc-inspector' ) ) scheduleEnhance();
+	}
+
+	function handleClick( event ) {
+		if ( event.target && event.target.closest && event.target.closest( '.cc-inspector-device-switcher' ) ) scheduleEnhance();
+	}
+
+	function destroy() {
+		if ( destroyed ) return;
+		destroyed = true;
+		window.clearTimeout( bootTimer );
+		if ( mutationObserver ) mutationObserver.disconnect();
+		document.removeEventListener( 'change', handleChange );
+		document.removeEventListener( 'click', handleClick );
+		window.removeEventListener( 'pagehide', destroy );
+	}
+
+	function boot() {
+		if ( destroyed ) return;
+		if ( ! observeInspectorHost() ) {
+			bootTimer = window.setTimeout( boot, 80 );
+			return;
+		}
+		scheduleEnhance();
+		document.addEventListener( 'change', handleChange );
+		document.addEventListener( 'click', handleClick );
+		window.addEventListener( 'pagehide', destroy );
+	}
+
+	if ( document.readyState === 'loading' ) document.addEventListener( 'DOMContentLoaded', boot, { once: true } );
 	else boot();
 } )( window, document );
