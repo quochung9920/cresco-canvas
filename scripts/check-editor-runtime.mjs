@@ -6,6 +6,7 @@ const runtimeFiles = [
 	'build/standalone-visual-editor.js',
 	'build/standalone-inspector-v2.js',
 	'build/standalone-ui-v3.js',
+	'build/standalone-page-settings.js',
 ];
 const errors = [];
 
@@ -22,6 +23,8 @@ for ( const file of runtimeFiles ) {
 }
 
 const visualEditor = await readFile( 'includes/Admin/VisualEditor.php', 'utf8' );
+const plugin = await readFile( 'includes/Plugin.php', 'utf8' );
+const pageSettingsService = await readFile( 'includes/Page/PageSettings.php', 'utf8' );
 const sessionManager = await readFile(
 	'includes/Session/SessionManager.php',
 	'utf8'
@@ -29,6 +32,7 @@ const sessionManager = await readFile(
 const runtime = await readFile( 'build/standalone-visual-editor.js', 'utf8' );
 const inspectorV2 = await readFile( 'build/standalone-inspector-v2.js', 'utf8' );
 const uiV3 = await readFile( 'build/standalone-ui-v3.js', 'utf8' );
+const pageSettingsRuntime = await readFile( 'build/standalone-page-settings.js', 'utf8' );
 const asset = await readFile(
 	'build/standalone-visual-editor.asset.php',
 	'utf8'
@@ -40,17 +44,42 @@ const requiredVisualEditorTokens = [
 	"'sessionPath'",
 	"'validatePath'",
 	"'aiContextPath'",
+	"'pageSettingsPath'",
 	'build/standalone-visual-editor.js',
 	'build/standalone-inspector-v2.js',
 	'build/standalone-ui-v3.js',
+	'build/standalone-page-settings.js',
 	'assets/css/standalone-visual-editor.css',
 	'assets/css/standalone-inspector-v2.css',
 	'assets/css/standalone-ui-v3.css',
+	'assets/css/standalone-page-settings.css',
 	'GlobalStyles::css',
 ];
 for ( const token of requiredVisualEditorTokens ) {
 	if ( ! visualEditor.includes( token ) ) {
 		errors.push( `VisualEditor is missing ${ token }` );
+	}
+}
+
+for ( const token of [
+	'use CrescoCanvas\\Page\\PageSettings;',
+	'( new PageSettings() )->register();',
+] ) {
+	if ( ! plugin.includes( token ) ) errors.push( `Plugin is missing Page Settings registration: ${ token }` );
+}
+
+for ( const token of [
+	"const META_KEY = '_cresco_canvas_page_settings'",
+	"'/page-settings/(?P<postId>\\d+)'",
+	"'layout'      => 'full-width'",
+	"'contentRoot' => 'viewport'",
+	'template_include',
+	'cresco-page-root-viewport',
+	'pageSettingsEffective',
+	'not part of cresco-session/v1',
+] ) {
+	if ( ! pageSettingsService.includes( token ) ) {
+		errors.push( `Page Settings service is missing ${ token }` );
 	}
 }
 
@@ -111,6 +140,21 @@ for ( const token of [
 	}
 }
 
+for ( const token of [
+	'settings.pageSettingsPath',
+	'Page Settings',
+	'Theme Default',
+	'Full Width',
+	'Canvas',
+	'Full Viewport',
+	'Save Page Settings',
+	'cresco:page-settings-saved',
+] ) {
+	if ( ! pageSettingsRuntime.includes( token ) ) {
+		errors.push( `Standalone Page Settings is missing ${ token }` );
+	}
+}
+
 const forbiddenRuntimeTokens = [
 	'BlockEditorProvider',
 	'BlockInspector',
@@ -148,10 +192,14 @@ for ( const file of [
 	'assets/css/standalone-visual-editor.css',
 	'assets/css/standalone-inspector-v2.css',
 	'assets/css/standalone-ui-v3.css',
+	'assets/css/standalone-page-settings.css',
 	'build/standalone-visual-editor.js',
 	'build/standalone-visual-editor.asset.php',
 	'build/standalone-inspector-v2.js',
 	'build/standalone-ui-v3.js',
+	'build/standalone-page-settings.js',
+	'includes/Page/PageSettings.php',
+	'includes/Page/canvas-template.php',
 	'includes/Session/SessionManager.php',
 ] ) {
 	if ( ! packaging.includes( `'${ file }'` ) ) {
@@ -181,5 +229,5 @@ if ( errors.length ) {
 }
 
 process.stdout.write(
-	'Checked the authoritative Cresco Session editor runtime, Inspector v2, UI v3, REST contract, AI interchange, dependencies, and package gates.\n'
+	'Checked the authoritative Cresco Session editor runtime, Inspector v2, UI v3, Page Settings, REST contract, AI interchange, dependencies, and package gates.\n'
 );
