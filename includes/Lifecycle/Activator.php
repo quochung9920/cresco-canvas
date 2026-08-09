@@ -7,7 +7,6 @@
 
 namespace CrescoCanvas\Lifecycle;
 
-use CrescoCanvas\Migration\Migrator;
 use CrescoCanvas\Requirements;
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -15,23 +14,19 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 final class Activator {
-	/**
-	 * Validate requirements and run idempotent migrations.
-	 */
-	public static function activate() {
+	/** Validate requirements, migrate data, and schedule each activated site. */
+	public static function activate( $network_wide = false ) {
 		( new Requirements() )->assert_compatible();
-
-		$result = Migrator::run();
-
+		$result = $network_wide && is_multisite()
+			? LifecycleManager::for_each_site( array( LifecycleManager::class, 'initialize_current_site' ) )
+			: LifecycleManager::initialize_current_site();
 		if ( is_wp_error( $result ) ) {
-			deactivate_plugins( plugin_basename( CRESCO_CANVAS_FILE ) );
-
+			deactivate_plugins( plugin_basename( CRESCO_CANVAS_FILE ), true, (bool) $network_wide );
 			wp_die(
 				esc_html( $result->get_error_message() ),
-				esc_html__( 'Cresco Canvas migration failed', 'cresco-canvas' ),
+				esc_html__( 'Cresco Canvas activation failed', 'cresco-canvas' ),
 				array( 'back_link' => true )
 			);
 		}
 	}
 }
-

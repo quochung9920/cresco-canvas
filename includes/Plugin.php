@@ -17,15 +17,18 @@ use CrescoCanvas\Dynamic\AdvancedQuery;
 use CrescoCanvas\Dynamic\DynamicCompletion;
 use CrescoCanvas\Dynamic\DynamicData;
 use CrescoCanvas\Dynamic\InteractiveQuery;
+use CrescoCanvas\Dynamic\QueryCache;
 use CrescoCanvas\Dynamic\StructuredDynamicData;
 use CrescoCanvas\Forms\FormAdministration;
 use CrescoCanvas\Forms\FormBuilder;
 use CrescoCanvas\Forms\FormCompletion;
 use CrescoCanvas\Forms\FormEnhancements;
 use CrescoCanvas\Interactions\InteractiveComponents;
+use CrescoCanvas\Lifecycle\LifecycleManager;
 use CrescoCanvas\Migration\Migrator;
 use CrescoCanvas\Page\PageSettings;
 use CrescoCanvas\Security\SecurityHardening;
+use CrescoCanvas\Security\UploadSecurity;
 use CrescoCanvas\Session\HistoryManager;
 use CrescoCanvas\Session\SessionManager;
 use CrescoCanvas\Styles\ContainerWidth;
@@ -49,23 +52,30 @@ final class Plugin {
 
 	/** @return Plugin */
 	public static function instance() {
-		if ( null === self::$instance ) {
-			self::$instance = new self();
-		}
+		if ( null === self::$instance ) self::$instance = new self();
 		return self::$instance;
 	}
 
 	/** Register plugin services once. */
 	public function boot() {
-		if ( $this->booted ) {
+		if ( $this->booted ) return;
+		$this->booted = true;
+
+		// Fail closed on downgrade before any REST/editor/domain service can write
+		// a data format older than the schema already stored on this site.
+		if ( Migrator::is_downgrade() ) {
+			add_action( 'admin_notices', array( Migrator::class, 'render_failure_notice' ) );
+			add_action( 'network_admin_notices', array( Migrator::class, 'render_failure_notice' ) );
 			return;
 		}
 
-		$this->booted = true;
-		$styles        = new GlobalStyles();
-		$tokens        = new DesignTokens();
+		$styles = new GlobalStyles();
+		$tokens = new DesignTokens();
 
 		( new SecurityHardening() )->register();
+		( new UploadSecurity() )->register();
+		( new QueryCache() )->register();
+		( new LifecycleManager() )->register();
 
 		// Cresco owns the standalone visual workflow and the authoritative
 		// cresco-session/v1 document. WordPress remains the host, media layer,
@@ -101,6 +111,7 @@ final class Plugin {
 
 		add_action( 'admin_init', array( Migrator::class, 'maybe_run' ), 1 );
 		add_action( 'admin_notices', array( Migrator::class, 'render_failure_notice' ) );
+		add_action( 'network_admin_notices', array( Migrator::class, 'render_failure_notice' ) );
 		add_action( 'init', array( $this, 'load_textdomain' ), 0 );
 	}
 
