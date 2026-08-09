@@ -10,6 +10,7 @@ const read = ( file ) => readFile( file, 'utf8' );
 const [
 	catalog,
 	builder,
+	compatibility,
 	renderer,
 	plugin,
 	editorSource,
@@ -22,6 +23,7 @@ const [
 ] = await Promise.all( [
 	read( 'includes/Builder/WidgetCatalog.php' ),
 	read( 'includes/Builder/WebsiteBuilder.php' ),
+	read( 'includes/Builder/WebsiteBuilderCompatibility.php' ),
 	read( 'includes/Builder/WebsiteRenderer.php' ),
 	read( 'includes/Plugin.php' ),
 	read( 'runtime-src/build/website-builder-editor.js' ),
@@ -66,13 +68,21 @@ for ( const token of [
 ] ) if ( ! builder.includes( token ) ) errors.push( `WebsiteBuilder missing ${ token }` );
 
 for ( const token of [
+	"'cresco-canvas-standalone-ai-bridge'",
+	"'cresco-canvas-standalone-visual-editor'",
+	"add_action( 'admin_enqueue_scripts', array( $this, 'remove_legacy_editor_assets' ), 999 )",
+] ) if ( ! compatibility.includes( token ) ) errors.push( `Website Builder compatibility boundary missing ${ token }` );
+
+for ( const token of [
 	'render_loop_grid', 'render_dynamic_field', 'render_form', 'render_woo_products',
 	'render_accordion', 'render_tabs', 'compile_css', 'resolve_token', 'scope_custom_css',
 ] ) if ( ! renderer.includes( token ) ) errors.push( `WebsiteRenderer missing ${ token }` );
 
 for ( const token of [
 	'use CrescoCanvas\\Builder\\WebsiteBuilder;',
+	'use CrescoCanvas\\Builder\\WebsiteBuilderCompatibility;',
 	'( new WebsiteBuilder() )->register();',
+	'( new WebsiteBuilderCompatibility() )->register();',
 ] ) if ( ! plugin.includes( token ) ) errors.push( `Plugin registration missing ${ token }` );
 
 for ( const token of [
@@ -110,4 +120,4 @@ if ( errors.length ) {
 	process.stderr.write( `${ errors.join( '\n' ) }\n` );
 	process.exit( 1 );
 }
-process.stdout.write( 'Website Builder Core contract, runtime ownership, package inventory, and integration tokens verified.\n' );
+process.stdout.write( 'Website Builder Core contract, compatibility boundary, runtime ownership, package inventory, and integration tokens verified.\n' );
