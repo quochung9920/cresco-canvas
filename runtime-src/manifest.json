@@ -20,6 +20,7 @@
     "editor-app-shell.asset.php",
     "editor-app-shell.js",
     "editor-experience-v2.js",
+    "editor-experience-v2-sync.js",
     "editor-foundation.asset.php",
     "editor-foundation.js",
     "editor-rtl.css",
