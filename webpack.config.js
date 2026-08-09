@@ -9,6 +9,10 @@ module.exports = {
 			'src/blocks/container/index.tsx'
 		),
 		preview: path.resolve( process.cwd(), 'src/preview/index.tsx' ),
+		'widget-control-enhancements': path.resolve(
+			process.cwd(),
+			'src/standalone/widget-control-enhancements.js'
+		),
 	},
 	output: {
 		...defaultConfig.output,
