@@ -128,6 +128,7 @@ final class SessionManager {
 				'instructions' => array(
 					'Use only widget types declared in widgets.',
 					'Prefer global token references such as {colors.primary} and {spacing.xl}.',
+					'For containers use props.contentWidth="full" for edge-to-edge layout, or "boxed" to constrain and center content at the Global container width.',
 					'Use structured style before customCSS.',
 					'Use customCSS only when a widget capability is missing.',
 					'Every customCSS selector must include &. Do not use @media, @import, url(), or global selectors.',
@@ -155,6 +156,7 @@ final class SessionManager {
 		$css = static function ( $parts = array() ) { return array( 'allowed' => true, 'selector' => '&', 'parts' => array_merge( array( 'root' => '&' ), $parts ) ); };
 		return array(
 			'container' => array( 'label' => 'Container', 'allowsChildren' => true, 'props' => array(
+				'contentWidth' => array( 'type' => 'enum', 'values' => array( 'full', 'boxed' ), 'default' => 'full' ),
 				'layout' => array( 'type' => 'enum', 'values' => array( 'block', 'flex', 'grid' ), 'default' => 'block' ),
 				'direction' => array( 'type' => 'enum', 'values' => array( 'row', 'column' ), 'default' => 'column' ),
 				'align' => array( 'type' => 'enum', 'values' => array( 'stretch', 'flex-start', 'center', 'flex-end', 'baseline' ), 'default' => 'stretch' ),
@@ -328,6 +330,7 @@ final class SessionManager {
 		$type = $node['type'];
 		$props = (array) $node['props'];
 		$attrs = ' class="cresco-session-node cresco-widget-' . esc_attr( $type ) . '" data-cresco-id="' . esc_attr( $node['id'] ) . '" data-cresco-widget="' . esc_attr( $type ) . '"';
+		if ( 'container' === $type ) $attrs .= ' data-cresco-content-width="' . esc_attr( (string) ( $props['contentWidth'] ?? 'full' ) ) . '"';
 		$children = '';
 		foreach ( (array) $node['children'] as $child ) $children .= $this->render_node( $child );
 		if ( 'heading' === $type ) { $level = min( 6, max( 1, absint( $props['level'] ?? 2 ) ) ); return '<h' . $level . $attrs . '>' . esc_html( (string) ( $props['text'] ?? '' ) ) . '</h' . $level . '>'; }
@@ -366,7 +369,20 @@ final class SessionManager {
 
 	private static function props_style( $node ) {
 		$type = $node['type']; $props = (array) $node['props'];
-		if ( 'container' === $type ) { $layout = $props['layout'] ?? 'block'; $style = array( 'display' => $layout ); if ( 'flex' === $layout ) $style += array( 'flexDirection' => $props['direction'] ?? 'column', 'alignItems' => $props['align'] ?? 'stretch', 'justifyContent' => $props['justify'] ?? 'flex-start' ); if ( 'grid' === $layout ) $style['gridTemplateColumns'] = 'repeat(' . min( 12, max( 1, absint( $props['columns'] ?? 2 ) ) ) . ', minmax(0, 1fr))'; return $style; }
+		if ( 'container' === $type ) {
+			$layout = $props['layout'] ?? 'block';
+			$content_width = $props['contentWidth'] ?? 'full';
+			$style = array(
+				'display' => $layout,
+				'width' => '100%',
+				'maxWidth' => 'boxed' === $content_width ? '{layout.containerMax}' : 'none',
+				'marginLeft' => 'boxed' === $content_width ? 'auto' : '0',
+				'marginRight' => 'boxed' === $content_width ? 'auto' : '0',
+			);
+			if ( 'flex' === $layout ) $style += array( 'flexDirection' => $props['direction'] ?? 'column', 'alignItems' => $props['align'] ?? 'stretch', 'justifyContent' => $props['justify'] ?? 'flex-start' );
+			if ( 'grid' === $layout ) $style['gridTemplateColumns'] = 'repeat(' . min( 12, max( 1, absint( $props['columns'] ?? 2 ) ) ) . ', minmax(0, 1fr))';
+			return $style;
+		}
 		if ( 'columns' === $type ) return array( 'display' => 'grid', 'gridTemplateColumns' => 'repeat(' . min( 12, max( 1, absint( $props['columns'] ?? 2 ) ) ) . ', minmax(0, 1fr))' );
 		if ( 'spacer' === $type ) return array( 'minHeight' => (string) ( $props['height'] ?? '48px' ) );
 		return array();
