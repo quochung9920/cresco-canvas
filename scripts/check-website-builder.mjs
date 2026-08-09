@@ -115,8 +115,11 @@ for ( const token of [ 'data-cresco-accordion', 'role="tab"', 'bootNavigation', 
 }
 
 if ( hash( frontendSource ) !== hash( frontendBuild ) ) errors.push( 'Website Builder frontend build differs from authoritative source.' );
-if ( hash( editorSource ) !== hash( editorBuild ) && ! editorBuild.includes( 'crescoBuilderSource' ) ) {
-	errors.push( 'Website Builder editor build is neither authoritative output nor the documented development loader.' );
+if ( hash( editorSource ) !== hash( editorBuild ) ) {
+	errors.push( 'Website Builder editor build differs from authoritative source; checked-in admin runtime must be self-contained.' );
+}
+if ( editorBuild.includes( '../runtime-src/' ) || editorBuild.includes( 'crescoBuilderSource' ) ) {
+	errors.push( 'Website Builder editor build must not load runtime-src at browser runtime.' );
 }
 
 const manifest = JSON.parse( manifestText );

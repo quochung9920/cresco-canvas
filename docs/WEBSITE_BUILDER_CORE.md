@@ -73,7 +73,7 @@ Website Builder Core does not add arbitrary HTML, arbitrary shortcodes, scripts,
 
 ## Runtime ownership
 
-`runtime-src/build/website-builder-editor.js` is the authoritative editor source. The checked-in `build/website-builder-editor.js` is a development loader; `scripts/build-runtime.mjs` replaces it with the authoritative source during a clean build. The release package includes the rebuilt `build/` runtime and never packages `runtime-src/`.
+`runtime-src/build/website-builder-editor.js` is the authoritative editor source. The checked-in `build/website-builder-editor.js` must be the same self-contained runtime byte-for-byte so a normal plugin checkout or ZIP can start the editor without serving `runtime-src/` in the browser. `scripts/build-runtime.mjs` refreshes the checked-in build from the authoritative source during a clean build, and `scripts/check-website-builder.mjs` rejects source/build drift or browser runtime references back into `runtime-src/`.
 
 `runtime-src/build/website-builder-frontend.js` is a reviewed runtime copied byte-for-byte to `build/website-builder-frontend.js`.
 
