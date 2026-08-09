@@ -26,7 +26,7 @@ final class WebsiteBuilderCompatibility {
 		$post_id = isset( $_GET['post'] ) ? absint( wp_unslash( $_GET['post'] ) ) : 0; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only screen routing.
 		if ( VisualEditor::PAGE_SLUG !== $page || ! $post_id || 'page' !== get_post_type( $post_id ) || ! current_user_can( 'edit_post', $post_id ) ) return;
 
-		$this->bridge_page_settings_contract();
+		$this->bridge_editor_contracts();
 
 		$scripts = array(
 			'cresco-canvas-standalone-ai-bridge',
@@ -59,6 +59,26 @@ final class WebsiteBuilderCompatibility {
 
 		foreach ( $scripts as $handle ) wp_dequeue_script( $handle );
 		foreach ( $styles as $handle ) wp_dequeue_style( $handle );
+
+		$control_script = CRESCO_CANVAS_PATH . 'build/website-builder-controls.js';
+		$control_style  = CRESCO_CANVAS_PATH . 'assets/css/website-builder-controls.css';
+		if ( is_readable( $control_style ) ) {
+			wp_enqueue_style(
+				'cresco-canvas-website-builder-controls',
+				CRESCO_CANVAS_URL . 'assets/css/website-builder-controls.css',
+				array( 'cresco-canvas-website-builder' ),
+				CRESCO_CANVAS_VERSION
+			);
+		}
+		if ( is_readable( $control_script ) ) {
+			wp_enqueue_script(
+				'cresco-canvas-website-builder-controls',
+				CRESCO_CANVAS_URL . 'build/website-builder-controls.js',
+				array( 'cresco-canvas-website-builder' ),
+				CRESCO_CANVAS_VERSION,
+				true
+			);
+		}
 	}
 
 	/**
@@ -74,6 +94,7 @@ final class WebsiteBuilderCompatibility {
 		$decoded = $raw ? json_decode( $raw, true ) : null;
 		$session = is_array( $decoded ) ? WebsiteBuilder::sanitize_session( $decoded ) : null;
 		if ( ! is_array( $session ) ) return;
+		$session = $this->normalize_legacy_tokens( $session );
 
 		$handle = 'cresco-canvas-website-builder-frontend';
 		$styles = wp_styles();
@@ -92,12 +113,20 @@ final class WebsiteBuilderCompatibility {
 		if ( '' !== $compiled ) wp_add_inline_style( $handle, $compiled );
 	}
 
+	/** Normalize a pre-Website-Builder token alias without mutating stored JSON. */
+	private function normalize_legacy_tokens( $value ) {
+		if ( is_string( $value ) ) return '{spacing.gridGap}' === $value ? '{layout.gridGap}' : $value;
+		if ( ! is_array( $value ) ) return $value;
+		foreach ( $value as $key => $item ) $value[ $key ] = $this->normalize_legacy_tokens( $item );
+		return $value;
+	}
+
 	/**
-	 * The Website Builder Page panel intentionally reuses PageSettings v2.
-	 * Normalize the one historical camel-case field and remove UI choices that
-	 * do not yet have distinct server semantics rather than silently coercing them.
+	 * The Website Builder reuses PageSettings v2 and the existing DesignTokens
+	 * catalog. Normalize historical aliases and remove UI choices that do not yet
+	 * have distinct server semantics instead of silently coercing user intent.
 	 */
-	private function bridge_page_settings_contract() {
+	private function bridge_editor_contracts() {
 		if ( ! wp_script_is( 'cresco-canvas-website-builder', 'enqueued' ) ) return;
 		$script = <<<'JS'
 (function(window,document){
@@ -107,6 +136,7 @@ if(apiFetch&&typeof apiFetch.use==='function'){
 	apiFetch.use(function(options,next){
 		var path=String(options&&options.path||'');
 		var pageSettings=/\/cresco-canvas\/v1\/page-settings\/\d+$/.test(path);
+		var builderContext=/\/cresco-canvas\/v1\/website-builder\/context\/\d+$/.test(path);
 		if(pageSettings&&options&&options.data&&options.data.settings){
 			var settings=Object.assign({},options.data.settings);
 			if(Object.prototype.hasOwnProperty.call(settings,'customCss'))settings.customCSS=settings.customCss;
@@ -116,6 +146,13 @@ if(apiFetch&&typeof apiFetch.use==='function'){
 		return next(options).then(function(response){
 			if(pageSettings&&response&&response.settings&&Object.prototype.hasOwnProperty.call(response.settings,'customCSS')){
 				response=Object.assign({},response,{settings:Object.assign({},response.settings,{customCss:response.settings.customCSS})});
+			}
+			if(builderContext&&response&&response.global){
+				var global=Object.assign({},response.global);
+				var spacing=Object.assign({},global.spacing||{});
+				if(global.layout&&global.layout.gridGap&&!spacing.gridGap)spacing.gridGap=global.layout.gridGap;
+				global.spacing=spacing;
+				response=Object.assign({},response,{global:global});
 			}
 			return response;
 		});
