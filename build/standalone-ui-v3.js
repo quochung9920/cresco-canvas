@@ -15,6 +15,7 @@
 		rightCollapsed: false
 	};
 	var resizeTimer = null;
+	var settingsOpenTimer = null;
 
 	function readState() {
 		try {
@@ -41,9 +42,17 @@
 		var style = document.createElement( 'style' );
 		style.id = OWNERSHIP_STYLE_ID;
 		style.textContent = [
-			'.cc-global-panel.cc-ui-v3-global-authoritative > :not(.cc-global-simple-editor){display:none!important;}',
+			'.cc-page-settings-trigger{display:none!important;}',
+			'.cc-global-panel.cc-ui-v3-global-authoritative:not(.cc-settings-center-host) > :not(.cc-global-simple-editor){display:none!important;}',
 			'.cc-inspector .cc-global-simple-editor{display:none!important;}',
-			'.cc-global-panel .cc-inspector-v2-tabs{display:none!important;}'
+			'.cc-global-panel .cc-inspector-v2-tabs{display:none!important;}',
+			'.cc-global-panel.cc-settings-center-host{height:100%;min-height:0;padding:0!important;overflow:hidden;}',
+			'.cc-global-panel.cc-settings-center-host > :not(.cc-page-settings-overlay){display:none!important;}',
+			'.cc-global-panel.cc-settings-center-host > .cc-page-settings-overlay{display:block!important;}',
+			'.cc-global-panel.cc-settings-center-host .cc-global-simple-editor{display:none!important;}',
+			'.cc-page-settings-overlay.cc-settings-center-inline{position:static!important;inset:auto!important;z-index:auto!important;width:100%!important;height:100%!important;min-height:0!important;background:transparent!important;backdrop-filter:none!important;}',
+			'.cc-settings-center-inline .cc-page-settings-dialog{width:100%!important;height:100%!important;min-height:100%!important;border-left:0!important;box-shadow:none!important;}',
+			'.cc-settings-center-inline .cc-page-settings-close{display:none!important;}'
 		].join( '' );
 		document.head.appendChild( style );
 	}
@@ -56,9 +65,86 @@
 		return null;
 	}
 
+	function settingsTab() {
+		if ( ! app ) return null;
+		var tabs = app.querySelectorAll( '.cc-standalone-tabs button' );
+		if ( tabs.length < 3 ) return null;
+		return tabs[ 2 ];
+	}
+
+	function syncSettingsEntry() {
+		var tab = settingsTab();
+		if ( ! tab ) return;
+		tab.dataset.crescoSettingsTab = 'true';
+		tab.setAttribute( 'aria-label', 'Settings' );
+		var icon = tab.querySelector( '.dashicons' );
+		if ( icon ) icon.className = 'dashicons dashicons-admin-settings';
+		var labels = tab.querySelectorAll( 'span' );
+		if ( labels.length && String( labels[ labels.length - 1 ].textContent || '' ).trim() !== 'Settings' ) labels[ labels.length - 1 ].textContent = 'Settings';
+
+		var trigger = app.querySelector( '.cc-page-settings-trigger' );
+		if ( trigger ) {
+			trigger.tabIndex = -1;
+			trigger.setAttribute( 'aria-hidden', 'true' );
+		}
+	}
+
+	function moveSettingsCenterInline() {
+		if ( ! app ) return false;
+		var tab = settingsTab();
+		var panel = app.querySelector( '.cc-global-panel' );
+		var overlay = app.querySelector( '.cc-page-settings-overlay' );
+		if ( ! tab || ! tab.classList.contains( 'is-active' ) || ! panel || ! overlay || overlay.hidden ) return false;
+
+		panel.classList.add( 'cc-settings-center-host' );
+		overlay.classList.add( 'cc-settings-center-inline' );
+		if ( overlay.parentNode !== panel ) panel.appendChild( overlay );
+
+		var dialog = overlay.querySelector( '.cc-page-settings-dialog' );
+		if ( dialog ) {
+			dialog.setAttribute( 'role', 'region' );
+			dialog.setAttribute( 'aria-label', 'Settings Center' );
+			dialog.removeAttribute( 'aria-modal' );
+			var title = dialog.querySelector( '.cc-site-settings-header-title' );
+			if ( title && String( title.textContent || '' ).trim() === 'Site Settings' ) title.textContent = 'Settings';
+			var back = dialog.querySelector( '[aria-label="Back to Site Settings"]' );
+			if ( back ) {
+				back.setAttribute( 'aria-label', 'Back to Settings' );
+				back.title = 'Back to Settings';
+			}
+		}
+		return true;
+	}
+
+	function openSettingsCenter( attempt ) {
+		if ( ! app ) return;
+		attempt = Number( attempt || 0 );
+		var tab = settingsTab();
+		if ( ! tab || ! tab.classList.contains( 'is-active' ) ) return;
+		var trigger = app.querySelector( '.cc-page-settings-trigger' );
+		if ( ! trigger ) {
+			if ( attempt < 12 ) settingsOpenTimer = window.setTimeout( function () { openSettingsCenter( attempt + 1 ); }, 40 );
+			return;
+		}
+		var overlay = app.querySelector( '.cc-page-settings-overlay' );
+		if ( ! overlay || overlay.hidden ) trigger.click();
+		window.requestAnimationFrame( function () {
+			if ( ! moveSettingsCenterInline() && attempt < 12 ) {
+				settingsOpenTimer = window.setTimeout( function () { openSettingsCenter( attempt + 1 ); }, 40 );
+			}
+		} );
+	}
+
+	function cleanupSettingsCenter() {
+		window.clearTimeout( settingsOpenTimer );
+		if ( document.body ) document.body.classList.remove( 'cc-page-settings-open' );
+		if ( app ) app.classList.remove( 'cc-site-settings-guide-enabled' );
+	}
+
 	function syncPanelOwnership() {
 		if ( ! app ) return;
 		ensureOwnershipStyles();
+		syncSettingsEntry();
 
 		Array.prototype.forEach.call( app.querySelectorAll( '.cc-global-simple-editor' ), function ( editor ) {
 			if ( ! editor.closest( '.cc-global-panel' ) ) editor.remove();
@@ -77,6 +163,10 @@
 		Array.prototype.forEach.call( app.querySelectorAll( '.cc-inspector' ), function ( inspector ) {
 			Array.prototype.forEach.call( inspector.querySelectorAll( '.cc-global-simple-editor' ), function ( editor ) { editor.remove(); } );
 		} );
+
+		var tab = settingsTab();
+		if ( tab && tab.classList.contains( 'is-active' ) ) moveSettingsCenterInline();
+		else cleanupSettingsCenter();
 	}
 
 	function makeButton( panel, label, icon ) {
@@ -104,6 +194,7 @@
 	function ensureChrome() {
 		if ( ! app ) return;
 		ensureOwnershipStyles();
+		syncSettingsEntry();
 		var actions = app.querySelector( '.cc-standalone-header-actions' );
 		if ( actions && ! actions.querySelector( '.cc-ui-v3-panel-controls' ) ) {
 			var controls = document.createElement( 'div' );
@@ -219,7 +310,17 @@
 		var currentMode = mode();
 		if ( currentMode === 'compact' && event.target.closest( '.cc-standalone-stage' ) ) closeDrawers( false );
 		if ( rightDrawerOpen && event.target.closest( '.cc-standalone-structure-item' ) ) closeDrawers( false );
-		if ( event.target.closest( '.cc-standalone-tabs' ) ) window.requestAnimationFrame( syncPanelOwnership );
+
+		var tab = event.target.closest( '.cc-standalone-tabs button' );
+		if ( tab ) {
+			window.requestAnimationFrame( syncPanelOwnership );
+			if ( tab.dataset.crescoSettingsTab === 'true' ) {
+				window.clearTimeout( settingsOpenTimer );
+				settingsOpenTimer = window.setTimeout( function () { openSettingsCenter( 0 ); }, 0 );
+			} else {
+				cleanupSettingsCenter();
+			}
+		}
 	}
 
 	function handleKeydown( event ) {
