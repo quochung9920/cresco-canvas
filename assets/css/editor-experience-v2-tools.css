@@ -1,0 +1,115 @@
+/* Direct manipulation tools for Cresco Editor Experience v2. */
+.cc-experience-resize-handle {
+	position: fixed;
+	z-index: 100090;
+	width: 18px;
+	height: 18px;
+	padding: 0;
+	border: 2px solid #fff;
+	border-radius: 5px;
+	background: var(--wp-admin-theme-color, #3858e9);
+	box-shadow: 0 1px 7px rgba(0,0,0,.28);
+	cursor: nwse-resize;
+	touch-action: none;
+}
+
+.cc-experience-resize-handle[hidden] {
+	display: none;
+}
+
+.cc-experience-resize-handle > span::before,
+.cc-experience-resize-handle > span::after {
+	content: '';
+	position: absolute;
+	right: 3px;
+	bottom: 3px;
+	width: 7px;
+	height: 1px;
+	background: #fff;
+	transform: rotate(-45deg);
+	transform-origin: right center;
+}
+
+.cc-experience-resize-handle > span::after {
+	right: 3px;
+	bottom: 6px;
+	width: 4px;
+}
+
+.cc-experience-resize-label {
+	position: fixed;
+	z-index: 100095;
+	padding: 4px 7px;
+	border-radius: 5px;
+	background: #1d2327;
+	color: #fff;
+	font: 600 10px/1.3 ui-monospace, SFMono-Regular, Menlo, monospace;
+	pointer-events: none;
+	white-space: nowrap;
+}
+
+body.cc-experience-is-resizing,
+body.cc-experience-is-resizing * {
+	cursor: nwse-resize !important;
+	user-select: none !important;
+}
+
+.cc-experience-structure-menu {
+	position: fixed;
+	z-index: 100110;
+	width: 210px;
+	padding: 6px;
+	border: 1px solid rgba(0,0,0,.14);
+	border-radius: 9px;
+	background: #fff;
+	color: #1e1e1e;
+	box-shadow: 0 16px 46px rgba(0,0,0,.22);
+}
+
+.cc-experience-structure-menu__title {
+	overflow: hidden;
+	padding: 7px 9px;
+	border-bottom: 1px solid #e6e6e6;
+	margin-bottom: 4px;
+	color: #646970;
+	font: 600 10px/1.4 ui-monospace, SFMono-Regular, Menlo, monospace;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.cc-experience-structure-menu__item {
+	width: 100%;
+	padding: 8px 9px;
+	border: 0;
+	border-radius: 5px;
+	background: transparent;
+	color: inherit;
+	font-size: 12px;
+	text-align: left;
+	cursor: pointer;
+}
+
+.cc-experience-structure-menu__item:hover,
+.cc-experience-structure-menu__item:focus-visible {
+	background: #f0f4ff;
+	outline: none;
+}
+
+.cc-experience-structure-menu__item.is-destructive {
+	color: #b32d2e;
+}
+
+@media (forced-colors: active) {
+	.cc-experience-resize-handle,
+	.cc-experience-structure-menu {
+		border: 2px solid CanvasText;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.cc-experience-resize-handle,
+	.cc-experience-resize-label,
+	.cc-experience-structure-menu {
+		transition: none;
+	}
+}
