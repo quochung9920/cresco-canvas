@@ -50,5 +50,15 @@ final class EditorExperience {
 			self::VERSION,
 			true
 		);
+
+		// Inspector v2 and the control engine intentionally strip the existing
+		// responsive-badge class while resolving labels. Reuse that compatibility
+		// marker so visual source badges never alter a control's accessible/name
+		// contract or the legacy label-to-control mapping.
+		wp_add_inline_script(
+			'cresco-canvas-editor-experience-v2',
+			"(function(d){var r=d.getElementById('cresco-canvas-standalone-editor');if(!r)return;function tag(){r.querySelectorAll('.cc-experience-source-badge').forEach(function(n){n.classList.add('cc-inspector-v2-responsive-badge');n.setAttribute('aria-hidden','true');});}tag();if(window.MutationObserver)new MutationObserver(tag).observe(r,{childList:true,subtree:true});})(document);",
+			'after'
+		);
 	}
 }
