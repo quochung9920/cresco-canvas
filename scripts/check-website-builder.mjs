@@ -17,6 +17,9 @@ const [
 	plugin,
 	editorSource,
 	editorBuild,
+	controlsSource,
+	controlsBuild,
+	controlsCss,
 	frontendSource,
 	frontendBuild,
 	manifestText,
@@ -32,6 +35,9 @@ const [
 	read( 'includes/Plugin.php' ),
 	read( 'runtime-src/build/website-builder-editor.js' ),
 	read( 'build/website-builder-editor.js' ),
+	read( 'runtime-src/build/website-builder-controls.js' ),
+	read( 'build/website-builder-controls.js' ),
+	read( 'assets/css/website-builder-controls.css' ),
 	read( 'runtime-src/build/website-builder-frontend.js' ),
 	read( 'build/website-builder-frontend.js' ),
 	read( 'runtime-src/manifest.json' ),
@@ -42,6 +48,8 @@ const [
 for ( const file of [
 	'runtime-src/build/website-builder-editor.js',
 	'build/website-builder-editor.js',
+	'runtime-src/build/website-builder-controls.js',
+	'build/website-builder-controls.js',
 	'runtime-src/build/website-builder-frontend.js',
 	'build/website-builder-frontend.js',
 	'scripts/build-runtime.mjs',
@@ -86,6 +94,8 @@ for ( const token of [
 	'The Website Builder runtime loaded but did not mount.',
 	'customCss',
 	'customCSS',
+	'website-builder-controls.js',
+	'website-builder-controls.css',
 ] ) if ( ! compatibility.includes( token ) ) errors.push( `Website Builder compatibility boundary missing ${ token }` );
 
 for ( const token of [ 'wrap_range', "'mobile'  => array( 0, $tablet - 1 )", "'tablet'  => array( $tablet, $laptop - 1 )", "'desktop' => array( $desktop, $wide - 1 )" ] ) {
@@ -117,6 +127,28 @@ for ( const token of [
 	'activeState', 'selectedIds', 'startResize', 'Ctrl/Cmd+S',
 ] ) if ( ! editorSource.includes( token ) ) errors.push( `Website Builder editor missing ${ token }` );
 
+for ( const token of [
+	'cc-builder-unit-picker',
+	'cc-builder-spacing-visual',
+	'cc-builder-responsive-hint',
+	'cc-builder-quick-toolbar',
+	'cc-builder-inline-edit-popover',
+	'cc-builder-smart-add-trigger',
+	'cc-builder-dependency-badge',
+	'WooCommerce required',
+	'checkbox_group',
+] ) if ( ! controlsSource.includes( token ) ) errors.push( `Website Builder professional controls missing ${ token }` );
+
+for ( const token of [
+	'.cc-builder-spacing-visual',
+	'.cc-builder-quick-toolbar',
+	'.cc-builder-inline-edit-popover',
+	'.cc-builder-smart-add-trigger',
+	'.cc-builder-dependency-badge',
+	'prefers-reduced-motion',
+	'focus-visible',
+] ) if ( ! controlsCss.includes( token ) ) errors.push( `Website Builder controls CSS missing ${ token }` );
+
 for ( const token of [ 'data-cresco-accordion', 'role="tab"', 'bootNavigation', 'aria-expanded', 'IntersectionObserver', 'cresco-builder-lightbox' ] ) {
 	if ( ! frontendSource.includes( token ) ) errors.push( `Website Builder frontend runtime missing ${ token }` );
 }
@@ -125,17 +157,23 @@ if ( hash( frontendSource ) !== hash( frontendBuild ) ) errors.push( 'Website Bu
 if ( hash( editorSource ) !== hash( editorBuild ) ) {
 	errors.push( 'Website Builder editor build differs from authoritative source; checked-in admin runtime must be self-contained.' );
 }
+if ( hash( controlsSource ) !== hash( controlsBuild ) ) {
+	errors.push( 'Website Builder professional controls build differs from authoritative source.' );
+}
 if ( editorBuild.includes( '../runtime-src/' ) || editorBuild.includes( 'crescoBuilderSource' ) ) {
 	errors.push( 'Website Builder editor build must not load runtime-src at browser runtime.' );
 }
 
 const manifest = JSON.parse( manifestText );
+if ( ! manifest.reviewed.includes( 'website-builder-controls.js' ) ) errors.push( 'Runtime manifest does not review website-builder-controls.js.' );
 if ( ! manifest.reviewed.includes( 'website-builder-frontend.js' ) ) errors.push( 'Runtime manifest does not review website-builder-frontend.js.' );
 if ( manifest.generated?.[ 'website-builder-editor.js' ] !== 'runtime-src/build/website-builder-editor.js' ) errors.push( 'Runtime manifest does not own website-builder-editor.js.' );
 
 for ( const token of [
 	"'assets/css/website-builder.css'",
+	"'assets/css/website-builder-controls.css'",
 	"'assets/css/website-builder-frontend.css'",
+	"'build/website-builder-controls.js'",
 	"'build/website-builder-editor.js'",
 	"'build/website-builder-frontend.js'",
 	"'docs/WEBSITE_BUILDER_CORE.md'",
@@ -149,4 +187,4 @@ if ( errors.length ) {
 	process.stderr.write( `${ errors.join( '\n' ) }\n` );
 	process.exit( 1 );
 }
-process.stdout.write( 'Website Builder Core contract, bootstrap recovery, responsive compiler, History compatibility, runtime ownership, package inventory, and integration tokens verified.\n' );
+process.stdout.write( 'Website Builder Core, professional controls, bootstrap recovery, responsive compiler, History compatibility, runtime ownership, package inventory, and integration tokens verified.\n' );
