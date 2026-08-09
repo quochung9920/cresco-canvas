@@ -26,6 +26,7 @@ const publicRouteFiles = new Set( [
 	'includes/Forms/FormCompletion.php',
 	'includes/Forms/FormEnhancements.php',
 	'includes/Dynamic/InteractiveQuery.php',
+	'includes/Dynamic/DynamicCompletion.php',
 ] );
 
 for ( const file of phpFiles ) {
@@ -45,7 +46,8 @@ const publicContracts = {
 	'includes/Forms/FormBuilder.php': [ '/forms/submit' ],
 	'includes/Forms/FormCompletion.php': [ '/forms/verify-captcha' ],
 	'includes/Forms/FormEnhancements.php': [ '/forms/submit-multipart' ],
-	'includes/Dynamic/InteractiveQuery.php': [ '/dynamic/interactive-query', '/dynamic/facet-counts' ],
+	'includes/Dynamic/InteractiveQuery.php': [ '/dynamic/interactive-query' ],
+	'includes/Dynamic/DynamicCompletion.php': [ '/dynamic/facet-counts' ],
 };
 for ( const [ file, routes ] of Object.entries( publicContracts ) ) {
 	const source = await readFile( file, 'utf8' );
