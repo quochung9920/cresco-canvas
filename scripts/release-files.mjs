@@ -182,7 +182,7 @@ export async function collectReleaseFiles( root = process.cwd() ) {
 		...includes,
 		...vendor,
 	];
-	const unique = [ ...new Set( files.map( ( file ) => file.replaceAll( path.sep, '/' ) ) ].sort();
+	const unique = [ ...new Set( files.map( ( file ) => file.replaceAll( path.sep, '/' ) ) ) ].sort();
 	for ( const file of unique ) {
 		const stat = await lstat( path.join( root, file ) );
 		if ( ! stat.isFile() ) throw new Error( `Release allowlist entry is not a regular file: ${ file }` );
