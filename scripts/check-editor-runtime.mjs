@@ -170,6 +170,12 @@ for ( const token of [
 	'aria-expanded',
 	'sessionStorage',
 	'Escape',
+	'dataset.crescoSettingsTab',
+	'cc-settings-center-host',
+	'cc-settings-center-inline',
+	'Settings Center',
+	'Back to Settings',
+	'.cc-page-settings-trigger{display:none!important;}',
 ] ) {
 	if ( ! uiV3.includes( token ) ) {
 		errors.push( `Standalone UI v3 is missing ${ token }` );
@@ -287,5 +293,5 @@ if ( errors.length ) {
 }
 
 process.stdout.write(
-	'Checked the authoritative Cresco Session editor runtime, Inspector v2, UI v3, History, Page Settings, Global/viewport helpers, REST contract, AI interchange, dependencies, and package gates.\n'
+	'Checked the authoritative Cresco Session editor runtime, Inspector v2, unified Settings Center, UI v3, History, Page Settings, Global/viewport helpers, REST contract, AI interchange, dependencies, and package gates.\n'
 );
