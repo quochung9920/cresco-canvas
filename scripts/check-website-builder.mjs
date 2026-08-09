@@ -11,7 +11,9 @@ const [
 	catalog,
 	builder,
 	compatibility,
+	cssCompiler,
 	renderer,
+	history,
 	plugin,
 	editorSource,
 	editorBuild,
@@ -24,7 +26,9 @@ const [
 	read( 'includes/Builder/WidgetCatalog.php' ),
 	read( 'includes/Builder/WebsiteBuilder.php' ),
 	read( 'includes/Builder/WebsiteBuilderCompatibility.php' ),
+	read( 'includes/Builder/WebsiteBuilderCssCompiler.php' ),
 	read( 'includes/Builder/WebsiteRenderer.php' ),
+	read( 'includes/Session/HistoryManager.php' ),
 	read( 'includes/Plugin.php' ),
 	read( 'runtime-src/build/website-builder-editor.js' ),
 	read( 'build/website-builder-editor.js' ),
@@ -71,12 +75,27 @@ for ( const token of [
 	"'cresco-canvas-standalone-ai-bridge'",
 	"'cresco-canvas-standalone-visual-editor'",
 	"add_action( 'admin_enqueue_scripts', array( $this, 'remove_legacy_editor_assets' ), 999 )",
+	"add_action( 'wp_enqueue_scripts', array( $this, 'replace_frontend_compiled_styles' ), 999 )",
+	'replace_frontend_compiled_styles',
+	'customCss',
+	'customCSS',
 ] ) if ( ! compatibility.includes( token ) ) errors.push( `Website Builder compatibility boundary missing ${ token }` );
+
+for ( const token of [ 'wrap_range', "'mobile'  => array( 0, $tablet - 1 )", "'tablet'  => array( $tablet, $laptop - 1 )", "'desktop' => array( $desktop, $wide - 1 )" ] ) {
+	if ( ! cssCompiler.includes( token ) ) errors.push( `Website Builder responsive compiler missing ${ token }` );
+}
 
 for ( const token of [
 	'render_loop_grid', 'render_dynamic_field', 'render_form', 'render_woo_products',
 	'render_accordion', 'render_tabs', 'compile_css', 'resolve_token', 'scope_custom_css',
 ] ) if ( ! renderer.includes( token ) ) errors.push( `WebsiteRenderer missing ${ token }` );
+
+for ( const token of [
+	'use CrescoCanvas\\Builder\\WebsiteBuilder;',
+	'WebsiteBuilder::sanitize_session',
+	'uses_builder_contract',
+	'WebsiteBuilder::BUILDER_META',
+] ) if ( ! history.includes( token ) ) errors.push( `History is not Website Builder aware: ${ token }` );
 
 for ( const token of [
 	'use CrescoCanvas\\Builder\\WebsiteBuilder;',
@@ -91,7 +110,7 @@ for ( const token of [
 	'activeState', 'selectedIds', 'startResize', 'Ctrl/Cmd+S',
 ] ) if ( ! editorSource.includes( token ) ) errors.push( `Website Builder editor missing ${ token }` );
 
-for ( const token of [ 'data-cresco-accordion', 'role="tab"', 'IntersectionObserver', 'cresco-builder-lightbox' ] ) {
+for ( const token of [ 'data-cresco-accordion', 'role="tab"', 'bootNavigation', 'aria-expanded', 'IntersectionObserver', 'cresco-builder-lightbox' ] ) {
 	if ( ! frontendSource.includes( token ) ) errors.push( `Website Builder frontend runtime missing ${ token }` );
 }
 
@@ -120,4 +139,4 @@ if ( errors.length ) {
 	process.stderr.write( `${ errors.join( '\n' ) }\n` );
 	process.exit( 1 );
 }
-process.stdout.write( 'Website Builder Core contract, compatibility boundary, runtime ownership, package inventory, and integration tokens verified.\n' );
+process.stdout.write( 'Website Builder Core contract, responsive compiler, History compatibility, runtime ownership, package inventory, and integration tokens verified.\n' );
