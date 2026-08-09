@@ -60,6 +60,7 @@
     "viewport-shell.js",
     "visual-canvas.asset.php",
     "visual-canvas.js",
+    "website-builder-frontend.js",
     "widget-inspector-persistent.asset.php",
     "widget-inspector-persistent.js"
   ],
@@ -69,6 +70,7 @@
     "preview.asset.php": "src/preview/index.tsx",
     "preview.js": "src/preview/index.tsx",
     "standalone-ai-bridge.js": "src/standalone/standalone-ai-bridge.js",
+    "website-builder-editor.js": "runtime-src/build/website-builder-editor.js",
     "widget-control-enhancements.js": "src/standalone/widget-control-enhancements.js"
   }
 }
