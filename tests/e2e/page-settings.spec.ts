@@ -1,4 +1,4 @@
-import { expect, test, type Page } from '@playwright/test';
+import { expect, test, type Locator, type Page } from '@playwright/test';
 
 async function login( page: Page ) {
 	await page.goto( '/wp-login.php' );
@@ -19,8 +19,15 @@ async function openStandaloneEditor( page: Page ) {
 	await expect( page.locator( '.cc-standalone-app.cc-ui-v3-ready' ) ).toBeVisible();
 }
 
+async function openSiteSettingsView( dialog: Locator, name: string ) {
+	if ( await dialog.getByRole( 'button', { name: 'Back to Site Settings' } ).isVisible().catch( () => false ) ) {
+		await dialog.getByRole( 'button', { name: 'Back to Site Settings' } ).click();
+	}
+	await dialog.getByRole( 'button', { name } ).click();
+}
+
 test.describe.serial( 'Cresco Page Settings', () => {
-	test( 'supports shell, body style, page custom CSS, and scroll snap independently from Session', async ( { page, context } ) => {
+	test( 'owns the WordPress page shell separately from the Cresco Session', async ( { page, context } ) => {
 		await page.setViewportSize( { width: 1440, height: 900 } );
 		await login( page );
 		await openStandaloneEditor( page );
@@ -31,49 +38,42 @@ test.describe.serial( 'Cresco Page Settings', () => {
 
 		const dialog = page.getByRole( 'dialog', { name: 'Page Settings' } );
 		await expect( dialog ).toBeVisible();
-		await expect( dialog.getByRole( 'tab', { name: 'Settings' } ) ).toHaveAttribute( 'aria-selected', 'true' );
+		await expect( dialog.getByRole( 'button', { name: 'Global Colors' } ) ).toBeVisible();
+		await expect( dialog.getByRole( 'button', { name: 'Layout' } ) ).toBeVisible();
 
+		await openSiteSettingsView( dialog, 'Layout' );
 		const layout = dialog.locator( '[name="layout"]' );
 		const title = dialog.locator( '[name="pageTitle"]' );
-		const header = dialog.locator( '[name="header"]' );
-		const footer = dialog.locator( '[name="footer"]' );
 		const root = dialog.locator( '[name="contentRoot"]' );
-		await layout.selectOption( 'full-width' );
-		await title.selectOption( 'hide' );
-		await header.selectOption( 'inherit' );
-		await footer.selectOption( 'inherit' );
+
+		await expect( layout ).toHaveValue( 'full-width' );
+		await expect( title ).toHaveValue( 'hide' );
 		await expect( root ).toHaveValue( 'viewport' );
 		await expect( root ).toBeDisabled();
 
-		await dialog.getByRole( 'tab', { name: 'Style' } ).click();
-		await expect( dialog.getByRole( 'button', { name: 'Body Style' } ) ).toHaveAttribute( 'aria-expanded', 'true' );
-		const marginTop = dialog.locator( '[name="margin-desktop-top"]' );
-		const marginRight = dialog.locator( '[name="margin-desktop-right"]' );
-		await marginTop.fill( '12' );
-		await expect( marginRight ).toHaveValue( '12' );
-		await dialog.locator( '[data-spacing-link="margin"]' ).click();
-		await dialog.locator( '[name="margin-desktop-bottom"]' ).fill( '24' );
-		await dialog.locator( '[name="padding-desktop-top"]' ).fill( '20' );
-		await expect( dialog.locator( '[name="padding-desktop-left"]' ) ).toHaveValue( '20' );
-		await dialog.getByRole( 'button', { name: 'Classic' } ).click();
-		await dialog.locator( '[name="backgroundColor"]' ).fill( '#f3f4f6' );
+		await layout.selectOption( 'theme-default' );
+		await expect( root ).toBeEnabled();
+		await root.selectOption( 'theme' );
+		await title.selectOption( 'show' );
 
-		await dialog.getByRole( 'tab', { name: 'Advanced' } ).click();
-		await dialog.locator( '[name="customCSS"]' ).fill( 'selector { border-top: 3px solid #123456; }' );
-		const snapToggle = dialog.getByRole( 'button', { name: 'Scroll Snap' } );
-		await snapToggle.click();
-		await dialog.locator( '[name="scrollSnapEnabled"]' ).check( { force: true } );
-		await dialog.locator( '[name="scrollSnapStrictness"]' ).selectOption( 'mandatory' );
-		await dialog.locator( '[name="scrollSnapStop"]' ).selectOption( 'always' );
-		await dialog.locator( '[name="scrollSnapOffset"]' ).fill( '16' );
-
+		await openSiteSettingsView( dialog, 'Page Header' );
+		await dialog.locator( '[name="header"]' ).selectOption( 'hide' );
+		await openSiteSettingsView( dialog, 'Page Footer' );
+		await dialog.locator( '[name="footer"]' ).selectOption( 'hide' );
 		await dialog.getByRole( 'button', { name: 'Save Page Settings' } ).click();
 		await expect( dialog.locator( '.cc-page-settings-status' ) ).toContainText( 'Page Settings saved' );
 
-		const canvas = page.locator( '.cc-session-canvas' );
-		await expect( canvas ).toHaveCSS( 'padding-top', '20px' );
-		await expect( canvas ).toHaveCSS( 'background-color', 'rgb(243, 244, 246)' );
-		await expect( canvas ).toHaveCSS( 'border-top-width', '3px' );
+		await openSiteSettingsView( dialog, 'Layout' );
+		await layout.selectOption( 'full-width' );
+		await title.selectOption( 'hide' );
+		await expect( title ).toHaveValue( 'hide' );
+		await openSiteSettingsView( dialog, 'Page Header' );
+		await dialog.locator( '[name="header"]' ).selectOption( 'inherit' );
+		await openSiteSettingsView( dialog, 'Page Footer' );
+		await dialog.locator( '[name="footer"]' ).selectOption( 'inherit' );
+		await dialog.getByRole( 'button', { name: 'Save Page Settings' } ).click();
+		await expect( dialog.locator( '.cc-page-settings-status' ) ).toContainText( 'Page Settings saved' );
+		await dialog.getByRole( 'button', { name: 'Close Page Settings' } ).click();
 
 		const previewHref = await page.getByRole( 'link', { name: 'Preview' } ).getAttribute( 'href' );
 		expect( previewHref ).toBeTruthy();
@@ -81,28 +81,7 @@ test.describe.serial( 'Cresco Page Settings', () => {
 		await preview.goto( previewHref! );
 		await expect( preview.locator( 'body' ) ).toHaveClass( /cresco-page-layout-full-width/ );
 		await expect( preview.locator( 'body' ) ).toHaveClass( /cresco-page-root-viewport/ );
-		await expect( preview.locator( 'body' ) ).toHaveClass( /cresco-page-scroll-snap/ );
-		const sessionRoot = preview.locator( '.cresco-session-root' );
-		await expect( sessionRoot ).toBeVisible();
-		await expect( sessionRoot ).toHaveCSS( 'padding-top', '20px' );
-		await expect( sessionRoot ).toHaveCSS( 'background-color', 'rgb(243, 244, 246)' );
-		await expect( sessionRoot ).toHaveCSS( 'border-top-width', '3px' );
-		const snapType = await preview.evaluate( () => getComputedStyle( document.documentElement ).scrollSnapType );
-		expect( snapType ).toContain( 'mandatory' );
-		await expect( sessionRoot.locator( ':scope > .cresco-session-node' ).first() ).toHaveCSS( 'scroll-snap-stop', 'always' );
+		await expect( preview.locator( '.cresco-session-root' ) ).toBeVisible();
 		await preview.close();
-
-		// Restore neutral style values so this serial fixture remains reusable.
-		await dialog.getByRole( 'tab', { name: 'Style' } ).click();
-		for ( const side of [ 'top', 'right', 'bottom', 'left' ] ) {
-			await dialog.locator( `[name="margin-desktop-${ side }"]` ).fill( '' );
-			await dialog.locator( `[name="padding-desktop-${ side }"]` ).fill( '' );
-		}
-		await dialog.locator( '[name="backgroundColor"]' ).fill( '' );
-		await dialog.getByRole( 'tab', { name: 'Advanced' } ).click();
-		await dialog.locator( '[name="customCSS"]' ).fill( '' );
-		await dialog.locator( '[name="scrollSnapEnabled"]' ).uncheck( { force: true } );
-		await dialog.getByRole( 'button', { name: 'Save Page Settings' } ).click();
-		await expect( dialog.locator( '.cc-page-settings-status' ) ).toContainText( 'Page Settings saved' );
 	} );
 } );

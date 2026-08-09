@@ -28,7 +28,6 @@ for ( const file of runtimeFiles ) {
 const visualEditor = await readFile( 'includes/Admin/VisualEditor.php', 'utf8' );
 const plugin = await readFile( 'includes/Plugin.php', 'utf8' );
 const pageSettingsService = await readFile( 'includes/Page/PageSettings.php', 'utf8' );
-const pageSettingsCss = await readFile( 'assets/css/standalone-page-settings.css', 'utf8' );
 const historyService = await readFile( 'includes/Session/HistoryManager.php', 'utf8' );
 const sessionManager = await readFile(
 	'includes/Session/SessionManager.php',
@@ -67,7 +66,6 @@ const requiredVisualEditorTokens = [
 	'assets/css/global-config-import.css',
 	'assets/css/viewport-shell.css',
 	'GlobalStyles::css',
-	'wp_enqueue_media',
 ];
 for ( const token of requiredVisualEditorTokens ) {
 	if ( ! visualEditor.includes( token ) ) {
@@ -91,24 +89,15 @@ for ( const token of [
 
 for ( const token of [
 	"const META_KEY = '_cresco_canvas_page_settings'",
-	'const VERSION  = 2',
 	"'/page-settings/(?P<postId>\\d+)'",
 	"'layout'      => 'full-width'",
 	"'contentRoot' => 'viewport'",
-	"'bodyStyle'",
-	"'customCSS'",
-	"'scrollSnap'",
-	'sanitize_page_custom_css',
-	'compile_frontend_css',
-	'compile_body_device_css',
-	'compile_background_css',
 	'template_include',
 	'pre_render_block',
 	'render_block_core/template-part',
 	'get_block_template',
 	'template_part_area',
 	'cresco-page-root-viewport',
-	'cresco-page-scroll-snap',
 	'pageSettingsEffective',
 	'not part of cresco-session/v1',
 ] ) {
@@ -194,39 +183,11 @@ for ( const token of [
 	'Full Width',
 	'Canvas',
 	'Full Viewport',
-	'dataset.pageTab',
-	'Settings',
-	'Style',
-	'Advanced',
-	'Body Style',
-	'backgroundType',
-	'Choose Page Background',
-	'customCSS',
-	'Edit with AI',
-	'Scroll Snap',
-	'scrollSnapEnabled',
-	'cc-page-settings-live-preview',
-	'cresco:page-css-ai-request',
 	'Save Page Settings',
 	'cresco:page-settings-saved',
 ] ) {
 	if ( ! pageSettingsRuntime.includes( token ) ) {
 		errors.push( `Standalone Page Settings is missing ${ token }` );
-	}
-}
-
-for ( const token of [
-	'.cc-page-settings-tabs',
-	'.cc-page-settings-device-switcher',
-	'.cc-page-settings-spacing__grid',
-	'.cc-page-settings-background-panel',
-	'.cc-page-settings-code-editor',
-	'.cc-page-settings-scroll-fields',
-	'prefers-reduced-motion',
-	'forced-colors',
-] ) {
-	if ( ! pageSettingsCss.includes( token ) ) {
-		errors.push( `Standalone Page Settings CSS is missing ${ token }` );
 	}
 }
 
@@ -326,5 +287,5 @@ if ( errors.length ) {
 }
 
 process.stdout.write(
-	'Checked the authoritative Cresco Session editor runtime, Inspector v2, UI v3, History, Page Settings Pro, Global/viewport helpers, REST contract, AI interchange, dependencies, and package gates.\n'
+	'Checked the authoritative Cresco Session editor runtime, Inspector v2, UI v3, History, Page Settings, Global/viewport helpers, REST contract, AI interchange, dependencies, and package gates.\n'
 );
