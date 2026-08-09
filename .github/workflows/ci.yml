@@ -3,15 +3,38 @@ name: Cresco Canvas CI
 on:
   push:
     branches:
+      - main
       - commercial/release-quality
+  pull_request:
   workflow_dispatch:
 
 permissions:
   contents: read
 
 jobs:
-  syntax_probe:
-    name: Workflow syntax probe
+  quality:
+    name: Build and quality
     runs-on: ubuntu-latest
     steps:
-      - run: echo "ci workflow parsed"
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          tools: composer:v2, phpunit:10.5
+          coverage: none
+      - run: npm ci --no-audit --no-fund
+      - run: composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist
+      - run: npm run check:quality
+      - name: Clean source build
+        shell: bash
+        run: |
+          rm -rf build
+          npm run build
+      - run: npm run check:build-integrity
+      - run: phpunit -c phpunit.xml.dist
+      - run: npm run package
+      - run: node scripts/verify-package.mjs

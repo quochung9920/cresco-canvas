@@ -9,9 +9,492 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: release-hardening-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: '22'
+  RELEASE_WP: '7.0.2'
+  RELEASE_PHP: '8.3'
+
 jobs:
-  syntax_probe:
-    name: Workflow syntax probe
+  source_build:
+    name: Source to build integrity
     runs-on: ubuntu-latest
     steps:
-      - run: echo "release-hardening workflow parsed"
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ env.RELEASE_PHP }}
+          tools: composer:v2
+          coverage: none
+      - run: npm ci --no-audit --no-fund
+      - run: composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist
+      - name: Delete every generated runtime and rebuild
+        shell: bash
+        run: |
+          rm -rf build
+          npm run build
+      - run: npm run check:build-integrity
+      - name: Require rebuild parity with committed runtime
+        shell: bash
+        run: |
+          if [ -n "$(git status --porcelain -- build)" ]; then
+            git status --short -- build
+            exit 1
+          fi
+      - run: npm run check:hygiene
+      - run: npm run check:editor-runtime
+
+  javascript_quality:
+    name: Typecheck, lint, unit, version
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - run: npm run typecheck
+      - run: npm run lint:js
+      - run: npm run lint:css
+      - run: npm run lint:md
+      - run: npm run test:unit
+      - run: npm run check:version
+      - name: Production npm dependency audit
+        run: npm audit --omit=dev --audit-level=high
+
+  phpunit:
+    name: PHPUnit PHP ${{ matrix.php }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        php:
+          - '8.1'
+          - '8.2'
+          - '8.3'
+          - '8.4'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          tools: composer:v2, phpunit:10.5
+          coverage: none
+      - run: composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist
+      - name: PHP syntax
+        shell: bash
+        run: find includes tests/php -type f -name '*.php' -print0 | sort -z | xargs -0 -n1 php -l
+      - run: phpunit -c phpunit.xml.dist
+      - run: composer audit --locked --no-dev
+
+  phpcs:
+    name: PHPCS and PHP compatibility
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          tools: composer:v2
+          coverage: none
+      - name: Install coding standards
+        shell: bash
+        run: |
+          composer global config allow-plugins.dealerdirect/phpcodesniffer-composer-installer true
+          composer global require --no-interaction wp-coding-standards/wpcs phpcompatibility/phpcompatibility-wp
+      - run: composer global exec phpcs -- --standard=phpcs.xml.dist
+
+  package:
+    name: Exact release artifact
+    needs:
+      - source_build
+      - javascript_quality
+      - phpunit
+      - phpcs
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ env.RELEASE_PHP }}
+          tools: composer:v2
+          coverage: none
+      - run: npm ci --no-audit --no-fund
+      - run: composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist
+      - run: npm run build
+      - run: npm run check:build-integrity
+      - run: npm run package
+      - run: node scripts/verify-package.mjs
+      - run: node scripts/verify-reproducible-build.mjs
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cresco-release-${{ github.sha }}
+          path: dist/*
+          if-no-files-found: error
+
+  reproducible_clean:
+    name: Reproducible package from two clean checkouts
+    needs: package
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: source-a
+      - uses: actions/checkout@v4
+        with:
+          path: source-b
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ env.RELEASE_PHP }}
+          tools: composer:v2
+          coverage: none
+      - name: Build checkout A
+        working-directory: source-a
+        run: |
+          npm ci --no-audit --no-fund
+          composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist
+          rm -rf build
+          npm run build
+          npm run check:build-integrity
+          npm run package
+      - name: Build checkout B
+        working-directory: source-b
+        run: |
+          npm ci --no-audit --no-fund
+          composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist
+          rm -rf build
+          npm run build
+          npm run check:build-integrity
+          npm run package
+      - name: Compare exact ZIP hashes
+        shell: bash
+        run: |
+          VERSION=$(node -p "require('./source-a/package.json').version")
+          A=$(sha256sum "source-a/dist/cresco-canvas-${VERSION}.zip" | cut -d ' ' -f 1)
+          B=$(sha256sum "source-b/dist/cresco-canvas-${VERSION}.zip" | cut -d ' ' -f 1)
+          echo "checkout A: $A"
+          echo "checkout B: $B"
+          test "$A" = "$B"
+
+  wordpress_matrix:
+    name: WordPress ${{ matrix.wordpress }} / PHP ${{ matrix.php }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - wordpress: '6.7.5'
+            php: '8.1'
+          - wordpress: '6.9.5'
+            php: '8.2'
+          - wordpress: '7.0.2'
+            php: '8.3'
+          - wordpress: '7.0.2'
+            php: '8.4'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          tools: composer:v2
+          coverage: none
+      - run: npm ci --no-audit --no-fund
+      - run: composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist
+      - run: npm run build
+      - name: Configure compatibility environment
+        shell: bash
+        run: |
+          cat > .wp-env.compat.json <<JSON
+          {
+            "core": "WordPress/WordPress#${{ matrix.wordpress }}",
+            "phpVersion": "${{ matrix.php }}",
+            "plugins": ["."],
+            "config": {"WP_DEBUG": true, "WP_DEBUG_LOG": true}
+          }
+          JSON
+      - run: npx wp-env --config=.wp-env.compat.json start --update
+      - run: npx wp-env --config=.wp-env.compat.json run cli wp core version
+      - run: npx wp-env --config=.wp-env.compat.json run cli wp plugin status cresco-canvas
+      - run: npx playwright install --with-deps chromium
+      - name: Critical editor smoke on matrix cell
+        env:
+          WP_ENV_CONFIG: .wp-env.compat.json
+        run: npx playwright test tests/e2e/release-critical.spec.ts --project=chromium --workers=1
+      - name: Cleanup
+        if: ${{ always() }}
+        run: npx wp-env --config=.wp-env.compat.json destroy
+
+  browser_matrix:
+    name: Critical E2E ${{ matrix.browser }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        browser:
+          - chromium
+          - firefox
+          - webkit
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ env.RELEASE_PHP }}
+          tools: composer:v2
+          coverage: none
+      - run: npm ci --no-audit --no-fund
+      - run: composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist
+      - run: npm run build
+      - run: npx playwright install --with-deps ${{ matrix.browser }}
+      - run: npx wp-env start --update
+      - name: Critical browser flows
+        run: >-
+          npx playwright test
+          tests/e2e/release-critical.spec.ts
+          tests/e2e/editor-shell.spec.ts
+          tests/e2e/page-settings.spec.ts
+          tests/e2e/accessibility-release.spec.ts
+          --project=${{ matrix.browser }}
+          --workers=1
+      - name: Upload Playwright evidence
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-${{ matrix.browser }}-${{ github.sha }}
+          path: |
+            playwright-report
+            test-results
+          if-no-files-found: ignore
+      - name: Cleanup
+        if: ${{ always() }}
+        run: npx wp-env destroy
+
+  theme_matrix:
+    name: Theme smoke ${{ matrix.theme }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        theme:
+          - twentytwentyfive
+          - twentytwentyone
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ env.RELEASE_PHP }}
+          tools: composer:v2
+          coverage: none
+      - run: npm ci --no-audit --no-fund
+      - run: composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist
+      - run: npm run build
+      - run: npx playwright install --with-deps chromium
+      - run: npx wp-env start --update
+      - run: npx wp-env run cli wp theme install ${{ matrix.theme }} --activate
+      - run: npx playwright test tests/e2e/theme-shell.spec.ts --project=chromium --workers=1
+      - name: Cleanup
+        if: ${{ always() }}
+        run: npx wp-env destroy
+
+  integration_matrix:
+    name: Integration smoke ${{ matrix.plugin }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        plugin:
+          - advanced-custom-fields
+          - woocommerce
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ env.RELEASE_PHP }}
+          tools: composer:v2
+          coverage: none
+      - run: npm ci --no-audit --no-fund
+      - run: composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist
+      - run: npm run build
+      - run: npx playwright install --with-deps chromium
+      - run: npx wp-env start --update
+      - run: npx wp-env run cli wp plugin install ${{ matrix.plugin }} --activate
+      - run: npx playwright test tests/e2e/release-critical.spec.ts --project=chromium --workers=1
+      - name: Cleanup
+        if: ${{ always() }}
+        run: npx wp-env destroy
+
+  multisite:
+    name: Multisite smoke
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ env.RELEASE_PHP }}
+          tools: composer:v2
+          coverage: none
+      - run: npm ci --no-audit --no-fund
+      - run: composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist
+      - run: npm run build
+      - name: Configure multisite
+        shell: bash
+        run: |
+          cat > .wp-env.multisite.json <<JSON
+          {
+            "core": "WordPress/WordPress#7.0.2",
+            "phpVersion": "8.3",
+            "plugins": ["."],
+            "multisite": true
+          }
+          JSON
+      - run: npx wp-env --config=.wp-env.multisite.json start --update
+      - run: npx wp-env --config=.wp-env.multisite.json run cli wp plugin activate cresco-canvas --network
+      - run: npx wp-env --config=.wp-env.multisite.json run cli wp site list --field=url
+      - name: Cleanup
+        if: ${{ always() }}
+        run: npx wp-env --config=.wp-env.multisite.json destroy
+
+  performance:
+    name: Performance baseline 50/200/500 nodes
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ env.RELEASE_PHP }}
+          tools: composer:v2
+          coverage: none
+      - run: npm ci --no-audit --no-fund
+      - run: composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist
+      - run: npm run build
+      - run: npx playwright install --with-deps chromium
+      - run: npx wp-env start --update
+      - run: npm run test:performance
+      - name: Upload performance evidence
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: performance-${{ github.sha }}
+          path: test-results
+          if-no-files-found: ignore
+      - name: Cleanup
+        if: ${{ always() }}
+        run: npx wp-env destroy
+
+  zip_install:
+    name: Exact ZIP clean install P0
+    needs: package
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - uses: actions/download-artifact@v4
+        with:
+          name: cresco-release-${{ github.sha }}
+          path: dist
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:zip-install
+
+  upgrade:
+    name: Historical upgrade P0
+    needs: package
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - uses: actions/download-artifact@v4
+        with:
+          name: cresco-release-${{ github.sha }}
+          path: dist
+      - run: npm run test:upgrade
+
+  automated_gate:
+    name: Automated commercial RC gate
+    if: ${{ always() }}
+    needs:
+      - source_build
+      - javascript_quality
+      - phpunit
+      - phpcs
+      - package
+      - reproducible_clean
+      - wordpress_matrix
+      - browser_matrix
+      - theme_matrix
+      - integration_matrix
+      - multisite
+      - performance
+      - zip_install
+      - upgrade
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require every automated gate to pass
+        env:
+          SOURCE_BUILD: ${{ needs.source_build.result }}
+          JS: ${{ needs.javascript_quality.result }}
+          PHPUNIT: ${{ needs.phpunit.result }}
+          PHPCS: ${{ needs.phpcs.result }}
+          PACKAGE: ${{ needs.package.result }}
+          REPRO: ${{ needs.reproducible_clean.result }}
+          WP: ${{ needs.wordpress_matrix.result }}
+          BROWSER: ${{ needs.browser_matrix.result }}
+          THEME: ${{ needs.theme_matrix.result }}
+          INTEGRATION: ${{ needs.integration_matrix.result }}
+          MULTISITE: ${{ needs.multisite.result }}
+          PERFORMANCE: ${{ needs.performance.result }}
+          ZIP_INSTALL: ${{ needs.zip_install.result }}
+          UPGRADE: ${{ needs.upgrade.result }}
+        shell: bash
+        run: |
+          for result in "$SOURCE_BUILD" "$JS" "$PHPUNIT" "$PHPCS" "$PACKAGE" "$REPRO" "$WP" "$BROWSER" "$THEME" "$INTEGRATION" "$MULTISITE" "$PERFORMANCE" "$ZIP_INSTALL" "$UPGRADE"; do
+            test "$result" = "success"
+          done
+          echo "Automated RC gates passed. Manual commercial gates are still separate evidence."
