@@ -7,6 +7,7 @@
 
 namespace CrescoCanvas;
 
+use CrescoCanvas\Admin\EditorExperience;
 use CrescoCanvas\Admin\EditorIntegration;
 use CrescoCanvas\Admin\VisualEditor;
 use CrescoCanvas\AI\AIInterchange;
@@ -88,6 +89,7 @@ final class Plugin {
 		( new HistoryManager() )->register();
 		( new PageSettings() )->register();
 		( new VisualEditor() )->register();
+		( new EditorExperience() )->register();
 		( new ContainerWidth() )->register();
 
 		// Backend/domain services stay available to the editor and frontend.
