@@ -22,8 +22,10 @@
     "test:unit": "wp-scripts test-unit-js --runInBand",
     "test:e2e": "playwright test",
     "test:e2e:report": "playwright show-report",
+    "check:hygiene": "node scripts/check-repository-hygiene.mjs",
     "check:editor-runtime": "node scripts/check-editor-runtime.mjs",
     "check:version": "node scripts/check-version.mjs",
+    "check:quality": "npm run check:hygiene && npm run check:editor-runtime && npm run typecheck && npm run lint:js && npm run lint:css && npm run lint:md && npm run test:unit && npm run check:version",
     "package": "node scripts/build-release.mjs",
     "package:verify": "node scripts/verify-reproducible-build.mjs"
   },
