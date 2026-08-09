@@ -200,11 +200,28 @@
 		return button;
 	}
 
+	function buttonText( button ) {
+		return button ? String( button.textContent || '' ).replace( /\s+/g, ' ' ).trim() : '';
+	}
+
+	function normalizeTopbarActions( actions ) {
+		if ( ! actions ) return;
+		var redo = null;
+		var history = actions.querySelector( '.cc-history-launcher' );
+		Array.prototype.forEach.call( actions.querySelectorAll( ':scope > button' ), function ( button ) {
+			var text = buttonText( button );
+			if ( text === 'AI' ) button.remove();
+			else if ( text === 'Redo' ) redo = button;
+		} );
+		if ( redo && history && redo.nextSibling !== history ) actions.insertBefore( history, redo.nextSibling );
+	}
+
 	function ensureChrome() {
 		if ( ! app ) return;
 		ensureOwnershipStyles();
 		syncSettingsEntry();
 		var actions = app.querySelector( '.cc-standalone-header-actions' );
+		normalizeTopbarActions( actions );
 		if ( actions && ! actions.querySelector( '.cc-ui-v3-panel-controls' ) ) {
 			var controls = document.createElement( 'div' );
 			controls.className = 'cc-ui-v3-panel-controls';
