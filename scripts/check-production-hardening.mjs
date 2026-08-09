@@ -82,10 +82,13 @@ const security = await readFile(
 );
 requireTokens( 'SecurityHardening', security, [
 	"add_filter( 'rest_pre_dispatch'",
+	"add_filter( 'rest_post_dispatch'",
 	'MAX_DEFAULT_JSON_BYTES',
 	'MAX_FORM_JSON_BYTES',
 	'MAX_DYNAMIC_JSON_BYTES',
 	'MAX_MULTIPART_BYTES',
+	'IDEMPOTENCY_PENDING_TTL',
+	'finalize_idempotent_request',
 	'validate_public_shape',
 	'validate_public_https_url',
 	'FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE',
