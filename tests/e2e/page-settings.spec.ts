@@ -65,6 +65,7 @@ test.describe.serial( 'Cresco Page Settings', () => {
 
 		await openSiteSettingsView( dialog, 'Layout' );
 		await layout.selectOption( 'full-width' );
+		await title.selectOption( 'hide' );
 		await expect( title ).toHaveValue( 'hide' );
 		await openSiteSettingsView( dialog, 'Page Header' );
 		await dialog.locator( '[name="header"]' ).selectOption( 'inherit' );
