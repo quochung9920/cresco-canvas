@@ -49,7 +49,7 @@ jobs:
         run: |
           unzip -t dist/cresco-canvas.zip
           ! unzip -Z1 dist/cresco-canvas.zip | grep -E '(^|/)(node_modules|src|tests|\.github)(/|$)|\.map$'
-          ! unzip -Z1 dist/cresco-canvas.zip | grep -E '(editor-hub|elements-usage-sort|workspace-layout|widget-inspector-compat|standalone-content-bootstrap)'
+          ! unzip -Z1 dist/cresco-canvas.zip | grep -E '(editor-hub|elements-usage-sort|workspace-layout|widget-inspector(-compat)?|standalone-content-bootstrap|native-gutenberg-bridge)'
           unzip -Z1 dist/cresco-canvas.zip | grep -q 'cresco-canvas/build/standalone-visual-editor.js'
           unzip -Z1 dist/cresco-canvas.zip | grep -q 'cresco-canvas/build/standalone-page-settings.js'
           unzip -Z1 dist/cresco-canvas.zip | grep -q 'cresco-canvas/build/global-config-import.js'
