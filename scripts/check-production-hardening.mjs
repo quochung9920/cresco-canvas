@@ -180,6 +180,7 @@ for ( const policy of [
 	'docs/SECURITY.md',
 	'docs/PRIVACY.md',
 	'docs/UPGRADE_ROLLBACK.md',
+	'docs/PRODUCTION_HARDENING_VERIFICATION.md',
 ] ) {
 	if ( ! releaseFiles.includes( `'${ policy }'` ) ) {
 		errors.push( `Release ZIP allowlist is missing ${ policy }` );
@@ -211,6 +212,21 @@ requireTokens( 'Upgrade/rollback documentation', rollbackDoc, [
 	'## Downgrade detection',
 	'## Multisite behavior',
 	'## Uninstall and rollback invariants',
+] );
+
+const verificationDoc = await readFile(
+	'docs/PRODUCTION_HARDENING_VERIFICATION.md',
+	'utf8'
+);
+requireTokens( 'Production hardening verification runbook', verificationDoc, [
+	'## 2. REST authentication and public-route boundary',
+	'## 3. Payload, rate, and idempotency verification',
+	'## 4. Private upload storage',
+	'## 5. Webhook SSRF and delivery',
+	'## 6. CSV export',
+	'## 7. Privacy and retention',
+	'## 8. Migration, downgrade, and rollback',
+	'## 9. Deactivation, uninstall, and multisite',
 ] );
 
 for ( const testFile of [
