@@ -104,4 +104,23 @@ final class PageSettingsTest extends TestCase {
 			)
 		);
 	}
+
+	public function test_ai_context_filter_ignores_array_responses_without_fatal_errors(): void {
+		$service  = new PageSettings();
+		$response = array( 'ok' => true );
+
+		$wordpress_request = new class() extends WP_REST_Request {
+			public function get_route() {
+				return '/wp/v2/settings';
+			}
+		};
+		self::assertSame( $response, $service->inject_ai_context( $response, null, $wordpress_request ) );
+
+		$ai_request = new class() extends WP_REST_Request {
+			public function get_route() {
+				return '/cresco-canvas/v1/ai-context/42';
+			}
+		};
+		self::assertSame( $response, $service->inject_ai_context( $response, null, $ai_request ) );
+	}
 }
