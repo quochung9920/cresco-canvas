@@ -19,7 +19,7 @@ async function openStandaloneEditor( page: Page ) {
 	await expect( page.locator( '.cc-standalone-app.cc-ui-v3-ready' ) ).toBeVisible();
 }
 
-async function openPanel( page: Page, label: 'Widgets' | 'Edit' | 'Global' | 'AI' ) {
+async function openPanel( page: Page, label: 'Widgets' | 'Edit' | 'Settings' | 'AI' ) {
 	const button = page.locator( '.cc-standalone-tabs button' ).filter( { hasText: label } ).first();
 	await button.click();
 	await expect( button ).toHaveClass( /is-active/ );
@@ -55,33 +55,39 @@ test.describe( 'Cresco standalone UI v3 shell', () => {
 		await expect( structure ).toBeFocused();
 	} );
 
-	test( 'keeps Global Design authoritative and isolated from Edit', async ( { page } ) => {
+	test( 'replaces Global with one Settings Center and keeps Edit isolated', async ( { page } ) => {
 		await page.setViewportSize( { width: 1440, height: 900 } );
 		await login( page );
 		await openStandaloneEditor( page );
+
+		const tabs = page.locator( '.cc-standalone-tabs button' );
+		await expect( tabs.filter( { hasText: 'Settings' } ) ).toHaveCount( 1 );
+		await expect( tabs.filter( { hasText: 'Global' } ) ).toHaveCount( 0 );
+		await expect( page.locator( '.cc-page-settings-trigger' ) ).toBeHidden();
 
 		const structureItem = page.locator( '.cc-standalone-structure-item' ).first();
 		await expect( structureItem ).toBeVisible();
 		await structureItem.click();
 		await expect( page.locator( '.cc-inspector' ) ).toBeVisible();
 
-		await openPanel( page, 'Global' );
-		const globalPanel = page.locator( '.cc-global-panel' );
-		await expect( globalPanel ).toBeVisible();
-		await expect( globalPanel.locator( ':scope > .cc-global-simple-editor' ) ).toBeVisible();
-		await expect( globalPanel ).toHaveClass( /cc-ui-v3-global-authoritative/ );
-		await expect( globalPanel.locator( '.cc-inspector-v2-tabs' ) ).toHaveCount( 0 );
-		await expect( globalPanel.locator( ':scope > .cc-global-simple-editor .cc-global-simple-header' ) ).toBeVisible();
-		await expect( globalPanel.getByRole( 'button', { name: 'Copy Global Config' } ) ).toBeHidden();
+		await openPanel( page, 'Settings' );
+		const settingsPanel = page.locator( '.cc-global-panel.cc-settings-center-host' );
+		await expect( settingsPanel ).toBeVisible();
+		const settingsCenter = settingsPanel.getByRole( 'region', { name: 'Settings Center' } );
+		await expect( settingsCenter ).toBeVisible();
+		await expect( settingsCenter.getByRole( 'button', { name: 'Global Colors' } ) ).toBeVisible();
+		await expect( settingsCenter.getByRole( 'button', { name: 'Layout' } ) ).toBeVisible();
+		await expect( settingsPanel.locator( '.cc-global-simple-editor' ) ).toBeHidden();
+		await expect( settingsPanel.getByRole( 'button', { name: 'Copy Global Config' } ) ).toBeHidden();
 
 		await openPanel( page, 'Edit' );
 		const inspector = page.locator( '.cc-inspector' );
 		await expect( inspector ).toBeVisible();
 		await expect( inspector.locator( '.cc-global-simple-editor' ) ).toHaveCount( 0 );
 		await expect( inspector.locator( '.cc-inspector-v2-tabs' ) ).toBeVisible();
+		await expect( page.getByRole( 'region', { name: 'Settings Center' } ) ).toHaveCount( 0 );
 
-		await openPanel( page, 'Global' );
-		await expect( page.locator( '.cc-global-panel > .cc-global-simple-editor' ) ).toHaveCount( 1 );
-		await expect( page.locator( '.cc-global-panel .cc-inspector-v2-tabs' ) ).toHaveCount( 0 );
+		await openPanel( page, 'Settings' );
+		await expect( page.getByRole( 'region', { name: 'Settings Center' } ) ).toBeVisible();
 	} );
 } );
