@@ -1,0 +1,378 @@
+/* Cresco Canvas Editor Experience v2 */
+.cresco-editor-experience-v2 {
+	--cc-experience-accent: var(--wp-admin-theme-color, #3858e9);
+	--cc-experience-border: color-mix(in srgb, currentColor 14%, transparent);
+	--cc-experience-panel: color-mix(in srgb, Canvas 96%, currentColor 4%);
+	--cc-experience-muted: color-mix(in srgb, currentColor 58%, transparent);
+}
+
+.cresco-editor-experience-v2 .cc-standalone-header {
+	box-shadow: 0 1px 0 rgba(0, 0, 0, .08), 0 8px 24px rgba(0, 0, 0, .04);
+}
+
+.cresco-editor-experience-v2 .cc-standalone-left,
+.cresco-editor-experience-v2 .cc-standalone-right {
+	background: var(--cc-experience-panel);
+}
+
+.cresco-editor-experience-v2 .cc-standalone-stage {
+	background-image:
+		linear-gradient(45deg, rgba(127,127,127,.035) 25%, transparent 25%),
+		linear-gradient(-45deg, rgba(127,127,127,.035) 25%, transparent 25%),
+		linear-gradient(45deg, transparent 75%, rgba(127,127,127,.035) 75%),
+		linear-gradient(-45deg, transparent 75%, rgba(127,127,127,.035) 75%);
+	background-position: 0 0, 0 8px, 8px -8px, -8px 0;
+	background-size: 16px 16px;
+}
+
+.cresco-editor-experience-v2 .cc-canvas-node[data-cresco-id] {
+	outline: 0 solid transparent;
+	outline-offset: 2px;
+	transition: outline-color 120ms ease, box-shadow 120ms ease;
+}
+
+.cresco-editor-experience-v2 .cc-canvas-node[data-cresco-id]:hover {
+	outline: 1px dashed color-mix(in srgb, var(--cc-experience-accent) 55%, transparent);
+}
+
+.cresco-editor-experience-v2 .cc-canvas-node[data-cresco-id]:focus-visible,
+.cresco-editor-experience-v2 .cc-canvas-node[data-cresco-id].is-selected {
+	outline: 2px solid var(--cc-experience-accent);
+	box-shadow: 0 0 0 3px color-mix(in srgb, var(--cc-experience-accent) 14%, transparent);
+}
+
+.cc-experience-command-trigger,
+.cc-experience-focus-trigger {
+	gap: 6px;
+}
+
+.cc-experience-command-trigger kbd,
+.cc-experience-palette kbd {
+	min-width: 22px;
+	padding: 2px 5px;
+	border: 1px solid color-mix(in srgb, currentColor 18%, transparent);
+	border-bottom-width: 2px;
+	border-radius: 5px;
+	background: color-mix(in srgb, Canvas 92%, currentColor 8%);
+	font: 600 10px/1.3 ui-monospace, SFMono-Regular, Menlo, monospace;
+	text-align: center;
+}
+
+.cc-experience-live {
+	position: fixed;
+	width: 1px;
+	height: 1px;
+	padding: 0;
+	margin: -1px;
+	overflow: hidden;
+	clip: rect(0, 0, 0, 0);
+	white-space: nowrap;
+	border: 0;
+}
+
+.cc-experience-palette[hidden] { display: none; }
+.cc-experience-palette {
+	position: fixed;
+	z-index: 100100;
+	inset: 0;
+	display: grid;
+	place-items: start center;
+	padding-top: min(15vh, 140px);
+}
+
+.cc-experience-palette__backdrop {
+	position: absolute;
+	inset: 0;
+	background: rgba(15, 18, 25, .48);
+	backdrop-filter: blur(5px);
+}
+
+.cc-experience-palette__dialog {
+	position: relative;
+	width: min(680px, calc(100vw - 32px));
+	max-height: min(70vh, 640px);
+	display: grid;
+	grid-template-rows: auto minmax(0, 1fr) auto;
+	border: 1px solid rgba(255,255,255,.18);
+	border-radius: 14px;
+	background: #fff;
+	color: #1e1e1e;
+	box-shadow: 0 24px 80px rgba(0, 0, 0, .28);
+	overflow: hidden;
+}
+
+.cc-experience-palette__search {
+	display: grid;
+	grid-template-columns: auto minmax(0,1fr) auto;
+	align-items: center;
+	gap: 10px;
+	padding: 14px 16px;
+	border-bottom: 1px solid #e6e6e6;
+}
+
+.cc-experience-palette__search input {
+	width: 100%;
+	min-height: 38px;
+	border: 0 !important;
+	box-shadow: none !important;
+	font-size: 16px;
+	background: transparent;
+}
+
+.cc-experience-palette__results {
+	overflow: auto;
+	padding: 8px;
+}
+
+.cc-experience-palette__item {
+	width: 100%;
+	display: grid;
+	grid-template-columns: minmax(0,1fr) auto;
+	align-items: center;
+	gap: 16px;
+	padding: 10px 12px;
+	border: 0;
+	border-radius: 8px;
+	background: transparent;
+	color: inherit;
+	text-align: left;
+	cursor: pointer;
+}
+
+.cc-experience-palette__item > span { display: grid; gap: 2px; }
+.cc-experience-palette__item strong { font-size: 13px; }
+.cc-experience-palette__item small { color: #646970; }
+.cc-experience-palette__item.is-active,
+.cc-experience-palette__item:hover { background: #f0f4ff; }
+
+.cc-experience-palette__empty {
+	padding: 28px;
+	color: #646970;
+	text-align: center;
+}
+
+.cc-experience-palette__footer {
+	display: flex;
+	align-items: center;
+	gap: 16px;
+	padding: 9px 14px;
+	border-top: 1px solid #e6e6e6;
+	background: #f8f9fa;
+	color: #646970;
+	font-size: 11px;
+}
+
+.cc-experience-palette__footer span { display: flex; align-items: center; gap: 4px; }
+
+.cc-experience-inspector-tools {
+	position: sticky;
+	top: 0;
+	z-index: 7;
+	display: grid;
+	gap: 8px;
+	padding: 10px 12px;
+	border-bottom: 1px solid var(--cc-experience-border);
+	background: color-mix(in srgb, Canvas 96%, transparent);
+	backdrop-filter: blur(10px);
+}
+
+.cc-experience-inspector-meta {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 8px;
+	min-width: 0;
+}
+
+.cc-experience-inspector-type {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	font: 600 11px/1.4 ui-monospace, SFMono-Regular, Menlo, monospace;
+	color: var(--cc-experience-muted);
+}
+
+.cc-experience-device-badge,
+.cc-experience-source-badge {
+	display: inline-flex;
+	align-items: center;
+	min-height: 18px;
+	padding: 1px 6px;
+	border: 1px solid var(--cc-experience-border);
+	border-radius: 999px;
+	background: color-mix(in srgb, Canvas 92%, currentColor 8%);
+	font-size: 9px;
+	font-weight: 650;
+	line-height: 1.25;
+	letter-spacing: .02em;
+}
+
+.cc-experience-inspector-actions {
+	display: grid;
+	grid-template-columns: minmax(0,1fr) 30px 30px 30px;
+	gap: 5px;
+}
+
+.cc-experience-control-search,
+.cc-experience-structure-search {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	min-width: 0;
+	padding-inline: 8px;
+	border: 1px solid var(--cc-experience-border);
+	border-radius: 6px;
+	background: Canvas;
+}
+
+.cc-experience-control-search input,
+.cc-experience-structure-search input {
+	width: 100%;
+	min-width: 0;
+	min-height: 28px !important;
+	padding: 0 !important;
+	border: 0 !important;
+	box-shadow: none !important;
+	background: transparent !important;
+	font-size: 11px !important;
+}
+
+.cc-experience-inspector-actions > button,
+.cc-experience-structure-clear {
+	display: grid;
+	place-items: center;
+	min-width: 30px;
+	min-height: 30px;
+	padding: 0;
+	border: 1px solid var(--cc-experience-border);
+	border-radius: 6px;
+	background: Canvas;
+	color: inherit;
+	cursor: pointer;
+}
+
+.cc-experience-inspector-actions > button:hover,
+.cc-experience-structure-clear:hover { border-color: var(--cc-experience-accent); color: var(--cc-experience-accent); }
+
+.cc-experience-source-badge { margin-inline-start: 6px; vertical-align: middle; }
+[data-cresco-value-source="global"] .cc-experience-source-badge { color: #3858e9; background: #eef2ff; border-color: #c6d0ff; }
+[data-cresco-value-source="local"] .cc-experience-source-badge { color: #8a4b08; background: #fff5df; border-color: #f3d19a; }
+[data-cresco-value-source="inherited"] .cc-experience-source-badge { color: #5f4b8b; background: #f6f0ff; border-color: #d9c8f8; }
+
+.cc-experience-filter-hidden,
+.cc-inspector-section.cc-experience-filter-empty { display: none !important; }
+
+.cc-experience-structure-tools {
+	display: grid;
+	grid-template-columns: minmax(0,1fr) 30px;
+	gap: 6px;
+	padding: 10px;
+	border-bottom: 1px solid var(--cc-experience-border);
+}
+
+.cc-experience-structure-no-results {
+	padding: 20px 12px;
+	color: var(--cc-experience-muted);
+	font-size: 12px;
+	text-align: center;
+}
+
+.cc-experience-recent-widgets {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 5px;
+	margin: 8px 0 12px;
+	padding-bottom: 10px;
+	border-bottom: 1px solid var(--cc-experience-border);
+}
+
+.cc-experience-recent-widgets__label {
+	flex: 0 0 100%;
+	font-size: 10px;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: .06em;
+	color: var(--cc-experience-muted);
+}
+
+.cc-experience-recent-widget {
+	padding: 4px 7px;
+	border: 1px solid var(--cc-experience-border);
+	border-radius: 999px;
+	background: Canvas;
+	font-size: 10px;
+	cursor: pointer;
+}
+
+.cc-experience-context-menu {
+	position: fixed;
+	z-index: 100110;
+	width: 220px;
+	padding: 6px;
+	border: 1px solid rgba(0,0,0,.12);
+	border-radius: 9px;
+	background: #fff;
+	color: #1e1e1e;
+	box-shadow: 0 16px 46px rgba(0,0,0,.22);
+}
+
+.cc-experience-context-title {
+	padding: 7px 9px;
+	border-bottom: 1px solid #e6e6e6;
+	margin-bottom: 4px;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	font: 600 10px/1.4 ui-monospace, SFMono-Regular, Menlo, monospace;
+	color: #646970;
+}
+
+.cc-experience-context-item {
+	width: 100%;
+	padding: 7px 9px;
+	border: 0;
+	border-radius: 5px;
+	background: transparent;
+	color: inherit;
+	font-size: 12px;
+	text-align: left;
+	cursor: pointer;
+}
+
+.cc-experience-context-item:hover,
+.cc-experience-context-item:focus-visible { background: #f0f4ff; outline: none; }
+.cc-experience-context-item:disabled { opacity: .45; cursor: default; }
+
+.cc-standalone-app.cc-experience-focus-mode .cc-standalone-left,
+.cc-standalone-app.cc-experience-focus-mode .cc-standalone-right { display: none; }
+.cc-standalone-app.cc-experience-focus-mode .cc-standalone-workspace { grid-template-columns: minmax(0, 1fr) !important; }
+.cc-standalone-app.cc-experience-focus-mode .cc-standalone-center { grid-column: 1; }
+
+.cresco-editor-experience-v2 button:focus-visible,
+.cresco-editor-experience-v2 a:focus-visible,
+.cresco-editor-experience-v2 input:focus-visible,
+.cresco-editor-experience-v2 select:focus-visible,
+.cresco-editor-experience-v2 textarea:focus-visible {
+	outline: 2px solid var(--cc-experience-accent);
+	outline-offset: 2px;
+}
+
+@media (max-width: 1100px) {
+	.cc-experience-command-trigger span:not(.dashicons),
+	.cc-experience-command-trigger kbd { display: none; }
+	.cc-experience-palette__footer { display: none; }
+}
+
+@media (forced-colors: active) {
+	.cc-experience-palette__dialog,
+	.cc-experience-context-menu,
+	.cc-experience-control-search,
+	.cc-experience-structure-search { border: 1px solid CanvasText; }
+	.cresco-editor-experience-v2 .cc-canvas-node[data-cresco-id].is-selected { outline: 3px solid Highlight; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.cresco-editor-experience-v2 *,
+	.cc-experience-palette *,
+	.cc-experience-context-menu * { scroll-behavior: auto !important; transition: none !important; animation: none !important; }
+}
