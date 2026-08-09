@@ -60,6 +60,7 @@
     "viewport-shell.js",
     "visual-canvas.asset.php",
     "visual-canvas.js",
+    "website-builder-controls.js",
     "website-builder-frontend.js",
     "widget-inspector-persistent.asset.php",
     "widget-inspector-persistent.js"
