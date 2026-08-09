@@ -24,6 +24,8 @@ final class WebsiteBuilderCompatibility {
 		$post_id = isset( $_GET['post'] ) ? absint( wp_unslash( $_GET['post'] ) ) : 0; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only screen routing.
 		if ( VisualEditor::PAGE_SLUG !== $page || ! $post_id || 'page' !== get_post_type( $post_id ) || ! current_user_can( 'edit_post', $post_id ) ) return;
 
+		$this->bridge_page_settings_contract();
+
 		$scripts = array(
 			'cresco-canvas-standalone-ai-bridge',
 			'cresco-canvas-editor-experience-v2-tools',
@@ -55,5 +57,57 @@ final class WebsiteBuilderCompatibility {
 
 		foreach ( $scripts as $handle ) wp_dequeue_script( $handle );
 		foreach ( $styles as $handle ) wp_dequeue_style( $handle );
+	}
+
+	/**
+	 * The Website Builder Page panel intentionally reuses PageSettings v2.
+	 * Normalize the one historical camel-case field and remove UI choices that
+	 * do not yet have distinct server semantics rather than silently coercing them.
+	 */
+	private function bridge_page_settings_contract() {
+		if ( ! wp_script_is( 'cresco-canvas-website-builder', 'enqueued' ) ) return;
+		$script = <<<'JS'
+(function(window,document){
+'use strict';
+var apiFetch=window.wp&&window.wp.apiFetch;
+if(apiFetch&&typeof apiFetch.use==='function'){
+	apiFetch.use(function(options,next){
+		var path=String(options&&options.path||'');
+		var pageSettings=/\/cresco-canvas\/v1\/page-settings\/\d+$/.test(path);
+		if(pageSettings&&options&&options.data&&options.data.settings){
+			var settings=Object.assign({},options.data.settings);
+			if(Object.prototype.hasOwnProperty.call(settings,'customCss'))settings.customCSS=settings.customCss;
+			delete settings.customCss;
+			options=Object.assign({},options,{data:Object.assign({},options.data,{settings:settings})});
+		}
+		return next(options).then(function(response){
+			if(pageSettings&&response&&response.settings&&Object.prototype.hasOwnProperty.call(response.settings,'customCSS')){
+				response=Object.assign({},response,{settings:Object.assign({},response.settings,{customCss:response.settings.customCSS})});
+			}
+			return response;
+		});
+	});
+}
+var root=document.getElementById('cresco-canvas-standalone-editor');
+if(!root)return;
+var scheduled=false;
+function pruneUnsupportedPageOptions(){
+	var panels=Array.prototype.slice.call(root.querySelectorAll('.cc-builder-panel'));
+	var panel=panels.find(function(item){var head=item.querySelector('.cc-builder-panel-head strong');return head&&head.textContent.trim()==='Page Settings';});
+	if(!panel)return;
+	Array.prototype.slice.call(panel.querySelectorAll('.cc-builder-field')).forEach(function(field){
+		var label=field.querySelector('label'),select=field.querySelector('select');
+		if(!label||!select)return;
+		var name=label.textContent.trim();
+		if(name==='Page title'){var inherit=select.querySelector('option[value="inherit"]');if(inherit)inherit.remove();}
+		if(name==='Content root'){var content=select.querySelector('option[value="content"]');if(content)content.remove();}
+	});
+}
+function schedule(){if(scheduled)return;scheduled=true;window.requestAnimationFrame(function(){scheduled=false;pruneUnsupportedPageOptions();});}
+schedule();
+if(window.MutationObserver)new MutationObserver(schedule).observe(root,{childList:true,subtree:true});
+})(window,document);
+JS;
+		wp_add_inline_script( 'cresco-canvas-website-builder', $script, 'before' );
 	}
 }
