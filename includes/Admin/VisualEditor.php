@@ -69,10 +69,12 @@ final class VisualEditor {
 			'build/standalone-visual-editor.asset.php' => CRESCO_CANVAS_PATH . 'build/standalone-visual-editor.asset.php',
 			'build/standalone-visual-editor.js' => CRESCO_CANVAS_PATH . 'build/standalone-visual-editor.js',
 			'build/standalone-inspector-v2.js' => CRESCO_CANVAS_PATH . 'build/standalone-inspector-v2.js',
+			'build/standalone-ui-v3.js' => CRESCO_CANVAS_PATH . 'build/standalone-ui-v3.js',
 			'build/global-config-import.js' => CRESCO_CANVAS_PATH . 'build/global-config-import.js',
 			'build/viewport-shell.js' => CRESCO_CANVAS_PATH . 'build/viewport-shell.js',
 			'assets/css/standalone-visual-editor.css' => CRESCO_CANVAS_PATH . 'assets/css/standalone-visual-editor.css',
 			'assets/css/standalone-inspector-v2.css' => CRESCO_CANVAS_PATH . 'assets/css/standalone-inspector-v2.css',
+			'assets/css/standalone-ui-v3.css' => CRESCO_CANVAS_PATH . 'assets/css/standalone-ui-v3.css',
 			'assets/css/global-config-import.css' => CRESCO_CANVAS_PATH . 'assets/css/global-config-import.css',
 			'assets/css/viewport-shell.css' => CRESCO_CANVAS_PATH . 'assets/css/viewport-shell.css',
 		);
@@ -106,6 +108,7 @@ final class VisualEditor {
 		wp_enqueue_style( 'cresco-canvas-standalone-inspector-v2', CRESCO_CANVAS_URL . 'assets/css/standalone-inspector-v2.css', array( 'cresco-canvas-standalone-visual-editor' ), CRESCO_CANVAS_VERSION );
 		wp_enqueue_style( 'cresco-canvas-global-config-import', CRESCO_CANVAS_URL . 'assets/css/global-config-import.css', array( 'cresco-canvas-standalone-visual-editor' ), CRESCO_CANVAS_VERSION );
 		wp_enqueue_style( 'cresco-canvas-viewport-shell', CRESCO_CANVAS_URL . 'assets/css/viewport-shell.css', array( 'cresco-canvas-standalone-visual-editor' ), CRESCO_CANVAS_VERSION );
+		wp_enqueue_style( 'cresco-canvas-standalone-ui-v3', CRESCO_CANVAS_URL . 'assets/css/standalone-ui-v3.css', array( 'cresco-canvas-standalone-inspector-v2', 'cresco-canvas-global-config-import', 'cresco-canvas-viewport-shell' ), CRESCO_CANVAS_VERSION );
 		wp_add_inline_style( 'cresco-canvas-standalone-visual-editor', 'html.wp-toolbar{padding-top:0!important}body.admin_page_cresco-canvas-editor,body.toplevel_page_cresco-canvas-editor{margin:0!important}' . GlobalStyles::css( '.cc-session-canvas' ) . GlobalStyles::visual_css( '.cc-session-canvas' ) );
 
 		wp_enqueue_script( 'cresco-canvas-standalone-visual-editor', CRESCO_CANVAS_URL . 'build/standalone-visual-editor.js', (array) ( $asset['dependencies'] ?? array() ), (string) ( $asset['version'] ?? CRESCO_CANVAS_VERSION ), true );
@@ -116,6 +119,7 @@ final class VisualEditor {
 		wp_enqueue_script( 'cresco-canvas-viewport-shell', CRESCO_CANVAS_URL . 'build/viewport-shell.js', array( 'cresco-canvas-standalone-visual-editor' ), CRESCO_CANVAS_VERSION, true );
 		wp_enqueue_script( 'cresco-canvas-global-config-import', CRESCO_CANVAS_URL . 'build/global-config-import.js', array( 'cresco-canvas-standalone-visual-editor', 'wp-api-fetch', 'wp-i18n' ), CRESCO_CANVAS_VERSION, true );
 		wp_set_script_translations( 'cresco-canvas-global-config-import', 'cresco-canvas' );
+		wp_enqueue_script( 'cresco-canvas-standalone-ui-v3', CRESCO_CANVAS_URL . 'build/standalone-ui-v3.js', array( 'cresco-canvas-standalone-inspector-v2', 'cresco-canvas-viewport-shell', 'cresco-canvas-global-config-import' ), CRESCO_CANVAS_VERSION, true );
 	}
 
 	public function editor_url( $post_id ) {
