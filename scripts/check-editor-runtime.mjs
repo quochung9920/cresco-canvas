@@ -5,6 +5,7 @@ import process from 'node:process';
 const runtimeFiles = [
 	'build/standalone-visual-editor.js',
 	'build/standalone-inspector-v2.js',
+	'build/widget-control-enhancements.js',
 	'build/standalone-ui-v3.js',
 	'build/standalone-page-settings.js',
 	'build/standalone-history.js',
@@ -35,6 +36,7 @@ const sessionManager = await readFile(
 );
 const runtime = await readFile( 'build/standalone-visual-editor.js', 'utf8' );
 const inspectorV2 = await readFile( 'build/standalone-inspector-v2.js', 'utf8' );
+const widgetControlsRuntime = await readFile( 'build/widget-control-enhancements.js', 'utf8' );
 const uiV3 = await readFile( 'build/standalone-ui-v3.js', 'utf8' );
 const pageSettingsRuntime = await readFile( 'build/standalone-page-settings.js', 'utf8' );
 const historyRuntime = await readFile( 'build/standalone-history.js', 'utf8' );
@@ -55,6 +57,7 @@ const requiredVisualEditorTokens = [
 	'use CrescoCanvas\\Session\\SessionManager;',
 	'build/standalone-visual-editor.js',
 	'build/standalone-inspector-v2.js',
+	'build/widget-control-enhancements.js',
 	'build/standalone-ui-v3.js',
 	'build/standalone-page-settings.js',
 	'build/standalone-history.js',
@@ -62,6 +65,7 @@ const requiredVisualEditorTokens = [
 	'build/viewport-shell.js',
 	'assets/css/standalone-visual-editor.css',
 	'assets/css/standalone-inspector-v2.css',
+	'assets/css/widget-control-enhancements.css',
 	'assets/css/standalone-ui-v3.css',
 	'assets/css/standalone-page-settings.css',
 	'assets/css/standalone-history.css',
@@ -174,6 +178,28 @@ for ( const token of [
 }
 
 for ( const token of [
+	'Choose a structured preset',
+	'CSS unit',
+	'Link ',
+	'Linked ',
+	'aria-pressed',
+	'sessionStorage',
+	'.cc-standalone-left-content',
+	'observer.disconnect()',
+	'pagehide',
+	'fontWeight',
+	'lineHeight',
+	'textAlign',
+	'opacity',
+	'position',
+	'overflow',
+] ) {
+	if ( ! widgetControlsRuntime.includes( token ) ) {
+		errors.push( `Widget control engine is missing ${ token }` );
+	}
+}
+
+for ( const token of [
 	'cc-ui-v3-panel-controls',
 	'cc-ui-v3-left-drawer-open',
 	'cc-ui-v3-right-drawer-open',
@@ -258,6 +284,7 @@ for ( const file of [
 	'assets/css/container-width.css',
 	'assets/css/standalone-visual-editor.css',
 	'assets/css/standalone-inspector-v2.css',
+	'assets/css/widget-control-enhancements.css',
 	'assets/css/standalone-ui-v3.css',
 	'assets/css/standalone-page-settings.css',
 	'assets/css/standalone-history.css',
@@ -266,6 +293,7 @@ for ( const file of [
 	'build/standalone-visual-editor.js',
 	'build/standalone-visual-editor.asset.php',
 	'build/standalone-inspector-v2.js',
+	'build/widget-control-enhancements.js',
 	'build/standalone-ui-v3.js',
 	'build/standalone-page-settings.js',
 	'build/standalone-history.js',
@@ -303,5 +331,5 @@ if ( errors.length ) {
 }
 
 process.stdout.write(
-	'Checked the authoritative Cresco Session editor runtime, capability-aware Inspector v2, responsive inheritance UX, unified Settings Center, UI v3, History, Page Settings, Global/viewport helpers, REST contract, AI interchange, dependencies, and package gates.\n'
+	'Checked the authoritative Cresco Session editor runtime, capability-aware Inspector v2, Phase C structured widget controls, responsive inheritance UX, unified Settings Center, UI v3, History, Page Settings, Global/viewport helpers, REST contract, AI interchange, dependencies, and package gates.\n'
 );
