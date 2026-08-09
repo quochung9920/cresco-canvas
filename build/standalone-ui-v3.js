@@ -324,9 +324,19 @@
 	}
 
 	function handleKeydown( event ) {
-		if ( event.key !== 'Escape' || ( ! leftDrawerOpen && ! rightDrawerOpen ) ) return;
-		event.preventDefault();
-		closeDrawers( true );
+		if ( event.key !== 'Escape' ) return;
+		if ( leftDrawerOpen || rightDrawerOpen ) {
+			event.preventDefault();
+			event.stopImmediatePropagation();
+			closeDrawers( true );
+			return;
+		}
+		var center = app ? app.querySelector( '.cc-settings-center-inline .cc-page-settings-dialog' ) : null;
+		var title = center ? center.querySelector( '.cc-site-settings-header-title' ) : null;
+		if ( title && String( title.textContent || '' ).trim() === 'Settings' ) {
+			event.preventDefault();
+			event.stopImmediatePropagation();
+		}
 	}
 
 	function handleResize() {
