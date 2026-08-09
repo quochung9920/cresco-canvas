@@ -13,6 +13,7 @@ use CrescoCanvas\Admin\VisualEditor;
 use CrescoCanvas\AI\AIInterchange;
 use CrescoCanvas\API\RestApi;
 use CrescoCanvas\Blocks\Blocks;
+use CrescoCanvas\Builder\WebsiteBuilder;
 use CrescoCanvas\Commercial\CommercialManager;
 use CrescoCanvas\Dynamic\AdvancedDynamicData;
 use CrescoCanvas\Dynamic\AdvancedQuery;
@@ -90,6 +91,7 @@ final class Plugin {
 		( new PageSettings() )->register();
 		( new VisualEditor() )->register();
 		( new EditorExperience() )->register();
+		( new WebsiteBuilder() )->register();
 		( new ContainerWidth() )->register();
 
 		// Backend/domain services stay available to the editor and frontend.
