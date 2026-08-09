@@ -49,9 +49,12 @@ final class GlobalConfigImporter {
 	}
 
 	private static function from_array( $input, $format ) {
-		if ( isset( $input['settings'] ) && is_array( $input['settings'] ) ) {
-			$input = $input['settings'];
-		}
+		if ( isset( $input['settings'] ) && is_array( $input['settings'] ) ) $input = $input['settings'];
+		if ( isset( $input['global'] ) && is_array( $input['global'] ) ) $input = $input['global'];
+
+		$catalog = self::from_token_catalog( $input, $format );
+		if ( null !== $catalog ) return $catalog;
+
 		$base = GlobalStyles::get_settings();
 		$settings = $base;
 		$mapping = array();
@@ -92,6 +95,52 @@ final class GlobalConfigImporter {
 		if ( ! is_wp_error( $result ) && $ignored ) $result['ignored'] = array_values( array_unique( array_merge( $result['ignored'], $ignored ) ) );
 		if ( ! is_wp_error( $result ) ) $result['format'] = $format;
 		return $result;
+	}
+
+	/** Convert the JSON returned by Cresco's Copy Global Config action back to settings. */
+	private static function from_token_catalog( $input, $format ) {
+		if ( ! isset( $input['colors'] ) && ! isset( $input['typography'] ) && ! isset( $input['layout'] ) ) return null;
+		$settings = GlobalStyles::get_settings();
+		$mapping = array();
+		$ignored = array();
+
+		if ( isset( $input['colors'] ) && is_array( $input['colors'] ) ) {
+			$settings['customColors'] = array();
+			foreach ( $input['colors'] as $slug => $color ) {
+				$slug = sanitize_key( $slug );
+				if ( in_array( $slug, array( 'primary', 'text', 'muted', 'background' ), true ) ) {
+					$settings[ $slug ] = $color;
+					$mapping[] = array( 'source' => 'colors.' . $slug, 'target' => 'colors.' . $slug, 'value' => (string) $color );
+				} elseif ( str_starts_with( $slug, 'custom-' ) ) {
+					$key = substr( $slug, 7 );
+					if ( '' !== $key ) {
+						$settings['customColors'][ $key ] = $color;
+						$mapping[] = array( 'source' => 'colors.' . $slug, 'target' => 'colors.' . $slug, 'value' => (string) $color );
+					}
+				} else $ignored[] = 'colors.' . $slug;
+			}
+		}
+		if ( isset( $input['aliases'] ) && is_array( $input['aliases'] ) ) {
+			$settings['aliases'] = $input['aliases'];
+			$mapping[] = array( 'source' => 'aliases', 'target' => 'aliases' );
+		}
+		if ( isset( $input['typography']['fontFamily'] ) ) {
+			$settings['fontFamily'] = $input['typography']['fontFamily'];
+			$mapping[] = array( 'source' => 'typography.fontFamily', 'target' => 'fontFamily', 'value' => (string) $input['typography']['fontFamily'] );
+		}
+		$font_map = array( 'xs' => 'fontXs', 'sm' => 'fontSm', 'base' => 'fontBase', 'lg' => 'fontLg', 'xl' => 'fontXl', 'h1' => 'h1', 'h2' => 'h2', 'h3' => 'h3', 'h4' => 'h4', 'h5' => 'h5', 'h6' => 'h6' );
+		foreach ( $font_map as $source => $target ) if ( isset( $input['typography']['sizes'][ $source ] ) ) { $settings['fluidTokens'][ $target ] = $input['typography']['sizes'][ $source ]; $mapping[] = array( 'source' => 'typography.sizes.' . $source, 'target' => 'fluidTokens.' . $target ); }
+		$spacing_map = array( '2xs' => 'space2xs', 'xs' => 'spaceXs', 'sm' => 'spaceSm', 'md' => 'spaceMd', 'lg' => 'spaceLg', 'xl' => 'spaceXl', '2xl' => 'space2xl', '3xl' => 'space3xl', 'sectionBlock' => 'sectionBlock', 'containerGutter' => 'containerGutter', 'gridGap' => 'gridGap' );
+		foreach ( $spacing_map as $source => $target ) if ( isset( $input['spacing'][ $source ] ) ) { $settings['fluidTokens'][ $target ] = $input['spacing'][ $source ]; $mapping[] = array( 'source' => 'spacing.' . $source, 'target' => 'fluidTokens.' . $target ); }
+		if ( isset( $input['layout']['containerMax'] ) ) { $settings['containerMax'] = absint( $input['layout']['containerMax'] ); $mapping[] = array( 'source' => 'layout.containerMax', 'target' => 'containerMax' ); }
+		if ( isset( $input['layout']['contentMax'] ) ) { $settings['contentMax'] = absint( $input['layout']['contentMax'] ); $mapping[] = array( 'source' => 'layout.contentMax', 'target' => 'contentMax' ); }
+		if ( isset( $input['radius']['base'] ) ) { $settings['radius'] = absint( $input['radius']['base'] ); $mapping[] = array( 'source' => 'radius.base', 'target' => 'radius' ); }
+		foreach ( array( 'sm' => 'radiusSm', 'md' => 'radiusMd', 'lg' => 'radiusLg' ) as $source => $target ) if ( isset( $input['radius'][ $source ] ) ) { $settings['fluidTokens'][ $target ] = $input['radius'][ $source ]; $mapping[] = array( 'source' => 'radius.' . $source, 'target' => 'fluidTokens.' . $target ); }
+		if ( isset( $input['controls']['height'] ) ) { $settings['fluidTokens']['controlHeight'] = $input['controls']['height']; $mapping[] = array( 'source' => 'controls.height', 'target' => 'fluidTokens.controlHeight' ); }
+		if ( isset( $input['controls']['buttonPadding'] ) ) { $settings['fluidTokens']['buttonPadding'] = $input['controls']['buttonPadding']; $mapping[] = array( 'source' => 'controls.buttonPadding', 'target' => 'fluidTokens.buttonPadding' ); }
+		if ( isset( $input['breakpoints'] ) && is_array( $input['breakpoints'] ) ) { $settings['breakpoints'] = $input['breakpoints']; $mapping[] = array( 'source' => 'breakpoints', 'target' => 'breakpoints' ); }
+
+		return self::result( $format, $settings, $mapping, $ignored );
 	}
 
 	private static function from_css( $text ) {
