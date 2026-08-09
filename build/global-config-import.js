@@ -64,9 +64,12 @@
 		var actions = element( 'div', 'cc-global-import-actions' );
 		var previewButton = button( __( 'Preview import', 'cresco-canvas' ), false );
 		var applyButton = button( __( 'Apply Global Config', 'cresco-canvas' ), true );
+		var reloadButton = button( __( 'Reload editor', 'cresco-canvas' ), false );
 		applyButton.disabled = true;
+		reloadButton.hidden = true;
 		actions.appendChild( previewButton );
 		actions.appendChild( applyButton );
+		actions.appendChild( reloadButton );
 		card.appendChild( actions );
 
 		var status = element( 'div', 'cc-global-import-status' );
@@ -76,24 +79,30 @@
 		panel.appendChild( card );
 
 		var preview = null;
+		var saved = false;
 		function setBusy( busy ) {
-			previewButton.disabled = busy || ! textarea.value.trim();
-			applyButton.disabled = busy || ! preview;
+			previewButton.disabled = busy || ! textarea.value.trim() || saved;
+			applyButton.disabled = busy || ! preview || saved;
 		}
 		textarea.addEventListener( 'input', function () {
 			preview = null;
+			saved = false;
+			reloadButton.hidden = true;
 			summary.innerHTML = '';
 			status.textContent = '';
+			status.classList.remove( 'is-error' );
 			setBusy( false );
 		} );
 		setBusy( false );
 
 		previewButton.addEventListener( 'click', function () {
 			preview = null;
+			status.classList.remove( 'is-error' );
 			setBusy( true );
 			status.textContent = __( 'Validating Global Config…', 'cresco-canvas' );
 			apiFetch( { path: settings.settingsImportPreviewPath, method: 'POST', data: { input: textarea.value } } ).then( function ( result ) {
 				preview = result;
+				status.classList.remove( 'is-error' );
 				status.textContent = __( 'Config is valid. Review the mapping below.', 'cresco-canvas' );
 				renderPreview( summary, result );
 			} ).catch( function ( error ) {
@@ -108,14 +117,18 @@
 			status.classList.remove( 'is-error' );
 			status.textContent = __( 'Saving Global Design…', 'cresco-canvas' );
 			apiFetch( { path: settings.settingsPath, method: 'POST', data: preview.settings } ).then( function () {
-				status.textContent = __( 'Global Design saved. Reloading Cresco Editor…', 'cresco-canvas' );
-				window.setTimeout( function () { window.location.reload(); }, 350 );
+				saved = true;
+				reloadButton.hidden = false;
+				status.textContent = __( 'Global Design saved. Reload when ready to refresh Canvas and AI Context. Save any unsaved Page changes first.', 'cresco-canvas' );
+				setBusy( false );
 			} ).catch( function ( error ) {
 				status.textContent = error && error.message ? error.message : __( 'Global Design could not be saved.', 'cresco-canvas' );
 				status.classList.add( 'is-error' );
 				setBusy( false );
 			} );
 		} );
+
+		reloadButton.addEventListener( 'click', function () { window.location.reload(); } );
 	}
 
 	function scan() {
