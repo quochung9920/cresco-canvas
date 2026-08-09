@@ -90,7 +90,8 @@ test.describe.serial( 'Cresco Session standalone editor', () => {
 
 		await page.getByLabel( 'Text', { exact: true } ).fill( 'Cresco Session heading' );
 		await openInspectorTab( page, 'style' );
-		await page.getByLabel( 'Font size' ).fill( '{typography.sizes.h1}' );
+		const fontSize = page.getByLabel( 'Font size' );
+		await fontSize.fill( '{typography.sizes.h1}' );
 		await expect( page.locator( '.cc-canvas-widget-heading' ) ).toContainText(
 			'Cresco Session heading'
 		);
@@ -99,10 +100,13 @@ test.describe.serial( 'Cresco Session standalone editor', () => {
 			.locator( '.cc-inspector-device-switcher button' )
 			.filter( { hasText: 'Mobile' } )
 			.click();
-		await page.getByLabel( 'Font size' ).fill( '36px' );
+		await fontSize.fill( '36px' );
 		await expect( page.locator( '.cc-standalone-width-label' ) ).toHaveText( '390px' );
 		await expect(
-			page.getByLabel( 'Font size' ).locator( '..' ).locator( '.cc-inspector-v2-responsive-badge' )
+			page
+				.locator( '.components-base-control' )
+				.filter( { has: fontSize } )
+				.locator( '.cc-inspector-v2-responsive-badge' )
 		).toContainText( 'Mobile' );
 
 		await expect( page.locator( '.cc-standalone-structure-item' ) ).toHaveCount( 2 );
@@ -126,7 +130,10 @@ test.describe.serial( 'Cresco Session standalone editor', () => {
 		const contentWidth = page.getByLabel( 'Content width' );
 		await expect( contentWidth ).toHaveValue( 'full' );
 		await expect(
-			contentWidth.locator( '..' ).locator( '.cc-inspector-v2-help' )
+			page
+				.locator( '.components-base-control' )
+				.filter( { has: contentWidth } )
+				.locator( '.cc-inspector-v2-help' )
 		).toContainText( '100% of the parent container' );
 
 		await openInspectorTab( page, 'style' );
