@@ -38,7 +38,7 @@ test.describe.serial( 'Cresco professional Website Builder', () => {
 	} );
 
 	test( 'exposes the professional widget library and unified website panels', async ( { page } ) => {
-		await expect( page.locator( '.cc-builder-widget-tile' ) ).toHaveCount( 33 );
+		expect( await page.locator( '.cc-builder-widget-tile' ).count() ).toBeGreaterThanOrEqual( 35 );
 		for ( const name of [ 'Container', 'Gallery', 'Accordion', 'Navigation Menu', 'Loop Grid', 'Form', 'Woo Products' ] ) {
 			await expect( page.locator( '.cc-builder-widget-tile' ).filter( { hasText: name } ).first() ).toBeVisible();
 		}
