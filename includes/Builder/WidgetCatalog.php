@@ -94,8 +94,8 @@ final class WidgetCatalog {
 				'lightbox' => self::boolean( true, 'Lightbox' ),
 			) ),
 			'accordion' => self::widget( $base, 'Accordion', 'interactive', 'menu-alt3', false, array(
-				'items'       => self::json( array( array( 'title' => 'Question', 'content' => 'Answer', 'open' => true ) ), 'Items JSON', 'accordion' ),
-				'allowMulti'  => self::boolean( false, 'Allow multiple open' ),
+				'items'      => self::json( array( array( 'title' => 'Question', 'content' => 'Answer', 'open' => true ) ), 'Items JSON', 'accordion' ),
+				'allowMulti' => self::boolean( false, 'Allow multiple open' ),
 			) ),
 			'tabs' => self::widget( $base, 'Tabs', 'interactive', 'index-card', false, array(
 				'items' => self::json( array( array( 'title' => 'Tab 1', 'content' => 'Tab content' ) ), 'Items JSON', 'tabs' ),
@@ -222,6 +222,7 @@ final class WidgetCatalog {
 
 	private static function schema( $type, $default, $label, $extra = array() ) { return array_merge( array( 'type' => $type, 'default' => $default, 'label' => $label ), $extra ); }
 	private static function string( $default, $label ) { return self::schema( 'string', $default, $label ); }
+	private static function text( $default, $label ) { return self::schema( 'text', $default, $label ); }
 	private static function textarea( $default, $label ) { return self::schema( 'text', $default, $label, array( 'control' => 'textarea' ) ); }
 	private static function richtext( $default, $label ) { return self::schema( 'richtext', $default, $label, array( 'control' => 'textarea' ) ); }
 	private static function url( $default, $label ) { return self::schema( 'url', $default, $label ); }
