@@ -35,9 +35,27 @@ final class GlobalStylesTest extends TestCase {
 
 		self::assertSame( 2560, $settings['containerMax'] );
 		self::assertSame( 2560, $settings['contentMax'] );
-		self::assertSame( 2, $settings['schemaVersion'] );
+		self::assertSame( 4, $settings['schemaVersion'] );
 		self::assertArrayNotHasKey( 'editorPreference', $settings );
 		self::assertSame( GlobalStyles::defaults()['fontFamily'], $settings['fontFamily'] );
 		self::assertSame( 80, $settings['radius'] );
+	}
+
+	public function test_modern_css_colors_are_preserved_after_sanitization(): void {
+		$settings = GlobalStyles::sanitize_settings(
+			array(
+				'primary' => 'oklch(55% 0.15 235)',
+				'text' => 'rgb(20 30 40)',
+				'muted' => 'hsl(210 10% 45%)',
+				'background' => 'oklab(98% 0.002 -0.003)',
+				'customColors' => array( 'surface' => 'oklch(99% 0.002 250)' ),
+			)
+		);
+
+		self::assertSame( 'oklch(55% 0.15 235)', $settings['primary'] );
+		self::assertSame( 'rgb(20 30 40)', $settings['text'] );
+		self::assertSame( 'hsl(210 10% 45%)', $settings['muted'] );
+		self::assertSame( 'oklab(98% 0.002 -0.003)', $settings['background'] );
+		self::assertSame( 'oklch(99% 0.002 250)', $settings['customColors']['surface'] );
 	}
 }
