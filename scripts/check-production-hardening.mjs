@@ -1,5 +1,6 @@
 import { readFile, readdir } from 'node:fs/promises';
 import path from 'node:path';
+import process from 'node:process';
 
 const errors = [];
 
@@ -8,15 +9,20 @@ async function walkPhp( directory ) {
 	const files = [];
 	for ( const entry of entries ) {
 		const target = path.join( directory, entry.name );
-		if ( entry.isDirectory() ) files.push( ...( await walkPhp( target ) ) );
-		else if ( entry.isFile() && entry.name.endsWith( '.php' ) ) files.push( target.replaceAll( path.sep, '/' ) );
+		if ( entry.isDirectory() ) {
+			files.push( ...( await walkPhp( target ) ) );
+		} else if ( entry.isFile() && entry.name.endsWith( '.php' ) ) {
+			files.push( target.replaceAll( path.sep, '/' ) );
+		}
 	}
 	return files;
 }
 
 function requireTokens( label, source, tokens ) {
 	for ( const token of tokens ) {
-		if ( ! source.includes( token ) ) errors.push( `${ label } is missing production contract token: ${ token }` );
+		if ( ! source.includes( token ) ) {
+			errors.push( `${ label } is missing production contract token: ${ token }` );
+		}
 	}
 }
 
@@ -32,13 +38,24 @@ const publicRouteFiles = new Set( [
 for ( const file of phpFiles ) {
 	const source = await readFile( file, 'utf8' );
 	const routeCalls = source.match( /register_rest_route\s*\(/g ) || [];
-	if ( ! routeCalls.length ) continue;
-	const permissionCallbacks = source.match( /['"]permission_callback['"]\s*=>/g ) || [];
-	if ( permissionCallbacks.length < routeCalls.length ) {
-		errors.push( `${ file } registers ${ routeCalls.length } REST route(s) but declares only ${ permissionCallbacks.length } permission callback(s).` );
+	if ( ! routeCalls.length ) {
+		continue;
 	}
-	if ( source.includes( "'permission_callback' => '__return_true'" ) && ! publicRouteFiles.has( file ) ) {
-		errors.push( `${ file } exposes an anonymous REST callback outside the approved public-route modules.` );
+	const permissionCallbacks = source.match(
+		/['"]permission_callback['"]\s*=>/g
+	) || [];
+	if ( permissionCallbacks.length < routeCalls.length ) {
+		errors.push(
+			`${ file } registers ${ routeCalls.length } REST route(s) but declares only ${ permissionCallbacks.length } permission callback(s).`
+		);
+	}
+	if (
+		source.includes( "'permission_callback' => '__return_true'" ) &&
+		! publicRouteFiles.has( file )
+	) {
+		errors.push(
+			`${ file } exposes an anonymous REST callback outside the approved public-route modules.`
+		);
 	}
 }
 
@@ -53,11 +70,16 @@ for ( const [ file, routes ] of Object.entries( publicContracts ) ) {
 	const source = await readFile( file, 'utf8' );
 	requireTokens( file, source, routes );
 	if ( ! source.includes( "'permission_callback' => '__return_true'" ) ) {
-		errors.push( `${ file } no longer declares its expected public REST boundary explicitly.` );
+		errors.push(
+			`${ file } no longer declares its expected public REST boundary explicitly.`
+		);
 	}
 }
 
-const security = await readFile( 'includes/Security/SecurityHardening.php', 'utf8' );
+const security = await readFile(
+	'includes/Security/SecurityHardening.php',
+	'utf8'
+);
 requireTokens( 'SecurityHardening', security, [
 	"add_filter( 'rest_pre_dispatch'",
 	'MAX_DEFAULT_JSON_BYTES',
@@ -74,7 +96,10 @@ requireTokens( 'SecurityHardening', security, [
 	'redact_sensitive',
 ] );
 
-const uploads = await readFile( 'includes/Security/UploadSecurity.php', 'utf8' );
+const uploads = await readFile(
+	'includes/Security/UploadSecurity.php',
+	'utf8'
+);
 requireTokens( 'UploadSecurity', uploads, [
 	'MAX_UPLOAD_BYTES',
 	'MAX_UPLOADS',
@@ -91,7 +116,10 @@ requireTokens( 'UploadSecurity', uploads, [
 	'X-Content-Type-Options: nosniff',
 ] );
 
-const forms = await readFile( 'includes/Forms/FormAdministration.php', 'utf8' );
+const forms = await readFile(
+	'includes/Forms/FormAdministration.php',
+	'utf8'
+);
 requireTokens( 'FormAdministration', forms, [
 	'MAX_EXPORT_ROWS',
 	'MAX_CELL_BYTES',
@@ -101,7 +129,10 @@ requireTokens( 'FormAdministration', forms, [
 	'UploadSecurity::delete_for_submission',
 ] );
 
-const webhook = await readFile( 'includes/Forms/FormEnhancements.php', 'utf8' );
+const webhook = await readFile(
+	'includes/Forms/FormEnhancements.php',
+	'utf8'
+);
 requireTokens( 'FormEnhancements', webhook, [
 	'SecurityHardening::validate_public_https_url',
 	"'redirection' => 0",
@@ -142,8 +173,14 @@ requireTokens( 'Uninstall', uninstall, [
 ] );
 
 const releaseFiles = await readFile( 'scripts/release-files.mjs', 'utf8' );
-for ( const policy of [ 'docs/SECURITY.md', 'docs/PRIVACY.md', 'docs/UPGRADE_ROLLBACK.md' ] ) {
-	if ( ! releaseFiles.includes( `'${ policy }'` ) ) errors.push( `Release ZIP allowlist is missing ${ policy }` );
+for ( const policy of [
+	'docs/SECURITY.md',
+	'docs/PRIVACY.md',
+	'docs/UPGRADE_ROLLBACK.md',
+] ) {
+	if ( ! releaseFiles.includes( `'${ policy }'` ) ) {
+		errors.push( `Release ZIP allowlist is missing ${ policy }` );
+	}
 }
 
 const securityDoc = await readFile( 'docs/SECURITY.md', 'utf8' );
@@ -185,7 +222,9 @@ for ( const testFile of [
 	try {
 		await readFile( testFile, 'utf8' );
 	} catch {
-		errors.push( `Production hardening regression suite is missing ${ testFile }` );
+		errors.push(
+			`Production hardening regression suite is missing ${ testFile }`
+		);
 	}
 }
 
@@ -194,4 +233,6 @@ if ( errors.length ) {
 	process.exit( 1 );
 }
 
-process.stdout.write( `Production hardening contract checked across ${ phpFiles.length } PHP files.\n` );
+process.stdout.write(
+	`Production hardening contract checked across ${ phpFiles.length } PHP files.\n`
+);
