@@ -118,7 +118,14 @@
 		var props = safeObject( node.props );
 		if ( node.type === 'container' ) {
 			var layout = props.layout || 'block';
-			var style = { display: layout };
+			var contentWidth = props.contentWidth || 'full';
+			var style = {
+				display: layout,
+				width: '100%',
+				maxWidth: contentWidth === 'boxed' ? 'var(--cc-container-max)' : 'none',
+				marginLeft: contentWidth === 'boxed' ? 'auto' : '0',
+				marginRight: contentWidth === 'boxed' ? 'auto' : '0'
+			};
 			if ( layout === 'flex' ) {
 				style.flexDirection = props.direction || 'column';
 				style.alignItems = props.align || 'stretch';
@@ -425,6 +432,7 @@
 				className: 'cc-canvas-node cc-canvas-widget-' + node.type + ( isSelected ? ' is-selected' : '' ),
 				'data-cresco-id': node.id,
 				'data-cresco-widget': node.type,
+				'data-cresco-content-width': node.type === 'container' ? ( safeObject( node.props ).contentWidth || 'full' ) : undefined,
 				style: resolvedStyle( node, device, globalConfig ),
 				onClick: function ( event ) { event.preventDefault(); event.stopPropagation(); setSelectedId( node.id ); setMode( 'edit' ); },
 				onDragOver: definition.allowsChildren ? function ( event ) { if ( event.dataTransfer && Array.prototype.indexOf.call( event.dataTransfer.types || [], DRAG_MIME ) !== -1 ) { event.preventDefault(); event.stopPropagation(); } } : undefined,
@@ -469,6 +477,7 @@
 			if ( selected.type === 'spacer' ) return h( TextControl, { label: __( 'Height', 'cresco-canvas' ), value: props.height || '48px', onChange: function ( value ) { updateProp( 'height', value ); } } );
 			if ( selected.type === 'columns' ) return h( TextControl, { label: __( 'Columns', 'cresco-canvas' ), type: 'number', value: String( props.columns || 2 ), onChange: function ( value ) { updateProp( 'columns', Math.max( 1, Math.min( 12, Number( value ) || 1 ) ) ); } } );
 			if ( selected.type === 'container' ) return h( Fragment, null,
+				h( SelectControl, { label: __( 'Content width', 'cresco-canvas' ), value: props.contentWidth || 'full', options: [ { label: __( 'Full Width', 'cresco-canvas' ), value: 'full' }, { label: __( 'Boxed', 'cresco-canvas' ), value: 'boxed' } ], help: props.contentWidth === 'boxed' ? __( 'Uses the Global container width and centers the container.', 'cresco-canvas' ) : __( 'Stretches the container to the full available width.', 'cresco-canvas' ), onChange: function ( value ) { updateProp( 'contentWidth', value ); } } ),
 				h( SelectControl, { label: __( 'Layout', 'cresco-canvas' ), value: props.layout || 'block', options: [ 'block', 'flex', 'grid' ].map( function ( value ) { return { label: value.charAt( 0 ).toUpperCase() + value.slice( 1 ), value: value }; } ), onChange: function ( value ) { updateProp( 'layout', value ); } } ),
 				props.layout === 'flex' ? h( Fragment, null, h( SelectControl, { label: __( 'Direction', 'cresco-canvas' ), value: props.direction || 'column', options: [ 'column', 'row' ].map( function ( value ) { return { label: value, value: value }; } ), onChange: function ( value ) { updateProp( 'direction', value ); } } ), h( SelectControl, { label: __( 'Align items', 'cresco-canvas' ), value: props.align || 'stretch', options: [ 'stretch', 'flex-start', 'center', 'flex-end', 'baseline' ].map( function ( value ) { return { label: value, value: value }; } ), onChange: function ( value ) { updateProp( 'align', value ); } } ), h( SelectControl, { label: __( 'Justify', 'cresco-canvas' ), value: props.justify || 'flex-start', options: [ 'flex-start', 'center', 'flex-end', 'space-between', 'space-around', 'space-evenly' ].map( function ( value ) { return { label: value, value: value }; } ), onChange: function ( value ) { updateProp( 'justify', value ); } } ) ) : null,
 				props.layout === 'grid' ? h( TextControl, { label: __( 'Columns', 'cresco-canvas' ), type: 'number', value: String( props.columns || 2 ), onChange: function ( value ) { updateProp( 'columns', Math.max( 1, Math.min( 12, Number( value ) || 1 ) ) ); } } ) : null
