@@ -12,6 +12,7 @@ use CrescoCanvas\Admin\VisualEditor;
 use CrescoCanvas\AI\AIInterchange;
 use CrescoCanvas\API\RestApi;
 use CrescoCanvas\Blocks\Blocks;
+use CrescoCanvas\Commercial\CommercialManager;
 use CrescoCanvas\Dynamic\AdvancedDynamicData;
 use CrescoCanvas\Dynamic\AdvancedQuery;
 use CrescoCanvas\Dynamic\DynamicCompletion;
@@ -76,6 +77,7 @@ final class Plugin {
 		( new UploadSecurity() )->register();
 		( new QueryCache() )->register();
 		( new LifecycleManager() )->register();
+		( new CommercialManager() )->register();
 
 		// Cresco owns the standalone visual workflow and the authoritative
 		// cresco-session/v1 document. WordPress remains the host, media layer,
