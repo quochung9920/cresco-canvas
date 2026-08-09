@@ -96,7 +96,7 @@ final class WebsiteBuilderCssCompiler {
 			}
 			return $style;
 		}
-		if ( 'columns' === $type ) return array( 'display' => 'grid', 'gridTemplateColumns' => 'repeat(' . min( 12, max( 1, absint( $props['columns'] ?? 2 ) ) ) . ',minmax(0,1fr))', 'gap' => '{spacing.gridGap}' );
+		if ( 'columns' === $type ) return array( 'display' => 'grid', 'gridTemplateColumns' => 'repeat(' . min( 12, max( 1, absint( $props['columns'] ?? 2 ) ) ) . ',minmax(0,1fr))', 'gap' => '{layout.gridGap}' );
 		if ( 'spacer' === $type ) return array( 'minHeight' => (string) ( $props['height'] ?? '48px' ) );
 		return array();
 	}
