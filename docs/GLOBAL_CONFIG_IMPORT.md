@@ -1,20 +1,21 @@
-# Global Config Import
+# Global Design editing and import/export
 
-Cresco Canvas can import a site-wide Global Design configuration from either CSS variables or JSON.
+Cresco Canvas keeps Global Design simple inside the **Global** tab. The same panel is used to edit values directly, import a configuration, and export the current configuration.
 
 ## Editor workflow
 
 1. Open a Page with Cresco Canvas.
 2. Open **Global**.
-3. In **Import Global Config**, paste CSS variables or JSON.
-4. Click **Preview import**.
-5. Review the detected mappings and ignored values.
-6. Click **Apply Global Config**.
-7. Save any unsaved Page changes, then use **Reload editor** so Canvas and AI Context read the new Global Design.
+3. Edit Colors, Font family, Layout, Radius, or Breakpoints directly in the fields.
+4. Click **Save Global**.
+5. Use **Import** to paste CSS variables or JSON.
+6. Use **Export** to copy the complete current Global settings as JSON.
 
-Previewing never saves settings. Applying uses the existing protected Cresco settings API and requires the WordPress `edit_theme_options` capability.
+After Global Design is saved, **Reload editor** refreshes Canvas token resolution and AI Context. Save any unsaved Page changes before reloading.
 
-## CSS example
+Import validation and saving use protected Cresco REST endpoints and require the WordPress `edit_theme_options` capability.
+
+## CSS import example
 
 ```css
 --bg: oklch(98% 0.005 250);
@@ -39,14 +40,14 @@ Built-in mappings include:
 - `--blue` / `--primary` / `--brand` / `--accent` -> `colors.primary`
 - Other safe color variables -> `colors.custom-*`
 
-The original variable slugs are also preserved as Cresco aliases when possible.
+Custom colors are shown as editable rows in the Global panel after import. New custom colors can also be added manually.
 
 ## Supported color values
 
-Global colors accept sanitized HEX, `rgb()`, `rgba()`, `hsl()`, `hsla()`, `oklab()`, and `oklch()` values. External resources and arbitrary CSS are not accepted by the importer.
+Global colors accept sanitized HEX, `rgb()`, `rgba()`, `hsl()`, `hsla()`, `oklab()`, and `oklch()` values. External resources and arbitrary CSS are rejected.
 
-## JSON
+## JSON import/export
 
-The importer accepts both raw Cresco settings JSON and the token catalog produced by **Copy Global Config**, enabling a Global Design to be copied from one Cresco installation and imported into another.
+**Export** copies the complete editable Cresco Global settings as JSON. The importer accepts raw Cresco settings JSON, exported Global JSON, and the token catalog produced by older **Copy Global Config** builds.
 
 Font-family import stores the font stack only. Cresco does not automatically download or load external font files.
