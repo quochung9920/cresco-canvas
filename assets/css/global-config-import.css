@@ -1,0 +1,103 @@
+.cc-global-import-card {
+	display: grid;
+	gap: 10px;
+}
+
+.cc-global-import-input {
+	width: 100%;
+	min-height: 210px;
+	padding: 10px 12px;
+	border: 1px solid var(--cc-ui-border);
+	border-radius: var(--cc-ui-radius);
+	background: #fff;
+	color: var(--cc-ui-text);
+	font: 12px/1.55 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+	resize: vertical;
+}
+
+.cc-global-import-input:focus-visible {
+	border-color: var(--cc-ui-accent);
+	outline: 2px solid rgb(91 75 216 / 16%);
+	outline-offset: 1px;
+}
+
+.cc-global-import-actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+}
+
+.cc-global-import-status {
+	min-height: 18px;
+	color: var(--cc-ui-muted);
+	font-size: 11px;
+	line-height: 1.5;
+}
+
+.cc-global-import-status.is-error,
+.cc-global-import-ignored {
+	color: var(--cc-ui-danger);
+}
+
+.cc-global-import-summary {
+	display: grid;
+	gap: 8px;
+	padding: 10px;
+	border: 1px solid var(--cc-ui-border-soft);
+	border-radius: var(--cc-ui-radius);
+	background: var(--cc-ui-surface-subtle);
+}
+
+.cc-global-import-summary:empty {
+	display: none;
+}
+
+.cc-global-import-summary__heading {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 8px;
+	font-size: 12px;
+}
+
+.cc-global-import-format {
+	padding: 2px 6px;
+	border-radius: 999px;
+	background: var(--cc-ui-accent-soft);
+	color: var(--cc-ui-accent);
+	font-size: 9px;
+	font-weight: 700;
+	letter-spacing: .04em;
+}
+
+.cc-global-import-mapping {
+	display: grid;
+	gap: 5px;
+}
+
+.cc-global-import-mapping__row {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+	align-items: center;
+	gap: 6px;
+	font-size: 10px;
+}
+
+.cc-global-import-mapping__row code {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.cc-global-import-mapping__row small {
+	grid-column: 1 / -1;
+	color: var(--cc-ui-muted);
+	font-size: 10px;
+	word-break: break-word;
+}
+
+.cc-global-import-ignored {
+	margin: 0;
+	font-size: 10px;
+	line-height: 1.45;
+}
