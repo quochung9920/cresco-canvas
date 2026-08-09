@@ -14,6 +14,7 @@ use CrescoCanvas\AI\AIInterchange;
 use CrescoCanvas\API\RestApi;
 use CrescoCanvas\Blocks\Blocks;
 use CrescoCanvas\Builder\WebsiteBuilder;
+use CrescoCanvas\Builder\WebsiteBuilderCompatibility;
 use CrescoCanvas\Commercial\CommercialManager;
 use CrescoCanvas\Dynamic\AdvancedDynamicData;
 use CrescoCanvas\Dynamic\AdvancedQuery;
@@ -92,6 +93,7 @@ final class Plugin {
 		( new VisualEditor() )->register();
 		( new EditorExperience() )->register();
 		( new WebsiteBuilder() )->register();
+		( new WebsiteBuilderCompatibility() )->register();
 		( new ContainerWidth() )->register();
 
 		// Dashicons are used by Site/Icon/Social widgets on public Website
