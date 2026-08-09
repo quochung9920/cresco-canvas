@@ -19,7 +19,7 @@ final class SessionManagerTest extends TestCase {
 					array(
 						'id' => 'hero',
 						'type' => 'container',
-						'props' => array( 'layout' => 'flex', 'direction' => 'column', 'columns' => 99, 'invented' => 'ignored' ),
+						'props' => array( 'contentWidth' => 'boxed', 'layout' => 'flex', 'direction' => 'column', 'columns' => 99, 'invented' => 'ignored' ),
 						'style' => array( 'paddingTop' => '{spacing.xl}', 'fontSize' => '48px', 'unknownProperty' => 'discard-me' ),
 						'responsive' => array( 'mobile' => array( 'paddingTop' => '24px' ), 'watch' => array( 'width' => '1px' ) ),
 						'customCSS' => array( 'base' => '&:hover { transform: translateY(-3px); }' ),
@@ -33,12 +33,27 @@ final class SessionManagerTest extends TestCase {
 
 		self::assertFalse( is_wp_error( $session ) );
 		self::assertSame( 'homepage', $session['documentId'] );
+		self::assertSame( 'boxed', $session['nodes'][0]['props']['contentWidth'] );
 		self::assertSame( 12, $session['nodes'][0]['props']['columns'] );
 		self::assertArrayNotHasKey( 'invented', $session['nodes'][0]['props'] );
 		self::assertArrayNotHasKey( 'unknownProperty', $session['nodes'][0]['style'] );
 		self::assertArrayHasKey( 'mobile', $session['nodes'][0]['responsive'] );
 		self::assertArrayNotHasKey( 'watch', $session['nodes'][0]['responsive'] );
 		self::assertSame( 'spacer', $session['nodes'][0]['children'][0]['type'] );
+	}
+
+	public function test_container_content_width_defaults_to_full_and_rejects_unknown_values(): void {
+		$default = SessionManager::sanitize_session(
+			array( 'nodes' => array( array( 'id' => 'container-default', 'type' => 'container' ) ) )
+		);
+		self::assertFalse( is_wp_error( $default ) );
+		self::assertSame( 'full', $default['nodes'][0]['props']['contentWidth'] );
+
+		$invalid = SessionManager::sanitize_session(
+			array( 'nodes' => array( array( 'id' => 'container-invalid', 'type' => 'container', 'props' => array( 'contentWidth' => 'invented' ) ) ) )
+		);
+		self::assertFalse( is_wp_error( $invalid ) );
+		self::assertSame( 'full', $invalid['nodes'][0]['props']['contentWidth'] );
 	}
 
 	public function test_unknown_widget_and_duplicate_ids_are_rejected(): void {
@@ -98,6 +113,7 @@ final class SessionManagerTest extends TestCase {
 					array(
 						'id' => 'hero',
 						'type' => 'container',
+						'props' => array( 'contentWidth' => 'boxed' ),
 						'style' => array( 'paddingTop' => '{spacing.xl}', 'color' => '{colors.text}' ),
 						'responsive' => array( 'mobile' => array( 'paddingTop' => '20px' ) ),
 						'customCSS' => array( 'base' => '&:hover { opacity: .9; }' ),
@@ -109,6 +125,10 @@ final class SessionManagerTest extends TestCase {
 
 		$css = SessionManager::compile_session_css( $session );
 		self::assertStringContainsString( '[data-cresco-id="hero"]{', $css );
+		self::assertStringContainsString( 'width:100%;', $css );
+		self::assertStringContainsString( 'max-width:var(--cc-container-max);', $css );
+		self::assertStringContainsString( 'margin-left:auto;', $css );
+		self::assertStringContainsString( 'margin-right:auto;', $css );
 		self::assertStringContainsString( 'padding-top:var(--cc-space-xl);', $css );
 		self::assertStringContainsString( 'color:var(--cc-text);', $css );
 		self::assertStringContainsString( '[data-cresco-id="hero"]:hover { opacity: .9; }', $css );
