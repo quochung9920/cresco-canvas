@@ -1,0 +1,51 @@
+.cc-control-engine-field {
+	position: relative;
+}
+
+.cc-control-engine-actions {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) auto auto;
+	gap: 4px;
+	margin-top: 5px;
+}
+
+.cc-control-engine-actions select,
+.cc-control-engine-actions button,
+.cc-control-engine-link {
+	min-height: 26px;
+	border: 1px solid #d0d5dd;
+	border-radius: 5px;
+	background: #fff;
+	color: #475467;
+	font: inherit;
+	font-size: 9px;
+}
+
+.cc-control-engine-actions button,
+.cc-control-engine-link {
+	padding: 0 7px;
+	cursor: pointer;
+}
+
+.cc-control-engine-actions button:hover,
+.cc-control-engine-actions button:focus-visible,
+.cc-control-engine-actions select:focus-visible,
+.cc-control-engine-link:hover,
+.cc-control-engine-link:focus-visible {
+	border-color: var(--cc-inspector-v2-active, #5b4bd8);
+	color: var(--cc-inspector-v2-active, #5b4bd8);
+	outline: 2px solid color-mix(in srgb, var(--cc-inspector-v2-active, #5b4bd8) 18%, transparent);
+	outline-offset: 1px;
+}
+
+.cc-control-engine-link {
+	grid-column: 1 / -1;
+	justify-self: start;
+	margin-bottom: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.cc-control-engine * {
+		transition: none !important;
+	}
+}
