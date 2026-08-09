@@ -58,4 +58,50 @@ final class PageSettingsTest extends TestCase {
 		self::assertSame( 'hide', $canvas['header'] );
 		self::assertSame( 'hide', $canvas['footer'] );
 	}
+
+	public function test_template_part_area_prefers_native_area_and_semantic_tag(): void {
+		self::assertSame(
+			'header',
+			PageSettings::template_part_area(
+				array(
+					'attrs' => array( 'area' => 'header', 'slug' => 'anything' ),
+				)
+			)
+		);
+		self::assertSame(
+			'footer',
+			PageSettings::template_part_area(
+				array(
+					'attrs' => array( 'tagName' => 'footer', 'slug' => 'anything' ),
+				)
+			)
+		);
+	}
+
+	public function test_template_part_area_uses_slug_as_compatibility_fallback(): void {
+		self::assertSame(
+			'header',
+			PageSettings::template_part_area(
+				array(
+					'attrs' => array( 'slug' => 'site-header-centered' ),
+				)
+			)
+		);
+		self::assertSame(
+			'footer',
+			PageSettings::template_part_area(
+				array(
+					'attrs' => array( 'slug' => 'footer-columns' ),
+				)
+			)
+		);
+		self::assertSame(
+			'',
+			PageSettings::template_part_area(
+				array(
+					'attrs' => array( 'slug' => 'sidebar' ),
+				)
+			)
+		);
+	}
 }
