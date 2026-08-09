@@ -75,6 +75,7 @@ function cresco_canvas_uninstall_site_data() {
 
 	delete_post_meta_by_key( '_cresco_canvas_document' );
 	delete_post_meta_by_key( '_cresco_canvas_enabled' );
+	delete_post_meta_by_key( '_cresco_canvas_page_settings' );
 	delete_post_meta_by_key( '_cresco_canvas_editor_preference' );
 	delete_post_meta_by_key( '_cresco_submission_data' );
 	delete_post_meta_by_key( '_cresco_form_upload' );
