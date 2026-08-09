@@ -7,6 +7,7 @@ const runtimeFiles = [
 	'build/standalone-inspector-v2.js',
 	'build/standalone-ui-v3.js',
 	'build/standalone-page-settings.js',
+	'build/standalone-history.js',
 	'build/global-config-import.js',
 	'build/viewport-shell.js',
 ];
@@ -27,6 +28,7 @@ for ( const file of runtimeFiles ) {
 const visualEditor = await readFile( 'includes/Admin/VisualEditor.php', 'utf8' );
 const plugin = await readFile( 'includes/Plugin.php', 'utf8' );
 const pageSettingsService = await readFile( 'includes/Page/PageSettings.php', 'utf8' );
+const historyService = await readFile( 'includes/Session/HistoryManager.php', 'utf8' );
 const sessionManager = await readFile(
 	'includes/Session/SessionManager.php',
 	'utf8'
@@ -35,6 +37,7 @@ const runtime = await readFile( 'build/standalone-visual-editor.js', 'utf8' );
 const inspectorV2 = await readFile( 'build/standalone-inspector-v2.js', 'utf8' );
 const uiV3 = await readFile( 'build/standalone-ui-v3.js', 'utf8' );
 const pageSettingsRuntime = await readFile( 'build/standalone-page-settings.js', 'utf8' );
+const historyRuntime = await readFile( 'build/standalone-history.js', 'utf8' );
 const asset = await readFile(
 	'build/standalone-visual-editor.asset.php',
 	'utf8'
@@ -46,17 +49,20 @@ const requiredVisualEditorTokens = [
 	"'sessionPath'",
 	"'validatePath'",
 	"'aiContextPath'",
+	"'historyPath'",
 	"'pageSettingsPath'",
 	'build/standalone-visual-editor.js',
 	'build/standalone-inspector-v2.js',
 	'build/standalone-ui-v3.js',
 	'build/standalone-page-settings.js',
+	'build/standalone-history.js',
 	'build/global-config-import.js',
 	'build/viewport-shell.js',
 	'assets/css/standalone-visual-editor.css',
 	'assets/css/standalone-inspector-v2.css',
 	'assets/css/standalone-ui-v3.css',
 	'assets/css/standalone-page-settings.css',
+	'assets/css/standalone-history.css',
 	'assets/css/global-config-import.css',
 	'assets/css/viewport-shell.css',
 	'GlobalStyles::css',
@@ -75,6 +81,13 @@ for ( const token of [
 }
 
 for ( const token of [
+	'use CrescoCanvas\\Session\\HistoryManager;',
+	'( new HistoryManager() )->register();',
+] ) {
+	if ( ! plugin.includes( token ) ) errors.push( `Plugin is missing History registration: ${ token }` );
+}
+
+for ( const token of [
 	"const META_KEY = '_cresco_canvas_page_settings'",
 	"'/page-settings/(?P<postId>\\d+)'",
 	"'layout'      => 'full-width'",
@@ -90,6 +103,19 @@ for ( const token of [
 ] ) {
 	if ( ! pageSettingsService.includes( token ) ) {
 		errors.push( `Page Settings service is missing ${ token }` );
+	}
+}
+
+for ( const token of [
+	"const POST_TYPE = 'cresco_revision'",
+	"'/history/(?P<postId>\\d+)'",
+	"/(?P<revisionId>\\d+)/restore",
+	'capture_session_update',
+	'rest_restore_revision',
+	'MAX_REVISIONS',
+] ) {
+	if ( ! historyService.includes( token ) ) {
+		errors.push( `History service is missing ${ token }` );
 	}
 }
 
@@ -165,6 +191,20 @@ for ( const token of [
 	}
 }
 
+for ( const token of [
+	'settings.historyPath',
+	'History',
+	'Actions',
+	'Revisions',
+	'No History Yet',
+	'Apply',
+	'/restore',
+] ) {
+	if ( ! historyRuntime.includes( token ) ) {
+		errors.push( `Standalone History is missing ${ token }` );
+	}
+}
+
 const forbiddenRuntimeTokens = [
 	'BlockEditorProvider',
 	'BlockInspector',
@@ -204,6 +244,7 @@ for ( const file of [
 	'assets/css/standalone-inspector-v2.css',
 	'assets/css/standalone-ui-v3.css',
 	'assets/css/standalone-page-settings.css',
+	'assets/css/standalone-history.css',
 	'assets/css/global-config-import.css',
 	'assets/css/viewport-shell.css',
 	'build/standalone-visual-editor.js',
@@ -211,10 +252,12 @@ for ( const file of [
 	'build/standalone-inspector-v2.js',
 	'build/standalone-ui-v3.js',
 	'build/standalone-page-settings.js',
+	'build/standalone-history.js',
 	'build/global-config-import.js',
 	'build/viewport-shell.js',
 	'includes/Page/PageSettings.php',
 	'includes/Page/canvas-template.php',
+	'includes/Session/HistoryManager.php',
 	'includes/Session/SessionManager.php',
 ] ) {
 	if ( ! packaging.includes( `'${ file }'` ) ) {
@@ -244,5 +287,5 @@ if ( errors.length ) {
 }
 
 process.stdout.write(
-	'Checked the authoritative Cresco Session editor runtime, Inspector v2, UI v3, Page Settings, Global/viewport helpers, REST contract, AI interchange, dependencies, and package gates.\n'
+	'Checked the authoritative Cresco Session editor runtime, Inspector v2, UI v3, History, Page Settings, Global/viewport helpers, REST contract, AI interchange, dependencies, and package gates.\n'
 );
