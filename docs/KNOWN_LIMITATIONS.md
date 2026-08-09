@@ -6,7 +6,7 @@ Cresco Canvas `1.0.0-rc.1` is a release candidate. It is not a commercially cert
 
 - The release-quality branch introduces an authoritative transitional source tree for historically hand-maintained standalone runtimes (`runtime-src/build/`) plus clean-delete/rebuild verification. This architecture is not considered proven until the hosted source/build gate passes for the exact commit.
 - `npm ci`, optimized Composer install, lint, unit/PHP tests, PHPCS, two-clean-checkout reproducibility, package verification, and dependency audits require passing hosted evidence for the exact release commit.
-- The release pipeline now defines a strict production ZIP allowlist, `SHA256SUMS`, a file-level SPDX inventory, and unsigned provenance metadata. Artifact generation does not imply installability.
+- The release pipeline defines a strict production ZIP allowlist, `SHA256SUMS`, a file-level SPDX inventory, and unsigned provenance metadata. Production security, privacy, and upgrade/rollback policy documents are included in the release allowlist. Artifact generation does not imply installability.
 - The exact candidate ZIP must still pass the isolated clean WordPress install/edit/save/preview P0 gate before stable release.
 
 ## Widget Inspector and persistence
@@ -27,10 +27,12 @@ Cresco Canvas `1.0.0-rc.1` is a release candidate. It is not a commercially cert
 
 ## Forms and public endpoints
 
+- Source-level production controls exist for REST payload/rate bounds, signed public form/query payloads, webhook HTTPS/private-network/DNS checks, disabled webhook redirects, upload extension/MIME/content/polyglot validation, private upload ownership/download checks, CSV formula neutralization, retention, and privacy export/erasure.
+- `check:production-hardening` protects the expected public-route ownership and critical security/lifecycle source contracts, but a source contract is not a penetration test or hosted release result.
 - Provider secrets and production CAPTCHA verification depend on site-specific adapters and have not been tested against live providers.
-- Webhook delivery still requires dedicated SSRF/private-network/DNS-rebinding/idempotency/retry/log-privacy review.
-- Uploads require polyglot, double-extension, MIME-spoofing, ownership, retention, and protected-download review.
-- CSV formula-injection and large-export behavior require security verification.
+- Webhook controls still require production-like egress testing against real DNS/resolver/network behavior; DNS validation cannot eliminate every resolver/connection time-of-check/time-of-use condition.
+- Upload controls still require a real web-server test confirming the configured private directory is outside Apache/Nginx/XAMPP document roots, cannot execute scripts, and protected downloads behave correctly.
+- CSV large-export behavior and public endpoint rate/idempotency behavior still require integration evidence under realistic traffic.
 
 ## Dynamic data and integrations
 
@@ -40,9 +42,10 @@ Cresco Canvas `1.0.0-rc.1` is a release candidate. It is not a commercially cert
 
 ## Lifecycle and upgrade
 
+- Versioned migrations, a pre-migration Cresco settings snapshot, retry-from-last-completed-version behavior, downgrade detection/compatibility pause, multisite batching, non-destructive deactivation, explicit uninstall ownership, and the `post_content` preservation invariant are implemented and covered by isolated regression tests.
 - The release branch contains a pinned historical `0.9.0-rc.1` upgrade fixture that verifies settings/session preservation and schema migration against the exact candidate ZIP. Its result is `NOT RUN` until hosted execution.
-- Downgrade detection, rollback guidance, migration-failure recovery, and full uninstall lifecycle evidence remain incomplete.
-- User-authored page `post_content` must never be deleted by uninstall or migration.
+- Clean install/activation, historical upgrades against a real WordPress database, network-wide deactivate/reactivate/uninstall, and restore-from-backup rollback procedures still require release-environment evidence.
+- User-authored page `post_content` must never be deleted or rewritten by uninstall or migration.
 
 ## Accessibility
 
@@ -52,13 +55,14 @@ Cresco Canvas `1.0.0-rc.1` is a release candidate. It is not a commercially cert
 
 ## Performance
 
-- A 50/200/500-node benchmark framework now records editor load, selection, Inspector tab, Settings tab, and save timings.
+- A 50/200/500-node benchmark framework records editor load, selection, Inspector tab, Settings tab, and save timings.
 - The first successful controlled run has not yet established the regression baseline; current ceilings are only anti-freeze safeguards.
 - Frontend asset-count and conditional-enqueue evidence still needs to be recorded from release runs.
 
 ## Commercial operations
 
-- Automatic update channels, rollback packages, support policy, security response policy, and complete privacy documentation remain incomplete.
+- Automatic update channels, rollback packages, support policy, security response process, and release-signing infrastructure remain incomplete.
+- Security, privacy, and upgrade/rollback product policies exist and are packaged, but they still require final release review and operational ownership before stable commercial support is claimed.
 - Release signing keys are not configured. Provenance explicitly records `signed: false`; there is no fake signing claim.
 - A general copyable privacy-safe system-status report is not part of the current release-engineering change. Existing feature diagnostics must not be described as a complete system-status facility.
 - Stable `1.0.0` remains blocked by every unresolved P0 item in `docs/COMMERCIAL_HARDENING.md` and `docs/RELEASE_CHECKLIST.md`.

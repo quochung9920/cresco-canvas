@@ -41,6 +41,13 @@ final class UploadSecurityTest extends TestCase {
 		self::assertSame( 'cresco_upload_binary_text', $result->get_error_code() );
 	}
 
+	public function test_active_pdf_actions_are_rejected(): void {
+		$pdf = "%PDF-1.4\n1 0 obj\n<< /Type /Catalog /OpenAction 2 0 R /JavaScript (alert) >>\nendobj\n%%EOF\n";
+		$result = UploadSecurity::validate_file( $this->upload( 'active.pdf', $pdf ) );
+		self::assertInstanceOf( WP_Error::class, $result );
+		self::assertSame( 'cresco_upload_active_pdf', $result->get_error_code() );
+	}
+
 	public function test_image_polyglot_trailing_data_is_rejected(): void {
 		$gif = base64_decode( 'R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==', true ) . 'TRAILING';
 		$result = UploadSecurity::validate_file( $this->upload( 'pixel.gif', $gif ) );

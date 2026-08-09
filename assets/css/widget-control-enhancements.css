@@ -21,6 +21,11 @@
 	font-size: 9px;
 }
 
+.cc-control-engine-actions select {
+	min-width: 0;
+	max-width: 100%;
+}
+
 .cc-control-engine-actions button,
 .cc-control-engine-link {
 	padding: 0 7px;
@@ -42,6 +47,39 @@
 	grid-column: 1 / -1;
 	justify-self: start;
 	margin-bottom: 2px;
+}
+
+.cc-control-engine-link.is-linked {
+	border-color: var(--cc-inspector-v2-active, #5b4bd8);
+	background: color-mix(in srgb, var(--cc-inspector-v2-active, #5b4bd8) 8%, #fff);
+	color: var(--cc-inspector-v2-active, #5b4bd8);
+	font-weight: 700;
+}
+
+.cc-control-engine-field[data-cresco-control-key="opacity"] .cc-control-engine-actions,
+.cc-control-engine-field[data-cresco-control-key="position"] .cc-control-engine-actions,
+.cc-control-engine-field[data-cresco-control-key="overflow"] .cc-control-engine-actions,
+.cc-control-engine-field[data-cresco-control-key="textAlign"] .cc-control-engine-actions,
+.cc-control-engine-field[data-cresco-control-key="fontWeight"] .cc-control-engine-actions,
+.cc-control-engine-field[data-cresco-control-key="lineHeight"] .cc-control-engine-actions {
+	grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.cc-control-engine-field[data-cresco-control-key="opacity"] .cc-control-engine-unit,
+.cc-control-engine-field[data-cresco-control-key="position"] .cc-control-engine-unit,
+.cc-control-engine-field[data-cresco-control-key="overflow"] .cc-control-engine-unit,
+.cc-control-engine-field[data-cresco-control-key="textAlign"] .cc-control-engine-unit,
+.cc-control-engine-field[data-cresco-control-key="fontWeight"] .cc-control-engine-unit,
+.cc-control-engine-field[data-cresco-control-key="lineHeight"] .cc-control-engine-unit {
+	display: none;
+}
+
+@media (forced-colors: active) {
+	.cc-control-engine-actions button:focus-visible,
+	.cc-control-engine-actions select:focus-visible,
+	.cc-control-engine-link:focus-visible {
+		outline: 2px solid CanvasText;
+	}
 }
 
 @media (prefers-reduced-motion: reduce) {

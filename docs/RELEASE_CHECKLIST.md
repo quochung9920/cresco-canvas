@@ -7,6 +7,7 @@ This checklist applies to `1.0.0-rc.1` and the future stable `1.0.0`. A checked 
 - [x] Plugin header and package version are `1.0.0-rc.1`.
 - [x] README reflects the current product scope.
 - [x] Commercial hardening plan exists.
+- [x] Security, privacy, and upgrade/rollback policies are included in the production ZIP allowlist.
 - [ ] Changelog is complete through the release commit.
 - [ ] Architecture and known-limitations documents match the current code.
 - [ ] No documentation claims stable or commercial readiness before approval.
@@ -19,9 +20,9 @@ This checklist applies to `1.0.0-rc.1` and the future stable `1.0.0`. A checked 
 - [x] Opt-in uninstall cleanup includes known Cresco schedules, settings, submissions, uploads, and metadata.
 - [ ] Clean install and activation pass on a real WordPress site.
 - [ ] Historical upgrade fixtures pass.
-- [ ] Migration failure and retry pass.
-- [ ] Downgrade and rollback behavior are documented and tested.
-- [ ] Single-site and multisite lifecycle tests pass.
+- [ ] Migration failure and retry pass in the release environment.
+- [ ] Downgrade and rollback behavior are exercised against a real database/backup.
+- [ ] Single-site and multisite lifecycle tests pass in the release environment.
 
 ## Build and packaging
 
@@ -30,6 +31,7 @@ This checklist applies to `1.0.0-rc.1` and the future stable `1.0.0`. A checked 
 - [ ] All checked-in runtime files have authoritative source files.
 - [ ] Removing `build/` and rebuilding reproduces the required runtime.
 - [ ] TypeScript, lint, JavaScript unit tests, PHP syntax, PHPCS, and PHPUnit pass.
+- [x] `check:production-hardening` is part of `check:quality` and protects critical source-level security/lifecycle contracts.
 - [ ] Two clean package builds produce the same checksum.
 - [ ] Release ZIP contents and SHA-256 are reviewed.
 - [ ] Exact release ZIP installs and activates on a clean site.
@@ -55,14 +57,16 @@ This checklist applies to `1.0.0-rc.1` and the future stable `1.0.0`. A checked 
 
 ## Security and privacy
 
-- [ ] REST route inventory and permission review are complete.
-- [ ] Upload security review is complete.
-- [ ] Webhook SSRF, DNS rebinding, retry, logging, and secret review are complete.
-- [ ] CSV formula injection is prevented.
-- [ ] Query/facet resource limits and cache behavior are verified.
-- [ ] Import/export and CSS token sanitization are verified.
-- [ ] Privacy exporter, eraser, retention, and uninstall behavior pass.
-- [ ] Logs and diagnostics exclude private submission values and secrets.
+- [x] REST route inventory and the intended anonymous-route modules are documented and protected by a source-level regression gate.
+- [x] Source-level upload, webhook, CSV, privacy, migration, downgrade, and uninstall invariants have regression coverage.
+- [ ] REST permission review passes against the exact release artifact/environment.
+- [ ] Upload security passes real web-server storage/download and hostile-file verification.
+- [ ] Webhook SSRF, DNS rebinding/TOCTOU, retry, logging, and secret review pass production-like egress testing.
+- [ ] CSV formula injection and bounded large-export behavior pass integration verification.
+- [ ] Query/facet resource limits and cache behavior are verified under production-like data/traffic.
+- [ ] Import/export and CSS token sanitization are verified against hostile payloads.
+- [ ] Privacy exporter, eraser, retention, and uninstall behavior pass on real WordPress data.
+- [ ] Logs and diagnostics exclude private submission values and secrets in production flows.
 
 ## Compatibility
 
