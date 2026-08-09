@@ -1,0 +1,139 @@
+/* Cresco Canvas Editor Experience v2 synchronization and Global Design polish. */
+.cresco-editor-experience-v2 .cc-standalone-structure-item.cc-experience-canvas-hover,
+.cresco-editor-experience-v2 .cc-standalone-structure-item.cc-experience-canvas-selected {
+	background: color-mix(in srgb, var(--wp-admin-theme-color, #3858e9) 10%, transparent);
+	box-shadow: inset 3px 0 0 var(--wp-admin-theme-color, #3858e9);
+}
+
+.cresco-editor-experience-v2 .cc-standalone-structure-item.cc-experience-canvas-selected {
+	background: color-mix(in srgb, var(--wp-admin-theme-color, #3858e9) 15%, transparent);
+}
+
+.cresco-editor-experience-v2 .cc-canvas-node.cc-experience-structure-hover {
+	outline: 2px dashed color-mix(in srgb, var(--wp-admin-theme-color, #3858e9) 72%, transparent);
+	outline-offset: 3px;
+}
+
+.cc-experience-global-tools {
+	display: grid;
+	gap: 8px;
+	margin: 10px 0 14px;
+	padding: 10px;
+	border: 1px solid color-mix(in srgb, currentColor 13%, transparent);
+	border-radius: 9px;
+	background: color-mix(in srgb, Canvas 96%, currentColor 4%);
+}
+
+.cc-experience-global-search {
+	display: flex;
+	align-items: center;
+	gap: 7px;
+	padding-inline: 9px;
+	border: 1px solid color-mix(in srgb, currentColor 16%, transparent);
+	border-radius: 6px;
+	background: Canvas;
+}
+
+.cc-experience-global-search input {
+	width: 100%;
+	min-width: 0;
+	min-height: 32px !important;
+	padding: 0 !important;
+	border: 0 !important;
+	box-shadow: none !important;
+	background: transparent !important;
+	font-size: 12px !important;
+}
+
+.cc-experience-global-tools > p {
+	margin: 0;
+	color: color-mix(in srgb, currentColor 58%, transparent);
+	font-size: 10px;
+}
+
+.cc-global-token[data-experience-token],
+.cc-global-kv[data-experience-token] {
+	position: relative;
+	cursor: copy;
+	transition: background 120ms ease, border-color 120ms ease, transform 120ms ease;
+}
+
+.cc-global-token[data-experience-token]:hover,
+.cc-global-token[data-experience-token]:focus-visible,
+.cc-global-kv[data-experience-token]:hover,
+.cc-global-kv[data-experience-token]:focus-visible {
+	background: color-mix(in srgb, var(--wp-admin-theme-color, #3858e9) 8%, transparent);
+	outline: 2px solid color-mix(in srgb, var(--wp-admin-theme-color, #3858e9) 48%, transparent);
+	outline-offset: 1px;
+}
+
+.cc-global-token[data-experience-token].is-copied,
+.cc-global-kv[data-experience-token].is-copied {
+	background: color-mix(in srgb, #00a32a 12%, transparent);
+}
+
+.cc-experience-token-reference {
+	display: block;
+	margin-inline-start: auto;
+	padding-inline-start: 8px;
+	color: color-mix(in srgb, currentColor 48%, transparent);
+	font: 500 9px/1.3 ui-monospace, SFMono-Regular, Menlo, monospace;
+	white-space: nowrap;
+}
+
+.cc-experience-contrast {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 5px;
+}
+
+.cc-experience-contrast__item {
+	display: inline-flex;
+	align-items: center;
+	min-height: 20px;
+	padding: 2px 7px;
+	border: 1px solid color-mix(in srgb, currentColor 16%, transparent);
+	border-radius: 999px;
+	font-size: 9px;
+	font-weight: 700;
+}
+
+.cc-experience-contrast__item.is-pass {
+	border-color: color-mix(in srgb, #008a20 35%, transparent);
+	background: color-mix(in srgb, #00a32a 9%, transparent);
+	color: #006b1b;
+}
+
+.cc-experience-contrast__item.is-large-pass {
+	border-color: color-mix(in srgb, #dba617 45%, transparent);
+	background: color-mix(in srgb, #dba617 10%, transparent);
+	color: #7a5a00;
+}
+
+.cc-experience-contrast__item.is-fail {
+	border-color: color-mix(in srgb, #d63638 38%, transparent);
+	background: color-mix(in srgb, #d63638 9%, transparent);
+	color: #a01f24;
+}
+
+.cc-global-card.cc-experience-filter-empty {
+	display: none;
+}
+
+@media (forced-colors: active) {
+	.cc-experience-global-tools,
+	.cc-experience-global-search,
+	.cc-experience-contrast__item {
+		border: 1px solid CanvasText;
+	}
+	.cresco-editor-experience-v2 .cc-canvas-node.cc-experience-structure-hover {
+		outline-color: Highlight;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.cc-global-token[data-experience-token],
+	.cc-global-kv[data-experience-token] {
+		transition: none;
+	}
+}
