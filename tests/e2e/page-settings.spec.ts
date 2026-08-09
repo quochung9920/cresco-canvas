@@ -1,4 +1,4 @@
-import { expect, test, type Page } from '@playwright/test';
+import { expect, test, type Locator, type Page } from '@playwright/test';
 
 async function login( page: Page ) {
 	await page.goto( '/wp-login.php' );
@@ -19,6 +19,13 @@ async function openStandaloneEditor( page: Page ) {
 	await expect( page.locator( '.cc-standalone-app.cc-ui-v3-ready' ) ).toBeVisible();
 }
 
+async function openSiteSettingsView( dialog: Locator, name: string ) {
+	if ( await dialog.getByRole( 'button', { name: 'Back to Site Settings' } ).isVisible().catch( () => false ) ) {
+		await dialog.getByRole( 'button', { name: 'Back to Site Settings' } ).click();
+	}
+	await dialog.getByRole( 'button', { name } ).click();
+}
+
 test.describe.serial( 'Cresco Page Settings', () => {
 	test( 'owns the WordPress page shell separately from the Cresco Session', async ( { page, context } ) => {
 		await page.setViewportSize( { width: 1440, height: 900 } );
@@ -31,10 +38,12 @@ test.describe.serial( 'Cresco Page Settings', () => {
 
 		const dialog = page.getByRole( 'dialog', { name: 'Page Settings' } );
 		await expect( dialog ).toBeVisible();
+		await expect( dialog.getByRole( 'button', { name: 'Global Colors' } ) ).toBeVisible();
+		await expect( dialog.getByRole( 'button', { name: 'Layout' } ) ).toBeVisible();
+
+		await openSiteSettingsView( dialog, 'Layout' );
 		const layout = dialog.locator( '[name="layout"]' );
 		const title = dialog.locator( '[name="pageTitle"]' );
-		const header = dialog.locator( '[name="header"]' );
-		const footer = dialog.locator( '[name="footer"]' );
 		const root = dialog.locator( '[name="contentRoot"]' );
 
 		await expect( layout ).toHaveValue( 'full-width' );
@@ -46,20 +55,26 @@ test.describe.serial( 'Cresco Page Settings', () => {
 		await expect( root ).toBeEnabled();
 		await root.selectOption( 'theme' );
 		await title.selectOption( 'show' );
-		await header.selectOption( 'hide' );
-		await footer.selectOption( 'hide' );
+
+		await openSiteSettingsView( dialog, 'Page Header' );
+		await dialog.locator( '[name="header"]' ).selectOption( 'hide' );
+		await openSiteSettingsView( dialog, 'Page Footer' );
+		await dialog.locator( '[name="footer"]' ).selectOption( 'hide' );
 		await dialog.getByRole( 'button', { name: 'Save Page Settings' } ).click();
 		await expect( dialog.locator( '.cc-page-settings-status' ) ).toContainText( 'Page Settings saved' );
 
+		await openSiteSettingsView( dialog, 'Layout' );
 		await layout.selectOption( 'full-width' );
-		await title.selectOption( 'hide' );
-		await header.selectOption( 'inherit' );
-		await footer.selectOption( 'inherit' );
+		await expect( title ).toHaveValue( 'hide' );
+		await openSiteSettingsView( dialog, 'Page Header' );
+		await dialog.locator( '[name="header"]' ).selectOption( 'inherit' );
+		await openSiteSettingsView( dialog, 'Page Footer' );
+		await dialog.locator( '[name="footer"]' ).selectOption( 'inherit' );
 		await dialog.getByRole( 'button', { name: 'Save Page Settings' } ).click();
 		await expect( dialog.locator( '.cc-page-settings-status' ) ).toContainText( 'Page Settings saved' );
 		await dialog.getByRole( 'button', { name: 'Close Page Settings' } ).click();
 
-		const previewHref = await page.getByRole( 'link', { name: 'Preview' }).getAttribute( 'href' );
+		const previewHref = await page.getByRole( 'link', { name: 'Preview' } ).getAttribute( 'href' );
 		expect( previewHref ).toBeTruthy();
 		const preview = await context.newPage();
 		await preview.goto( previewHref! );

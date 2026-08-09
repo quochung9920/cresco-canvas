@@ -7,9 +7,12 @@ export interface CanvasEditorBootstrap {
 export interface GlobalSettings {
 	aliases: Record< string, string >;
 	background: string;
+	breakpoints: Record< string, number >;
 	containerMax: number;
 	contentMax: number;
 	customColors: Record< string, string >;
+	customCss: string;
+	fluidTokens: Record< string, string >;
 	fontFamily: string;
 	muted: string;
 	primary: string;

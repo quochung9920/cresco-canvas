@@ -14,6 +14,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 final class GlobalStyles {
+	const MAX_CUSTOM_CSS = 20000;
+
 	public function register() {
 		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_frontend_styles' ) );
 		add_filter( 'block_editor_settings_all', array( $this, 'add_block_editor_tokens' ), 10, 2 );
@@ -60,7 +62,6 @@ final class GlobalStyles {
 				'controlHeight' => 'clamp(2.75rem, 2.55rem + 0.5vw, 3.125rem)',
 				'buttonPadding' => 'clamp(1rem, 0.8rem + 0.65vw, 1.5rem)',
 			),
-			/* Minimum width at which each responsive range begins. */
 			'breakpoints' => array(
 				'mobile' => 0,
 				'tablet' => 768,
@@ -70,6 +71,7 @@ final class GlobalStyles {
 			),
 			'customColors' => array(),
 			'aliases' => array(),
+			'customCss' => '',
 			'removeDataOnUninstall' => false,
 		);
 	}
@@ -102,14 +104,11 @@ final class GlobalStyles {
 			'breakpoints' => $breakpoints,
 			'customColors' => self::sanitize_custom_colors( $input['customColors'] ?? array() ),
 			'aliases' => self::sanitize_aliases( $input['aliases'] ?? array() ),
+			'customCss' => self::sanitize_custom_css( $input['customCss'] ?? '' ),
 			'removeDataOnUninstall' => rest_sanitize_boolean( $input['removeDataOnUninstall'] ?? false ),
 		);
 	}
 
-	/**
-	 * Sanitize a single Global Design color value.
-	 * Supports safe CSS Color 4 functions without allowing arbitrary CSS.
-	 */
 	public static function sanitize_color_value( $value ) {
 		$value = trim( wp_strip_all_tags( (string) $value ) );
 		if ( '' === $value || strlen( $value ) > 160 ) return '';
@@ -121,11 +120,36 @@ final class GlobalStyles {
 		return preg_replace( '/\s+/', ' ', $value );
 	}
 
-	/** Return a safe font stack, or an empty string when the input is invalid. */
 	public static function sanitize_font_family_value( $value ) {
 		$value = trim( wp_strip_all_tags( (string) $value ) );
 		if ( '' === $value || strlen( $value ) > 220 ) return '';
 		return preg_match( '/^[a-zA-Z0-9 _,-.\"\'()]+$/', $value ) ? $value : '';
+	}
+
+	public static function sanitize_custom_css( $value ) {
+		$css = trim( (string) $value );
+		if ( '' === $css ) return '';
+		if ( strlen( $css ) > self::MAX_CUSTOM_CSS ) return '';
+		if ( preg_match( '/(?:@import|@charset|@namespace|@media|@supports|@layer|url\s*\(|expression\s*\(|javascript:|behavior\s*:|-moz-binding|<\/?style|<!--|-->)/i', $css ) ) return '';
+		if ( preg_match( '/[<>]/', $css ) || substr_count( $css, '{' ) !== substr_count( $css, '}' ) ) return '';
+
+		$cursor = 0;
+		$found = false;
+		while ( false !== ( $open = strpos( $css, '{', $cursor ) ) ) {
+			$selector = trim( substr( $css, $cursor, $open - $cursor ) );
+			$close = strpos( $css, '}', $open + 1 );
+			if ( false === $close || '' === $selector ) return '';
+			foreach ( explode( ',', $selector ) as $part ) {
+				$part = trim( $part );
+				if ( '' === $part || preg_match( '/^(?:html|body|:root|#wpwrap|#wpcontent)\b/i', $part ) ) return '';
+			}
+			$declarations = trim( substr( $css, $open + 1, $close - $open - 1 ) );
+			if ( preg_match( '/[{}]/', $declarations ) ) return '';
+			$found = true;
+			$cursor = $close + 1;
+		}
+		if ( ! $found || '' !== trim( substr( $css, $cursor ) ) ) return '';
+		return $css;
 	}
 
 	public static function css( $selector = '.cresco-canvas-scope' ) {
@@ -133,7 +157,26 @@ final class GlobalStyles {
 	}
 
 	public static function visual_css( $selector ) {
-		return sprintf( '%1$s{background:var(--cc-background);color:var(--cc-text);font-family:var(--cc-font);font-size:var(--cc-font-base);line-height:1.65;}%1$s h1{font-size:var(--cc-h1);line-height:1.12;}%1$s h2{font-size:var(--cc-h2);line-height:1.12;}%1$s h3{font-size:var(--cc-h3);line-height:1.15;}%1$s h4{font-size:var(--cc-h4);}%1$s h5{font-size:var(--cc-h5);}%1$s h6{font-size:var(--cc-h6);}%1$s .wp-block-cresco-container a:not(.wp-block-button__link){color:var(--cc-primary);}%1$s .wp-block-cresco-container .wp-block-button__link:not(.has-background){background-color:var(--cc-primary);}%1$s .wp-block-cresco-container .wp-block-button__link{border-radius:var(--cc-radius-md);min-height:var(--cc-control-height);padding-inline:var(--cc-button-padding);}', $selector );
+		$settings = self::get_settings();
+		$css = sprintf(
+			'%1$s{background:var(--cc-background);color:var(--cc-text);font-family:var(--cc-font);font-size:var(--cc-font-base);line-height:1.65;}' .
+			'%1$s h1{font-size:var(--cc-h1);line-height:1.12;}' .
+			'%1$s h2{font-size:var(--cc-h2);line-height:1.12;}' .
+			'%1$s h3{font-size:var(--cc-h3);line-height:1.15;}' .
+			'%1$s h4{font-size:var(--cc-h4);}' .
+			'%1$s h5{font-size:var(--cc-h5);}' .
+			'%1$s h6{font-size:var(--cc-h6);}' .
+			'%1$s .wp-block-cresco-container a:not(.wp-block-button__link),%1$s .cresco-widget-text a{color:var(--cc-primary);}' .
+			'%1$s .wp-block-cresco-container .wp-block-button__link:not(.has-background){background-color:var(--cc-primary);}' .
+			'%1$s .wp-block-cresco-container .wp-block-button__link,%1$s .cresco-widget-button{border-radius:var(--cc-radius-md);min-height:var(--cc-control-height);padding-inline:var(--cc-button-padding);}' .
+			'%1$s .cresco-widget-image img{border-radius:var(--cc-radius-md);}' .
+			'%1$s .cresco-form{color:var(--cc-text);font-family:var(--cc-font);}' .
+			'%1$s .cresco-form-field input,%1$s .cresco-form-field textarea,%1$s .cresco-form-field select{min-height:var(--cc-control-height);border-radius:var(--cc-radius-sm);background:var(--cc-background);color:var(--cc-text);}' .
+			'%1$s .cresco-form button[type="submit"]{min-height:var(--cc-control-height);border-radius:var(--cc-radius-md);background:var(--cc-primary);color:#fff;}' .
+			'%1$s .cresco-form button:focus-visible,%1$s .cresco-form input:focus-visible,%1$s .cresco-form textarea:focus-visible,%1$s .cresco-form select:focus-visible{outline-color:var(--cc-primary);}',
+			$selector
+		);
+		return $css . self::scope_custom_css( $selector, $settings['customCss'] ?? '' );
 	}
 
 	public function enqueue_frontend_styles() {
@@ -167,23 +210,9 @@ final class GlobalStyles {
 		return $post && has_block( 'cresco/container', $post->post_content );
 	}
 
-	/**
-	 * Sanitize ordered range starts and transparently normalize the former defaults.
-	 *
-	 * @param mixed                $value    Submitted breakpoint map.
-	 * @param array<string, int>   $defaults Current defaults.
-	 * @return array<string, int>
-	 */
 	private static function sanitize_breakpoints( $value, $defaults ) {
 		$value = is_array( $value ) ? $value : array();
-		$legacy = array(
-			'mobile' => 480,
-			'tablet' => 782,
-			'laptop' => 1200,
-			'desktop' => 1440,
-			'wide' => 1920,
-		);
-
+		$legacy = array( 'mobile' => 480, 'tablet' => 782, 'laptop' => 1200, 'desktop' => 1440, 'wide' => 1920 );
 		$is_legacy_default = true;
 		foreach ( $legacy as $key => $legacy_value ) {
 			if ( absint( $value[ $key ] ?? $legacy_value ) !== $legacy_value ) {
@@ -191,23 +220,13 @@ final class GlobalStyles {
 				break;
 			}
 		}
-		if ( $is_legacy_default ) {
-			$value = $defaults;
-		}
-
+		if ( $is_legacy_default ) $value = $defaults;
 		$mobile = min( 767, max( 0, absint( $value['mobile'] ?? $defaults['mobile'] ) ) );
 		$tablet = min( 1024, max( $mobile + 1, absint( $value['tablet'] ?? $defaults['tablet'] ) ) );
 		$laptop = min( 1439, max( $tablet + 1, absint( $value['laptop'] ?? $defaults['laptop'] ) ) );
 		$desktop = min( 1919, max( $laptop + 1, absint( $value['desktop'] ?? $defaults['desktop'] ) ) );
 		$wide = min( 3840, max( $desktop + 1, absint( $value['wide'] ?? $defaults['wide'] ) ) );
-
-		return array(
-			'mobile' => $mobile,
-			'tablet' => $tablet,
-			'laptop' => $laptop,
-			'desktop' => $desktop,
-			'wide' => $wide,
-		);
+		return array( 'mobile' => $mobile, 'tablet' => $tablet, 'laptop' => $laptop, 'desktop' => $desktop, 'wide' => $wide );
 	}
 
 	private static function sanitize_fluid_value( $value, $fallback ) {
@@ -242,5 +261,25 @@ final class GlobalStyles {
 	private static function sanitize_font_family( $value ) {
 		$value = self::sanitize_font_family_value( $value );
 		return '' !== $value ? $value : self::defaults()['fontFamily'];
+	}
+
+	private static function scope_custom_css( $selector, $css ) {
+		$css = self::sanitize_custom_css( $css );
+		if ( '' === $css ) return '';
+		$output = '';
+		$cursor = 0;
+		while ( false !== ( $open = strpos( $css, '{', $cursor ) ) ) {
+			$raw_selector = trim( substr( $css, $cursor, $open - $cursor ) );
+			$close = strpos( $css, '}', $open + 1 );
+			if ( false === $close ) break;
+			$scoped = array();
+			foreach ( explode( ',', $raw_selector ) as $part ) {
+				$part = trim( $part );
+				$scoped[] = false !== strpos( $part, '&' ) ? str_replace( '&', $selector, $part ) : $selector . ' ' . $part;
+			}
+			$output .= implode( ',', $scoped ) . '{' . substr( $css, $open + 1, $close - $open - 1 ) . '}';
+			$cursor = $close + 1;
+		}
+		return $output;
 	}
 }
