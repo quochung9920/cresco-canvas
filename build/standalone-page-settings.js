@@ -45,8 +45,7 @@
 	}
 
 	function status( text, error ) {
-		if ( ! form ) return;
-		var node = form.querySelector( '.cc-page-settings-status' );
+		var node = overlay ? overlay.querySelector( '.cc-page-settings-status' ) : null;
 		if ( ! node ) return;
 		node.textContent = text || '';
 		node.classList.toggle( 'is-error', !! error );
@@ -137,7 +136,7 @@
 		if ( ! form || loading ) return;
 		syncLayoutControls();
 		loading = true;
-		var save = form.querySelector( '.cc-page-settings-save' );
+		var save = overlay ? overlay.querySelector( '.cc-page-settings-save' ) : null;
 		if ( save ) save.disabled = true;
 		status( __( 'Saving…', 'cresco-canvas' ), false );
 		apiFetch( { path: settings.pageSettingsPath, method: 'POST', data: { settings: values() } } ).then( function ( result ) {
@@ -216,7 +215,12 @@
 		form.appendChild( rootSection );
 
 		form.addEventListener( 'change', function ( event ) {
-			if ( event.target && event.target.name === 'layout' ) syncLayoutControls();
+			if ( ! event.target || event.target.name !== 'layout' ) return;
+			if ( event.target.value === 'theme-default' ) {
+				var root = form.querySelector( '[name="contentRoot"]' );
+				if ( root ) root.value = 'theme';
+			}
+			syncLayoutControls();
 		} );
 		dialog.appendChild( form );
 
