@@ -19,8 +19,11 @@ export const releaseDocs = [
 	'docs/GLOBAL_CONFIG_IMPORT.md',
 	'docs/KNOWN_LIMITATIONS.md',
 	'docs/PERFORMANCE_BASELINE.md',
+	'docs/PRIVACY.md',
 	'docs/RELEASE_CHECKLIST.md',
 	'docs/RELEASE_ENGINEERING.md',
+	'docs/SECURITY.md',
+	'docs/UPGRADE_ROLLBACK.md',
 	'docs/releases/1.0.0-rc.1.md',
 ];
 
@@ -179,7 +182,7 @@ export async function collectReleaseFiles( root = process.cwd() ) {
 		...includes,
 		...vendor,
 	];
-	const unique = [ ...new Set( files.map( ( file ) => file.replaceAll( path.sep, '/' ) ) ) ].sort();
+	const unique = [ ...new Set( files.map( ( file ) => file.replaceAll( path.sep, '/' ) ) ].sort();
 	for ( const file of unique ) {
 		const stat = await lstat( path.join( root, file ) );
 		if ( ! stat.isFile() ) throw new Error( `Release allowlist entry is not a regular file: ${ file }` );
