@@ -17,6 +17,7 @@
 		"start": "wp-scripts start",
 		"typecheck": "tsc --noEmit",
 		"lint:php": "node scripts/check-php-syntax.mjs",
+		"lint:runtime": "node scripts/check-runtime-syntax.mjs",
 		"lint:js": "wp-scripts lint-js src tests scripts webpack.config.js playwright.config.ts playwright.performance.config.ts",
 		"lint:css": "wp-scripts lint-style 'assets/css/**/*.css' 'blocks/**/*.css' 'src/**/*.scss'",
 		"lint:md": "wp-scripts lint-md-docs README.md CHANGELOG.md 'docs/**/*.md' 'runtime-src/**/*.md'",
@@ -31,7 +32,7 @@
 		"check:build-integrity": "node scripts/check-build-integrity.mjs",
 		"check:editor-runtime": "node scripts/check-editor-runtime.mjs",
 		"check:version": "node scripts/check-version.mjs && node scripts/check-stable-release.mjs",
-		"check:quality": "npm run check:hygiene && npm run lint:php && npm run check:editor-runtime && npm run typecheck && npm run lint:js && npm run lint:css && npm run lint:md && npm run test:unit && npm run check:version",
+		"check:quality": "npm run check:hygiene && npm run lint:php && npm run lint:runtime && npm run check:editor-runtime && npm run typecheck && npm run lint:js && npm run lint:css && npm run lint:md && npm run test:unit && npm run check:version",
 		"package": "node scripts/build-release.mjs",
 		"package:verify": "node scripts/verify-package.mjs && node scripts/verify-reproducible-build.mjs"
 	},
