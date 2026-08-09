@@ -90,6 +90,33 @@ final class SecurityHardeningTest extends TestCase {
 		self::assertTrue( $args['reject_unsafe_urls'] );
 	}
 
+	public function test_webhook_requires_https_without_credentials_or_custom_port(): void {
+		$http = SecurityHardening::validate_public_https_url( 'http://hooks.example.test/event', static fn() => array( '93.184.216.34' ) );
+		self::assertInstanceOf( WP_Error::class, $http );
+		self::assertSame( 'cresco_webhook_unsafe_url', $http->get_error_code() );
+
+		$credentials = SecurityHardening::validate_public_https_url( 'https://user:secret@hooks.example.test/event', static fn() => array( '93.184.216.34' ) );
+		self::assertInstanceOf( WP_Error::class, $credentials );
+		self::assertSame( 'cresco_webhook_credentials', $credentials->get_error_code() );
+
+		$port = SecurityHardening::validate_public_https_url( 'https://hooks.example.test:8443/event', static fn() => array( '93.184.216.34' ) );
+		self::assertInstanceOf( WP_Error::class, $port );
+		self::assertSame( 'cresco_webhook_unsafe_port', $port->get_error_code() );
+	}
+
+	public function test_webhook_fails_closed_when_dns_is_empty_and_accepts_public_answers(): void {
+		$empty = SecurityHardening::validate_public_https_url( 'https://hooks.example.test/event', static fn() => array() );
+		self::assertInstanceOf( WP_Error::class, $empty );
+		self::assertSame( 'cresco_webhook_dns_failed', $empty->get_error_code() );
+
+		self::assertTrue(
+			SecurityHardening::validate_public_https_url(
+				'https://hooks.example.test/event',
+				static fn() => array( '93.184.216.34', '2606:2800:220:1:248:1893:25c8:1946' )
+			)
+		);
+	}
+
 	public function test_sensitive_diagnostics_are_redacted_recursively(): void {
 		$result = SecurityHardening::redact_sensitive( array( 'status'=>'ok', 'authorization'=>'Bearer secret', 'nested'=>array( 'captchaToken'=>'abc', 'name'=>'safe' ) ) );
 		self::assertSame( '[REDACTED]', $result['authorization'] );
