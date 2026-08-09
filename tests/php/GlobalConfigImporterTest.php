@@ -5,6 +5,7 @@
  * @package CrescoCanvas
  */
 
+use CrescoCanvas\Styles\DesignTokens;
 use CrescoCanvas\Styles\GlobalConfigImporter;
 use CrescoCanvas\Styles\GlobalStyles;
 use PHPUnit\Framework\TestCase;
@@ -64,6 +65,27 @@ CSS;
 		self::assertSame( 'rgb(12 95 180)', $result['settings']['primary'] );
 		self::assertSame( 'oklab(95% 0.01 -0.02)', $result['settings']['customColors']['panel'] );
 		self::assertSame( 1440, $result['settings']['containerMax'] );
+	}
+
+	public function test_copy_global_config_catalog_can_be_imported_directly(): void {
+		$settings = GlobalStyles::sanitize_settings(
+			array(
+				'primary' => 'oklch(55% 0.15 235)',
+				'background' => 'oklch(98% 0.005 250)',
+				'fontFamily' => 'Poppins, sans-serif',
+				'customColors' => array( 'surface' => 'oklch(99% 0.002 250)' ),
+			)
+		);
+		$catalog = DesignTokens::catalog( $settings );
+		$result = GlobalConfigImporter::preview( $catalog );
+
+		self::assertFalse( is_wp_error( $result ) );
+		self::assertSame( 'oklch(55% 0.15 235)', $result['settings']['primary'] );
+		self::assertSame( 'oklch(98% 0.005 250)', $result['settings']['background'] );
+		self::assertSame( 'Poppins, sans-serif', $result['settings']['fontFamily'] );
+		self::assertSame( 'oklch(99% 0.002 250)', $result['settings']['customColors']['surface'] );
+		self::assertSame( $settings['containerMax'], $result['settings']['containerMax'] );
+		self::assertSame( $settings['breakpoints'], $result['settings']['breakpoints'] );
 	}
 
 	public function test_forbidden_or_unrecognized_import_is_rejected(): void {
