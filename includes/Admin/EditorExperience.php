@@ -30,9 +30,11 @@ final class EditorExperience {
 			return;
 		}
 
-		$script = CRESCO_CANVAS_PATH . 'build/editor-experience-v2.js';
-		$style  = CRESCO_CANVAS_PATH . 'assets/css/editor-experience-v2.css';
-		if ( ! is_readable( $script ) || ! is_readable( $style ) ) {
+		$script      = CRESCO_CANVAS_PATH . 'build/editor-experience-v2.js';
+		$sync_script = CRESCO_CANVAS_PATH . 'build/editor-experience-v2-sync.js';
+		$style       = CRESCO_CANVAS_PATH . 'assets/css/editor-experience-v2.css';
+		$polish      = CRESCO_CANVAS_PATH . 'assets/css/editor-experience-v2-polish.css';
+		if ( ! is_readable( $script ) || ! is_readable( $sync_script ) || ! is_readable( $style ) || ! is_readable( $polish ) ) {
 			return;
 		}
 
@@ -40,6 +42,12 @@ final class EditorExperience {
 			'cresco-canvas-editor-experience-v2',
 			CRESCO_CANVAS_URL . 'assets/css/editor-experience-v2.css',
 			array( 'cresco-canvas-standalone-ui-v3', 'cresco-canvas-standalone-history' ),
+			self::VERSION
+		);
+		wp_enqueue_style(
+			'cresco-canvas-editor-experience-v2-polish',
+			CRESCO_CANVAS_URL . 'assets/css/editor-experience-v2-polish.css',
+			array( 'cresco-canvas-editor-experience-v2' ),
 			self::VERSION
 		);
 
@@ -59,6 +67,14 @@ final class EditorExperience {
 			'cresco-canvas-editor-experience-v2',
 			"(function(d){var r=d.getElementById('cresco-canvas-standalone-editor');if(!r)return;function tag(){r.querySelectorAll('.cc-experience-source-badge').forEach(function(n){n.classList.add('cc-inspector-v2-responsive-badge');n.setAttribute('aria-hidden','true');});}tag();if(window.MutationObserver)new MutationObserver(tag).observe(r,{childList:true,subtree:true});})(document);",
 			'after'
+		);
+
+		wp_enqueue_script(
+			'cresco-canvas-editor-experience-v2-sync',
+			CRESCO_CANVAS_URL . 'build/editor-experience-v2-sync.js',
+			array( 'cresco-canvas-editor-experience-v2' ),
+			self::VERSION,
+			true
 		);
 	}
 }
