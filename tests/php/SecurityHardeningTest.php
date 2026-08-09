@@ -71,6 +71,29 @@ final class SecurityHardeningTest extends TestCase {
 		self::assertSame( QueryCache::key_for_request( $a ), QueryCache::key_for_request( $b ) );
 	}
 
+	public function test_form_idempotency_blocks_concurrent_duplicate_but_releases_failed_request(): void {
+		$guard = new SecurityHardening();
+		$headers = array( 'x-cresco-idempotency-key' => 'submission-123' );
+		$params = array( 'formId' => 'contact-form', 'fields' => array( 'name' => 'Ada' ) );
+		$first = new WP_REST_Request( $params, '/cresco-canvas/v1/forms/submit', 'POST', '', $headers );
+		self::assertNull( $guard->protect_rest_request( null, null, $first ) );
+
+		$concurrent = new WP_REST_Request( $params, '/cresco-canvas/v1/forms/submit', 'POST', '', $headers );
+		$duplicate = $guard->protect_rest_request( null, null, $concurrent );
+		self::assertInstanceOf( WP_Error::class, $duplicate );
+		self::assertSame( 'cresco_duplicate_submission', $duplicate->get_error_code() );
+
+		$guard->finalize_idempotent_request( new WP_REST_Response( array( 'message' => 'invalid' ), 422 ), null, $first );
+		$retry = new WP_REST_Request( $params, '/cresco-canvas/v1/forms/submit', 'POST', '', $headers );
+		self::assertNull( $guard->protect_rest_request( null, null, $retry ) );
+		$guard->finalize_idempotent_request( new WP_REST_Response( array( 'ok' => true ), 200 ), null, $retry );
+
+		$after_success = new WP_REST_Request( $params, '/cresco-canvas/v1/forms/submit', 'POST', '', $headers );
+		$completed = $guard->protect_rest_request( null, null, $after_success );
+		self::assertInstanceOf( WP_Error::class, $completed );
+		self::assertSame( 'cresco_duplicate_submission', $completed->get_error_code() );
+	}
+
 	public function test_webhook_rejects_private_ipv4_and_ipv6_answers(): void {
 		foreach ( array( '127.0.0.1', '10.0.0.4', '169.254.169.254', '::1', 'fc00::1', 'fe80::1' ) as $ip ) {
 			$result = SecurityHardening::validate_public_https_url( 'https://hooks.example.test/event', static fn() => array( $ip ) );
@@ -122,5 +145,11 @@ final class SecurityHardeningTest extends TestCase {
 		self::assertSame( '[REDACTED]', $result['authorization'] );
 		self::assertSame( '[REDACTED]', $result['nested']['captchaToken'] );
 		self::assertSame( 'safe', $result['nested']['name'] );
+
+		$object = (object) array( 'apiKey' => 'secret', 'nested' => (object) array( 'password' => 'p', 'label' => 'visible' ) );
+		$redacted = SecurityHardening::redact_sensitive( $object );
+		self::assertSame( '[REDACTED]', $redacted['apiKey'] );
+		self::assertSame( '[REDACTED]', $redacted['nested']['password'] );
+		self::assertSame( 'visible', $redacted['nested']['label'] );
 	}
 }
