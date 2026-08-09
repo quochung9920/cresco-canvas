@@ -3,6 +3,7 @@
 
 	var settings = window.crescoCanvasStandaloneSettings || {};
 	var STORAGE_KEY = 'cresco-ui-v3:' + String( settings.postId || 'page' );
+	var OWNERSHIP_STYLE_ID = 'cresco-ui-v3-panel-ownership';
 	var app = null;
 	var backdrop = null;
 	var leftButton = null;
@@ -35,6 +36,49 @@
 		return 'desktop';
 	}
 
+	function ensureOwnershipStyles() {
+		if ( document.getElementById( OWNERSHIP_STYLE_ID ) ) return;
+		var style = document.createElement( 'style' );
+		style.id = OWNERSHIP_STYLE_ID;
+		style.textContent = [
+			'.cc-global-panel.cc-ui-v3-global-authoritative > :not(.cc-global-simple-editor){display:none!important;}',
+			'.cc-inspector .cc-global-simple-editor{display:none!important;}',
+			'.cc-global-panel .cc-inspector-v2-tabs{display:none!important;}'
+		].join( '' );
+		document.head.appendChild( style );
+	}
+
+	function directGlobalEditor( panel ) {
+		if ( ! panel ) return null;
+		for ( var index = 0; index < panel.children.length; index += 1 ) {
+			if ( panel.children[ index ].classList.contains( 'cc-global-simple-editor' ) ) return panel.children[ index ];
+		}
+		return null;
+	}
+
+	function syncPanelOwnership() {
+		if ( ! app ) return;
+		ensureOwnershipStyles();
+
+		Array.prototype.forEach.call( app.querySelectorAll( '.cc-global-simple-editor' ), function ( editor ) {
+			if ( ! editor.closest( '.cc-global-panel' ) ) editor.remove();
+		} );
+
+		Array.prototype.forEach.call( app.querySelectorAll( '.cc-global-panel' ), function ( panel ) {
+			var editor = directGlobalEditor( panel );
+			panel.classList.toggle( 'cc-ui-v3-global-authoritative', !! editor );
+			Array.prototype.forEach.call( panel.querySelectorAll( '.cc-inspector-v2-tabs' ), function ( tabs ) { tabs.remove(); } );
+		} );
+
+		Array.prototype.forEach.call( app.querySelectorAll( '.cc-ui-v3-global-authoritative' ), function ( node ) {
+			if ( ! node.classList.contains( 'cc-global-panel' ) ) node.classList.remove( 'cc-ui-v3-global-authoritative' );
+		} );
+
+		Array.prototype.forEach.call( app.querySelectorAll( '.cc-inspector' ), function ( inspector ) {
+			Array.prototype.forEach.call( inspector.querySelectorAll( '.cc-global-simple-editor' ), function ( editor ) { editor.remove(); } );
+		} );
+	}
+
 	function makeButton( panel, label, icon ) {
 		var button = document.createElement( 'button' );
 		button.type = 'button';
@@ -59,6 +103,7 @@
 
 	function ensureChrome() {
 		if ( ! app ) return;
+		ensureOwnershipStyles();
 		var actions = app.querySelector( '.cc-standalone-header-actions' );
 		if ( actions && ! actions.querySelector( '.cc-ui-v3-panel-controls' ) ) {
 			var controls = document.createElement( 'div' );
@@ -166,6 +211,7 @@
 
 		syncButton( leftButton, buttonExpanded( 'left', currentMode ) );
 		syncButton( rightButton, buttonExpanded( 'right', currentMode ) );
+		syncPanelOwnership();
 	}
 
 	function handleDocumentClick( event ) {
@@ -173,6 +219,7 @@
 		var currentMode = mode();
 		if ( currentMode === 'compact' && event.target.closest( '.cc-standalone-stage' ) ) closeDrawers( false );
 		if ( rightDrawerOpen && event.target.closest( '.cc-standalone-structure-item' ) ) closeDrawers( false );
+		if ( event.target.closest( '.cc-standalone-tabs' ) ) window.requestAnimationFrame( syncPanelOwnership );
 	}
 
 	function handleKeydown( event ) {
