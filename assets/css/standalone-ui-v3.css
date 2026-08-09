@@ -518,3 +518,55 @@
 		transition: none !important;
 	}
 }
+
+/* Keep every editor action on the left, immediately after the Cresco brand. */
+.cc-ui-v3-ready .cc-standalone-header {
+	grid-template-columns: max-content max-content minmax(180px, 1fr);
+}
+
+.cc-ui-v3-ready .cc-standalone-brand {
+	grid-column: 1;
+	grid-row: 1;
+}
+
+.cc-ui-v3-ready .cc-standalone-header-actions {
+	grid-column: 2;
+	grid-row: 1;
+	justify-self: start;
+	max-width: min(100%, 72vw);
+	overflow-x: auto;
+	overflow-y: hidden;
+	overscroll-behavior-inline: contain;
+	scrollbar-width: none;
+	white-space: nowrap;
+}
+
+.cc-ui-v3-ready .cc-standalone-header-actions::-webkit-scrollbar {
+	display: none;
+}
+
+.cc-ui-v3-ready .cc-standalone-title {
+	grid-column: 3;
+	grid-row: 1;
+	justify-self: center;
+}
+
+@media (max-width: 959px) {
+	.cc-ui-v3-ready .cc-standalone-header {
+		grid-template-columns: max-content minmax(0, 1fr) minmax(100px, 160px);
+	}
+
+	.cc-ui-v3-ready .cc-standalone-header-actions {
+		max-width: 100%;
+	}
+}
+
+@media (max-width: 700px) {
+	.cc-ui-v3-ready .cc-standalone-header {
+		grid-template-columns: max-content minmax(0, 1fr);
+	}
+
+	.cc-ui-v3-ready .cc-standalone-title {
+		display: none;
+	}
+}
