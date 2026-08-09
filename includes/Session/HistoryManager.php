@@ -7,6 +7,7 @@
 
 namespace CrescoCanvas\Session;
 
+use CrescoCanvas\Builder\WebsiteBuilder;
 use WP_Error;
 use WP_REST_Request;
 use WP_REST_Response;
@@ -81,7 +82,7 @@ final class HistoryManager {
 		}
 
 		$decoded = is_string( $meta_value ) ? json_decode( $meta_value, true ) : null;
-		$session = is_array( $decoded ) ? SessionManager::sanitize_session( $decoded ) : null;
+		$session = $this->sanitize_document( $decoded, $object_id );
 		if ( ! is_array( $session ) ) {
 			return;
 		}
@@ -132,7 +133,7 @@ final class HistoryManager {
 		$items = array();
 		$current_raw = (string) get_post_meta( $post_id, SessionManager::META_KEY, true );
 		$current = $current_raw ? json_decode( $current_raw, true ) : null;
-		$current = is_array( $current ) ? SessionManager::sanitize_session( $current ) : null;
+		$current = $this->sanitize_document( $current, $post_id );
 		$current_checksum = '';
 
 		if ( is_array( $current ) ) {
@@ -163,7 +164,7 @@ final class HistoryManager {
 			}
 			$raw = (string) get_post_meta( $revision->ID, self::DOCUMENT_META, true );
 			$decoded = $raw ? json_decode( $raw, true ) : null;
-			$session = is_array( $decoded ) ? SessionManager::sanitize_session( $decoded ) : null;
+			$session = $this->sanitize_document( $decoded, $post_id );
 			if ( ! is_array( $session ) ) {
 				continue;
 			}
@@ -184,7 +185,7 @@ final class HistoryManager {
 
 		$raw = (string) get_post_meta( $revision_id, self::DOCUMENT_META, true );
 		$decoded = $raw ? json_decode( $raw, true ) : null;
-		$session = is_array( $decoded ) ? SessionManager::sanitize_session( $decoded ) : null;
+		$session = $this->sanitize_document( $decoded, $post_id );
 		if ( ! is_array( $session ) ) {
 			return new WP_Error( 'cresco_history_revision_invalid', __( 'That Cresco revision is invalid.', 'cresco-canvas' ), array( 'status' => 400 ) );
 		}
@@ -195,6 +196,9 @@ final class HistoryManager {
 		}
 
 		update_post_meta( $post_id, SessionManager::META_KEY, $json );
+		if ( $this->uses_builder_contract( $decoded, $post_id ) ) {
+			update_post_meta( $post_id, WebsiteBuilder::BUILDER_META, WebsiteBuilder::BUILDER_VERSION );
+		}
 		return new WP_REST_Response(
 			array(
 				'restored' => true,
@@ -202,6 +206,39 @@ final class HistoryManager {
 				'checksum' => hash( 'sha256', $json ),
 			)
 		);
+	}
+
+	/** Preserve legacy checksum semantics while understanding the expanded Website Builder contract. */
+	private function sanitize_document( $decoded, $post_id = 0 ) {
+		if ( ! is_array( $decoded ) ) return null;
+		$builder = $this->uses_builder_contract( $decoded, $post_id );
+		if ( $builder && class_exists( WebsiteBuilder::class ) ) {
+			$session = WebsiteBuilder::sanitize_session( $decoded );
+			if ( is_array( $session ) ) return $session;
+		}
+		$session = SessionManager::sanitize_session( $decoded );
+		if ( is_array( $session ) ) return $session;
+		if ( class_exists( WebsiteBuilder::class ) ) {
+			$session = WebsiteBuilder::sanitize_session( $decoded );
+			if ( is_array( $session ) ) return $session;
+		}
+		return null;
+	}
+
+	/** Detect the expanded builder document without relying solely on save-order metadata. */
+	private function uses_builder_contract( $decoded, $post_id = 0 ) {
+		if ( $post_id && class_exists( WebsiteBuilder::class ) && WebsiteBuilder::BUILDER_VERSION === (string) get_post_meta( $post_id, WebsiteBuilder::BUILDER_META, true ) ) return true;
+		$legacy = array_fill_keys( array_keys( SessionManager::widget_catalog() ), true );
+		$walk = static function ( $nodes ) use ( &$walk, $legacy ) {
+			foreach ( (array) $nodes as $node ) {
+				if ( ! is_array( $node ) ) continue;
+				$type = sanitize_key( (string) ( $node['type'] ?? '' ) );
+				if ( ! isset( $legacy[ $type ] ) || array_key_exists( 'states', $node ) || array_key_exists( 'meta', $node ) ) return true;
+				if ( $walk( $node['children'] ?? array() ) ) return true;
+			}
+			return false;
+		};
+		return $walk( $decoded['nodes'] ?? array() );
 	}
 
 	private function revision_payload( $post, $id, $checksum, $current, $node_count ) {

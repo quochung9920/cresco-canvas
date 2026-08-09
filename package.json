@@ -31,10 +31,11 @@
 		"check:hygiene": "node scripts/check-repository-hygiene.mjs",
 		"check:build-integrity": "node scripts/check-build-integrity.mjs",
 		"check:editor-runtime": "node scripts/check-editor-runtime.mjs",
+		"check:website-builder": "node scripts/check-website-builder.mjs",
 		"check:production-hardening": "node scripts/check-production-hardening.mjs",
 		"check:version": "node scripts/check-version.mjs && node scripts/check-stable-release.mjs",
-		"check:quality": "npm run check:hygiene && npm run lint:php && npm run lint:runtime && npm run check:editor-runtime && npm run check:production-hardening && npm run typecheck && npm run lint:js && npm run lint:css && npm run lint:md && npm run test:unit && npm run check:version",
-		"package": "node scripts/build-release.mjs",
+		"check:quality": "npm run check:hygiene && npm run lint:php && npm run lint:runtime && npm run check:editor-runtime && npm run check:website-builder && npm run check:production-hardening && npm run typecheck && npm run lint:js && npm run lint:css && npm run lint:md && npm run test:unit && npm run check:version",
+		"package": "npm run build && node scripts/build-release.mjs",
 		"package:verify": "node scripts/verify-package.mjs && node scripts/verify-reproducible-build.mjs"
 	},
 	"devDependencies": {

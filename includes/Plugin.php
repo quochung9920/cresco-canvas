@@ -13,6 +13,8 @@ use CrescoCanvas\Admin\VisualEditor;
 use CrescoCanvas\AI\AIInterchange;
 use CrescoCanvas\API\RestApi;
 use CrescoCanvas\Blocks\Blocks;
+use CrescoCanvas\Builder\WebsiteBuilder;
+use CrescoCanvas\Builder\WebsiteBuilderCompatibility;
 use CrescoCanvas\Commercial\CommercialManager;
 use CrescoCanvas\Dynamic\AdvancedDynamicData;
 use CrescoCanvas\Dynamic\AdvancedQuery;
@@ -90,7 +92,22 @@ final class Plugin {
 		( new PageSettings() )->register();
 		( new VisualEditor() )->register();
 		( new EditorExperience() )->register();
+		( new WebsiteBuilder() )->register();
+		( new WebsiteBuilderCompatibility() )->register();
 		( new ContainerWidth() )->register();
+
+		// Dashicons are used by Site/Icon/Social widgets on public Website
+		// Builder Pages. WordPress does not enqueue them for logged-out visitors.
+		add_action(
+			'wp_enqueue_scripts',
+			static function () {
+				if ( ! is_singular( 'page' ) ) return;
+				$post_id = get_queried_object_id();
+				if ( WebsiteBuilder::BUILDER_VERSION !== (string) get_post_meta( $post_id, WebsiteBuilder::BUILDER_META, true ) ) return;
+				wp_enqueue_style( 'dashicons' );
+			},
+			44
+		);
 
 		// Backend/domain services stay available to the editor and frontend.
 		( new RestApi() )->register();

@@ -1,0 +1,1 @@
+(function(window,document){'use strict';var current=document.currentScript;if(!current)return;var script=document.createElement('script');script.src=new URL('../runtime-src/build/website-builder-editor.js',current.src).href;script.async=false;script.dataset.crescoBuilderSource='authoritative';document.head.appendChild(script);})(window,document);
