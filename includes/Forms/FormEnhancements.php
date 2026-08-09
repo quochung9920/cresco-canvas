@@ -149,7 +149,7 @@ final class FormEnhancements {
 	}
 
 	/** Resolve sensitive delivery settings server-side and start one bounded delivery. */
-	private function maybe_deliver_webhookh $config, $values ) {
+	private function maybe_deliver_webhook( $config, $values ) {
 		$form_id = FormBuilder::form_id( $config['formId'] ?? '' );
 		$server_config = apply_filters( 'cresco_canvas_form_delivery_config', array(), $form_id );
 		$server_config = is_array( $server_config ) ? $server_config : array();
