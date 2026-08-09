@@ -20,6 +20,7 @@ final class FormCompletion {
 	const STEP_BLOCK = 'cresco/form-step';
 	const CALC_BLOCK = 'cresco/calculated-field';
 	const CAPTCHA_BLOCK = 'cresco/form-captcha';
+	const MAX_CAPTCHA_TOKEN_BYTES = 4096;
 
 	/** Register completion services. */
 	public function register() {
@@ -132,11 +133,11 @@ final class FormCompletion {
 	/** Render a provider-neutral CAPTCHA mount point. */
 	public function render_captcha( $attributes ) {
 		$provider = self::sanitize_provider( $attributes['provider'] ?? 'turnstile' );
-		$site_key = sanitize_text_field( (string) ( $attributes['siteKey'] ?? '' ) );
+		$site_key = substr( sanitize_text_field( (string) ( $attributes['siteKey'] ?? '' ) ), 0, 500 );
 		if ( ! $site_key ) {
 			return current_user_can( 'edit_pages' ) ? '<p class="cresco-form__warning">' . esc_html__( 'CAPTCHA requires a site key.', 'cresco-canvas' ) . '</p>' : '';
 		}
-		return '<div ' . get_block_wrapper_attributes( array( 'class' => 'cresco-form-captcha', 'data-cresco-captcha' => $provider, 'data-site-key' => $site_key, 'data-action' => sanitize_key( (string) ( $attributes['action'] ?? 'cresco_form' ) ) ) ) . '><input type="hidden" name="cresco_captcha_token" value=""><p>' . esc_html__( 'Spam protection is loading…', 'cresco-canvas' ) . '</p></div>';
+		return '<div ' . get_block_wrapper_attributes( array( 'class' => 'cresco-form-captcha', 'data-cresco-captcha' => $provider, 'data-site-key' => $site_key, 'data-action' => substr( sanitize_key( (string) ( $attributes['action'] ?? 'cresco_form' ) ), 0, 64 ) ) . '><input type="hidden" name="cresco_captcha_token" value=""><p>' . esc_html__( 'Spam protection is loading…', 'cresco-canvas' ) . '</p></div>';
 	}
 
 	/** Enqueue final runtime when a Cresco form renders. */
@@ -149,41 +150,54 @@ final class FormCompletion {
 	/** Add normalized conditional metadata to fields. */
 	public function enhance_field_markup( $html, $block ) {
 		$attrs = (array) ( $block['attrs'] ?? array() );
-		if ( empty( $attrs['conditionField'] ) ) {
-			return $html;
-		}
+		if ( empty( $attrs['conditionField'] ) ) return $html;
 		$condition = array(
 			'field' => FormBuilder::field_name( $attrs['conditionField'] ),
 			'operator' => self::sanitize_operator( $attrs['conditionOperator'] ?? 'equals' ),
-			'value' => sanitize_text_field( (string) ( $attrs['conditionValue'] ?? '' ) ),
+			'value' => substr( sanitize_text_field( (string) ( $attrs['conditionValue'] ?? '' ) ), 0, 2048 ),
 		);
 		return preg_replace( '/class="cresco-form-field/', 'data-cresco-condition="' . esc_attr( wp_json_encode( $condition ) ) . '" class="cresco-form-field', $html, 1 );
 	}
 
-	/** Verify CAPTCHA through a secure provider adapter filter. */
+	/** Verify CAPTCHA through the provider-neutral adapter filter. */
 	public function verify_captcha( WP_REST_Request $request ) {
-		$provider = self::sanitize_provider( $request->get_param( 'provider' ) );
-		$token = sanitize_text_field( (string) $request->get_param( 'token' ) );
-		if ( ! $token ) {
+		$result = self::verify_token( $request->get_param( 'provider' ), $request->get_param( 'token' ), $request->get_param( 'action' ), $request );
+		if ( is_wp_error( $result ) ) return $result;
+		return new WP_REST_Response( array( 'success' => true ) );
+	}
+
+	/** Reusable CAPTCHA boundary used by both JSON and multipart submissions. */
+	public static function verify_token( $provider, $token, $action = 'cresco_form', $request = null ) {
+		$provider = self::sanitize_provider( $provider );
+		$raw_token = (string) $token;
+		if ( '' === trim( $raw_token ) ) {
 			return new WP_Error( 'cresco_captcha_missing', __( 'Complete the spam-protection challenge.', 'cresco-canvas' ), array( 'status' => 422 ) );
 		}
-		$result = apply_filters( 'cresco_canvas_verify_captcha', null, $provider, $token, $request );
+		if ( strlen( $raw_token ) > self::MAX_CAPTCHA_TOKEN_BYTES ) {
+			return new WP_Error( 'cresco_captcha_too_large', __( 'Spam-protection token is too large.', 'cresco-canvas' ), array( 'status' => 413 ) );
+		}
+		$token = sanitize_text_field( $raw_token );
+		$action = substr( sanitize_key( (string) $action ), 0, 64 );
+		$result = apply_filters( 'cresco_canvas_verify_captcha', null, $provider, $token, $request, $action );
 		if ( true !== $result ) {
 			return new WP_Error( 'cresco_captcha_failed', __( 'Spam-protection verification failed.', 'cresco-canvas' ), array( 'status' => 422 ) );
 		}
-		return new WP_REST_Response( array( 'success' => true ) );
+		return true;
 	}
 
 	/** Inspect form structure without exposing submitted values. */
 	public function diagnostics( WP_REST_Request $request ) {
 		$post = get_post( absint( $request['postId'] ) );
-		if ( ! $post ) {
-			return new WP_Error( 'cresco_form_post_missing', __( 'Post not found.', 'cresco-canvas' ), array( 'status' => 404 ) );
-		}
+		if ( ! $post ) return new WP_Error( 'cresco_form_post_missing', __( 'Post not found.', 'cresco-canvas' ), array( 'status' => 404 ) );
 		$issues = array();
 		$names = array();
-		$walk = static function ( $blocks ) use ( &$walk, &$issues, &$names ) {
+		$visited = 0;
+		$walk = static function ( $blocks ) use ( &$walk, &$issues, &$names, &$visited ) {
 			foreach ( (array) $blocks as $block ) {
+				if ( ++$visited > 500 ) {
+					$issues[] = array( 'code' => 'structure_limit', 'message' => __( 'Form structure exceeds the diagnostics limit.', 'cresco-canvas' ) );
+					return;
+				}
 				$name = (string) ( $block['blockName'] ?? '' );
 				$attrs = (array) ( $block['attrs'] ?? array() );
 				if ( FormBuilder::FIELD_BLOCK === $name ) {
@@ -198,20 +212,18 @@ final class FormCompletion {
 			}
 		};
 		$walk( parse_blocks( (string) $post->post_content ) );
-		return new WP_REST_Response( array( 'issues' => $issues, 'fieldCount' => count( $names ) ) );
+		return new WP_REST_Response( array( 'issues' => array_slice( $issues, 0, 100 ), 'fieldCount' => count( $names ) ) );
 	}
 
-	/** Schedule daily cleanup. */
+	/** Schedule daily cleanup for non-network lifecycle paths. */
 	public function schedule_cleanup() {
-		if ( ! wp_next_scheduled( 'cresco_canvas_daily_cleanup' ) ) {
-			wp_schedule_event( time() + HOUR_IN_SECONDS, 'daily', 'cresco_canvas_daily_cleanup' );
-		}
+		if ( ! wp_next_scheduled( 'cresco_canvas_daily_cleanup' ) ) wp_schedule_event( time() + HOUR_IN_SECONDS, 'daily', 'cresco_canvas_daily_cleanup' );
 	}
 
-	/** Delete orphaned Cresco uploads after the configured retention window. */
+	/** Delete orphaned legacy Media Library uploads after the retention window. */
 	public function cleanup_uploads() {
 		$retention = min( 365, max( 1, absint( get_option( 'cresco_canvas_upload_retention_days', 30 ) ) ) );
-		$attachments = get_posts( array( 'post_type' => 'attachment', 'post_status' => 'inherit', 'posts_per_page' => 100, 'date_query' => array( array( 'before' => $retention . ' days ago' ) ), 'meta_key' => '_cresco_form_upload', 'meta_value' => '1', 'fields' => 'ids' ) );
+		$attachments = get_posts( array( 'post_type' => 'attachment', 'post_status' => 'inherit', 'posts_per_page' => 100, 'date_query' => array( array( 'before' => $retention . ' days ago' ) ), 'meta_key' => '_cresco_form_upload', 'meta_value' => '1', 'fields' => 'ids', 'no_found_rows' => true ) );
 		foreach ( $attachments as $attachment_id ) {
 			if ( ! get_post_meta( $attachment_id, '_cresco_submission_id', true ) ) wp_delete_attachment( $attachment_id, true );
 		}

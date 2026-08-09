@@ -1,0 +1,16 @@
+{
+  "schema": "cresco-session/v1",
+  "version": 1,
+  "documentId": "historical-page",
+  "nodes": [
+    {
+      "id": "legacy-heading",
+      "type": "heading",
+      "props": {"text": "Historical heading", "level": 2},
+      "style": {"fontSize": "32px"},
+      "responsive": {},
+      "customCSS": {},
+      "children": []
+    }
+  ]
+}

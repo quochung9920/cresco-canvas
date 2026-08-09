@@ -1,0 +1,6 @@
+{
+  "containerMax": "not-a-number",
+  "primary": "javascript:alert(1)",
+  "customCss": "body{background:url(javascript:alert(1))}",
+  "editorPreference": ["unexpected", "shape"]
+}

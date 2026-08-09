@@ -22,13 +22,13 @@ final class MigratorTest extends TestCase {
 
 	public function test_migration_is_idempotent_and_preserves_legacy_values(): void {
 		self::assertTrue( Migrator::run() );
-		self::assertSame( 2, get_option( Migrator::VERSION_OPTION ) );
+		self::assertSame( CRESCO_CANVAS_SCHEMA_VERSION, get_option( Migrator::VERSION_OPTION ) );
 		self::assertSame( '#123456', get_option( 'cresco_canvas_settings' )['primary'] );
 		self::assertSame( 2, get_option( 'cresco_canvas_settings' )['schemaVersion'] );
 		self::assertArrayNotHasKey( 'editorPreference', get_option( 'cresco_canvas_settings' ) );
 
 		self::assertTrue( Migrator::run() );
-		self::assertSame( 2, get_option( Migrator::VERSION_OPTION ) );
+		self::assertSame( CRESCO_CANVAS_SCHEMA_VERSION, get_option( Migrator::VERSION_OPTION ) );
 		self::assertArrayNotHasKey( Migrator::LOCK_OPTION, $GLOBALS['cresco_test_options'] );
 	}
 
@@ -42,7 +42,7 @@ final class MigratorTest extends TestCase {
 		$GLOBALS['cresco_test_user_meta'][7] = array( 'cresco_canvas_last_editor' => 'canvas' );
 
 		self::assertTrue( Migrator::run() );
-		self::assertSame( 2, get_option( Migrator::VERSION_OPTION ) );
+		self::assertSame( CRESCO_CANVAS_SCHEMA_VERSION, get_option( Migrator::VERSION_OPTION ) );
 		self::assertArrayNotHasKey( 'editorPreference', get_option( 'cresco_canvas_settings' ) );
 		self::assertTrue( $GLOBALS['cresco_test_post_meta'][10]['_cresco_canvas_enabled'] );
 		self::assertArrayNotHasKey( '_cresco_canvas_editor_preference', $GLOBALS['cresco_test_post_meta'][10] );

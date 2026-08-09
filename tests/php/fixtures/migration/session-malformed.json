@@ -1,0 +1,9 @@
+{
+  "schema": "cresco-session/v1",
+  "version": 1,
+  "documentId": "broken",
+  "nodes": [
+    {"id": "same", "type": "heading", "props": {"text": "One"}},
+    {"id": "same", "type": "invented-widget", "props": {"html": "<script>alert(1)</script>"}}
+  ]
+}
