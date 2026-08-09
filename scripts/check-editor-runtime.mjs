@@ -5,6 +5,7 @@ import process from 'node:process';
 const runtimeFiles = [
 	'build/standalone-visual-editor.js',
 	'build/standalone-inspector-v2.js',
+	'build/standalone-ui-v3.js',
 ];
 const errors = [];
 
@@ -27,6 +28,7 @@ const sessionManager = await readFile(
 );
 const runtime = await readFile( 'build/standalone-visual-editor.js', 'utf8' );
 const inspectorV2 = await readFile( 'build/standalone-inspector-v2.js', 'utf8' );
+const uiV3 = await readFile( 'build/standalone-ui-v3.js', 'utf8' );
 const asset = await readFile(
 	'build/standalone-visual-editor.asset.php',
 	'utf8'
@@ -40,8 +42,10 @@ const requiredVisualEditorTokens = [
 	"'aiContextPath'",
 	'build/standalone-visual-editor.js',
 	'build/standalone-inspector-v2.js',
+	'build/standalone-ui-v3.js',
 	'assets/css/standalone-visual-editor.css',
 	'assets/css/standalone-inspector-v2.css',
+	'assets/css/standalone-ui-v3.css',
 	'GlobalStyles::css',
 ];
 for ( const token of requiredVisualEditorTokens ) {
@@ -94,6 +98,19 @@ for ( const token of [
 	}
 }
 
+for ( const token of [
+	'cc-ui-v3-panel-controls',
+	'cc-ui-v3-left-drawer-open',
+	'cc-ui-v3-right-drawer-open',
+	'aria-expanded',
+	'sessionStorage',
+	'Escape',
+] ) {
+	if ( ! uiV3.includes( token ) ) {
+		errors.push( `Standalone UI v3 is missing ${ token }` );
+	}
+}
+
 const forbiddenRuntimeTokens = [
 	'BlockEditorProvider',
 	'BlockInspector',
@@ -130,9 +147,11 @@ for ( const file of [
 	'docs/CRESCO_SESSION_V1.md',
 	'assets/css/standalone-visual-editor.css',
 	'assets/css/standalone-inspector-v2.css',
+	'assets/css/standalone-ui-v3.css',
 	'build/standalone-visual-editor.js',
 	'build/standalone-visual-editor.asset.php',
 	'build/standalone-inspector-v2.js',
+	'build/standalone-ui-v3.js',
 	'includes/Session/SessionManager.php',
 ] ) {
 	if ( ! packaging.includes( `'${ file }'` ) ) {
@@ -162,5 +181,5 @@ if ( errors.length ) {
 }
 
 process.stdout.write(
-	'Checked the authoritative Cresco Session editor runtime, Inspector v2, REST contract, AI interchange, dependencies, and package gates.\n'
+	'Checked the authoritative Cresco Session editor runtime, Inspector v2, UI v3, REST contract, AI interchange, dependencies, and package gates.\n'
 );
