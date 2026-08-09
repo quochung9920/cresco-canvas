@@ -163,7 +163,8 @@ for ( const token of [
 	'Inherited · ',
 	'Override · ',
 	'cc-inspector-v2-reset-override',
-	'data-cresco-capability',
+	'dataset.crescoCapability',
+	'dataset.crescoCapabilitySupported',
 	'.cc-standalone-left-content',
 	'mutationObserver.disconnect()',
 ] ) {
