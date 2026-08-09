@@ -90,10 +90,10 @@ final class GlobalStyles {
 
 		return array(
 			'schemaVersion' => 4,
-			'primary' => sanitize_hex_color( $input['primary'] ?? '' ) ?: $defaults['primary'],
-			'text' => sanitize_hex_color( $input['text'] ?? '' ) ?: $defaults['text'],
-			'muted' => sanitize_hex_color( $input['muted'] ?? '' ) ?: $defaults['muted'],
-			'background' => sanitize_hex_color( $input['background'] ?? '' ) ?: $defaults['background'],
+			'primary' => self::sanitize_color_value( $input['primary'] ?? '' ) ?: $defaults['primary'],
+			'text' => self::sanitize_color_value( $input['text'] ?? '' ) ?: $defaults['text'],
+			'muted' => self::sanitize_color_value( $input['muted'] ?? '' ) ?: $defaults['muted'],
+			'background' => self::sanitize_color_value( $input['background'] ?? '' ) ?: $defaults['background'],
 			'containerMax' => $container_max,
 			'contentMax' => $content_max,
 			'radius' => min( 80, max( 0, absint( $input['radius'] ?? $defaults['radius'] ) ) ),
@@ -104,6 +104,28 @@ final class GlobalStyles {
 			'aliases' => self::sanitize_aliases( $input['aliases'] ?? array() ),
 			'removeDataOnUninstall' => rest_sanitize_boolean( $input['removeDataOnUninstall'] ?? false ),
 		);
+	}
+
+	/**
+	 * Sanitize a single Global Design color value.
+	 * Supports safe CSS Color 4 functions without allowing arbitrary CSS.
+	 */
+	public static function sanitize_color_value( $value ) {
+		$value = trim( wp_strip_all_tags( (string) $value ) );
+		if ( '' === $value || strlen( $value ) > 160 ) return '';
+		$hex = sanitize_hex_color( $value );
+		if ( $hex ) return $hex;
+		if ( 'transparent' === strtolower( $value ) ) return 'transparent';
+		if ( preg_match( '/[;{}<>]/', $value ) || preg_match( '/(?:url\s*\(|var\s*\(|env\s*\(|expression\s*\(|javascript:|behavior\s*:|-moz-binding)/i', $value ) ) return '';
+		if ( ! preg_match( '/^(?:rgb|rgba|hsl|hsla|oklch|oklab)\(\s*[-+0-9.%\s,\/a-zA-Z]+\s*\)$/', $value ) ) return '';
+		return preg_replace( '/\s+/', ' ', $value );
+	}
+
+	/** Return a safe font stack, or an empty string when the input is invalid. */
+	public static function sanitize_font_family_value( $value ) {
+		$value = trim( wp_strip_all_tags( (string) $value ) );
+		if ( '' === $value || strlen( $value ) > 220 ) return '';
+		return preg_match( '/^[a-zA-Z0-9 _,-.\"\'()]+$/', $value ) ? $value : '';
 	}
 
 	public static function css( $selector = '.cresco-canvas-scope' ) {
@@ -199,8 +221,8 @@ final class GlobalStyles {
 		if ( ! is_array( $value ) ) return $output;
 		foreach ( array_slice( $value, 0, 24, true ) as $slug => $color ) {
 			$slug = sanitize_key( $slug );
-			$color = sanitize_hex_color( $color );
-			if ( '' !== $slug && $color ) $output[ $slug ] = $color;
+			$color = self::sanitize_color_value( $color );
+			if ( '' !== $slug && '' !== $color ) $output[ $slug ] = $color;
 		}
 		return $output;
 	}
@@ -218,7 +240,7 @@ final class GlobalStyles {
 	}
 
 	private static function sanitize_font_family( $value ) {
-		$value = wp_strip_all_tags( (string) $value );
-		return preg_match( '/^[a-zA-Z0-9 _,-.\"\'()]+$/', $value ) ? $value : self::defaults()['fontFamily'];
+		$value = self::sanitize_font_family_value( $value );
+		return '' !== $value ? $value : self::defaults()['fontFamily'];
 	}
 }
