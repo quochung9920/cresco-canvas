@@ -38,6 +38,8 @@ const retiredEditorAssets = [
 	'build/widget-inspector-compat.asset.php',
 	'build/standalone-content-bootstrap.js',
 	'build/standalone-content-bootstrap.asset.php',
+	'build/native-gutenberg-bridge.js',
+	'build/native-gutenberg-bridge.asset.php',
 ];
 
 async function exists( relativePath ) {
