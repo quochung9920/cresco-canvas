@@ -7,6 +7,8 @@ const runtimeFiles = [
 	'build/standalone-inspector-v2.js',
 	'build/standalone-ui-v3.js',
 	'build/standalone-page-settings.js',
+	'build/global-config-import.js',
+	'build/viewport-shell.js',
 ];
 const errors = [];
 
@@ -49,10 +51,14 @@ const requiredVisualEditorTokens = [
 	'build/standalone-inspector-v2.js',
 	'build/standalone-ui-v3.js',
 	'build/standalone-page-settings.js',
+	'build/global-config-import.js',
+	'build/viewport-shell.js',
 	'assets/css/standalone-visual-editor.css',
 	'assets/css/standalone-inspector-v2.css',
 	'assets/css/standalone-ui-v3.css',
 	'assets/css/standalone-page-settings.css',
+	'assets/css/global-config-import.css',
+	'assets/css/viewport-shell.css',
 	'GlobalStyles::css',
 ];
 for ( const token of requiredVisualEditorTokens ) {
@@ -193,15 +199,20 @@ for ( const token of [ "'wp-block-editor'", "'wp-blocks'", "'wp-data'" ] ) {
 
 for ( const file of [
 	'docs/CRESCO_SESSION_V1.md',
+	'assets/css/container-width.css',
 	'assets/css/standalone-visual-editor.css',
 	'assets/css/standalone-inspector-v2.css',
 	'assets/css/standalone-ui-v3.css',
 	'assets/css/standalone-page-settings.css',
+	'assets/css/global-config-import.css',
+	'assets/css/viewport-shell.css',
 	'build/standalone-visual-editor.js',
 	'build/standalone-visual-editor.asset.php',
 	'build/standalone-inspector-v2.js',
 	'build/standalone-ui-v3.js',
 	'build/standalone-page-settings.js',
+	'build/global-config-import.js',
+	'build/viewport-shell.js',
 	'includes/Page/PageSettings.php',
 	'includes/Page/canvas-template.php',
 	'includes/Session/SessionManager.php',
@@ -233,5 +244,5 @@ if ( errors.length ) {
 }
 
 process.stdout.write(
-	'Checked the authoritative Cresco Session editor runtime, Inspector v2, UI v3, Page Settings, REST contract, AI interchange, dependencies, and package gates.\n'
+	'Checked the authoritative Cresco Session editor runtime, Inspector v2, UI v3, Page Settings, Global/viewport helpers, REST contract, AI interchange, dependencies, and package gates.\n'
 );
