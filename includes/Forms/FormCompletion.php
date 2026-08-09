@@ -137,7 +137,7 @@ final class FormCompletion {
 		if ( ! $site_key ) {
 			return current_user_can( 'edit_pages' ) ? '<p class="cresco-form__warning">' . esc_html__( 'CAPTCHA requires a site key.', 'cresco-canvas' ) . '</p>' : '';
 		}
-		return '<div ' . get_block_wrapper_attributes( array( 'class' => 'cresco-form-captcha', 'data-cresco-captcha' => $provider, 'data-site-key' => $site_key, 'data-action' => substr( sanitize_key( (string) ( $attributes['action'] ?? 'cresco_form' ) ), 0, 64 ) ) . '><input type="hidden" name="cresco_captcha_token" value=""><p>' . esc_html__( 'Spam protection is loading…', 'cresco-canvas' ) . '</p></div>';
+		return '<div ' . get_block_wrapper_attributes( array( 'class' => 'cresco-form-captcha', 'data-cresco-captcha' => $provider, 'data-site-key' => $site_key, 'data-action' => substr( sanitize_key( (string) ( $attributes['action'] ?? 'cresco_form' ) ), 0, 64 ) ) ) . '><input type="hidden" name="cresco_captcha_token" value=""><p>' . esc_html__( 'Spam protection is loading…', 'cresco-canvas' ) . '</p></div>';
 	}
 
 	/** Enqueue final runtime when a Cresco form renders. */
