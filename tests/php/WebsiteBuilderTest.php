@@ -6,6 +6,7 @@
  */
 
 use CrescoCanvas\Builder\WebsiteBuilder;
+use CrescoCanvas\Builder\WebsiteBuilderCssCompiler;
 use CrescoCanvas\Builder\WidgetCatalog;
 use PHPUnit\Framework\TestCase;
 
@@ -53,6 +54,26 @@ final class WebsiteBuilderTest extends TestCase {
 		self::assertSame( 'Hero section', $node['meta']['label'] );
 		self::assertTrue( $node['meta']['locked'] );
 		self::assertSame( 9, $node['meta']['componentId'] );
+	}
+
+	public function test_responsive_compiler_uses_breakpoint_ranges_not_start_values_as_max_widths(): void {
+		$session = WebsiteBuilder::sanitize_session( $this->session( array(
+			array(
+				'id' => 'responsive-heading',
+				'type' => 'heading',
+				'props' => array( 'text' => 'Responsive', 'level' => 2, 'url' => '' ),
+				'responsive' => array(
+					'tablet' => array( 'fontSize' => '32px' ),
+					'mobile' => array( 'fontSize' => '24px' ),
+				),
+			),
+		) ) );
+		self::assertFalse( is_wp_error( $session ) );
+		$css = WebsiteBuilderCssCompiler::compile( $session );
+		self::assertStringContainsString( '@media (min-width:768px) and (max-width:1024px)', $css );
+		self::assertStringContainsString( '@media (max-width:767px)', $css );
+		self::assertStringContainsString( 'font-size:32px', $css );
+		self::assertStringContainsString( 'font-size:24px', $css );
 	}
 
 	public function test_sanitizer_rejects_unknown_widgets_duplicate_ids_and_css_escape(): void {
