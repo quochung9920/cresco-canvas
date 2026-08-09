@@ -1,67 +1,64 @@
 # Known Limitations — 1.0.0-rc.1
 
-Cresco Canvas `1.0.0-rc.1` contains the planned product scope in source and checked-in runtime. It is not yet a commercially certified stable release.
+Cresco Canvas `1.0.0-rc.1` is a release candidate. It is not a commercially certified stable release.
 
-## Build integrity
+## Build and release evidence
 
-- Several recent editor runtimes were changed directly in checked-in `build/` assets. A clean source-to-build reproduction has not yet proved that every generated file has an authoritative source counterpart.
-- `npm ci`, Composer optimized autoloading, PHP tests, JavaScript tests, lint, and reproducible packaging do not yet have passing hosted evidence for the current head.
-- The release ZIP has not yet been installed and approved on a clean WordPress site.
+- The release-quality branch introduces an authoritative transitional source tree for historically hand-maintained standalone runtimes (`runtime-src/build/`) plus clean-delete/rebuild verification. This architecture is not considered proven until the hosted source/build gate passes for the exact commit.
+- `npm ci`, optimized Composer install, lint, unit/PHP tests, PHPCS, two-clean-checkout reproducibility, package verification, and dependency audits require passing hosted evidence for the exact release commit.
+- The release pipeline now defines a strict production ZIP allowlist, `SHA256SUMS`, a file-level SPDX inventory, and unsigned provenance metadata. Artifact generation does not imply installability.
+- The exact candidate ZIP must still pass the isolated clean WordPress install/edit/save/preview P0 gate before stable release.
 
-## Widget Inspector
+## Widget Inspector and persistence
 
-- Core-compatible color, typography, spacing, border, and dimension settings can use native block supports where available.
-- Some effects and positioning controls currently store Cresco-oriented values that WordPress Core does not automatically render for every third-party or Core block.
-- Controls must be capability-aware, and Cresco-only values need a versioned attribute/rendering pipeline before these controls can be considered reliable for all widgets.
-- Save/reload, revisions, patterns, copy/paste, and block-validation coverage is incomplete for the full inspector matrix.
+- Core-compatible and Cresco-specific style paths have broad implementation coverage, but the complete visible-control matrix still requires supported WordPress/browser runtime evidence.
+- Save/reload, revisions, History, copy/paste, patterns, and legacy data compatibility are not considered commercially verified until their applicable gates pass.
 
 ## Editor workspace
 
-- The left-tools/center-canvas/right-List-View layout uses feature detection plus Gutenberg DOM adapters. WordPress and Gutenberg can change internal editor markup.
-- Post Editor, Page Editor, Site Editor, fullscreen, distraction-free, and narrow-screen fallbacks require an automated compatibility matrix.
-- A failed adapter must preserve the native WordPress editor; this fallback still needs destructive testing across supported versions.
+- The current product uses the standalone Cresco Session editor. Browser and WordPress DOM/runtime differences can still expose freeze, focus, or rendering defects.
+- Critical Chromium, Firefox, and WebKit flows are automated on the release branch; results remain `NOT RUN` until the workflow executes.
+- Dedicated Edge validation remains manual.
 
-## Global Design
+## Global Design and Page Settings
 
-- Settings schema 4 adds editable fluid tokens and breakpoint values with sanitized storage.
-- Fluid typography and spacing work as CSS values, but CSS custom properties cannot directly redefine media-query boundaries. Editable structural breakpoints require generated media-query output and cache invalidation.
-- Live preview, dirty-state recovery, per-group reset, contrast validation, token usage tracking, and import conflict handling remain incomplete.
+- Global Design and Page Settings are implemented, but their compatibility across the supported WordPress/PHP/theme matrix requires objective release-run evidence.
+- Site-wide lightbox and page-transition/preloader behavior remains limited where the current frontend runtime does not implement those controls.
 
 ## Forms and public endpoints
 
-- Forms include public JSON and multipart routes, uploads, CAPTCHA adapters, email, stored submissions, CSV export, and signed webhooks.
 - Provider secrets and production CAPTCHA verification depend on site-specific adapters and have not been tested against live providers.
-- Webhook delivery still requires a dedicated SSRF, private-network, DNS-rebinding, idempotency, retry, and log-privacy audit.
-- Uploads require polyglot, double-extension, MIME-spoofing, ownership, retention, and protected-download tests.
-- CSV formula-injection defenses and large-export behavior require verification.
+- Webhook delivery still requires dedicated SSRF/private-network/DNS-rebinding/idempotency/retry/log-privacy review.
+- Uploads require polyglot, double-extension, MIME-spoofing, ownership, retention, and protected-download review.
+- CSV formula-injection and large-export behavior require security verification.
 
-## Dynamic data and queries
+## Dynamic data and integrations
 
-- Query payloads are bounded and signed in the current design, but production cost limits, cache behavior, invalidation, large catalogs, ACF, and WooCommerce runtime matrices have not been verified.
-- Facet counts, history synchronization, multiple loops, no-JavaScript fallback, and proxy/CDN behavior require end-to-end tests.
+- ACF and WooCommerce smoke jobs are configured for the release branch but are not evidence until they execute.
+- Object cache, page cache, CDN/proxy, security-plugin, and common optimization/minification behavior remain manual compatibility work.
+- Large-catalog query/facet cost, cache invalidation, and no-JavaScript behavior require additional production-like evidence.
 
-## Lifecycle and data
+## Lifecycle and upgrade
 
-- Schema 4 migration sanitizes settings and stores a pre-migration backup in `cresco_canvas_settings_backup_v3`.
-- Uninstall preserves data by default. Explicit cleanup now inventories known Cresco settings, schedules, submissions, uploads, and metadata.
-- Real-database upgrade fixtures, migration failure recovery, downgrade guards, rollback, single-site, and multisite lifecycle tests remain incomplete.
+- The release branch contains a pinned historical `0.9.0-rc.1` upgrade fixture that verifies settings/session preservation and schema migration against the exact candidate ZIP. Its result is `NOT RUN` until hosted execution.
+- Downgrade detection, rollback guidance, migration-failure recovery, and full uninstall lifecycle evidence remain incomplete.
 - User-authored page `post_content` must never be deleted by uninstall or migration.
 
 ## Accessibility
 
-- Keyboard behavior and ARIA markup exist in several components, but WCAG 2.2 AA has not been certified.
-- NVDA, VoiceOver, RTL, forced-colors, 200%/400% zoom, touch, and reduced-motion reviews are incomplete.
-- Modal/off-canvas focus, slider announcements, AJAX result updates, drag alternatives, and form error focus require manual and automated verification.
+- Automated axe coverage is configured for critical editor, Settings Center, and frontend scopes, but no pass is claimed before execution.
+- Keyboard-only, focus intent, reduced motion, 200%/400% zoom, RTL, forced colors, NVDA, and VoiceOver remain `MANUAL REQUIRED`.
+- No screen-reader certification is claimed.
 
 ## Performance
 
-- Editor overhead has not been measured on 50-, 200-, and 500-block documents.
-- Mutation observers, module loading, dynamic queries, facets, forms, email, and webhooks require profiling.
-- Frontend assets are not yet proven to load only when their blocks are present across all modules.
-- No approved performance budget currently gates release.
+- A 50/200/500-node benchmark framework now records editor load, selection, Inspector tab, Settings tab, and save timings.
+- The first successful controlled run has not yet established the regression baseline; current ceilings are only anti-freeze safeguards.
+- Frontend asset-count and conditional-enqueue evidence still needs to be recorded from release runs.
 
 ## Commercial operations
 
-- Automatic updates, release channels, signed metadata, rollback packages, SBOM/provenance, support policy, security response policy, and privacy documentation are not complete.
-- Translation catalogs and localization review are incomplete.
-- No limitation in this document is a commercial-readiness waiver. Stable `1.0.0` requires the P0 gates in `docs/COMMERCIAL_HARDENING.md` and `docs/RELEASE_CHECKLIST.md` to pass.
+- Automatic update channels, rollback packages, support policy, security response policy, and complete privacy documentation remain incomplete.
+- Release signing keys are not configured. Provenance explicitly records `signed: false`; there is no fake signing claim.
+- A general copyable privacy-safe system-status report is not part of the current release-engineering change. Existing feature diagnostics must not be described as a complete system-status facility.
+- Stable `1.0.0` remains blocked by every unresolved P0 item in `docs/COMMERCIAL_HARDENING.md` and `docs/RELEASE_CHECKLIST.md`.

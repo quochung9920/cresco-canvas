@@ -14,13 +14,7 @@ For Pages that have a saved Cresco document, **Cresco Session v1** is the visual
 
 ## Editor experience
 
-The standalone desktop workspace is organized into three areas:
-
-1. Widgets, Edit, Global, and AI tools on the left.
-2. The Cresco visual canvas in the center.
-3. The Cresco Structure tree on the right.
-
-Canvas, Inspector, Structure, responsive preview, undo/redo, AI import, and saving all operate on the same Cresco Session document state. The initial widget catalog is intentionally compact: Container, Columns, Heading, Text, Button, Image, List, Divider, and Spacer.
+The standalone desktop workspace is organized around Widgets, Edit, Settings, AI, the Cresco visual canvas, Structure, responsive preview, undo/redo, and History. These surfaces operate on the same Cresco Session document state. The initial Session widget catalog is intentionally compact: Container, Columns, Heading, Text, Button, Image, List, Divider, and Spacer.
 
 The Inspector favors a small set of useful controls instead of exposing every possible CSS property. When a visual requirement is not represented by a native widget or structured style control, each widget supports scoped Custom CSS. `&` always represents the current widget and stable `data-cresco-part` selectors are published for supported inner parts.
 
@@ -106,19 +100,32 @@ npm run lint:css
 npm run lint:md
 npm run test:unit
 phpunit --configuration phpunit.xml.dist
-npm run test:e2e
+npm run check:hygiene
 npm run check:editor-runtime
+npm run check:build-integrity
 npm run check:version
-npm run package:verify
 ```
 
-A commercial release must be generated from a clean source build with Composer's optimized autoloader. Do not treat a manually copied repository directory as a production package.
+Release packaging:
+
+```bash
+composer install --no-dev --optimize-autoloader
+rm -rf build
+npm run build
+npm run check:build-integrity
+npm run package
+node scripts/verify-package.mjs
+```
+
+The release command creates the versioned ZIP, `SHA256SUMS`, a file-level SPDX inventory, and unsigned build provenance. The production ZIP is strict-allowlist based and excludes development source/tests/tools. Exact ZIP installation, two-clean-checkout reproducibility, upgrade, matrices, accessibility, and performance run in the commercial release workflow or an equivalent documented environment.
+
+See [Release Engineering](docs/RELEASE_ENGINEERING.md) for source/build ownership, status semantics, matrix design, artifact verification, and the difference between automated evidence and manual verification.
 
 ## Release status
 
-`1.0.0-rc.1` is not yet certified as production stable. The remaining work is tracked in [Commercial Hardening](docs/COMMERCIAL_HARDENING.md), [Release Checklist](docs/RELEASE_CHECKLIST.md), and [Known Limitations](docs/KNOWN_LIMITATIONS.md).
+`1.0.0-rc.1` is not production stable. The remaining work is tracked in [Commercial Hardening](docs/COMMERCIAL_HARDENING.md), [Release Checklist](docs/RELEASE_CHECKLIST.md), [Known Limitations](docs/KNOWN_LIMITATIONS.md), [Compatibility Matrix](docs/COMPATIBILITY_MATRIX.md), [Accessibility Audit](docs/ACCESSIBILITY_AUDIT.md), and [Performance Gate](docs/PERFORMANCE_BASELINE.md).
 
-Do not advertise the package as commercially ready until clean build reproducibility, WordPress/PHP/browser compatibility, security review, accessibility review, upgrade/rollback, and real-site release installation have passed.
+Do not advertise the package as commercially ready until every P0 gate has objective evidence for the exact release commit and ZIP. A configured workflow or skipped check is not a pass, and manual accessibility/browser/cache checks remain manual until recorded.
 
 ## License
 
