@@ -18,6 +18,7 @@ async function openBuilder( page: Page ) {
 	await row.getByRole( 'link', { name: 'Edit with Cresco Canvas' } ).click();
 	await expect( page.locator( '.cc-builder-app' ) ).toBeVisible();
 	await expect( page.locator( '.cc-builder-canvas' ) ).toBeVisible();
+	await expect( page.locator( '.cc-standalone-loading' ) ).toHaveCount( 0 );
 }
 
 function rail( page: Page, name: string ) {
@@ -35,6 +36,22 @@ test.describe.serial( 'Cresco professional Website Builder', () => {
 	test.beforeEach( async ( { page } ) => {
 		await login( page );
 		await openBuilder( page );
+	} );
+
+	test( 'boots from a self-contained cache-busted production runtime', async ( { page } ) => {
+		const runtime = page.locator( 'script[src*="build/website-builder-editor.js"]' ).first();
+		await expect( runtime ).toHaveCount( 1 );
+		const src = await runtime.getAttribute( 'src' );
+		expect( src ).toMatch( /[?&]ver=1\.0\.0-rc\.1-[a-f0-9]{12}(?:&|$)/ );
+		expect( src ).not.toContain( 'runtime-src' );
+		const settingsReady = await page.evaluate( () => {
+			const runtimeWindow = window as Window & {
+				crescoWebsiteBuilderSettings?: { postId?: number };
+			};
+			return Boolean( runtimeWindow.crescoWebsiteBuilderSettings?.postId );
+		} );
+		expect( settingsReady ).toBe( true );
+		await expect( page.locator( '#cresco-website-builder-bootstrap-watchdog' ) ).toHaveCount( 1 );
 	} );
 
 	test( 'exposes the professional widget library and unified website panels', async ( { page } ) => {

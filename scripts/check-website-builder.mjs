@@ -75,8 +75,15 @@ for ( const token of [
 	"'cresco-canvas-standalone-ai-bridge'",
 	"'cresco-canvas-standalone-visual-editor'",
 	"add_action( 'admin_enqueue_scripts', array( $this, 'remove_legacy_editor_assets' ), 999 )",
+	"add_action( 'admin_footer', array( $this, 'render_editor_bootstrap_watchdog' ), 9999 )",
 	"add_action( 'wp_enqueue_scripts', array( $this, 'replace_frontend_compiled_styles' ), 999 )",
 	'replace_frontend_compiled_styles',
+	'harden_editor_bootstrap',
+	"hash_file( 'sha256'",
+	"wp_localize_script( self::BUILDER_HANDLE, 'crescoWebsiteBuilderSettings'",
+	'crescoBuilderRetry',
+	'Website Builder request timed out:',
+	'The Website Builder runtime loaded but did not mount.',
 	'customCss',
 	'customCSS',
 ] ) if ( ! compatibility.includes( token ) ) errors.push( `Website Builder compatibility boundary missing ${ token }` );
@@ -142,4 +149,4 @@ if ( errors.length ) {
 	process.stderr.write( `${ errors.join( '\n' ) }\n` );
 	process.exit( 1 );
 }
-process.stdout.write( 'Website Builder Core contract, responsive compiler, History compatibility, runtime ownership, package inventory, and integration tokens verified.\n' );
+process.stdout.write( 'Website Builder Core contract, bootstrap recovery, responsive compiler, History compatibility, runtime ownership, package inventory, and integration tokens verified.\n' );
