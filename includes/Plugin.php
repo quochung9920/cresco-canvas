@@ -25,6 +25,7 @@ use CrescoCanvas\Interactions\InteractiveComponents;
 use CrescoCanvas\Migration\Migrator;
 use CrescoCanvas\Security\SecurityHardening;
 use CrescoCanvas\Session\SessionManager;
+use CrescoCanvas\Styles\ContainerWidth;
 use CrescoCanvas\Styles\DesignTokens;
 use CrescoCanvas\Styles\GlobalStyles;
 use CrescoCanvas\Styles\StyleEngine;
@@ -69,6 +70,7 @@ final class Plugin {
 		( new EditorIntegration() )->register();
 		( new SessionManager() )->register();
 		( new VisualEditor() )->register();
+		( new ContainerWidth() )->register();
 
 		// Backend/domain services stay available to the editor and frontend.
 		( new RestApi() )->register();
