@@ -94,4 +94,24 @@ test.describe( 'Cresco standalone UI v3 shell', () => {
 		await openPanel( page, 'Settings' );
 		await expect( page.getByRole( 'region', { name: 'Settings Center' } ) ).toBeVisible();
 	} );
+
+	test( 'keeps Settings responsive across repeated tab switches', async ( { page } ) => {
+		await page.setViewportSize( { width: 1440, height: 900 } );
+		await login( page );
+		await openStandaloneEditor( page );
+
+		for ( let index = 0; index < 20; index += 1 ) {
+			await openPanel( page, 'Settings' );
+			await expect( page.getByRole( 'region', { name: 'Settings Center' } ) ).toBeVisible();
+			await expect( page.locator( '.cc-page-settings-overlay' ) ).toHaveCount( 1 );
+			await openPanel( page, index % 2 === 0 ? 'Edit' : 'Widgets' );
+			await expect( page.getByRole( 'region', { name: 'Settings Center' } ) ).toHaveCount( 0 );
+		}
+
+		await openPanel( page, 'Settings' );
+		await expect( page.getByRole( 'region', { name: 'Settings Center' } ) ).toBeVisible();
+		await expect( page.locator( '.cc-page-settings-overlay' ) ).toHaveCount( 1 );
+		await expect( page.locator( '.cc-standalone-tabs button' ).filter( { hasText: 'Edit' } ) ).toBeEnabled();
+		await expect( page.locator( '.cc-standalone-tabs button' ).filter( { hasText: 'Widgets' } ) ).toBeEnabled();
+	} );
 } );
