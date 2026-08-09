@@ -20,6 +20,7 @@ export const releaseDocs = [
 	'docs/KNOWN_LIMITATIONS.md',
 	'docs/PERFORMANCE_BASELINE.md',
 	'docs/PRIVACY.md',
+	'docs/PRODUCTION_HARDENING_VERIFICATION.md',
 	'docs/RELEASE_CHECKLIST.md',
 	'docs/RELEASE_ENGINEERING.md',
 	'docs/SECURITY.md',
