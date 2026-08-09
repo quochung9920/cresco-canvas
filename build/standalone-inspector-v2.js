@@ -233,17 +233,21 @@
 
 	function addResponsiveBadges( inspector ) {
 		var device = currentDevice( inspector );
-		var labels = inspector.querySelectorAll( '.cc-inspector-section .components-base-control__label' );
-		labels.forEach( function ( label ) {
-			var badge = label.querySelector( ':scope > .cc-inspector-v2-responsive-badge' );
-			if ( ! badge ) {
-				badge = document.createElement( 'span' );
-				badge.className = 'cc-inspector-v2-responsive-badge';
-				label.appendChild( badge );
-			}
-			if ( badge.textContent !== device ) badge.textContent = device;
-			var title = 'Editing ' + device + ' value';
-			if ( badge.title !== title ) badge.title = title;
+		inspector.querySelectorAll( ':scope > .cc-inspector-section' ).forEach( function ( section ) {
+			var key = sectionKey( section );
+			if ( key === 'content' || key === 'container' ) return;
+			section.querySelectorAll( '.components-base-control__label' ).forEach( function ( label ) {
+				var badge = label.querySelector( ':scope > .cc-inspector-v2-responsive-badge' );
+				if ( ! badge ) {
+					badge = document.createElement( 'span' );
+					badge.className = 'cc-inspector-v2-responsive-badge';
+					badge.setAttribute( 'aria-hidden', 'true' );
+					label.appendChild( badge );
+				}
+				if ( badge.textContent !== device ) badge.textContent = device;
+				var title = 'Editing ' + device + ' value';
+				if ( badge.title !== title ) badge.title = title;
+			} );
 		} );
 	}
 
