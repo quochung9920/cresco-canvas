@@ -2,7 +2,10 @@ import { readFile } from 'node:fs/promises';
 import { spawnSync } from 'node:child_process';
 import process from 'node:process';
 
-const runtimeFiles = [ 'build/standalone-visual-editor.js' ];
+const runtimeFiles = [
+	'build/standalone-visual-editor.js',
+	'build/standalone-inspector-v2.js',
+];
 const errors = [];
 
 for ( const file of runtimeFiles ) {
@@ -23,6 +26,7 @@ const sessionManager = await readFile(
 	'utf8'
 );
 const runtime = await readFile( 'build/standalone-visual-editor.js', 'utf8' );
+const inspectorV2 = await readFile( 'build/standalone-inspector-v2.js', 'utf8' );
 const asset = await readFile(
 	'build/standalone-visual-editor.asset.php',
 	'utf8'
@@ -35,7 +39,9 @@ const requiredVisualEditorTokens = [
 	"'validatePath'",
 	"'aiContextPath'",
 	'build/standalone-visual-editor.js',
+	'build/standalone-inspector-v2.js',
 	'assets/css/standalone-visual-editor.css',
+	'assets/css/standalone-inspector-v2.css',
 	'GlobalStyles::css',
 ];
 for ( const token of requiredVisualEditorTokens ) {
@@ -76,6 +82,18 @@ for ( const token of requiredRuntimeTokens ) {
 	}
 }
 
+for ( const token of [
+	'cc-inspector-v2-tabs',
+	'Full Width uses 100% of the parent container.',
+	'Boxed is constrained by the Global container maximum width.',
+	'cc-inspector-v2-section-toggle',
+	'sessionStorage',
+] ) {
+	if ( ! inspectorV2.includes( token ) ) {
+		errors.push( `Standalone Inspector v2 is missing ${ token }` );
+	}
+}
+
 const forbiddenRuntimeTokens = [
 	'BlockEditorProvider',
 	'BlockInspector',
@@ -111,8 +129,10 @@ for ( const token of [ "'wp-block-editor'", "'wp-blocks'", "'wp-data'" ] ) {
 for ( const file of [
 	'docs/CRESCO_SESSION_V1.md',
 	'assets/css/standalone-visual-editor.css',
+	'assets/css/standalone-inspector-v2.css',
 	'build/standalone-visual-editor.js',
 	'build/standalone-visual-editor.asset.php',
+	'build/standalone-inspector-v2.js',
 	'includes/Session/SessionManager.php',
 ] ) {
 	if ( ! packaging.includes( `'${ file }'` ) ) {
@@ -142,5 +162,5 @@ if ( errors.length ) {
 }
 
 process.stdout.write(
-	'Checked the authoritative Cresco Session editor runtime, REST contract, AI interchange, dependencies, and package gates.\n'
+	'Checked the authoritative Cresco Session editor runtime, Inspector v2, REST contract, AI interchange, dependencies, and package gates.\n'
 );
