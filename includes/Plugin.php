@@ -25,6 +25,7 @@ use CrescoCanvas\Interactions\InteractiveComponents;
 use CrescoCanvas\Migration\Migrator;
 use CrescoCanvas\Page\PageSettings;
 use CrescoCanvas\Security\SecurityHardening;
+use CrescoCanvas\Session\HistoryManager;
 use CrescoCanvas\Session\SessionManager;
 use CrescoCanvas\Styles\ContainerWidth;
 use CrescoCanvas\Styles\DesignTokens;
@@ -70,6 +71,7 @@ final class Plugin {
 		// permissions system, routing layer, and native fallback environment.
 		( new EditorIntegration() )->register();
 		( new SessionManager() )->register();
+		( new HistoryManager() )->register();
 		( new PageSettings() )->register();
 		( new VisualEditor() )->register();
 		( new ContainerWidth() )->register();
