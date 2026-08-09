@@ -1,0 +1,259 @@
+.cc-inspector-v2 {
+	--cc-inspector-v2-border: #e3e7ee;
+	--cc-inspector-v2-muted: #667085;
+	--cc-inspector-v2-soft: #f7f8fb;
+	--cc-inspector-v2-active: var(--cc-ui-accent, #5b4bd8);
+}
+
+.cc-inspector-v2 .cc-inspector-header {
+	min-height: 54px;
+	padding-top: 8px;
+	padding-bottom: 8px;
+}
+
+.cc-inspector-v2 .cc-inspector-header strong {
+	font-size: 13px;
+	font-weight: 700;
+}
+
+.cc-inspector-v2-tabs {
+	display: grid;
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+	border-top: 1px solid var(--cc-inspector-v2-border);
+	border-bottom: 1px solid var(--cc-inspector-v2-border);
+	background: #fff;
+}
+
+.cc-inspector-v2-tab {
+	display: grid;
+	min-height: 58px;
+	place-items: center;
+	align-content: center;
+	gap: 4px;
+	padding: 6px 4px 5px;
+	border: 0;
+	border-right: 1px solid var(--cc-inspector-v2-border);
+	border-bottom: 3px solid transparent;
+	background: transparent;
+	color: #475467;
+	font: inherit;
+	font-size: 10px;
+	cursor: pointer;
+}
+
+.cc-inspector-v2-tab:last-child {
+	border-right: 0;
+}
+
+.cc-inspector-v2-tab .dashicons {
+	width: 18px;
+	height: 18px;
+	font-size: 18px;
+}
+
+.cc-inspector-v2-tab:hover,
+.cc-inspector-v2-tab:focus-visible {
+	background: var(--cc-inspector-v2-soft);
+	color: var(--cc-inspector-v2-active);
+	outline: 0;
+}
+
+.cc-inspector-v2-tab.is-active {
+	border-bottom-color: var(--cc-inspector-v2-active);
+	background: #fff;
+	color: var(--cc-inspector-v2-active);
+	font-weight: 700;
+}
+
+.cc-inspector-v2 > .cc-inspector-device-switcher {
+	margin: 0;
+	padding: 8px 10px;
+	border-bottom: 1px solid var(--cc-inspector-v2-border);
+	background: var(--cc-inspector-v2-soft);
+}
+
+.cc-inspector-v2 > .cc-inspector-section {
+	margin: 0;
+	padding: 0;
+	border: 0;
+	border-bottom: 1px solid var(--cc-inspector-v2-border);
+	border-radius: 0;
+	background: #fff;
+}
+
+.cc-inspector-v2 > .cc-inspector-section > h3,
+.cc-inspector-v2 > .cc-inspector-section > .cc-inspector-section-heading {
+	position: relative;
+	display: flex;
+	min-height: 44px;
+	align-items: center;
+	justify-content: space-between;
+	gap: 8px;
+	margin: 0;
+	padding: 0 12px;
+	border-bottom: 1px solid transparent;
+	background: #fff;
+}
+
+.cc-inspector-v2 > .cc-inspector-section > h3 {
+	font-size: 11px;
+	font-weight: 700;
+	text-transform: none;
+}
+
+.cc-inspector-v2 > .cc-inspector-section > .cc-inspector-section-heading h3 {
+	margin: 0;
+	font-size: 11px;
+	font-weight: 700;
+}
+
+.cc-inspector-v2-section-toggle {
+	display: grid;
+	width: 24px;
+	height: 24px;
+	flex: 0 0 24px;
+	place-items: center;
+	padding: 0;
+	border: 0;
+	border-radius: 5px;
+	background: transparent;
+	color: #475467;
+	font-size: 16px;
+	font-weight: 600;
+	line-height: 1;
+	cursor: pointer;
+}
+
+.cc-inspector-v2-section-toggle:hover,
+.cc-inspector-v2-section-toggle:focus-visible {
+	background: var(--cc-inspector-v2-soft);
+	color: var(--cc-inspector-v2-active);
+	outline: 0;
+}
+
+.cc-inspector-v2 > .cc-inspector-section.is-collapsed > :not(h3):not(.cc-inspector-section-heading) {
+	display: none !important;
+}
+
+.cc-inspector-v2 > .cc-inspector-section.is-collapsed > h3,
+.cc-inspector-v2 > .cc-inspector-section.is-collapsed > .cc-inspector-section-heading {
+	border-bottom-color: transparent;
+}
+
+.cc-inspector-v2 > .cc-inspector-section:not(.is-collapsed) > h3,
+.cc-inspector-v2 > .cc-inspector-section:not(.is-collapsed) > .cc-inspector-section-heading {
+	border-bottom-color: var(--cc-inspector-v2-border);
+}
+
+.cc-inspector-v2 > .cc-inspector-section > .components-base-control,
+.cc-inspector-v2 > .cc-inspector-section > .components-button,
+.cc-inspector-v2 > .cc-inspector-section > p,
+.cc-inspector-v2 > .cc-inspector-section > textarea,
+.cc-inspector-v2 > .cc-inspector-section > .components-textarea-control__input {
+	margin-left: 12px;
+	margin-right: 12px;
+}
+
+.cc-inspector-v2 .cc-inspector-grid {
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 10px 8px;
+	padding: 12px;
+}
+
+.cc-inspector-v2 .cc-inspector-grid .components-base-control {
+	margin: 0;
+}
+
+.cc-inspector-v2 .cc-inspector-grid .components-base-control__label,
+.cc-inspector-v2 > .cc-inspector-section .components-base-control__label {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 5px;
+	min-width: 0;
+	font-size: 9px;
+	font-weight: 650;
+	letter-spacing: .02em;
+	text-transform: uppercase;
+}
+
+.cc-inspector-v2-responsive-badge {
+	max-width: 56px;
+	overflow: hidden;
+	color: var(--cc-inspector-v2-muted);
+	font-size: 7px;
+	font-weight: 500;
+	letter-spacing: 0;
+	text-overflow: ellipsis;
+	text-transform: none;
+	white-space: nowrap;
+}
+
+.cc-inspector-v2 .components-text-control__input,
+.cc-inspector-v2 .components-select-control__input,
+.cc-inspector-v2 .components-textarea-control__input,
+.cc-inspector-v2 input[type="text"],
+.cc-inspector-v2 input[type="number"],
+.cc-inspector-v2 select,
+.cc-inspector-v2 textarea {
+	border-color: #d0d5dd;
+	border-radius: 5px;
+	font-size: 11px;
+}
+
+.cc-inspector-v2 .components-text-control__input,
+.cc-inspector-v2 .components-select-control__input,
+.cc-inspector-v2 input[type="text"],
+.cc-inspector-v2 input[type="number"],
+.cc-inspector-v2 select {
+	min-height: 34px;
+}
+
+.cc-inspector-v2-subtitle {
+	grid-column: 1 / -1;
+	margin: 4px -12px 0;
+	padding: 9px 12px 5px;
+	border-top: 1px solid var(--cc-inspector-v2-border);
+	color: #344054;
+	font-size: 10px;
+	font-weight: 700;
+}
+
+.cc-inspector-v2-subtitle:first-child {
+	margin-top: -12px;
+	border-top: 0;
+}
+
+.cc-inspector-v2-help {
+	margin: 5px 0 0 !important;
+	color: var(--cc-inspector-v2-muted);
+	font-size: 9px;
+	font-style: italic;
+	line-height: 1.45;
+}
+
+.cc-inspector-v2 .cc-inspector-section[data-inspector-tab="primary"]:first-of-type {
+	padding-bottom: 12px;
+}
+
+.cc-inspector-v2 .cc-inspector-section[data-inspector-tab="primary"]:first-of-type > :not(h3):not(.cc-inspector-section-heading) {
+	margin-left: 12px;
+	margin-right: 12px;
+}
+
+.cc-inspector-v2 [hidden] {
+	display: none !important;
+}
+
+@media (max-width: 1100px) {
+	.cc-inspector-v2 .cc-inspector-grid {
+		grid-template-columns: minmax(0, 1fr);
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.cc-inspector-v2 * {
+		scroll-behavior: auto !important;
+		transition-duration: 0s !important;
+	}
+}
