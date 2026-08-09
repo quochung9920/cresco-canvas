@@ -35,6 +35,16 @@ async function openPanel( page: Page, label: 'Widgets' | 'Edit' | 'Global' | 'AI
 	await expect( button ).toHaveClass( /is-active/ );
 }
 
+async function openInspectorTab(
+	page: Page,
+	tab: 'primary' | 'style' | 'advanced'
+) {
+	const button = page.locator( `.cc-inspector-v2-tab[data-tab="${ tab }"]` );
+	await expect( button ).toBeVisible();
+	await button.click();
+	await expect( button ).toHaveClass( /is-active/ );
+}
+
 test.describe.serial( 'Cresco Session standalone editor', () => {
 	test.beforeEach( async ( { page } ) => {
 		await login( page );
@@ -75,8 +85,11 @@ test.describe.serial( 'Cresco Session standalone editor', () => {
 			.click();
 		await expect( page.locator( '.cc-canvas-widget-heading' ) ).toHaveCount( 1 );
 		await expect( page.locator( '.cc-inspector' ) ).toBeVisible();
+		await expect( page.locator( '.cc-inspector-v2-tabs' ) ).toBeVisible();
+		await expect( page.locator( '.cc-inspector-v2-tab' ) ).toHaveCount( 3 );
 
 		await page.getByLabel( 'Text', { exact: true } ).fill( 'Cresco Session heading' );
+		await openInspectorTab( page, 'style' );
 		await page.getByLabel( 'Font size' ).fill( '{typography.sizes.h1}' );
 		await expect( page.locator( '.cc-canvas-widget-heading' ) ).toContainText(
 			'Cresco Session heading'
@@ -88,10 +101,42 @@ test.describe.serial( 'Cresco Session standalone editor', () => {
 			.click();
 		await page.getByLabel( 'Font size' ).fill( '36px' );
 		await expect( page.locator( '.cc-standalone-width-label' ) ).toHaveText( '390px' );
+		await expect(
+			page.getByLabel( 'Font size' ).locator( '..' ).locator( '.cc-inspector-v2-responsive-badge' )
+		).toContainText( 'Mobile' );
 
 		await expect( page.locator( '.cc-standalone-structure-item' ) ).toHaveCount( 2 );
 		await expect( page.locator( '.cc-standalone-structure' ) ).toContainText( 'Container' );
 		await expect( page.locator( '.cc-standalone-structure' ) ).toContainText( 'Heading' );
+	} );
+
+	test( 'organizes Container settings into Layout, Style, and Advanced tabs', async ( {
+		page,
+	} ) => {
+		await openPanel( page, 'Widgets' );
+		await page
+			.locator( '.cc-standalone-widget' )
+			.filter( { hasText: 'Container' } )
+			.click();
+		await expect( page.locator( '.cc-inspector-header strong' ) ).toContainText( 'Edit Container' );
+		await expect( page.locator( '.cc-inspector-v2-tab' ).nth( 0 ) ).toContainText( 'Layout' );
+		await expect( page.locator( '.cc-inspector-v2-tab' ).nth( 1 ) ).toContainText( 'Style' );
+		await expect( page.locator( '.cc-inspector-v2-tab' ).nth( 2 ) ).toContainText( 'Advanced' );
+
+		const contentWidth = page.getByLabel( 'Content width' );
+		await expect( contentWidth ).toHaveValue( 'full' );
+		await expect(
+			contentWidth.locator( '..' ).locator( '.cc-inspector-v2-help' )
+		).toContainText( '100% of the parent container' );
+
+		await openInspectorTab( page, 'style' );
+		await expect( page.getByLabel( 'Text color' ) ).toBeVisible();
+		await expect( page.getByLabel( 'Background' ) ).toBeVisible();
+
+		await openInspectorTab( page, 'advanced' );
+		await expect( page.getByLabel( 'Padding top' ) ).toBeVisible();
+		await expect( page.getByLabel( 'Position' ) ).toBeVisible();
+		await expect( page.locator( '.cc-inspector-v2-section-toggle' ).first() ).toBeVisible();
 	} );
 
 	test( 'validates and applies ChatGPT output directly to the current Cresco Session', async ( {
