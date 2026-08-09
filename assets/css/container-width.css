@@ -2,18 +2,12 @@
 	container-type: inline-size;
 }
 
-.cc-session-canvas [data-cresco-widget="container"][data-cresco-content-width="full"] {
-	width: 100cqw !important;
-	max-width: none !important;
-	margin-left: calc(50% - 50cqw) !important;
-	margin-right: calc(50% - 50cqw) !important;
-}
-
+.cc-session-canvas [data-cresco-widget="container"][data-cresco-content-width="full"],
 .cresco-session-root [data-cresco-widget="container"][data-cresco-content-width="full"] {
-	width: 100vw !important;
+	width: 100% !important;
 	max-width: none !important;
-	margin-left: calc(50% - 50vw) !important;
-	margin-right: calc(50% - 50vw) !important;
+	margin-left: 0 !important;
+	margin-right: 0 !important;
 }
 
 .cc-session-canvas [data-cresco-widget="container"][data-cresco-content-width="boxed"],
