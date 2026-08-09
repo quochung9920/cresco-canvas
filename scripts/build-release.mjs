@@ -15,11 +15,14 @@ const requiredFiles = [
 	'CHANGELOG.md',
 	'LICENSE',
 	'docs/CRESCO_SESSION_V1.md',
+	'assets/css/container-width.css',
 	'assets/css/design-system.css',
 	'assets/css/standalone-visual-editor.css',
 	'assets/css/standalone-inspector-v2.css',
 	'assets/css/standalone-ui-v3.css',
 	'assets/css/standalone-page-settings.css',
+	'assets/css/global-config-import.css',
+	'assets/css/viewport-shell.css',
 	'assets/css/dynamic.css',
 	'assets/css/dynamic-advanced.css',
 	'assets/css/dynamic-alpha4.css',
@@ -45,6 +48,8 @@ const requiredFiles = [
 	'build/standalone-inspector-v2.js',
 	'build/standalone-ui-v3.js',
 	'build/standalone-page-settings.js',
+	'build/global-config-import.js',
+	'build/viewport-shell.js',
 	'build/design-system.js',
 	'build/design-system.asset.php',
 	'build/dynamic.js',
@@ -114,6 +119,8 @@ const allowedRoots = [
 	'vendor',
 ];
 
+// Keep known retired editor adapters out of production packages even if a
+// stale local build happens to recreate them.
 const excludedFiles = new Set( [
 	'assets/css/editor-hub.css',
 	'assets/css/elements-usage-sort.css',
@@ -129,6 +136,8 @@ const excludedFiles = new Set( [
 	'build/widget-inspector.asset.php',
 	'build/widget-inspector-compat.js',
 	'build/widget-inspector-compat.asset.php',
+	'build/standalone-content-bootstrap.js',
+	'build/standalone-content-bootstrap.asset.php',
 ] );
 
 async function walk( relativePath ) {
