@@ -23,6 +23,7 @@ const phpFiles = [
 	'includes/Core/UI/UiRegistry.php',
 	'includes/Core/Widget/WidgetRegistry.php',
 	'includes/Core/Storage/DocumentRepository.php',
+	'includes/Core/Module/ModuleRegistry.php',
 	'includes/Infrastructure/WordPress/Storage/WordPressDocumentRepository.php',
 	'includes/Rendering/RenderEngine.php',
 	'includes/Application/BuilderArchitecture.php',
@@ -84,7 +85,7 @@ const professionalUx = await read( 'includes/Builder/WebsiteBuilderProfessionalU
 if ( ! professionalUx.includes( '( new WebsiteBuilderStabilization() )->register();' ) ) errors.push( 'Professional UX does not register the stabilization boundary.' );
 
 const history = await read( 'includes/Session/HistoryManager.php' );
-for ( const token of [ '/website-builder/theme-history/', 'ThemeBuilder::POST_TYPE', 'override' ] ) {
+for ( const token of [ '/website-builder/theme-history/', 'ThemeBuilder::POST_TYPE', "register_rest_route( 'cresco-canvas/v1', '/website-builder/theme-history/" ] ) {
 	if ( ! history.includes( token ) ) errors.push( `History service missing Theme document support ${ token }` );
 }
 const repository = await read( 'includes/Infrastructure/WordPress/Storage/WordPressDocumentRepository.php' );
