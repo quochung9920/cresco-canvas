@@ -19,6 +19,7 @@ final class WebsiteBuilderRendererParity {
 	/** Register frontend repair and editor parity styles after the core builder. */
 	public function register() {
 		add_filter( 'the_content', array( $this, 'repair_frontend_forms' ), 26 );
+		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_frontend_form_assets' ), 46 );
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_editor_parity_styles' ), 1000 );
 	}
 
@@ -63,6 +64,20 @@ final class WebsiteBuilderRendererParity {
 		}
 
 		return $content;
+	}
+
+	/** Enqueue native Form assets early when a builder document contains Form widgets. */
+	public function enqueue_frontend_form_assets() {
+		if ( ! is_singular( 'page' ) ) return;
+		$post_id = get_queried_object_id();
+		if ( ! $post_id || WebsiteBuilder::BUILDER_VERSION !== (string) get_post_meta( $post_id, WebsiteBuilder::BUILDER_META, true ) ) return;
+		$session = $this->load_session( $post_id );
+		if ( ! $session ) return;
+		$forms = array();
+		$this->collect_form_nodes( $session['nodes'] ?? array(), $forms );
+		if ( ! $forms ) return;
+		wp_enqueue_style( 'cresco-canvas-forms' );
+		wp_enqueue_script( 'cresco-canvas-forms-frontend' );
 	}
 
 	/** Add compiled document CSS to the visual canvas instead of a second mock renderer. */
