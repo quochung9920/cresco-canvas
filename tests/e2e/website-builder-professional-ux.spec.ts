@@ -1,6 +1,6 @@
-import { expect, test } from '@playwright/test';
+import { expect, test, type Page } from '@playwright/test';
 
-async function login( page ) {
+async function login( page: Page ) {
 	await page.goto( '/wp-login.php' );
 	if ( await page.locator( '#user_login' ).isVisible().catch( () => false ) ) {
 		await page.locator( '#user_login' ).fill( 'admin' );
@@ -10,7 +10,7 @@ async function login( page ) {
 	await expect( page.locator( '#wpadminbar' ) ).toBeVisible();
 }
 
-async function openBuilder( page ) {
+async function openBuilder( page: Page ) {
 	await page.goto( '/wp-admin/edit.php?post_type=page' );
 	const row = page.locator( 'tr' ).filter( { hasText: 'Cresco E2E Session' } ).first();
 	await row.hover();
@@ -19,12 +19,12 @@ async function openBuilder( page ) {
 	await expect( page.locator( '.cc-builder-pro-header-tools' ) ).toBeVisible();
 }
 
-async function openWidgets( page ) {
+async function openWidgets( page: Page ) {
 	await page.locator( '.cc-builder-rail button' ).filter( { hasText: 'Add' } ).click();
 	await expect( page.locator( '.cc-builder-widget-tile' ).first() ).toBeVisible();
 }
 
-async function addWidget( page, name ) {
+async function addWidget( page: Page, name: string ) {
 	await openWidgets( page );
 	await page.locator( '.cc-builder-widget-tile' ).filter( { hasText: name } ).first().click();
 	await expect( page.locator( '.cc-builder-inspector' ) ).toBeVisible();
