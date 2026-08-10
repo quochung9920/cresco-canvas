@@ -33,7 +33,7 @@ final class WordPressDocumentRepository implements DocumentRepository {
 		if ( 'cresco_component' === $post_type ) return 'component';
 		if ( 'cresco_template' === $post_type ) {
 			$type = sanitize_key( (string) get_post_meta( $document_id, '_cresco_template_type', true ) );
-			return in_array( $type, array( 'header', 'footer', 'single', 'archive', 'search', '404' ), true ) ? $type : 'single';
+			return in_array( $type, array( 'header', 'footer', 'single', 'page', 'archive', 'search', '404' ), true ) ? $type : 'single';
 		}
 		return 'page';
 	}
