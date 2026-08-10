@@ -2,6 +2,8 @@
 namespace CrescoCanvas\Builder;
 
 use CrescoCanvas\Admin\VisualEditor;
+use CrescoCanvas\Theme\ThemeBuilder;
+use CrescoCanvas\Theme\ThemeSessionBridge;
 
 if ( ! defined( 'ABSPATH' ) ) { exit; }
 
@@ -12,6 +14,7 @@ final class WebsiteBuilderBootstrapResilience {
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue' ), 119 );
 		add_action( 'admin_enqueue_scripts', array( $this, 'attach_request_guard' ), 121 );
 		add_action( 'admin_enqueue_scripts', array( $this, 'attach_editor_watchdog' ), 122 );
+		add_action( 'admin_enqueue_scripts', array( $this, 'attach_observer_guards' ), 1200 );
 	}
 
 	public function enqueue() {
@@ -34,7 +37,8 @@ final class WebsiteBuilderBootstrapResilience {
 				'options' => '/cresco-canvas/v1/website-builder/options',
 				'components' => '/cresco-canvas/v1/website-builder/components',
 				'pageSettings' => '/cresco-canvas/v1/page-settings/' . $post_id,
-				'themeTemplates' => '/cresco-canvas/v1/theme-templates',
+			
+'themeTemplates' => '/cresco-canvas/v1/theme-templates',
 				'globalSettings' => '/cresco-canvas/v1/settings',
 			),
 		) ) . ';', 'before' );
@@ -78,12 +82,77 @@ JS;
 		wp_add_inline_script( 'cresco-canvas-website-builder', $watchdog, 'after' );
 	}
 
+	/**
+	 * Prevent enhancement runtimes from observing DOM writes caused by their own
+	 * MutationObserver callbacks. Each guarded observer is disconnected for the
+	 * callback frame and the following animation frame, then reconnected. This
+	 * breaks microtask/RAF feedback loops without disabling live editor updates.
+	 */
+	public function attach_observer_guards() {
+		if ( ! $this->is_editor_request() ) return;
+
+		$handles = array(
+			'cresco-canvas-website-builder-controls',
+			'cresco-canvas-website-builder-professional-ux',
+			'cresco-canvas-builder-architecture',
+		);
+
+		$before = <<<'JS'
+(function(window){
+'use strict';
+var Native=window.MutationObserver;
+if(!Native||Native.__crescoObserverStabilityGuard)return;
+var stack=window.__crescoObserverGuardStack=window.__crescoObserverGuardStack||[];
+stack.push(Native);
+function GuardedMutationObserver(callback){
+ var self=this,target=null,options=null,active=false,generation=0;
+ var observer=new Native(function(records){
+  if(!active)return;
+  var runGeneration=generation;
+  observer.disconnect();
+  window.requestAnimationFrame(function(){
+   if(!active||runGeneration!==generation)return;
+   var thrown=null;
+   try{callback.call(self,records,self)}catch(error){thrown=error}
+   window.requestAnimationFrame(function(){if(active&&target&&runGeneration===generation)observer.observe(target,options)});
+   if(thrown)window.setTimeout(function(){throw thrown},0);
+  });
+ });
+ self.observe=function(nextTarget,nextOptions){generation+=1;target=nextTarget;options=nextOptions||{};active=true;observer.disconnect();observer.observe(target,options)};
+ self.disconnect=function(){generation+=1;active=false;target=null;options=null;observer.disconnect()};
+ self.takeRecords=function(){return observer.takeRecords()};
+}
+GuardedMutationObserver.__crescoObserverStabilityGuard=true;
+GuardedMutationObserver.__crescoNative=Native;
+window.MutationObserver=GuardedMutationObserver;
+window.crescoObserverStability={version:'observer-stability-v1',active:true};
+})(window);
+JS;
+
+		$after = <<<'JS'
+(function(window){
+'use strict';
+var stack=window.__crescoObserverGuardStack;
+if(stack&&stack.length)window.MutationObserver=stack.pop();
+if(window.crescoObserverStability)window.crescoObserverStability.active=false;
+})(window);
+JS;
+
+		foreach ( $handles as $handle ) {
+			if ( ! wp_script_is( $handle, 'registered' ) ) continue;
+			wp_add_inline_script( $handle, $before, 'before' );
+			wp_add_inline_script( $handle, $after, 'after' );
+		}
+	}
+
 	private function is_editor_request() {
 		$page = isset( $_GET['page'] ) ? sanitize_key( wp_unslash( $_GET['page'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-		if ( VisualEditor::PAGE_SLUG !== $page ) return false;
+		if ( ! in_array( $page, array( VisualEditor::PAGE_SLUG, ThemeSessionBridge::PAGE_SLUG ), true ) ) return false;
 		$post_id = isset( $_GET['post'] ) ? absint( wp_unslash( $_GET['post'] ) ) : 0; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 		$post = get_post( $post_id );
-		return $post instanceof \WP_Post && 'page' === $post->post_type && current_user_can( 'edit_post', $post_id );
+		if ( ! $post instanceof \WP_Post || ! current_user_can( 'edit_post', $post_id ) ) return false;
+		$expected_type = VisualEditor::PAGE_SLUG === $page ? 'page' : ThemeBuilder::POST_TYPE;
+		return $expected_type === $post->post_type;
 	}
 
 	private function asset_version( $path ) {
