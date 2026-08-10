@@ -62,6 +62,7 @@
     "visual-canvas.js",
     "website-builder-controls.js",
     "website-builder-frontend.js",
+    "website-builder-preview-fit.js",
     "website-builder-professional-ux.js",
     "widget-inspector-persistent.asset.php",
     "widget-inspector-persistent.js"

@@ -100,4 +100,35 @@ test.describe.serial( 'Website Builder Professional UX V2', () => {
 			await expect( quickStart.getByRole( 'button', { name: 'Container' } ) ).toBeVisible();
 		}
 	} );
+
+	test( 'Fit Area fills the available preview height and keeps narrow devices centered', async ( { page } ) => {
+		const zoom = page.locator( '.cc-builder-viewport-toolbar select[aria-label="Zoom"]' );
+		const stage = page.locator( '.cc-builder-stage' );
+		await expect( zoom ).toHaveValue( 'fit' );
+		await expect( zoom.locator( 'option[value="fit"]' ) ).toHaveText( 'Fit Area' );
+		await expect( stage ).toHaveAttribute( 'data-cresco-fit-area', 'true' );
+
+		const fill = await page.evaluate( () => {
+			const stageNode = document.querySelector<HTMLElement>( '.cc-builder-stage' );
+			const canvas = document.querySelector<HTMLElement>( '.cc-builder-canvas' );
+			if ( ! stageNode || ! canvas ) return null;
+			const stageStyle = getComputedStyle( stageNode );
+			const available = stageNode.clientHeight - parseFloat( stageStyle.paddingTop ) - parseFloat( stageStyle.paddingBottom );
+			return { available, canvasHeight: canvas.getBoundingClientRect().height };
+		} );
+		expect( fill ).not.toBeNull();
+		expect( fill!.canvasHeight ).toBeGreaterThanOrEqual( fill!.available - 2 );
+
+		await page.locator( '.cc-builder-device-toolbar button' ).filter( { hasText: 'Mobile' } ).click();
+		await expect( stage ).toHaveAttribute( 'data-cresco-fit-area', 'true' );
+		const centerDelta = await page.evaluate( () => {
+			const stageNode = document.querySelector<HTMLElement>( '.cc-builder-stage' );
+			const canvas = document.querySelector<HTMLElement>( '.cc-builder-canvas' );
+			if ( ! stageNode || ! canvas ) return 999;
+			const stageRect = stageNode.getBoundingClientRect();
+			const canvasRect = canvas.getBoundingClientRect();
+			return Math.abs( ( stageRect.left + stageRect.width / 2 ) - ( canvasRect.left + canvasRect.width / 2 ) );
+		} );
+		expect( centerDelta ).toBeLessThan( 3 );
+	} );
 } );

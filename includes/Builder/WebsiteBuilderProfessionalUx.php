@@ -14,7 +14,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 final class WebsiteBuilderProfessionalUx {
-	const SCRIPT_HANDLE = 'cresco-canvas-website-builder-professional-ux';
+	const SCRIPT_HANDLE          = 'cresco-canvas-website-builder-professional-ux';
+	const PREVIEW_SCRIPT_HANDLE  = 'cresco-canvas-website-builder-preview-fit';
 
 	/** Register the professional UX layer after the compatibility controls. */
 	public function register() {
@@ -26,8 +27,9 @@ final class WebsiteBuilderProfessionalUx {
 		$post_id = $this->requested_editor_post_id();
 		if ( ! $post_id ) return;
 
-		$script_path = CRESCO_CANVAS_PATH . 'build/website-builder-professional-ux.js';
-		$style_path  = CRESCO_CANVAS_PATH . 'assets/css/website-builder-professional-ux.css';
+		$script_path         = CRESCO_CANVAS_PATH . 'build/website-builder-professional-ux.js';
+		$style_path          = CRESCO_CANVAS_PATH . 'assets/css/website-builder-professional-ux.css';
+		$preview_script_path = CRESCO_CANVAS_PATH . 'build/website-builder-preview-fit.js';
 		if ( ! is_readable( $script_path ) || ! is_readable( $style_path ) ) return;
 
 		wp_enqueue_style(
@@ -43,6 +45,16 @@ final class WebsiteBuilderProfessionalUx {
 			$this->asset_version( $script_path ),
 			true
 		);
+
+		if ( is_readable( $preview_script_path ) ) {
+			wp_enqueue_script(
+				self::PREVIEW_SCRIPT_HANDLE,
+				CRESCO_CANVAS_URL . 'build/website-builder-preview-fit.js',
+				array( self::SCRIPT_HANDLE ),
+				$this->asset_version( $preview_script_path ),
+				true
+			);
+		}
 	}
 
 	/** Resolve and authorize the current Website Builder Page. */
