@@ -16,6 +16,7 @@ use CrescoCanvas\Blocks\Blocks;
 use CrescoCanvas\Builder\WebsiteBuilder;
 use CrescoCanvas\Builder\WebsiteBuilderCompatibility;
 use CrescoCanvas\Builder\WebsiteBuilderProfessionalUx;
+use CrescoCanvas\Builder\WebsiteBuilderRendererParity;
 use CrescoCanvas\Commercial\CommercialManager;
 use CrescoCanvas\Dynamic\AdvancedDynamicData;
 use CrescoCanvas\Dynamic\AdvancedQuery;
@@ -95,6 +96,7 @@ final class Plugin {
 		( new EditorExperience() )->register();
 		( new WebsiteBuilder() )->register();
 		( new WebsiteBuilderCompatibility() )->register();
+		( new WebsiteBuilderRendererParity() )->register();
 		( new WebsiteBuilderProfessionalUx() )->register();
 		( new ContainerWidth() )->register();
 
