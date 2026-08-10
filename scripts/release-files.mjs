@@ -72,6 +72,7 @@ export const assetFiles = [
 	'assets/css/website-builder.css',
 	'assets/css/website-builder-controls.css',
 	'assets/css/website-builder-frontend.css',
+	'assets/css/website-builder-professional-ux.css',
 	'assets/css/widget-control-enhancements.css',
 	'assets/css/widget-inspector-persistent.css',
 ];
@@ -144,6 +145,7 @@ export const buildFiles = [
 	'build/website-builder-controls.js',
 	'build/website-builder-editor.js',
 	'build/website-builder-frontend.js',
+	'build/website-builder-professional-ux.js',
 	'build/widget-control-enhancements.js',
 	'build/widget-inspector-persistent.asset.php',
 	'build/widget-inspector-persistent.js',

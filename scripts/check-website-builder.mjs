@@ -11,6 +11,7 @@ const [
 	catalog,
 	builder,
 	compatibility,
+	professionalUxPhp,
 	cssCompiler,
 	renderer,
 	history,
@@ -20,6 +21,9 @@ const [
 	controlsSource,
 	controlsBuild,
 	controlsCss,
+	professionalUxSource,
+	professionalUxBuild,
+	professionalUxCss,
 	frontendSource,
 	frontendBuild,
 	manifestText,
@@ -29,6 +33,7 @@ const [
 	read( 'includes/Builder/WidgetCatalog.php' ),
 	read( 'includes/Builder/WebsiteBuilder.php' ),
 	read( 'includes/Builder/WebsiteBuilderCompatibility.php' ),
+	read( 'includes/Builder/WebsiteBuilderProfessionalUx.php' ),
 	read( 'includes/Builder/WebsiteBuilderCssCompiler.php' ),
 	read( 'includes/Builder/WebsiteRenderer.php' ),
 	read( 'includes/Session/HistoryManager.php' ),
@@ -38,6 +43,9 @@ const [
 	read( 'runtime-src/build/website-builder-controls.js' ),
 	read( 'build/website-builder-controls.js' ),
 	read( 'assets/css/website-builder-controls.css' ),
+	read( 'runtime-src/build/website-builder-professional-ux.js' ),
+	read( 'build/website-builder-professional-ux.js' ),
+	read( 'assets/css/website-builder-professional-ux.css' ),
 	read( 'runtime-src/build/website-builder-frontend.js' ),
 	read( 'build/website-builder-frontend.js' ),
 	read( 'runtime-src/manifest.json' ),
@@ -50,6 +58,8 @@ for ( const file of [
 	'build/website-builder-editor.js',
 	'runtime-src/build/website-builder-controls.js',
 	'build/website-builder-controls.js',
+	'runtime-src/build/website-builder-professional-ux.js',
+	'build/website-builder-professional-ux.js',
 	'runtime-src/build/website-builder-frontend.js',
 	'build/website-builder-frontend.js',
 	'scripts/build-runtime.mjs',
@@ -98,6 +108,17 @@ for ( const token of [
 	'website-builder-controls.css',
 ] ) if ( ! compatibility.includes( token ) ) errors.push( `Website Builder compatibility boundary missing ${ token }` );
 
+for ( const token of [
+	"const SCRIPT_HANDLE = 'cresco-canvas-website-builder-professional-ux'",
+	"add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_editor_assets' ), 1001 )",
+	"'build/website-builder-professional-ux.js'",
+	"'assets/css/website-builder-professional-ux.css'",
+	"array( 'cresco-canvas-website-builder-controls' )",
+	"VisualEditor::PAGE_SLUG",
+	"current_user_can( 'edit_post', $post_id )",
+	"hash_file( 'sha256'",
+] ) if ( ! professionalUxPhp.includes( token ) ) errors.push( `Website Builder Professional UX loader missing ${ token }` );
+
 for ( const token of [ 'wrap_range', "'mobile'  => array( 0, $tablet - 1 )", "'tablet'  => array( $tablet, $laptop - 1 )", "'desktop' => array( $desktop, $wide - 1 )" ] ) {
 	if ( ! cssCompiler.includes( token ) ) errors.push( `Website Builder responsive compiler missing ${ token }` );
 }
@@ -117,8 +138,10 @@ for ( const token of [
 for ( const token of [
 	'use CrescoCanvas\\Builder\\WebsiteBuilder;',
 	'use CrescoCanvas\\Builder\\WebsiteBuilderCompatibility;',
+	'use CrescoCanvas\\Builder\\WebsiteBuilderProfessionalUx;',
 	'( new WebsiteBuilder() )->register();',
 	'( new WebsiteBuilderCompatibility() )->register();',
+	'( new WebsiteBuilderProfessionalUx() )->register();',
 ] ) if ( ! plugin.includes( token ) ) errors.push( `Plugin registration missing ${ token }` );
 
 for ( const token of [
@@ -149,6 +172,39 @@ for ( const token of [
 	'focus-visible',
 ] ) if ( ! controlsCss.includes( token ) ) errors.push( `Website Builder controls CSS missing ${ token }` );
 
+for ( const token of [
+	'cc-builder-pro-segmented',
+	'cc-builder-pro-inspector-search',
+	'cc-builder-pro-responsive-tools',
+	'Copy overrides ↓',
+	'cc-builder-pro-quality',
+	'cc-builder-pro-breadcrumb',
+	'cc-builder-pro-context-menu',
+	'cresco-builder-favorite-widgets-v1',
+	'cc-builder-pro-library-filters',
+	'cc-builder-pro-empty-start',
+	'Editor diagnostics',
+	'Autosave: On',
+	'Layout presets',
+	'Loop presets',
+	'Focus mode enabled.',
+] ) if ( ! professionalUxSource.includes( token ) ) errors.push( `Website Builder Professional UX runtime missing ${ token }` );
+
+for ( const token of [
+	'.cc-builder-pro-segmented',
+	'.cc-builder-pro-inspector-search',
+	'.cc-builder-pro-responsive-tools',
+	'.cc-builder-pro-quality',
+	'.cc-builder-pro-context-menu',
+	'.cc-builder-pro-library-filters',
+	'.cc-builder-pro-empty-start',
+	'.cc-builder-pro-dialog',
+	'.is-cresco-focus-mode',
+	'forced-colors',
+	'prefers-reduced-motion',
+	'focus-visible',
+] ) if ( ! professionalUxCss.includes( token ) ) errors.push( `Website Builder Professional UX CSS missing ${ token }` );
+
 for ( const token of [ 'data-cresco-accordion', 'role="tab"', 'bootNavigation', 'aria-expanded', 'IntersectionObserver', 'cresco-builder-lightbox' ] ) {
 	if ( ! frontendSource.includes( token ) ) errors.push( `Website Builder frontend runtime missing ${ token }` );
 }
@@ -160,6 +216,9 @@ if ( hash( editorSource ) !== hash( editorBuild ) ) {
 if ( hash( controlsSource ) !== hash( controlsBuild ) ) {
 	errors.push( 'Website Builder professional controls build differs from authoritative source.' );
 }
+if ( hash( professionalUxSource ) !== hash( professionalUxBuild ) ) {
+	errors.push( 'Website Builder Professional UX build differs from authoritative source.' );
+}
 if ( editorBuild.includes( '../runtime-src/' ) || editorBuild.includes( 'crescoBuilderSource' ) ) {
 	errors.push( 'Website Builder editor build must not load runtime-src at browser runtime.' );
 }
@@ -167,15 +226,18 @@ if ( editorBuild.includes( '../runtime-src/' ) || editorBuild.includes( 'crescoB
 const manifest = JSON.parse( manifestText );
 if ( ! manifest.reviewed.includes( 'website-builder-controls.js' ) ) errors.push( 'Runtime manifest does not review website-builder-controls.js.' );
 if ( ! manifest.reviewed.includes( 'website-builder-frontend.js' ) ) errors.push( 'Runtime manifest does not review website-builder-frontend.js.' );
+if ( ! manifest.reviewed.includes( 'website-builder-professional-ux.js' ) ) errors.push( 'Runtime manifest does not review website-builder-professional-ux.js.' );
 if ( manifest.generated?.[ 'website-builder-editor.js' ] !== 'runtime-src/build/website-builder-editor.js' ) errors.push( 'Runtime manifest does not own website-builder-editor.js.' );
 
 for ( const token of [
 	"'assets/css/website-builder.css'",
 	"'assets/css/website-builder-controls.css'",
 	"'assets/css/website-builder-frontend.css'",
+	"'assets/css/website-builder-professional-ux.css'",
 	"'build/website-builder-controls.js'",
 	"'build/website-builder-editor.js'",
 	"'build/website-builder-frontend.js'",
+	"'build/website-builder-professional-ux.js'",
 	"'docs/WEBSITE_BUILDER_CORE.md'",
 ] ) if ( ! releaseFiles.includes( token ) ) errors.push( `Release allowlist missing ${ token }` );
 
@@ -187,4 +249,4 @@ if ( errors.length ) {
 	process.stderr.write( `${ errors.join( '\n' ) }\n` );
 	process.exit( 1 );
 }
-process.stdout.write( 'Website Builder Core, professional controls, bootstrap recovery, responsive compiler, History compatibility, runtime ownership, package inventory, and integration tokens verified.\n' );
+process.stdout.write( 'Website Builder Core, Professional UX V2, visual controls, bootstrap recovery, responsive compiler, History compatibility, runtime ownership, package inventory, and integration tokens verified.\n' );
