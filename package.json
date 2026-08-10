@@ -4,8 +4,14 @@
 	"private": true,
 	"description": "Build visually. Run natively.",
 	"license": "GPL-2.0-or-later",
-	"engines": { "node": ">=20.19.0", "npm": ">=10.0.0" },
-	"overrides": { "adm-zip": "0.6.0", "serialize-javascript": "7.0.7" },
+	"engines": {
+		"node": ">=20.19.0",
+		"npm": ">=10.0.0"
+	},
+	"overrides": {
+		"adm-zip": "0.6.0",
+		"serialize-javascript": "7.0.7"
+	},
 	"scripts": {
 		"build": "wp-scripts build && node scripts/build-runtime.mjs",
 		"start": "wp-scripts start",
@@ -34,5 +40,17 @@
 		"package": "npm run build && node scripts/build-release.mjs",
 		"package:verify": "node scripts/verify-package.mjs && node scripts/verify-reproducible-build.mjs"
 	},
-	"devDependencies": { "@axe-core/playwright": "^4.11.0", "@playwright/test": "^1.62.1", "@types/jest": "^30.0.0", "@types/node": "^24.2.0", "@types/react": "^18.3.25", "@types/react-dom": "^18.3.7", "@wordpress/env": "^10.33.0", "@wordpress/scripts": "^34.0.0", "fflate": "^0.8.2", "jest-environment-jsdom": "^30.0.5", "typescript": "^5.9.2" }
+	"devDependencies": {
+		"@axe-core/playwright": "^4.11.0",
+		"@playwright/test": "^1.62.1",
+		"@types/jest": "^30.0.0",
+		"@types/node": "^24.2.0",
+		"@types/react": "^18.3.25",
+		"@types/react-dom": "^18.3.7",
+		"@wordpress/env": "^10.33.0",
+		"@wordpress/scripts": "^34.0.0",
+		"fflate": "^0.8.2",
+		"jest-environment-jsdom": "^30.0.5",
+		"typescript": "^5.9.2"
+	}
 }

@@ -51,28 +51,112 @@ use CrescoCanvas\Theme\ThemeBuilder;
 use CrescoCanvas\Theme\ThemeDiagnostics;
 use CrescoCanvas\Theme\ThemeSessionBridge;
 
-if ( ! defined( 'ABSPATH' ) ) { exit; }
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
 
 final class Plugin {
-	/** @var Plugin|null */ private static $instance = null;
-	/** @var bool */ private $booted = false;
-	/** @return Plugin */ public static function instance() { if ( null === self::$instance ) self::$instance = new self(); return self::$instance; }
+	/** @var Plugin|null */
+	private static $instance = null;
+
+	/** @var bool */
+	private $booted = false;
+
+	/** @return Plugin */
+	public static function instance() {
+		if ( null === self::$instance ) self::$instance = new self();
+		return self::$instance;
+	}
+
 	/** Register plugin services once. */
 	public function boot() {
-		if ( $this->booted ) return; $this->booted = true;
-		if ( Migrator::is_downgrade() ) { add_action( 'admin_notices', array( Migrator::class, 'render_failure_notice' ) ); add_action( 'network_admin_notices', array( Migrator::class, 'render_failure_notice' ) ); return; }
-		$styles = new GlobalStyles(); $tokens = new DesignTokens();
-		( new SecurityHardening() )->register(); ( new UploadSecurity() )->register(); ( new QueryCache() )->register(); ( new LifecycleManager() )->register(); ( new CommercialManager() )->register();
-		( new EditorIntegration() )->register(); ( new SessionManager() )->register(); ( new AIInterchange() )->register(); ( new HistoryManager() )->register(); ( new PageSettings() )->register(); ( new VisualEditor() )->register(); ( new EditorExperience() )->register();
-		( new WebsiteBuilder() )->register(); ( new WebsiteBuilderCompatibility() )->register(); ( new WebsiteBuilderRendererParity() )->register(); ( new WebsiteBuilderProfessionalUx() )->register(); ( new WebsiteBuilderInterchange() )->register(); ( new WebsiteBuilderComponentSync() )->register(); ( new WebsiteBuilderComprehensiveV3() )->register(); ( new WebsiteBuilderWorkflowExtensions() )->register();
+		if ( $this->booted ) return;
+		$this->booted = true;
+
+		// Fail closed on downgrade before any REST/editor/domain service can write
+		// a data format older than the schema already stored on this site.
+		if ( Migrator::is_downgrade() ) {
+			add_action( 'admin_notices', array( Migrator::class, 'render_failure_notice' ) );
+			add_action( 'network_admin_notices', array( Migrator::class, 'render_failure_notice' ) );
+			return;
+		}
+
+		$styles = new GlobalStyles();
+		$tokens = new DesignTokens();
+
+		( new SecurityHardening() )->register();
+		( new UploadSecurity() )->register();
+		( new QueryCache() )->register();
+		( new LifecycleManager() )->register();
+		( new CommercialManager() )->register();
+
+		// Cresco owns the standalone visual workflow and the authoritative
+		// cresco-session/v1 document. WordPress remains the host, media layer,
+		// permissions system, routing layer, and native fallback environment.
+		( new EditorIntegration() )->register();
+		( new SessionManager() )->register();
+		( new AIInterchange() )->register();
+		( new HistoryManager() )->register();
+		( new PageSettings() )->register();
+		( new VisualEditor() )->register();
+		( new EditorExperience() )->register();
+		( new WebsiteBuilder() )->register();
+		( new WebsiteBuilderCompatibility() )->register();
+		( new WebsiteBuilderRendererParity() )->register();
+		( new WebsiteBuilderProfessionalUx() )->register();
+		( new WebsiteBuilderInterchange() )->register();
+		( new WebsiteBuilderComponentSync() )->register();
+		( new WebsiteBuilderComprehensiveV3() )->register();
+		( new WebsiteBuilderWorkflowExtensions() )->register();
 		// Stable architecture boundary; V2/V3 services above remain compatibility adapters.
-		( new BuilderArchitecture() )->register(); ( new ContainerWidth() )->register();
-		add_action( 'wp_enqueue_scripts', static function () { if ( ! is_singular( 'page' ) ) return; $post_id = get_queried_object_id(); if ( WebsiteBuilder::BUILDER_VERSION !== (string) get_post_meta( $post_id, WebsiteBuilder::BUILDER_META, true ) ) return; wp_enqueue_style( 'dashicons' ); }, 44 );
-		( new RestApi() )->register(); ( new TemplateLibrary() )->register(); ( new ThemeBuilder() )->register(); ( new ThemeSessionBridge() )->register(); ( new ThemeDiagnostics() )->register();
-		( new DynamicData() )->register(); ( new AdvancedDynamicData() )->register(); ( new StructuredDynamicData() )->register(); ( new AdvancedQuery() )->register(); ( new InteractiveQuery() )->register(); ( new DynamicCompletion() )->register(); ( new InteractiveComponents() )->register();
-		( new FormBuilder() )->register(); ( new FormEnhancements() )->register(); ( new FormCompletion() )->register(); ( new FormAdministration() )->register(); ( new StyleEngine() )->register(); $styles->register(); $tokens->register(); ( new Blocks() )->register();
-		add_action( 'admin_init', array( Migrator::class, 'maybe_run' ), 1 ); add_action( 'admin_notices', array( Migrator::class, 'render_failure_notice' ) ); add_action( 'network_admin_notices', array( Migrator::class, 'render_failure_notice' ) ); add_action( 'init', array( $this, 'load_textdomain' ), 0 );
+		( new BuilderArchitecture() )->register();
+		( new ContainerWidth() )->register();
+
+		// Dashicons are used by Site/Icon/Social widgets on public Website
+		// Builder Pages. WordPress does not enqueue them for logged-out visitors.
+		add_action(
+			'wp_enqueue_scripts',
+			static function () {
+				if ( ! is_singular( 'page' ) ) return;
+				$post_id = get_queried_object_id();
+				if ( WebsiteBuilder::BUILDER_VERSION !== (string) get_post_meta( $post_id, WebsiteBuilder::BUILDER_META, true ) ) return;
+				wp_enqueue_style( 'dashicons' );
+			},
+			44
+		);
+
+		// Backend/domain services stay available to the editor and frontend.
+		( new RestApi() )->register();
+		( new TemplateLibrary() )->register();
+		( new ThemeBuilder() )->register();
+		( new ThemeSessionBridge() )->register();
+		( new ThemeDiagnostics() )->register();
+		( new DynamicData() )->register();
+		( new AdvancedDynamicData() )->register();
+		( new StructuredDynamicData() )->register();
+		( new AdvancedQuery() )->register();
+		( new InteractiveQuery() )->register();
+		( new DynamicCompletion() )->register();
+		( new InteractiveComponents() )->register();
+		( new FormBuilder() )->register();
+		( new FormEnhancements() )->register();
+		( new FormCompletion() )->register();
+		( new FormAdministration() )->register();
+		( new StyleEngine() )->register();
+		$styles->register();
+		$tokens->register();
+		( new Blocks() )->register();
+
+		add_action( 'admin_init', array( Migrator::class, 'maybe_run' ), 1 );
+		add_action( 'admin_notices', array( Migrator::class, 'render_failure_notice' ) );
+		add_action( 'network_admin_notices', array( Migrator::class, 'render_failure_notice' ) );
+		add_action( 'init', array( $this, 'load_textdomain' ), 0 );
 	}
-	public function load_textdomain() { load_plugin_textdomain( 'cresco-canvas', false, dirname( plugin_basename( CRESCO_CANVAS_FILE ) ) . '/languages' ); }
+
+	/** Load translations from the release package. */
+	public function load_textdomain() {
+		load_plugin_textdomain( 'cresco-canvas', false, dirname( plugin_basename( CRESCO_CANVAS_FILE ) ) . '/languages' );
+	}
+
 	private function __construct() {}
 }
