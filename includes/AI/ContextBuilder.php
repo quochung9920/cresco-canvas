@@ -7,6 +7,8 @@
 
 namespace CrescoCanvas\AI;
 
+use CrescoCanvas\Builder\WebsiteBuilder;
+use CrescoCanvas\Core\Document\Document;
 use CrescoCanvas\Page\PageSettings;
 use CrescoCanvas\Session\SessionManager;
 use CrescoCanvas\Styles\DesignTokens;
@@ -23,7 +25,7 @@ final class ContextBuilder {
 
 	/** Build a context from the editor's current Session, including unsaved state. */
 	public static function build( $post_id, $session, $scope = 'page', $target = array(), $mode = 'optimized', $resources = array() ) {
-		$session = SessionManager::sanitize_session( $session );
+		$session = WebsiteBuilder::sanitize_session( $session );
 		if ( is_wp_error( $session ) ) return $session;
 		$mode = sanitize_key( (string) $mode );
 		if ( ! in_array( $mode, self::MODES, true ) ) {
@@ -34,7 +36,7 @@ final class ContextBuilder {
 
 		$design_system = isset( $resources['designSystem'] ) ? (array) $resources['designSystem'] : DesignTokens::catalog( GlobalStyles::get_settings() );
 		$page_settings = isset( $resources['pageSettings'] ) ? (array) $resources['pageSettings'] : PageSettings::get( $post_id );
-		$page_effective = isset( $resources['pageSettingsEffective'] ) ? (array) $resources['pageSettingsEffective'] : PageSettings::effective( PageSettings::get( $post_id ) );
+		$page_effective = isset( $resources['pageSettingsEffective'] ) ? (array) $resources['pageSettingsEffective'] : PageSettings::effective( $page_settings );
 		$dependencies  = DependencyResolver::resolve( $scope_data['content'], $design_system );
 		$contracts     = 'full' === $mode ? ContractRegistry::all() : ContractRegistry::for_types( $scope_data['requiredTypes'] );
 		$design_export = 'full' === $mode ? $design_system : DependencyResolver::optimized_design_system( $design_system, $dependencies );
@@ -47,7 +49,7 @@ final class ContextBuilder {
 			'version'      => 1,
 			'scope'        => $scope_data['target']['scope'],
 			'mode'         => $mode,
-			'baseChecksum' => self::checksum( $session ),
+			'baseChecksum' => Document::checksum( $session ),
 			'target'       => $scope_data['target'],
 			'environment'  => array(
 				'crescoVersion' => defined( 'CRESCO_CANVAS_VERSION' ) ? CRESCO_CANVAS_VERSION : 'development',
@@ -65,15 +67,15 @@ final class ContextBuilder {
 		return ContextSanitizer::sanitize( $payload );
 	}
 
+	/** Backward-compatible checksum API, delegated to the canonical Document boundary. */
 	public static function checksum( $session ) {
-		$json = json_encode( $session, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE );
-		return hash( 'sha256', is_string( $json ) ? $json : '' );
+		return Document::checksum( $session );
 	}
 
 	private static function instructions( $target ) {
 		return array(
 			'Return either a complete cresco-session/v1 document or a cresco-patch/v1 object. Prefer a targeted patch for scoped edits.',
-			'Use only widget types, props, structured style properties, responsive devices, and stable selector parts declared in contracts.',
+			'Use only widget types, props, structured style properties, responsive devices, states, and stable selector parts declared in contracts.',
 			'Preserve semantic token references such as {colors.primary}, {spacing.xl}, and {radius.md} when they already express design intent.',
 			'Container props.contentWidth="full" means 100% of its parent. It does not mean viewport width. Do not use 100vw to break a Container out of a boxed parent.',
 			'Use structured style before customCSS. Custom CSS must remain widget-scoped with &, and must not contain @media, @import, url(), JavaScript, or global selectors.',
