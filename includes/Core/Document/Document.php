@@ -43,10 +43,16 @@ final class Document {
 
 	/** Accept either a document envelope or a raw cresco-session/v1 object. */
 	public static function session( $value ) {
-		if ( is_array( $value ) && self::SCHEMA === ( $value['schema'] ?? '' ) && isset( $value['session'] ) ) {
-			$value = $value['session'];
-		}
+		if ( is_array( $value ) && self::SCHEMA === ( $value['schema'] ?? '' ) && isset( $value['session'] ) ) $value = $value['session'];
 		return WebsiteBuilder::sanitize_session( $value );
+	}
+
+	/** Stable checksum for canonical Website Builder sessions and document envelopes. */
+	public static function checksum( $value ) {
+		$session = self::session( $value );
+		if ( is_wp_error( $session ) ) return '';
+		$json = wp_json_encode( $session, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE );
+		return hash( 'sha256', is_string( $json ) ? $json : '' );
 	}
 
 	public static function normalize_type( $type ) {

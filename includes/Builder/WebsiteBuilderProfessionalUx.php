@@ -14,11 +14,12 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 final class WebsiteBuilderProfessionalUx {
-	const SCRIPT_HANDLE          = 'cresco-canvas-website-builder-professional-ux';
-	const PREVIEW_SCRIPT_HANDLE  = 'cresco-canvas-website-builder-preview-fit';
+	const SCRIPT_HANDLE         = 'cresco-canvas-website-builder-professional-ux';
+	const PREVIEW_SCRIPT_HANDLE = 'cresco-canvas-website-builder-preview-fit';
 
-	/** Register the professional UX layer after the compatibility controls. */
+	/** Register the professional UX layer and its stabilization boundary. */
 	public function register() {
+		( new WebsiteBuilderStabilization() )->register();
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_editor_assets' ), 1001 );
 	}
 

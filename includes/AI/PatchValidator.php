@@ -7,7 +7,8 @@
 
 namespace CrescoCanvas\AI;
 
-use CrescoCanvas\Session\SessionManager;
+use CrescoCanvas\Builder\WebsiteBuilder;
+use CrescoCanvas\Core\Document\Document;
 use WP_Error;
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -20,13 +21,12 @@ final class PatchValidator {
 	const OPERATIONS     = array( 'setProps', 'setStyle', 'setResponsive', 'setCustomCSS', 'insertNode', 'removeNode', 'moveNode', 'replaceSubtree' );
 
 	public static function validate( $current_session, $patch ) {
-		$current = SessionManager::sanitize_session( $current_session );
+		$current = WebsiteBuilder::sanitize_session( $current_session );
 		if ( is_wp_error( $current ) ) return $current;
-		if ( ! is_array( $patch ) || self::SCHEMA !== ( $patch['schema'] ?? '' ) ) {
-			return self::error( 'cresco_ai_patch_schema', 'Expected a cresco-patch/v1 object.' );
-		}
-		$base_checksum = (string) ( $patch['baseChecksum'] ?? '' );
-		$current_checksum = ContextBuilder::checksum( $current );
+		if ( ! is_array( $patch ) || self::SCHEMA !== ( $patch['schema'] ?? '' ) ) return self::error( 'cresco_ai_patch_schema', 'Expected a cresco-patch/v1 object.' );
+
+		$base_checksum    = (string) ( $patch['baseChecksum'] ?? '' );
+		$current_checksum = Document::checksum( $current );
 		if ( '' === $base_checksum || ! hash_equals( $current_checksum, $base_checksum ) ) {
 			return new WP_Error( 'cresco_ai_patch_stale', __( 'This AI patch was created from a different Cresco Session. Export fresh context before applying it.', 'cresco-canvas' ), array( 'status' => 409, 'stale' => true, 'expectedChecksum' => $current_checksum, 'receivedChecksum' => $base_checksum ) );
 		}
@@ -34,9 +34,7 @@ final class PatchValidator {
 		$target = self::validate_target( $current, (array) ( $patch['target'] ?? array() ) );
 		if ( is_wp_error( $target ) ) return $target;
 		$operations = isset( $patch['operations'] ) && is_array( $patch['operations'] ) ? array_values( $patch['operations'] ) : null;
-		if ( null === $operations || count( $operations ) > self::MAX_OPERATIONS ) {
-			return self::error( 'cresco_ai_patch_operations', 'Cresco Patch operations must be an array with no more than 200 entries.' );
-		}
+		if ( null === $operations || count( $operations ) > self::MAX_OPERATIONS ) return self::error( 'cresco_ai_patch_operations', 'Cresco Patch operations must be an array with no more than 200 entries.' );
 
 		$working = $current;
 		$id_map  = array();
@@ -51,7 +49,7 @@ final class PatchValidator {
 			if ( ! empty( $applied['idMap'] ) ) $id_map = array_merge( $id_map, $applied['idMap'] );
 		}
 
-		$candidate = SessionManager::sanitize_session( $working );
+		$candidate = WebsiteBuilder::sanitize_session( $working );
 		if ( is_wp_error( $candidate ) ) return $candidate;
 
 		return array(
@@ -59,7 +57,7 @@ final class PatchValidator {
 			'resultType'   => 'patch',
 			'schema'       => self::SCHEMA,
 			'baseChecksum' => $base_checksum,
-			'checksum'     => ContextBuilder::checksum( $candidate ),
+			'checksum'     => Document::checksum( $candidate ),
 			'stale'        => false,
 			'target'       => $target,
 			'idMap'        => $id_map,
@@ -89,22 +87,19 @@ final class PatchValidator {
 		$op = (string) ( $operation['op'] ?? '' );
 		if ( ! in_array( $op, self::OPERATIONS, true ) ) return self::operation_error( 'Unsupported Cresco Patch operation.', $index, array( 'operation' => $op ) );
 		$allowed_fields = array(
-			'setProps' => array( 'op', 'nodeId', 'props' ),
-			'setStyle' => array( 'op', 'nodeId', 'style' ),
-			'setResponsive' => array( 'op', 'nodeId', 'responsive' ),
-			'setCustomCSS' => array( 'op', 'nodeId', 'customCSS' ),
-			'insertNode' => array( 'op', 'parentId', 'index', 'node' ),
-			'removeNode' => array( 'op', 'nodeId' ),
-			'moveNode' => array( 'op', 'nodeId', 'parentId', 'index' ),
-			'replaceSubtree' => array( 'op', 'nodeId', 'node' ),
+			'setProps'        => array( 'op', 'nodeId', 'props' ),
+			'setStyle'        => array( 'op', 'nodeId', 'style' ),
+			'setResponsive'   => array( 'op', 'nodeId', 'responsive' ),
+			'setCustomCSS'    => array( 'op', 'nodeId', 'customCSS' ),
+			'insertNode'      => array( 'op', 'parentId', 'index', 'node' ),
+			'removeNode'      => array( 'op', 'nodeId' ),
+			'moveNode'        => array( 'op', 'nodeId', 'parentId', 'index' ),
+			'replaceSubtree'  => array( 'op', 'nodeId', 'node' ),
 		);
-		foreach ( array_keys( $operation ) as $field ) {
-			if ( ! in_array( $field, $allowed_fields[ $op ], true ) ) return self::operation_error( 'Cresco Patch operation contains an unsupported field.', $index, array( 'field' => $field ) );
-		}
+		foreach ( array_keys( $operation ) as $field ) if ( ! in_array( $field, $allowed_fields[ $op ], true ) ) return self::operation_error( 'Cresco Patch operation contains an unsupported field.', $index, array( 'field' => $field ) );
+
 		$scope = $target['scope'];
-		if ( 'widget' === $scope && ! in_array( $op, array( 'setProps', 'setStyle', 'setResponsive', 'setCustomCSS' ), true ) ) {
-			return self::escape_error( $index, 'Widget scope may change only that widget’s props, style, responsive style, and scoped Custom CSS.' );
-		}
+		if ( 'widget' === $scope && ! in_array( $op, array( 'setProps', 'setStyle', 'setResponsive', 'setCustomCSS' ), true ) ) return self::escape_error( $index, 'Widget scope may change only that widget’s props, style, responsive style, and scoped Custom CSS.' );
 
 		if ( in_array( $op, array( 'setProps', 'setStyle', 'setResponsive', 'setCustomCSS', 'removeNode', 'moveNode', 'replaceSubtree' ), true ) ) {
 			$node_id = (string) ( $operation['nodeId'] ?? '' );
@@ -122,7 +117,11 @@ final class PatchValidator {
 				if ( ! $contract || ! array_key_exists( $key, $contract['props'] ) ) return self::operation_error( 'setProps contains an unsupported widget property.', $index, array( 'property' => $key, 'widgetType' => $node['type'] ) );
 				$probe = $node;
 				$probe['props'] = array( $key => $value );
-				$probe['style'] = array(); $probe['responsive'] = array(); $probe['customCSS'] = array(); $probe['children'] = array();
+				$probe['style'] = array();
+				$probe['responsive'] = array();
+				$probe['states'] = array();
+				$probe['customCSS'] = array();
+				$probe['children'] = array();
 				$valid = ContractRegistry::validate_node( $probe, 'operations.' . $index . '.props' );
 				if ( is_wp_error( $valid ) ) return $valid;
 			}
@@ -141,7 +140,7 @@ final class PatchValidator {
 			$valid = ContractRegistry::validate_custom_css_map( $operation['customCSS'] ?? null, 'operations.' . $index . '.customCSS' );
 			if ( is_wp_error( $valid ) ) return $valid;
 			foreach ( (array) $operation['customCSS'] as $css ) {
-				$sanitized = SessionManager::sanitize_custom_css( $css );
+				$sanitized = WebsiteBuilder::sanitize_custom_css( $css );
 				if ( is_wp_error( $sanitized ) ) return $sanitized;
 			}
 		}
@@ -187,12 +186,15 @@ final class PatchValidator {
 	private static function error( $code, $message ) {
 		return new WP_Error( $code, __( $message, 'cresco-canvas' ), array( 'status' => 400 ) );
 	}
+
 	private static function operation_error( $message, $index, $extra = array() ) {
 		return new WP_Error( 'cresco_ai_patch_operation', __( $message, 'cresco-canvas' ), array_merge( array( 'status' => 400, 'operationIndex' => $index ), $extra ) );
 	}
+
 	private static function escape_error( $index, $message = 'Cresco Patch operation attempts to modify data outside the exported target scope.' ) {
 		return new WP_Error( 'cresco_ai_patch_scope_escape', __( $message, 'cresco-canvas' ), array( 'status' => 400, 'operationIndex' => $index ) );
 	}
+
 	private static function target_not_found( $id, $index = null ) {
 		$data = array( 'status' => 400, 'nodeId' => $id );
 		if ( null !== $index ) $data['operationIndex'] = $index;

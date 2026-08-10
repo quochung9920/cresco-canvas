@@ -8,6 +8,7 @@
 namespace CrescoCanvas\Session;
 
 use CrescoCanvas\Builder\WebsiteBuilder;
+use CrescoCanvas\Theme\ThemeBuilder;
 use WP_Error;
 use WP_REST_Request;
 use WP_REST_Response;
@@ -28,7 +29,9 @@ final class HistoryManager {
 
 	public function register() {
 		add_action( 'init', array( $this, 'register_post_type' ), 6 );
-		add_action( 'rest_api_init', array( $this, 'register_routes' ) );
+		// Register after ThemeSessionBridge so the compatibility alias can replace
+		// its historical empty theme-history placeholder.
+		add_action( 'rest_api_init', array( $this, 'register_routes' ), 40 );
 		add_action( 'added_post_meta', array( $this, 'capture_session_update' ), 20, 4 );
 		add_action( 'updated_post_meta', array( $this, 'capture_session_update' ), 20, 4 );
 	}
@@ -49,48 +52,42 @@ final class HistoryManager {
 	}
 
 	public function register_routes() {
-		register_rest_route(
-			'cresco-canvas/v1',
-			'/history/(?P<postId>\d+)',
-			array(
-				'methods' => WP_REST_Server::READABLE,
-				'callback' => array( $this, 'rest_list_revisions' ),
-				'permission_callback' => array( $this, 'can_edit_post' ),
-			)
+		$permission = array( $this, 'can_edit_post' );
+		$list = array(
+			'methods' => WP_REST_Server::READABLE,
+			'callback' => array( $this, 'rest_list_revisions' ),
+			'permission_callback' => $permission,
+		);
+		$restore = array(
+			'methods' => WP_REST_Server::CREATABLE,
+			'callback' => array( $this, 'rest_restore_revision' ),
+			'permission_callback' => $permission,
 		);
 
-		register_rest_route(
-			'cresco-canvas/v1',
-			'/history/(?P<postId>\d+)/(?P<revisionId>\d+)/restore',
-			array(
-				'methods' => WP_REST_Server::CREATABLE,
-				'callback' => array( $this, 'rest_restore_revision' ),
-				'permission_callback' => array( $this, 'can_edit_post' ),
-			)
-		);
+		register_rest_route( 'cresco-canvas/v1', '/history/(?P<postId>\d+)', $list );
+		register_rest_route( 'cresco-canvas/v1', '/history/(?P<postId>\d+)/(?P<revisionId>\d+)/restore', $restore );
+		// Theme editor uses its legacy-prefixed paths. Override the old empty
+		// endpoint with the same authoritative revision service.
+		register_rest_route( 'cresco-canvas/v1', '/website-builder/theme-history/(?P<postId>\d+)', $list, true );
+		register_rest_route( 'cresco-canvas/v1', '/website-builder/theme-history/(?P<postId>\d+)/(?P<revisionId>\d+)/restore', $restore, true );
 	}
 
 	public function can_edit_post( $request ) {
 		$post_id = absint( $request['postId'] ?? 0 );
-		return $post_id > 0 && 'page' === get_post_type( $post_id ) && current_user_can( 'edit_post', $post_id );
+		$post_type = $post_id ? (string) get_post_type( $post_id ) : '';
+		return $post_id > 0 && in_array( $post_type, array( 'page', ThemeBuilder::POST_TYPE ), true ) && current_user_can( 'edit_post', $post_id );
 	}
 
 	public function capture_session_update( $meta_id, $object_id, $meta_key, $meta_value ) {
 		unset( $meta_id );
-		if ( $this->capturing || SessionManager::META_KEY !== $meta_key || 'page' !== get_post_type( $object_id ) ) {
-			return;
-		}
+		$post_type = (string) get_post_type( $object_id );
+		if ( $this->capturing || SessionManager::META_KEY !== $meta_key || ! in_array( $post_type, array( 'page', ThemeBuilder::POST_TYPE ), true ) ) return;
 
 		$decoded = is_string( $meta_value ) ? json_decode( $meta_value, true ) : null;
 		$session = $this->sanitize_document( $decoded, $object_id );
-		if ( ! is_array( $session ) ) {
-			return;
-		}
-
+		if ( ! is_array( $session ) ) return;
 		$json = wp_json_encode( $session, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE );
-		if ( ! is_string( $json ) ) {
-			return;
-		}
+		if ( ! is_string( $json ) ) return;
 
 		$checksum = hash( 'sha256', $json );
 		$latest = get_posts(
@@ -104,9 +101,7 @@ final class HistoryManager {
 				'fields' => 'ids',
 			)
 		);
-		if ( $latest && $checksum === (string) get_post_meta( (int) $latest[0], self::CHECKSUM_META, true ) ) {
-			return;
-		}
+		if ( $latest && $checksum === (string) get_post_meta( (int) $latest[0], self::CHECKSUM_META, true ) ) return;
 
 		$this->capturing = true;
 		$revision_id = wp_insert_post(
@@ -115,11 +110,10 @@ final class HistoryManager {
 				'post_status' => 'private',
 				'post_parent' => absint( $object_id ),
 				'post_author' => get_current_user_id() ?: (int) get_post_field( 'post_author', $object_id ),
-				'post_title' => sprintf( 'Cresco revision for page %d', absint( $object_id ) ),
+				'post_title' => sprintf( 'Cresco revision for document %d', absint( $object_id ) ),
 			),
 			true
 		);
-
 		if ( ! is_wp_error( $revision_id ) ) {
 			update_post_meta( $revision_id, self::DOCUMENT_META, $json );
 			update_post_meta( $revision_id, self::CHECKSUM_META, $checksum );
@@ -154,30 +148,24 @@ final class HistoryManager {
 		);
 
 		$seen = array();
-		if ( $current_checksum ) {
-			$seen[ $current_checksum ] = true;
-		}
+		if ( $current_checksum ) $seen[ $current_checksum ] = true;
 		foreach ( $revisions as $revision ) {
 			$checksum = (string) get_post_meta( $revision->ID, self::CHECKSUM_META, true );
-			if ( '' === $checksum || isset( $seen[ $checksum ] ) ) {
-				continue;
-			}
+			if ( '' === $checksum || isset( $seen[ $checksum ] ) ) continue;
 			$raw = (string) get_post_meta( $revision->ID, self::DOCUMENT_META, true );
 			$decoded = $raw ? json_decode( $raw, true ) : null;
 			$session = $this->sanitize_document( $decoded, $post_id );
-			if ( ! is_array( $session ) ) {
-				continue;
-			}
+			if ( ! is_array( $session ) ) continue;
 			$seen[ $checksum ] = true;
 			$items[] = $this->revision_payload( $revision, (int) $revision->ID, $checksum, false, count( $this->flatten_nodes( $session['nodes'] ?? array() ) ) );
 		}
-
 		return new WP_REST_Response( array( 'revisions' => $items ) );
 	}
 
 	public function rest_restore_revision( WP_REST_Request $request ) {
 		$post_id = absint( $request['postId'] );
 		$revision_id = absint( $request['revisionId'] );
+		if ( 0 === $revision_id ) return new WP_REST_Response( array( 'restored' => true, 'revisionId' => 0, 'current' => true ) );
 		$revision = get_post( $revision_id );
 		if ( ! $revision || self::POST_TYPE !== $revision->post_type || $post_id !== (int) $revision->post_parent ) {
 			return new WP_Error( 'cresco_history_revision_not_found', __( 'That Cresco revision could not be found.', 'cresco-canvas' ), array( 'status' => 404 ) );
@@ -186,26 +174,13 @@ final class HistoryManager {
 		$raw = (string) get_post_meta( $revision_id, self::DOCUMENT_META, true );
 		$decoded = $raw ? json_decode( $raw, true ) : null;
 		$session = $this->sanitize_document( $decoded, $post_id );
-		if ( ! is_array( $session ) ) {
-			return new WP_Error( 'cresco_history_revision_invalid', __( 'That Cresco revision is invalid.', 'cresco-canvas' ), array( 'status' => 400 ) );
-		}
-
+		if ( ! is_array( $session ) ) return new WP_Error( 'cresco_history_revision_invalid', __( 'That Cresco revision is invalid.', 'cresco-canvas' ), array( 'status' => 400 ) );
 		$json = wp_json_encode( $session, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE );
-		if ( ! is_string( $json ) ) {
-			return new WP_Error( 'cresco_history_revision_encode_failed', __( 'The Cresco revision could not be restored.', 'cresco-canvas' ), array( 'status' => 500 ) );
-		}
+		if ( ! is_string( $json ) ) return new WP_Error( 'cresco_history_revision_encode_failed', __( 'The Cresco revision could not be restored.', 'cresco-canvas' ), array( 'status' => 500 ) );
 
 		update_post_meta( $post_id, SessionManager::META_KEY, $json );
-		if ( $this->uses_builder_contract( $decoded, $post_id ) ) {
-			update_post_meta( $post_id, WebsiteBuilder::BUILDER_META, WebsiteBuilder::BUILDER_VERSION );
-		}
-		return new WP_REST_Response(
-			array(
-				'restored' => true,
-				'revisionId' => $revision_id,
-				'checksum' => hash( 'sha256', $json ),
-			)
-		);
+		if ( $this->uses_builder_contract( $decoded, $post_id ) ) update_post_meta( $post_id, WebsiteBuilder::BUILDER_META, WebsiteBuilder::BUILDER_VERSION );
+		return new WP_REST_Response( array( 'restored' => true, 'revisionId' => $revision_id, 'checksum' => hash( 'sha256', $json ) ) );
 	}
 
 	/** Preserve legacy checksum semantics while understanding the expanded Website Builder contract. */
@@ -247,18 +222,15 @@ final class HistoryManager {
 		$author_email = $author && current_user_can( 'list_users' ) ? $author->user_email : '';
 		$date_gmt = $post ? get_gmt_from_date( $post->post_date, 'c' ) : gmdate( 'c' );
 		$date_local = $post ? get_date_from_gmt( get_gmt_from_date( $post->post_date ), 'Y-m-d H:i:s' ) : current_time( 'mysql' );
-
 		return array(
 			'id' => $id,
 			'current' => (bool) $current,
-			'checksum' => $checksum,
+			'title' => $current ? __( 'Current version', 'cresco-canvas' ) : __( 'Saved revision', 'cresco-canvas' ),
+			'date' => $date_local,
 			'dateGmt' => $date_gmt,
 			'dateLocal' => $date_local,
-			'author' => array(
-				'id' => $author ? (int) $author->ID : 0,
-				'name' => $author_name,
-				'email' => $author_email,
-			),
+			'checksum' => $checksum,
+			'author' => array( 'id' => $author ? (int) $author->ID : 0, 'name' => $author_name, 'email' => $author_email ),
 			'nodeCount' => (int) $node_count,
 		);
 	}
@@ -275,9 +247,7 @@ final class HistoryManager {
 				'fields' => 'ids',
 			)
 		);
-		foreach ( array_slice( $ids, self::MAX_REVISIONS ) as $id ) {
-			wp_delete_post( $id, true );
-		}
+		foreach ( array_slice( $ids, self::MAX_REVISIONS ) as $id ) wp_delete_post( $id, true );
 	}
 
 	private function flatten_nodes( $nodes ) {

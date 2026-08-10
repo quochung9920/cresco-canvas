@@ -3,15 +3,14 @@
  * Canonical mutation gateway for Editor, AI, Import, clipboard and components.
  *
  * Every supported command is translated to cresco-patch/v1 and validated by
- * the existing PatchValidator before a candidate Session can be returned.
- * Nothing in this class persists WordPress data.
+ * PatchValidator before a candidate Session can be returned. Nothing in this
+ * class persists WordPress data.
  *
  * @package CrescoCanvas
  */
 
 namespace CrescoCanvas\Core\Command;
 
-use CrescoCanvas\AI\ContextBuilder;
 use CrescoCanvas\AI\PatchValidator;
 use CrescoCanvas\Core\Document\Document;
 use WP_Error;
@@ -107,12 +106,11 @@ final class CommandBus {
 		if ( 'node.remove' === $name ) $operation = array( 'op' => 'removeNode', 'nodeId' => (string) ( $payload['nodeId'] ?? '' ) );
 		if ( 'node.move' === $name ) $operation = array( 'op' => 'moveNode', 'nodeId' => (string) ( $payload['nodeId'] ?? '' ), 'parentId' => array_key_exists( 'parentId', $payload ) ? $payload['parentId'] : null, 'index' => isset( $payload['index'] ) ? absint( $payload['index'] ) : null );
 		if ( 'node.replace' === $name ) $operation = array( 'op' => 'replaceSubtree', 'nodeId' => (string) ( $payload['nodeId'] ?? '' ), 'node' => (array) ( $payload['node'] ?? array() ) );
-		if ( ! $operation ) {
-			return new WP_Error( 'cresco_command_operation', __( 'The Cresco command could not be translated to a patch operation.', 'cresco-canvas' ), array( 'status' => 400 ) );
-		}
+		if ( ! $operation ) return new WP_Error( 'cresco_command_operation', __( 'The Cresco command could not be translated to a patch operation.', 'cresco-canvas' ), array( 'status' => 400 ) );
+
 		return array(
 			'schema'       => PatchValidator::SCHEMA,
-			'baseChecksum' => ContextBuilder::checksum( $session ),
+			'baseChecksum' => Document::checksum( $session ),
 			'target'       => $target,
 			'operations'   => array( $operation ),
 		);
