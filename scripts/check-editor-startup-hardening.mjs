@@ -53,6 +53,8 @@ for ( const token of [
 	'state.middlewareInstalled=installApiFetchMiddleware()',
 	'aborted:[]',
 	'active:{}',
+	"function architecturePath(){return'/cresco-canvas/v1/website-builder/architecture/'",
+	'path===paths.architecture||path===architecturePath()',
 ] ) if ( ! bootstrapSource.includes( token ) ) errors.push( `Abortable bootstrap missing ${ token }` );
 
 for ( const token of [
@@ -69,4 +71,4 @@ if ( errors.length ) {
 	process.exit( 1 );
 }
 
-process.stdout.write( 'Website Builder critical boot, abortable optional requests, source/build parity, form accessibility, lazy media, and observer stability contracts verified.\n' );
+process.stdout.write( 'Website Builder critical boot, abortable optional/Architecture requests, source/build parity, form accessibility, lazy media, and observer stability contracts verified.\n' );
