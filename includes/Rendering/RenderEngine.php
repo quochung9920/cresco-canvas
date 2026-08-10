@@ -9,6 +9,7 @@ namespace CrescoCanvas\Rendering;
 
 use CrescoCanvas\Builder\WebsiteBuilder;
 use CrescoCanvas\Builder\WebsiteBuilderCssCompiler;
+use CrescoCanvas\Builder\WebsiteBuilderRendererParity;
 use CrescoCanvas\Builder\WebsiteRenderer;
 use CrescoCanvas\Core\Document\Document;
 
@@ -23,9 +24,11 @@ final class RenderEngine {
 		if ( is_wp_error( $session ) ) return $session;
 		$document = Document::from_session( $session, $document_type, array( 'postId' => absint( $post_id ) ) );
 		if ( is_wp_error( $document ) ) return $document;
+		$html = WebsiteRenderer::render_document( $session, $post_id );
+		$html = WebsiteBuilderRendererParity::repair_document_html( $html, $session );
 		return array(
 			'document' => $document,
-			'html'     => WebsiteRenderer::render_document( $session, $post_id ),
+			'html'     => $html,
 			'css'      => WebsiteBuilderCssCompiler::compile( $session ),
 			'runtime'  => array( 'website-builder-frontend' ),
 		);
