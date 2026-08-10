@@ -26,12 +26,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 final class WebsiteBuilderStabilization {
-	const SCRIPT_HANDLE = 'cresco-canvas-website-builder-stability';
-
 	public function register() {
 		add_action( 'rest_api_init', array( $this, 'register_routes' ), 45 );
 		add_action( 'admin_enqueue_scripts', array( $this, 'normalize_editor_runtime' ), 1090 );
 		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_theme_form_assets' ), 50 );
+		add_action( 'template_redirect', array( $this, 'buffer_theme_preview' ), -1 );
 		add_filter( 'render_block_cresco/theme-session', array( $this, 'repair_theme_session_block' ), 20, 3 );
 	}
 
@@ -63,20 +62,14 @@ final class WebsiteBuilderStabilization {
 	public function rest_page_settings( WP_REST_Request $request ) {
 		$post_id = absint( $request['postId'] ?? 0 );
 		if ( ! $post_id ) return new WP_Error( 'cresco_page_settings_document', __( 'A valid Cresco document is required.', 'cresco-canvas' ), array( 'status' => 400 ) );
-
-		if ( WP_REST_Server::READABLE === $request->get_method() || 'GET' === $request->get_method() ) {
-			return new WP_REST_Response( $this->settings_payload( PageSettings::get( $post_id ) ) );
-		}
+		if ( 'GET' === $request->get_method() ) return new WP_REST_Response( $this->settings_payload( PageSettings::get( $post_id ) ) );
 
 		$payload = (array) $request->get_json_params();
 		$input = isset( $payload['settings'] ) && is_array( $payload['settings'] ) ? $payload['settings'] : $payload;
-		// The existing React editor historically used customCss while the server
-		// contract is customCSS. Accept the UI alias without storing duplicate keys.
+		// Older editor builds used customCss while the server contract is customCSS.
 		if ( ! array_key_exists( 'customCSS', $input ) && array_key_exists( 'customCss', $input ) ) $input['customCSS'] = $input['customCss'];
 		unset( $input['customCss'] );
-
-		// Normalize two retired UI option labels to the canonical PageSettings v2
-		// values instead of silently falling back to the server defaults.
+		// Normalize retired UI option labels rather than silently resetting them.
 		if ( 'inherit' === ( $input['pageTitle'] ?? '' ) ) $input['pageTitle'] = 'show';
 		if ( 'content' === ( $input['contentRoot'] ?? '' ) ) $input['contentRoot'] = 'theme';
 
@@ -97,8 +90,6 @@ final class WebsiteBuilderStabilization {
 	private function settings_payload( $settings ) {
 		$settings = PageSettings::sanitize( $settings );
 		$effective = PageSettings::effective( $settings );
-		// Temporary UI aliases keep old editor builds functional while storage and
-		// AI export remain canonical customCSS.
 		$settings_ui = $settings;
 		$effective_ui = $effective;
 		$settings_ui['customCss'] = (string) ( $settings['customCSS'] ?? '' );
@@ -106,11 +97,11 @@ final class WebsiteBuilderStabilization {
 		return array( 'settings' => $settings_ui, 'effective' => $effective_ui );
 	}
 
-	/** Restore dependencies after the compatibility layer rewrites the core handle. */
+	/** Restore canonical dependencies after compatibility adapters have run. */
 	public function normalize_editor_runtime() {
-		$page = isset( $_GET['page'] ) ? sanitize_key( wp_unslash( $_GET['page'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only screen routing.
+		$page = isset( $_GET['page'] ) ? sanitize_key( wp_unslash( $_GET['page'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only editor routing.
 		if ( ! in_array( $page, array( VisualEditor::PAGE_SLUG, ThemeSessionBridge::PAGE_SLUG ), true ) ) return;
-		$post_id = isset( $_GET['post'] ) ? absint( wp_unslash( $_GET['post'] ) ) : 0; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only screen routing.
+		$post_id = isset( $_GET['post'] ) ? absint( wp_unslash( $_GET['post'] ) ) : 0; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only editor routing.
 		if ( ! $post_id || ! current_user_can( 'edit_post', $post_id ) ) return;
 
 		$scripts = wp_scripts();
@@ -120,15 +111,32 @@ final class WebsiteBuilderStabilization {
 			$scripts->registered[ $core_handle ]->deps = array_values( array_unique( array_merge( (array) $scripts->registered[ $core_handle ]->deps, $required ) ) );
 		}
 
-		$script_path = CRESCO_CANVAS_PATH . 'build/website-builder-stability.js';
-		if ( ! is_readable( $script_path ) ) return;
-		wp_enqueue_script(
-			self::SCRIPT_HANDLE,
-			CRESCO_CANVAS_URL . 'build/website-builder-stability.js',
-			array( 'cresco-canvas-builder-architecture' ),
-			$this->asset_version( $script_path ),
-			true
-		);
+		// Fix the Architecture/Professional-UX context-menu ownership mismatch
+		// without another persistent observer. Professional UX creates the menu on
+		// document.body after a right click, so attach scoped AI actions lazily.
+		if ( wp_script_is( 'cresco-canvas-builder-architecture', 'enqueued' ) ) {
+			wp_add_inline_script( 'cresco-canvas-builder-architecture', $this->stability_script(), 'after' );
+		}
+	}
+
+	private function stability_script() {
+		return <<<'JS'
+(function(window,document){
+'use strict';
+var root=document.getElementById('cresco-canvas-standalone-editor');
+if(!root)return;
+function arch(){return window.crescoBuilderArchitecture||null;}
+function addAction(menu,label,scope){
+ if(menu.querySelector('[data-cresco-stability-ai="'+scope+'"]'))return;
+ var button=document.createElement('button');button.type='button';button.className='cc-arch-context-action';button.dataset.crescoStabilityAi=scope;button.textContent=label;
+ button.addEventListener('click',function(){var api=arch();menu.hidden=true;if(api&&api.ui&&typeof api.ui.ai==='function')api.ui.ai(scope);});menu.appendChild(button);
+}
+function install(){var menu=document.querySelector('.cc-builder-pro-context-menu');if(!menu)return;addAction(menu,'AI · Edit Widget','widget');addAction(menu,'AI · Edit Section','subtree');addAction(menu,'AI · Edit Selection','selection');}
+root.addEventListener('contextmenu',function(){window.setTimeout(install,80);},true);
+window.addEventListener('cresco:architecture-ready',install,{once:true});
+window.crescoWebsiteBuilderStability={version:'stability-v1',installContextActions:install};
+})(window,document);
+JS;
 	}
 
 	/** Repair native Form output inside Theme Builder session blocks. */
@@ -140,11 +148,26 @@ final class WebsiteBuilderStabilization {
 		return is_array( $session ) ? WebsiteBuilderRendererParity::repair_document_html( $content, $session ) : $content;
 	}
 
+	/** Repair the dedicated Theme preview which renders WebsiteRenderer directly. */
+	public function buffer_theme_preview() {
+		$template_id = isset( $_GET['cresco_theme_preview'] ) ? absint( wp_unslash( $_GET['cresco_theme_preview'] ) ) : 0; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Verified below.
+		if ( ! $template_id || ThemeBuilder::POST_TYPE !== get_post_type( $template_id ) || ! current_user_can( 'edit_post', $template_id ) ) return;
+		$nonce = isset( $_GET['_wpnonce'] ) ? sanitize_text_field( wp_unslash( $_GET['_wpnonce'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Explicit preview nonce.
+		if ( ! wp_verify_nonce( $nonce, 'cresco_theme_preview_' . $template_id ) ) return;
+		$session = ( new WordPressDocumentRepository() )->load( $template_id );
+		if ( ! is_array( $session ) ) return;
+		ob_start(
+			static function ( $html ) use ( $session ) {
+				return WebsiteBuilderRendererParity::repair_document_html( $html, $session );
+			}
+		);
+	}
+
 	/** Enqueue Form assets before wp_head prints styles for active Theme documents. */
 	public function enqueue_theme_form_assets() {
 		if ( is_admin() ) return;
 		$sessions = array();
-		$preview_id = isset( $_GET['cresco_theme_preview'] ) ? absint( wp_unslash( $_GET['cresco_theme_preview'] ) ) : 0; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only asset routing; preview authorization remains in ThemeSessionBridge.
+		$preview_id = isset( $_GET['cresco_theme_preview'] ) ? absint( wp_unslash( $_GET['cresco_theme_preview'] ) ) : 0; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Asset discovery only.
 		if ( $preview_id && ThemeBuilder::POST_TYPE === get_post_type( $preview_id ) ) {
 			$session = ( new WordPressDocumentRepository() )->load( $preview_id );
 			if ( is_array( $session ) ) $sessions[] = $session;
@@ -182,10 +205,5 @@ final class WebsiteBuilderStabilization {
 		if ( is_page() ) return 'page';
 		if ( is_singular() ) return 'single';
 		return '';
-	}
-
-	private function asset_version( $path ) {
-		$hash = is_readable( $path ) ? hash_file( 'sha256', $path ) : false;
-		return CRESCO_CANVAS_VERSION . ( is_string( $hash ) && '' !== $hash ? '-' . substr( $hash, 0, 12 ) : '' );
 	}
 }
