@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cresco.local/contracts/scope/v1.schema.json",
+  "title": "Cresco Scope v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "version", "scope", "target"],
+  "properties": {
+    "schema": { "const": "cresco-scope/v1" },
+    "version": { "const": 1 },
+    "scope": { "enum": ["document", "subtree", "widget", "selection"] },
+    "target": {
+      "type": "object",
+      "properties": {
+        "nodeId": { "type": ["string", "null"] },
+        "nodeIds": { "type": "array", "items": { "type": "string" }, "uniqueItems": true }
+      }
+    }
+  }
+}

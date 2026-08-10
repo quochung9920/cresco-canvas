@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cresco.local/contracts/command/v1.schema.json",
+  "title": "Cresco Command v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "command", "target", "payload"],
+  "properties": {
+    "schema": { "const": "cresco-command/v1" },
+    "command": {
+      "enum": [
+        "node.props.set",
+        "node.style.set",
+        "node.responsive.set",
+        "node.custom-css.set",
+        "node.insert",
+        "node.remove",
+        "node.move",
+        "node.replace",
+        "patch.apply"
+      ]
+    },
+    "source": { "enum": ["editor", "ai", "import", "clipboard", "component", "system"] },
+    "transactionId": { "type": "string", "maxLength": 160 },
+    "target": { "$ref": "../scope/v1.schema.json" },
+    "payload": { "type": "object" }
+  }
+}

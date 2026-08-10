@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cresco.local/contracts/ai-context/v2.schema.json",
+  "title": "Cresco AI Context v2",
+  "type": "object",
+  "additionalProperties": true,
+  "required": ["schema", "version", "purpose", "mode", "baseChecksum", "scopePackage", "returnContract"],
+  "properties": {
+    "schema": { "const": "cresco-ai-context/v2" },
+    "version": { "const": 2 },
+    "purpose": { "enum": ["edit", "redesign", "create", "content", "style", "import"] },
+    "mode": { "enum": ["optimized", "full"] },
+    "baseChecksum": { "type": "string", "minLength": 32 },
+    "scopePackage": { "type": "object" },
+    "returnContract": {
+      "type": "object",
+      "required": ["preferred", "scopeEnforced"],
+      "properties": {
+        "preferred": { "const": "cresco-patch/v1" },
+        "fallback": { "const": "cresco-session/v1" },
+        "scopeEnforced": { "const": true }
+      }
+    }
+  }
+}

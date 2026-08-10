@@ -13,6 +13,7 @@ export const releaseDocs = [
 	'docs/ACCESSIBILITY_AUDIT.md',
 	'docs/COMMERCIAL_HARDENING.md',
 	'docs/COMPATIBILITY_MATRIX.md',
+	'docs/CORE_ARCHITECTURE.md',
 	'docs/CRESCO_AI_CONTEXT_V1.md',
 	'docs/CRESCO_PATCH_V1.md',
 	'docs/CRESCO_SESSION_V1.md',
@@ -71,6 +72,7 @@ export const assetFiles = [
 	'assets/css/viewport-shell.css',
 	'assets/css/visual-canvas.css',
 	'assets/css/website-builder.css',
+	'assets/css/website-builder-architecture.css',
 	'assets/css/website-builder-comprehensive-v3.css',
 	'assets/css/website-builder-controls.css',
 	'assets/css/website-builder-frontend.css',
@@ -144,6 +146,7 @@ export const buildFiles = [
 	'build/viewport-shell.js',
 	'build/visual-canvas.asset.php',
 	'build/visual-canvas.js',
+	'build/website-builder-architecture.js',
 	'build/website-builder-comprehensive-v3.js',
 	'build/website-builder-workflow-extensions.js',
 	'build/website-builder-controls.js',
@@ -192,6 +195,7 @@ async function walkFiles( root, relativePath, predicate ) {
 }
 
 export async function collectReleaseFiles( root = process.cwd() ) {
+	const contracts = await walkFiles( root, 'contracts', ( file ) => file.endsWith( '.json' ) );
 	const includes = await walkFiles( root, 'includes', ( file ) => file.endsWith( '.php' ) );
 	const vendor = await walkFiles( root, 'vendor', () => true );
 	const files = [
@@ -200,6 +204,7 @@ export async function collectReleaseFiles( root = process.cwd() ) {
 		...blockFiles,
 		...assetFiles,
 		...buildFiles,
+		...contracts,
 		...includes,
 		...vendor,
 	];
