@@ -26,6 +26,7 @@ export const releaseDocs = [
 	'docs/SECURITY.md',
 	'docs/UPGRADE_ROLLBACK.md',
 	'docs/WEBSITE_BUILDER_CORE.md',
+	'docs/WEBSITE_BUILDER_V3.md',
 	'docs/releases/1.0.0-rc.1.md',
 ];
 
@@ -70,6 +71,7 @@ export const assetFiles = [
 	'assets/css/viewport-shell.css',
 	'assets/css/visual-canvas.css',
 	'assets/css/website-builder.css',
+	'assets/css/website-builder-comprehensive-v3.css',
 	'assets/css/website-builder-controls.css',
 	'assets/css/website-builder-frontend.css',
 	'assets/css/website-builder-professional-ux.css',
@@ -142,6 +144,7 @@ export const buildFiles = [
 	'build/viewport-shell.js',
 	'build/visual-canvas.asset.php',
 	'build/visual-canvas.js',
+	'build/website-builder-comprehensive-v3.js',
 	'build/website-builder-controls.js',
 	'build/website-builder-editor.js',
 	'build/website-builder-frontend.js',

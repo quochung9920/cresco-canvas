@@ -15,6 +15,9 @@ use CrescoCanvas\API\RestApi;
 use CrescoCanvas\Blocks\Blocks;
 use CrescoCanvas\Builder\WebsiteBuilder;
 use CrescoCanvas\Builder\WebsiteBuilderCompatibility;
+use CrescoCanvas\Builder\WebsiteBuilderComponentSync;
+use CrescoCanvas\Builder\WebsiteBuilderComprehensiveV3;
+use CrescoCanvas\Builder\WebsiteBuilderInterchange;
 use CrescoCanvas\Builder\WebsiteBuilderProfessionalUx;
 use CrescoCanvas\Builder\WebsiteBuilderRendererParity;
 use CrescoCanvas\Commercial\CommercialManager;
@@ -98,6 +101,9 @@ final class Plugin {
 		( new WebsiteBuilderCompatibility() )->register();
 		( new WebsiteBuilderRendererParity() )->register();
 		( new WebsiteBuilderProfessionalUx() )->register();
+		( new WebsiteBuilderInterchange() )->register();
+		( new WebsiteBuilderComponentSync() )->register();
+		( new WebsiteBuilderComprehensiveV3() )->register();
 		( new ContainerWidth() )->register();
 
 		// Dashicons are used by Site/Icon/Social widgets on public Website
