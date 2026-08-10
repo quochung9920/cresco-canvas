@@ -47,6 +47,7 @@ use CrescoCanvas\Styles\StyleEngine;
 use CrescoCanvas\Templates\TemplateLibrary;
 use CrescoCanvas\Theme\ThemeBuilder;
 use CrescoCanvas\Theme\ThemeDiagnostics;
+use CrescoCanvas\Theme\ThemeSessionBridge;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -123,6 +124,7 @@ final class Plugin {
 		( new RestApi() )->register();
 		( new TemplateLibrary() )->register();
 		( new ThemeBuilder() )->register();
+		( new ThemeSessionBridge() )->register();
 		( new ThemeDiagnostics() )->register();
 		( new DynamicData() )->register();
 		( new AdvancedDynamicData() )->register();
