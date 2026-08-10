@@ -15,7 +15,7 @@ Comprehensive V3 is an additive professional workflow layer for the existing `we
 
 Import remains non-destructive until Preview Diff succeeds. Insert/replace actions go through the existing `cresco-patch/v1`, `PatchValidator`, `PatchApplier` and `IdRemapper` pipeline. Destinations are before, after, inside, replace and replace-page. Preview returns the candidate Session, structural diff, ID remaps and dependency warnings. The editor stages the candidate through its existing Validate -> Apply workflow so Undo/History behavior is preserved.
 
-Media references remain descriptors and are never auto-downloaded. Global Design token and media dependencies are carried with the package so destination-site mapping can be reviewed before applying.
+Media references remain descriptors and are never auto-downloaded. The Import UI reads package dependencies and exposes explicit mapping controls: each Global Design token path can be remapped before validation, and each image media descriptor can be confirmed or replaced by a destination URL. The mapped package is still sent through server-side validation before Apply.
 
 ## Phase 3 — builder systems
 
@@ -27,13 +27,14 @@ Media references remain descriptors and are never auto-downloaded. Global Design
 
 ## Phase 4 — commerce and production hardening
 
-- WooCommerce capability detection accepts the WooCommerce class, `WC_VERSION`, or `WC()` bootstrap signals. Existing Woo Products/Product Title/Product Price/Product Image/Add to Cart widgets can now be used in Session-native Theme Builder templates, including product-specific Single template conditions.
+- WooCommerce capability detection accepts the WooCommerce class, `WC_VERSION`, or `WC()` bootstrap signals.
+- V3 adds a Create / Edit Single Product Template workflow. When WooCommerce is active it reuses an existing product-specific Theme Template or creates a draft Session-native template with Product Image, Product Title, Product Price and Add to Cart widgets, plus a `post_type:product` Theme Builder condition. The template opens directly in the Cresco Theme Template editor for further visual design.
 - The V3 production panel reports node count, maximum nesting depth, Custom CSS volume, Forms, Loop Grids and WooCommerce widget usage.
 - Canvas accessibility scan checks missing image alt text, empty/hash links, heading-level jumps and multiple visible H1 elements. It is an authoring aid and does not replace release accessibility automation.
 - Existing license/update/migration, upgrade smoke, ZIP install, browser E2E, accessibility and performance suites remain the release authority.
 
 ## Release gate
 
-`npm run check:comprehensive-v3` verifies runtime syntax, source/build equality, service registration, portable interchange contracts, Theme Session bridge registration, accessibility/performance tool tokens, runtime manifest ownership and release-package allowlisting. `check:quality` includes this gate.
+`npm run check:comprehensive-v3` verifies runtime syntax, source/build equality, service registration, portable interchange contracts, dependency mapping, Theme Session bridge registration, WooCommerce template workflow, accessibility/performance tool tokens, runtime manifest ownership and release-package allowlisting. `check:quality` includes this gate.
 
 The plugin remains `1.0.0-rc.1`; V3 adds commercial-grade workflows but does not by itself certify a stable release without hosted CI/browser/accessibility/release evidence.
