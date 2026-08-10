@@ -1,138 +1,89 @@
 <?php
-/**
- * Resilient bootstrap for the standalone Website Builder.
- *
- * @package CrescoCanvas
- */
-
 namespace CrescoCanvas\Builder;
 
 use CrescoCanvas\Admin\VisualEditor;
 
-if ( ! defined( 'ABSPATH' ) ) {
-	exit;
-}
+if ( ! defined( 'ABSPATH' ) ) { exit; }
 
 final class WebsiteBuilderBootstrapResilience {
 	const HANDLE = 'cresco-canvas-website-builder-bootstrap';
 
-	/** Register the bootstrap before the main builder and attach a post-runtime stall watchdog. */
 	public function register() {
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue' ), 119 );
+		add_action( 'admin_enqueue_scripts', array( $this, 'attach_request_guard' ), 121 );
 		add_action( 'admin_enqueue_scripts', array( $this, 'attach_editor_watchdog' ), 122 );
 	}
 
-	/**
-	 * Load the request timeout middleware before WebsiteBuilder enqueues its main
-	 * runtime at priority 120. Queue order now guarantees that API middleware is
-	 * installed before the React App starts its initial REST requests.
-	 */
 	public function enqueue() {
-		$page = isset( $_GET['page'] ) ? sanitize_key( wp_unslash( $_GET['page'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only screen routing.
-		if ( VisualEditor::PAGE_SLUG !== $page ) return;
-
-		$post_id = isset( $_GET['post'] ) ? absint( wp_unslash( $_GET['post'] ) ) : 0; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only screen routing.
-		$post    = get_post( $post_id );
-		if ( ! $post instanceof \WP_Post || 'page' !== $post->post_type || ! current_user_can( 'edit_post', $post_id ) ) return;
-
+		if ( ! $this->is_editor_request() ) return;
+		$post_id = isset( $_GET['post'] ) ? absint( wp_unslash( $_GET['post'] ) ) : 0; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$post = get_post( $post_id );
 		$script = CRESCO_CANVAS_PATH . 'build/website-builder-bootstrap.js';
-		if ( ! is_readable( $script ) ) return;
-
-		wp_enqueue_script(
-			self::HANDLE,
-			CRESCO_CANVAS_URL . 'build/website-builder-bootstrap.js',
-			array( 'wp-api-fetch' ),
-			$this->asset_version( $script ),
-			true
-		);
-
-		$settings = array(
-			'postId'            => $post_id,
-			'postTitle'         => (string) $post->post_title,
-			'builderVersion'    => WebsiteBuilder::BUILDER_VERSION,
-			'optionalTimeoutMs' => 6500,
-			'criticalTimeoutMs' => 10000,
-			'watchdogMs'        => 13000,
-			'paths'             => array(
-				'session'        => '/cresco-canvas/v1/website-builder/session/' . $post_id,
-				'context'        => '/cresco-canvas/v1/website-builder/context/' . $post_id,
-				'options'        => '/cresco-canvas/v1/website-builder/options',
-				'components'     => '/cresco-canvas/v1/website-builder/components',
-				'pageSettings'   => '/cresco-canvas/v1/page-settings/' . $post_id,
-			
-'themeTemplates' => '/cresco-canvas/v1/theme-templates',
+		if ( ! $post instanceof \WP_Post || ! is_readable( $script ) ) return;
+		wp_enqueue_script( self::HANDLE, CRESCO_CANVAS_URL . 'build/website-builder-bootstrap.js', array( 'wp-api-fetch' ), $this->asset_version( $script ), true );
+		wp_add_inline_script( self::HANDLE, 'window.crescoWebsiteBuilderBootstrapSettings=' . wp_json_encode( array(
+			'postId' => $post_id,
+			'postTitle' => (string) $post->post_title,
+			'builderVersion' => WebsiteBuilder::BUILDER_VERSION,
+			'optionalTimeoutMs' => 2500,
+			'criticalTimeoutMs' => 8000,
+			'watchdogMs' => 10000,
+			'paths' => array(
+				'session' => '/cresco-canvas/v1/website-builder/session/' . $post_id,
+				'context' => '/cresco-canvas/v1/website-builder/context/' . $post_id,
+				'options' => '/cresco-canvas/v1/website-builder/options',
+				'components' => '/cresco-canvas/v1/website-builder/components',
+				'pageSettings' => '/cresco-canvas/v1/page-settings/' . $post_id,
+				'themeTemplates' => '/cresco-canvas/v1/theme-templates',
 				'globalSettings' => '/cresco-canvas/v1/settings',
 			),
-		);
-
-		wp_add_inline_script(
-			self::HANDLE,
-			'window.crescoWebsiteBuilderBootstrapSettings=' . wp_json_encode( $settings ) . ';',
-			'before'
-		);
+		) ) . ';', 'before' );
 	}
 
-	/**
-	 * Attach a watchdog directly to the main runtime handle.
-	 *
-	 * This is deliberately independent of the bootstrap asset. If the React
-	 * runtime mounts its loading shell but an initial request never settles, or
-	 * if another compatibility layer changes dependency ordering, the editor is
-	 * still guaranteed to leave the spinner and show an actionable recovery UI.
-	 */
+	public function attach_request_guard() {
+		if ( ! $this->is_editor_request() || ! wp_script_is( 'cresco-canvas-website-builder', 'registered' ) ) return;
+		$guard = <<<'JS'
+(function(window){
+'use strict';
+var wp=window.wp,settings=window.crescoWebsiteBuilderSettings||{},boot=window.crescoWebsiteBuilderBootstrapSettings||{},original=wp&&wp.apiFetch;
+if(!original||original.__crescoStartupGuard)return;
+var bp=boot.paths||{},paths={session:settings.sessionPath||bp.session||'',context:settings.contextPath||bp.context||'',options:settings.optionsPath||bp.options||'',components:settings.componentsPath||bp.components||'',pageSettings:settings.pageSettingsPath||bp.pageSettings||'',themeTemplates:settings.themeTemplatesPath||bp.themeTemplates||'',globalSettings:settings.settingsPath||bp.globalSettings||''};
+var state={startedAt:Date.now(),fallbacks:[],timeouts:[],fatal:null};window.crescoWebsiteBuilderRequestGuard=state;
+function method(o){return String(o&&o.method||'GET').toUpperCase()}function reqPath(o){return String(o&&o.path||'')}
+function clone(v){if(v===null||v===undefined)return v;try{return JSON.parse(JSON.stringify(v))}catch(e){return v}}
+function record(list,p,e){list.push({path:p,message:e&&e.message?String(e.message):String(e||'Request failed'),at:Date.now()})}
+function fallback(p){if(p===paths.context)return{matched:true,value:{format:'cresco-website-builder-context/v1',builder:settings.builderVersion||boot.builderVersion||'website-core/v1',global:{},widgets:settings.widgetCatalog||{},session:null,postTitle:settings.postTitle||'',capabilities:{degraded:true},instructions:[]}};if(p===paths.options)return{matched:true,value:{menus:[],postTypes:[],taxonomies:[],woocommerce:false,acf:false,siteName:'',themeTypes:[]}};if(p===paths.components)return{matched:true,value:[]};if(p===paths.pageSettings)return{matched:true,value:{settings:{}}};if(p===paths.themeTemplates)return{matched:true,value:[]};if(p===paths.globalSettings)return{matched:true,value:null};return{matched:false,value:null}}
+function guarded(options){var p=reqPath(options),fb=fallback(p),critical=p===paths.session&&!!p;if(method(options)!=='GET'||(!critical&&!fb.matched))return original(options);var ms=critical?Number(boot.criticalTimeoutMs||8000):Number(boot.optionalTimeoutMs||2500);return new Promise(function(resolve,reject){var settled=false,timer=window.setTimeout(function(){if(settled)return;settled=true;var e=new Error('Website Builder request timed out after '+ms+'ms: '+p);e.code='cresco_builder_startup_timeout';if(critical){state.fatal={path:p,message:e.message,at:Date.now()};reject(e)}else{record(state.timeouts,p,e);record(state.fallbacks,p,e);resolve(clone(fb.value))}},ms);Promise.resolve(original(options)).then(function(v){if(settled)return;settled=true;window.clearTimeout(timer);resolve(v)},function(e){if(settled)return;settled=true;window.clearTimeout(timer);if(critical){state.fatal={path:p,message:e&&e.message?String(e.message):String(e||'Session request failed'),at:Date.now()};reject(e)}else{record(state.fallbacks,p,e);resolve(clone(fb.value))}})})}
+try{Object.keys(original).forEach(function(k){guarded[k]=original[k]})}catch(e){}if(typeof original.use==='function')guarded.use=original.use.bind(original);guarded.__crescoStartupGuard=true;guarded.__crescoOriginal=original;wp.apiFetch=guarded;
+})(window);
+JS;
+		wp_add_inline_script( 'cresco-canvas-website-builder', $guard, 'before' );
+	}
+
 	public function attach_editor_watchdog() {
-		$page = isset( $_GET['page'] ) ? sanitize_key( wp_unslash( $_GET['page'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only screen routing.
-		if ( VisualEditor::PAGE_SLUG !== $page ) return;
-
-		$post_id = isset( $_GET['post'] ) ? absint( wp_unslash( $_GET['post'] ) ) : 0; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only screen routing.
-		$post    = get_post( $post_id );
-		if ( ! $post instanceof \WP_Post || 'page' !== $post->post_type || ! current_user_can( 'edit_post', $post_id ) ) return;
-		if ( ! wp_script_is( 'cresco-canvas-website-builder', 'registered' ) ) return;
-
+		if ( ! $this->is_editor_request() || ! wp_script_is( 'cresco-canvas-website-builder', 'registered' ) ) return;
+		$post_id = isset( $_GET['post'] ) ? absint( wp_unslash( $_GET['post'] ) ) : 0; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 		$post_id_json = wp_json_encode( $post_id );
 		$watchdog = <<<JS
 (function(window,document){
 'use strict';
-var root=document.getElementById('cresco-canvas-standalone-editor');
-if(!root)return;
-var startedAt=Date.now();
-function ready(){return !!root.querySelector('.cc-builder-app');}
-function diagnostics(){
- var bootstrap=window.crescoWebsiteBuilderBootstrap||{};
- return {
-  postId:{$post_id_json},
-  elapsedMs:Date.now()-startedAt,
-  ready:ready(),
-  loading:!!root.querySelector('.cc-builder-loading'),
-  settingsPresent:!!(window.crescoWebsiteBuilderSettings&&window.crescoWebsiteBuilderSettings.postId),
-  wpElement:!!(window.wp&&window.wp.element),
-  wpApiFetch:!!(window.wp&&window.wp.apiFetch),
-  bootstrap:bootstrap,
-  lastError:bootstrap.lastError||null
- };
-}
-function copyText(value){
- if(navigator.clipboard&&navigator.clipboard.writeText)return navigator.clipboard.writeText(value);
- var area=document.createElement('textarea');area.value=value;area.style.position='fixed';area.style.opacity='0';document.body.appendChild(area);area.select();try{document.execCommand('copy');}catch(e){}area.remove();return Promise.resolve();
-}
-function recover(){
- if(ready()||root.querySelector('[data-cresco-stall-recovery]'))return;
- var hadLoading=!!root.querySelector('.cc-builder-loading');
- while(root.firstChild)root.removeChild(root.firstChild);
- var panel=document.createElement('div');panel.className='cc-builder-loading cc-builder-bootstrap-recovery';panel.setAttribute('data-cresco-stall-recovery','1');panel.setAttribute('role','alert');
- var strong=document.createElement('strong');strong.textContent='Cresco Website Builder could not finish loading.';panel.appendChild(strong);
- var message=document.createElement('p');message.textContent=hadLoading?'The editor started, but one or more startup requests did not finish. Your saved document has not been changed.':'The editor runtime did not mount correctly. Your saved document has not been changed.';panel.appendChild(message);
- var actions=document.createElement('div');actions.className='cc-builder-ai-actions';
- var retry=document.createElement('button');retry.type='button';retry.className='cc-builder-primary';retry.textContent='Retry';retry.addEventListener('click',function(){var url=new URL(window.location.href);url.searchParams.set('cresco-retry',String(Date.now()));window.location.href=url.toString();});actions.appendChild(retry);
- var copy=document.createElement('button');copy.type='button';copy.className='cc-builder-secondary';copy.textContent='Copy diagnostics';copy.addEventListener('click',function(){copyText(JSON.stringify(diagnostics(),null,2));});actions.appendChild(copy);panel.appendChild(actions);
- var details=document.createElement('details');var summary=document.createElement('summary');summary.textContent='Diagnostics';details.appendChild(summary);var pre=document.createElement('pre');pre.textContent=JSON.stringify(diagnostics(),null,2);details.appendChild(pre);panel.appendChild(details);root.appendChild(panel);
- try{window.dispatchEvent(new CustomEvent('cresco:builder-stall-recovery',{detail:diagnostics()}));}catch(e){}
-}
-window.setTimeout(recover,13500);
+var root=document.getElementById('cresco-canvas-standalone-editor');if(!root)return;var startedAt=Date.now();
+function ready(){return !!root.querySelector('.cc-builder-app')}
+function diagnostics(){var b=window.crescoWebsiteBuilderBootstrap||{},g=window.crescoWebsiteBuilderRequestGuard||{};return{postId:{$post_id_json},elapsedMs:Date.now()-startedAt,ready:ready(),loading:!!root.querySelector('.cc-builder-loading'),settingsPresent:!!(window.crescoWebsiteBuilderSettings&&window.crescoWebsiteBuilderSettings.postId),wpElement:!!(window.wp&&window.wp.element),wpApiFetch:!!(window.wp&&window.wp.apiFetch),bootstrap:b,requestGuard:g,lastError:b.lastError||null}}
+function copyText(v){if(navigator.clipboard&&navigator.clipboard.writeText)return navigator.clipboard.writeText(v);var a=document.createElement('textarea');a.value=v;a.style.position='fixed';a.style.opacity='0';document.body.appendChild(a);a.select();try{document.execCommand('copy')}catch(e){}a.remove();return Promise.resolve()}
+function recover(){if(ready()||root.querySelector('[data-cresco-stall-recovery],[data-cresco-bootstrap-recovery]'))return;while(root.firstChild)root.removeChild(root.firstChild);var p=document.createElement('div');p.className='cc-builder-loading cc-builder-bootstrap-recovery';p.setAttribute('data-cresco-stall-recovery','1');p.setAttribute('role','alert');var s=document.createElement('strong');s.textContent='Cresco Website Builder could not finish loading.';p.appendChild(s);var m=document.createElement('p');m.textContent='A critical startup request did not finish. Optional modules have already been degraded safely. Your saved document has not been changed.';p.appendChild(m);var actions=document.createElement('div');actions.className='cc-builder-ai-actions';var retry=document.createElement('button');retry.type='button';retry.className='cc-builder-primary';retry.textContent='Retry';retry.onclick=function(){var u=new URL(window.location.href);u.searchParams.set('cresco-retry',String(Date.now()));window.location.href=u.toString()};actions.appendChild(retry);var copy=document.createElement('button');copy.type='button';copy.className='cc-builder-secondary';copy.textContent='Copy diagnostics';copy.onclick=function(){copyText(JSON.stringify(diagnostics(),null,2))};actions.appendChild(copy);p.appendChild(actions);var d=document.createElement('details'),sum=document.createElement('summary'),pre=document.createElement('pre');sum.textContent='Diagnostics';pre.textContent=JSON.stringify(diagnostics(),null,2);d.appendChild(sum);d.appendChild(pre);p.appendChild(d);root.appendChild(p)}
+window.setTimeout(recover,10500);
 })(window,document);
 JS;
-
 		wp_add_inline_script( 'cresco-canvas-website-builder', $watchdog, 'after' );
+	}
+
+	private function is_editor_request() {
+		$page = isset( $_GET['page'] ) ? sanitize_key( wp_unslash( $_GET['page'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		if ( VisualEditor::PAGE_SLUG !== $page ) return false;
+		$post_id = isset( $_GET['post'] ) ? absint( wp_unslash( $_GET['post'] ) ) : 0; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$post = get_post( $post_id );
+		return $post instanceof \WP_Post && 'page' === $post->post_type && current_user_can( 'edit_post', $post_id );
 	}
 
 	private function asset_version( $path ) {
