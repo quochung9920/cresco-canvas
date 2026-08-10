@@ -61,6 +61,7 @@
     "visual-canvas.asset.php",
     "visual-canvas.js",
     "website-builder-architecture.js",
+    "website-builder-bootstrap.js",
     "website-builder-comprehensive-v3.js",
     "website-builder-workflow-extensions.js",
     "website-builder-controls.js",

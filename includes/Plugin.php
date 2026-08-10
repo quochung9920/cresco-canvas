@@ -15,6 +15,7 @@ use CrescoCanvas\API\RestApi;
 use CrescoCanvas\Application\BuilderArchitecture;
 use CrescoCanvas\Blocks\Blocks;
 use CrescoCanvas\Builder\WebsiteBuilder;
+use CrescoCanvas\Builder\WebsiteBuilderBootstrapResilience;
 use CrescoCanvas\Builder\WebsiteBuilderCompatibility;
 use CrescoCanvas\Builder\WebsiteBuilderComponentSync;
 use CrescoCanvas\Builder\WebsiteBuilderComprehensiveV3;
@@ -101,6 +102,7 @@ final class Plugin {
 		( new VisualEditor() )->register();
 		( new EditorExperience() )->register();
 		( new WebsiteBuilder() )->register();
+		( new WebsiteBuilderBootstrapResilience() )->register();
 		( new WebsiteBuilderCompatibility() )->register();
 		( new WebsiteBuilderRendererParity() )->register();
 		( new WebsiteBuilderProfessionalUx() )->register();

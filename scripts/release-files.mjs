@@ -147,6 +147,7 @@ export const buildFiles = [
 	'build/visual-canvas.asset.php',
 	'build/visual-canvas.js',
 	'build/website-builder-architecture.js',
+	'build/website-builder-bootstrap.js',
 	'build/website-builder-comprehensive-v3.js',
 	'build/website-builder-workflow-extensions.js',
 	'build/website-builder-controls.js',
