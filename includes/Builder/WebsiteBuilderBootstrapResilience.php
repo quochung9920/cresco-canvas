@@ -16,24 +16,22 @@ if ( ! defined( 'ABSPATH' ) ) {
 final class WebsiteBuilderBootstrapResilience {
 	const HANDLE = 'cresco-canvas-website-builder-bootstrap';
 
-	/** Register the bootstrap immediately after the main Website Builder enqueue pass. */
+	/** Register the bootstrap before the main builder and attach a post-runtime stall watchdog. */
 	public function register() {
-		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue' ), 121 );
+		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue' ), 119 );
+		add_action( 'admin_enqueue_scripts', array( $this, 'attach_editor_watchdog' ), 122 );
 	}
 
 	/**
-	 * Load a small pre-editor recovery layer and make the editor depend on it.
-	 *
-	 * The main editor currently performs several REST reads in parallel. This
-	 * bootstrap keeps optional modules from blocking Canvas startup forever and
-	 * turns a critical Session timeout/runtime failure into an actionable error
-	 * screen instead of an infinite spinner.
+	 * Load the request timeout middleware before WebsiteBuilder enqueues its main
+	 * runtime at priority 120. Queue order now guarantees that API middleware is
+	 * installed before the React App starts its initial REST requests.
 	 */
 	public function enqueue() {
-		$page = isset( $_GET['page'] ) ? sanitize_key( wp_unslash( $_GET['page'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only editor routing.
+		$page = isset( $_GET['page'] ) ? sanitize_key( wp_unslash( $_GET['page'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only screen routing.
 		if ( VisualEditor::PAGE_SLUG !== $page ) return;
 
-		$post_id = isset( $_GET['post'] ) ? absint( wp_unslash( $_GET['post'] ) ) : 0; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only editor routing.
+		$post_id = isset( $_GET['post'] ) ? absint( wp_unslash( $_GET['post'] ) ) : 0; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only screen routing.
 		$post    = get_post( $post_id );
 		if ( ! $post instanceof \WP_Post || 'page' !== $post->post_type || ! current_user_can( 'edit_post', $post_id ) ) return;
 
@@ -72,17 +70,69 @@ final class WebsiteBuilderBootstrapResilience {
 			'window.crescoWebsiteBuilderBootstrapSettings=' . wp_json_encode( $settings ) . ';',
 			'before'
 		);
+	}
 
-		// WebsiteBuilder enqueues its editor at priority 120. Add this bootstrap as
-		// a hard dependency at 121 so middleware/watchdog are installed first.
-		$scripts = wp_scripts();
-		if ( isset( $scripts->registered['cresco-canvas-website-builder'] ) ) {
-			$deps = (array) $scripts->registered['cresco-canvas-website-builder']->deps;
-			if ( ! in_array( self::HANDLE, $deps, true ) ) {
-				$deps[] = self::HANDLE;
-				$scripts->registered['cresco-canvas-website-builder']->deps = $deps;
-			}
-		}
+	/**
+	 * Attach a watchdog directly to the main runtime handle.
+	 *
+	 * This is deliberately independent of the bootstrap asset. If the React
+	 * runtime mounts its loading shell but an initial request never settles, or
+	 * if another compatibility layer changes dependency ordering, the editor is
+	 * still guaranteed to leave the spinner and show an actionable recovery UI.
+	 */
+	public function attach_editor_watchdog() {
+		$page = isset( $_GET['page'] ) ? sanitize_key( wp_unslash( $_GET['page'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only screen routing.
+		if ( VisualEditor::PAGE_SLUG !== $page ) return;
+
+		$post_id = isset( $_GET['post'] ) ? absint( wp_unslash( $_GET['post'] ) ) : 0; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only screen routing.
+		$post    = get_post( $post_id );
+		if ( ! $post instanceof \WP_Post || 'page' !== $post->post_type || ! current_user_can( 'edit_post', $post_id ) ) return;
+		if ( ! wp_script_is( 'cresco-canvas-website-builder', 'registered' ) ) return;
+
+		$post_id_json = wp_json_encode( $post_id );
+		$watchdog = <<<JS
+(function(window,document){
+'use strict';
+var root=document.getElementById('cresco-canvas-standalone-editor');
+if(!root)return;
+var startedAt=Date.now();
+function ready(){return !!root.querySelector('.cc-builder-app');}
+function diagnostics(){
+ var bootstrap=window.crescoWebsiteBuilderBootstrap||{};
+ return {
+  postId:{$post_id_json},
+  elapsedMs:Date.now()-startedAt,
+  ready:ready(),
+  loading:!!root.querySelector('.cc-builder-loading'),
+  settingsPresent:!!(window.crescoWebsiteBuilderSettings&&window.crescoWebsiteBuilderSettings.postId),
+  wpElement:!!(window.wp&&window.wp.element),
+  wpApiFetch:!!(window.wp&&window.wp.apiFetch),
+  bootstrap:bootstrap,
+  lastError:bootstrap.lastError||null
+ };
+}
+function copyText(value){
+ if(navigator.clipboard&&navigator.clipboard.writeText)return navigator.clipboard.writeText(value);
+ var area=document.createElement('textarea');area.value=value;area.style.position='fixed';area.style.opacity='0';document.body.appendChild(area);area.select();try{document.execCommand('copy');}catch(e){}area.remove();return Promise.resolve();
+}
+function recover(){
+ if(ready()||root.querySelector('[data-cresco-stall-recovery]'))return;
+ var hadLoading=!!root.querySelector('.cc-builder-loading');
+ while(root.firstChild)root.removeChild(root.firstChild);
+ var panel=document.createElement('div');panel.className='cc-builder-loading cc-builder-bootstrap-recovery';panel.setAttribute('data-cresco-stall-recovery','1');panel.setAttribute('role','alert');
+ var strong=document.createElement('strong');strong.textContent='Cresco Website Builder could not finish loading.';panel.appendChild(strong);
+ var message=document.createElement('p');message.textContent=hadLoading?'The editor started, but one or more startup requests did not finish. Your saved document has not been changed.':'The editor runtime did not mount correctly. Your saved document has not been changed.';panel.appendChild(message);
+ var actions=document.createElement('div');actions.className='cc-builder-ai-actions';
+ var retry=document.createElement('button');retry.type='button';retry.className='cc-builder-primary';retry.textContent='Retry';retry.addEventListener('click',function(){var url=new URL(window.location.href);url.searchParams.set('cresco-retry',String(Date.now()));window.location.href=url.toString();});actions.appendChild(retry);
+ var copy=document.createElement('button');copy.type='button';copy.className='cc-builder-secondary';copy.textContent='Copy diagnostics';copy.addEventListener('click',function(){copyText(JSON.stringify(diagnostics(),null,2));});actions.appendChild(copy);panel.appendChild(actions);
+ var details=document.createElement('details');var summary=document.createElement('summary');summary.textContent='Diagnostics';details.appendChild(summary);var pre=document.createElement('pre');pre.textContent=JSON.stringify(diagnostics(),null,2);details.appendChild(pre);panel.appendChild(details);root.appendChild(panel);
+ try{window.dispatchEvent(new CustomEvent('cresco:builder-stall-recovery',{detail:diagnostics()}));}catch(e){}
+}
+window.setTimeout(recover,13500);
+})(window,document);
+JS;
+
+		wp_add_inline_script( 'cresco-canvas-website-builder', $watchdog, 'after' );
 	}
 
 	private function asset_version( $path ) {
