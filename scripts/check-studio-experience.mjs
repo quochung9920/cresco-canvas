@@ -24,6 +24,8 @@ const studioFiles = [
 	'runtime-src/build/website-builder-responsive-properties.js',
 	'build/website-builder-pointer-drag.js',
 	'runtime-src/build/website-builder-pointer-drag.js',
+	'build/website-builder-structure-row-drag.js',
+	'runtime-src/build/website-builder-structure-row-drag.js',
 	'assets/css/website-builder-studio.css',
 ];
 for (const relative of studioFiles) if (!exists(relative)) errors.push(`Missing Studio file: ${relative}`);
@@ -32,6 +34,7 @@ for (const pair of [
 	['build/website-builder-studio.js', 'runtime-src/build/website-builder-studio.js', 'Studio runtime source/build parity failed.'],
 	['build/website-builder-responsive-properties.js', 'runtime-src/build/website-builder-responsive-properties.js', 'Responsive property runtime source/build parity failed.'],
 	['build/website-builder-pointer-drag.js', 'runtime-src/build/website-builder-pointer-drag.js', 'Pointer drag runtime source/build parity failed.'],
+	['build/website-builder-structure-row-drag.js', 'runtime-src/build/website-builder-structure-row-drag.js', 'Structure row drag runtime source/build parity failed.'],
 ]) {
 	if (exists(pair[0]) && exists(pair[1]) && hash(read(pair[0])) !== hash(read(pair[1]))) errors.push(pair[2]);
 }
@@ -81,6 +84,18 @@ for (const token of [
 	'application/x-cresco-studio-node',
 ]) expect('runtime-src/build/website-builder-pointer-drag.js', token);
 
+for (const token of [
+	'window.crescoStudioStructureRowDrag',
+	"mode:'row-anywhere-proxy'",
+	'.cc-studio-tree-row[data-cresco-node-id]',
+	'.cc-studio-tree-select',
+	'.cc-studio-tree-actions',
+	'.cc-studio-tree-toggle',
+	'crescoRowProxy',
+	"new window.PointerEvent('pointerdown'",
+	"root.addEventListener('pointerdown'",
+]) expect('runtime-src/build/website-builder-structure-row-drag.js', token);
+
 expect('includes/Plugin.php', 'new WebsiteBuilderStudio()');
 expect('includes/Plugin.php', 'new WebsiteBuilderPlatform()');
 expect('includes/Builder/WebsiteBuilderStudio.php', 'website-builder-responsive-properties.js');
@@ -108,6 +123,7 @@ expect('includes/Builder/WebsiteBuilderStudio.php', "event.key!=='F2'");
 expect('includes/Builder/WebsiteBuilderModuleRegistry.php', 'build/website-builder-studio.js');
 expect('includes/Builder/WebsiteBuilderModuleRegistry.php', 'build/website-builder-responsive-properties.js');
 expect('includes/Builder/WebsiteBuilderModuleRegistry.php', 'build/website-builder-pointer-drag.js');
+expect('includes/Builder/WebsiteBuilderModuleRegistry.php', 'build/website-builder-structure-row-drag.js');
 expect('includes/Builder/WebsiteBuilderModuleRegistry.php', "'coreExtension' => true");
 expect('includes/Builder/WebsiteBuilderRuntimeGuard.php', '.cc-builder-app,.cc-studio-app');
 expect('includes/Builder/WebsiteBuilderRuntimeGuard.php', 'Object.assign({},window.crescoWebsiteBuilderSettings||{}');
@@ -121,10 +137,12 @@ expect('includes/AI/ScopeResolver.php', "'selection-subtrees'");
 expect('includes/Builder/WebsiteBuilderInterchange.php', "'selection-subtrees'");
 expect('scripts/release-files.mjs', 'build/website-builder-responsive-properties.js');
 expect('scripts/release-files.mjs', 'build/website-builder-pointer-drag.js');
+expect('scripts/release-files.mjs', 'build/website-builder-structure-row-drag.js');
 expect('runtime-src/manifest.json', 'website-builder-pointer-drag.js');
+expect('runtime-src/manifest.json', 'website-builder-structure-row-drag.js');
 
 if (errors.length) {
 	process.stderr.write(`${errors.join('\n')}\n`);
 	process.exit(1);
 }
-process.stdout.write('[studio] Canonical Studio runtime ownership, Structure-only widget management, hover-only Structure actions with locked/hidden status icons, pointer-driven Structure/Canvas drag moves through the core move path, property-level responsive controls, source/build parity, Structure 2.0, multi-subtree AI interchange, collaboration foundation and extension contracts verified.\n');
+process.stdout.write('[studio] Canonical Studio runtime ownership, Structure-only widget management, hover-only Structure actions with locked/hidden status icons, row-anywhere pointer drag activation for Structure/Canvas moves through the core move path, property-level responsive controls, source/build parity, Structure 2.0, multi-subtree AI interchange, collaboration foundation and extension contracts verified.\n');
