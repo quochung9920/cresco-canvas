@@ -157,6 +157,7 @@ export const buildFiles = [
 	'build/website-builder-frontend.js',
 	'build/website-builder-preview-fit.js',
 	'build/website-builder-professional-ux.js',
+	'build/website-builder-responsive-properties.js',
 	'build/website-builder-studio.js',
 	'build/widget-control-enhancements.js',
 	'build/widget-inspector-persistent.asset.php',
@@ -212,7 +213,7 @@ export async function collectReleaseFiles( root = process.cwd() ) {
 		...includes,
 		...vendor,
 	];
-	const unique = [ ...new Set( files.map( ( file ) => file.replaceAll( path.sep, '/' ) ) ) ].sort();
+	const unique = [ ...new Set( files.map( ( file ) => file.replaceAll( path.sep, '/' ) ) ].sort();
 	for ( const file of unique ) {
 		const stat = await lstat( path.join( root, file ) );
 		if ( ! stat.isFile() ) throw new Error( `Release allowlist entry is not a regular file: ${ file }` );
