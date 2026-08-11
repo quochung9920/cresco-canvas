@@ -23,8 +23,6 @@ final class PublicRequestAtomicity {
 	private $owned = array();
 
 	public function register() {
-		// SecurityHardening mutates its transients at priority 5. Hold the matching
-		// database mutex immediately around that filter invocation.
 		add_filter( 'rest_pre_dispatch', array( $this, 'acquire' ), 4, 3 );
 		add_filter( 'rest_pre_dispatch', array( $this, 'release' ), 6, 3 );
 	}
@@ -76,11 +74,10 @@ final class PublicRequestAtomicity {
 	}
 
 	private function claim( $key ) {
-		$token = wp_generate_uuid4();
+		$token = function_exists( 'wp_generate_uuid4' ) ? wp_generate_uuid4() : uniqid( 'cresco-', true );
 		for ( $attempt = 0; $attempt < self::RETRIES; $attempt++ ) {
 			$value = $token . '|' . ( microtime( true ) + self::LOCK_TTL );
 			if ( add_option( $key, $value, '', false ) ) return $value;
-
 			$current = (string) get_option( $key, '' );
 			$parts   = explode( '|', $current, 2 );
 			$expires = isset( $parts[1] ) ? (float) $parts[1] : 0.0;
