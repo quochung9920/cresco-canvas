@@ -155,6 +155,7 @@ export const buildFiles = [
 	'build/website-builder-controls.js',
 	'build/website-builder-editor.js',
 	'build/website-builder-frontend.js',
+	'build/website-builder-pointer-drag.js',
 	'build/website-builder-preview-fit.js',
 	'build/website-builder-professional-ux.js',
 	'build/website-builder-responsive-properties.js',
