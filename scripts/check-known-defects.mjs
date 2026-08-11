@@ -51,7 +51,16 @@ for (const token of [
 	'add_option( $key, $value',
 	"'cresco_builder_write_busy'",
 	"'cresco_builder_persistence_mismatch'",
+	"preg_match( '#^/cresco-canvas/v1/session/(\\d+)$#'",
+	'WordPressDocumentRepository',
+	'return $this->repository->checksum( $post_id );',
 ]) expect('includes/Builder/WebsiteBuilderConcurrencyGuard.php', token);
+
+for (const token of [
+	'public function checksum( $document_id )',
+	'public function verify( $document_id, $expected_checksum )',
+	"'cresco_document_storage_verify'",
+]) expect('includes/Infrastructure/WordPress/Storage/WordPressDocumentRepository.php', token);
 
 for (const token of [
 	"critical=(p===paths.session||p===paths.pageSettings)",
@@ -74,4 +83,4 @@ if (errors.length) {
 	process.stderr.write(`${errors.join('\n')}\n`);
 	process.exit(1);
 }
-process.stdout.write('[known-defects] Save races, atomic persistence, single drag ownership, fail-closed startup, hidden preview, auxiliary dirty-state, and safe rich-text preview contracts verified.\n');
+process.stdout.write('[known-defects] Save races, atomic persistence, legacy Session preconditions, single drag ownership, fail-closed startup, hidden preview, auxiliary dirty-state, and safe rich-text preview contracts verified.\n');

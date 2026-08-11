@@ -8,6 +8,7 @@
 namespace CrescoCanvas\Infrastructure\WordPress\Storage;
 
 use CrescoCanvas\Builder\WebsiteBuilder;
+use CrescoCanvas\Core\Document\Document;
 use CrescoCanvas\Core\Storage\DocumentRepository;
 use CrescoCanvas\Session\SessionManager;
 use WP_Error;
@@ -47,6 +48,33 @@ final class WordPressDocumentRepository implements DocumentRepository {
 		if ( ! is_string( $json ) ) return new WP_Error( 'cresco_document_storage_encode', __( 'The Cresco document could not be encoded.', 'cresco-canvas' ), array( 'status' => 500 ) );
 		update_post_meta( $document_id, SessionManager::META_KEY, $json );
 		update_post_meta( $document_id, WebsiteBuilder::BUILDER_META, WebsiteBuilder::BUILDER_VERSION );
+
+		$expected = Document::checksum( $session );
+		$verified = $this->verify( $document_id, $expected );
+		if ( is_wp_error( $verified ) ) return $verified;
+		if ( ! $verified ) {
+			return new WP_Error( 'cresco_document_storage_verify', __( 'The Cresco document write could not be verified.', 'cresco-canvas' ), array( 'status' => 500, 'expectedChecksum' => $expected, 'currentChecksum' => $this->checksum( $document_id ) ) );
+		}
 		return $session;
+	}
+
+	public function checksum( $document_id ) {
+		$document_id = absint( $document_id );
+		if ( ! $document_id ) return '';
+		$session = $this->load( $document_id );
+		if ( is_wp_error( $session ) ) return $session;
+		if ( null === $session ) {
+			$session = WebsiteBuilder::empty_session( $document_id );
+			if ( is_wp_error( $session ) ) return $session;
+		}
+		return Document::checksum( $session );
+	}
+
+	public function verify( $document_id, $expected_checksum ) {
+		$expected_checksum = sanitize_text_field( (string) $expected_checksum );
+		if ( '' === $expected_checksum ) return false;
+		$current = $this->checksum( $document_id );
+		if ( is_wp_error( $current ) ) return $current;
+		return '' !== $current && hash_equals( $expected_checksum, $current );
 	}
 }

@@ -1,14 +1,14 @@
 <?php
 /**
- * Optimistic concurrency and atomic write boundary for canonical Website Builder documents.
+ * Optimistic concurrency and atomic write boundary for canonical Cresco documents.
  *
  * @package CrescoCanvas
  */
 
 namespace CrescoCanvas\Builder;
 
+use CrescoCanvas\Infrastructure\WordPress\Storage\WordPressDocumentRepository;
 use CrescoCanvas\Page\PageSettings;
-use CrescoCanvas\Session\SessionManager;
 use CrescoCanvas\Theme\ThemeBuilder;
 use WP_Error;
 use WP_REST_Request;
@@ -25,6 +25,13 @@ final class WebsiteBuilderConcurrencyGuard {
 
 	/** @var array<int,array{key:string,token:string}> */
 	private $owned = array();
+
+	/** @var WordPressDocumentRepository|null */
+	private $repository;
+
+	public function __construct( $repository = null ) {
+		$this->repository = $repository instanceof WordPressDocumentRepository ? $repository : new WordPressDocumentRepository();
+	}
 
 	public function register() {
 		add_filter( 'rest_pre_dispatch', array( $this, 'guard_session_write' ), 9, 3 );
@@ -54,6 +61,10 @@ final class WebsiteBuilderConcurrencyGuard {
 		$payload = (array) $request->get_json_params();
 		$base    = sanitize_text_field( (string) ( $payload['baseChecksum'] ?? '' ) );
 		$current = $this->current_checksum( $post_id );
+		if ( is_wp_error( $current ) ) {
+			$this->release_request( $request_id );
+			return $current;
+		}
 		if ( '' === $base ) {
 			$this->release_request( $request_id );
 			return new WP_Error(
@@ -86,13 +97,13 @@ final class WebsiteBuilderConcurrencyGuard {
 			$data = is_object( $response ) && method_exists( $response, 'get_data' ) ? (array) $response->get_data() : array();
 			$reported = sanitize_text_field( (string) ( $data['checksum'] ?? '' ) );
 			$current  = $this->current_checksum( $post_id );
-			if ( '' === $reported || '' === $current || ! hash_equals( $current, $reported ) ) {
+			if ( is_wp_error( $current ) || '' === $reported || '' === $current || ! hash_equals( $current, $reported ) ) {
 				$this->release_request( $request_id );
 				return new WP_REST_Response(
 					array(
 						'code'            => 'cresco_builder_persistence_mismatch',
 						'message'         => __( 'The document write could not be verified. Your editor still has the local changes; save again after checking storage.', 'cresco-canvas' ),
-						'currentChecksum' => $current,
+						'currentChecksum' => is_wp_error( $current ) ? '' : $current,
 					),
 					500
 				);
@@ -101,7 +112,6 @@ final class WebsiteBuilderConcurrencyGuard {
 		$this->release_request( $request_id );
 		return $response;
 	}
-
 
 	private function verify_settings_persistence( $response, WP_REST_Request $request ) {
 		if ( 'POST' !== strtoupper( (string) $request->get_method() ) ) return $response;
@@ -127,11 +137,16 @@ final class WebsiteBuilderConcurrencyGuard {
 		return $response;
 	}
 
+	/** Resolve every public Session write path to the same document guard. */
 	private function session_post_id( WP_REST_Request $request ) {
 		$route = (string) $request->get_route();
-		if ( ! preg_match( '#^/cresco-canvas/v1/website-builder/(?:theme-)?session/(\d+)$#', $route, $match ) ) return 0;
-		$post_id = absint( $match[1] ?? 0 );
-		$type    = $post_id ? (string) get_post_type( $post_id ) : '';
+		$post_id = 0;
+		if ( preg_match( '#^/cresco-canvas/v1/session/(\d+)$#', $route, $match ) ) {
+			$post_id = absint( $match[1] ?? 0 );
+		} elseif ( preg_match( '#^/cresco-canvas/v1/website-builder/(?:theme-)?session/(\d+)$#', $route, $match ) ) {
+			$post_id = absint( $match[1] ?? 0 );
+		}
+		$type = $post_id ? (string) get_post_type( $post_id ) : '';
 		return $post_id && in_array( $type, array( 'page', ThemeBuilder::POST_TYPE ), true ) ? $post_id : 0;
 	}
 
@@ -165,11 +180,6 @@ final class WebsiteBuilderConcurrencyGuard {
 	}
 
 	private function current_checksum( $post_id ) {
-		$raw     = (string) get_post_meta( $post_id, SessionManager::META_KEY, true );
-		$decoded = '' !== $raw ? json_decode( $raw, true ) : null;
-		$session = is_array( $decoded ) ? WebsiteBuilder::sanitize_session( $decoded ) : WebsiteBuilder::empty_session( $post_id );
-		if ( is_wp_error( $session ) ) return '';
-		$json = wp_json_encode( $session, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE );
-		return is_string( $json ) ? hash( 'sha256', $json ) : '';
+		return $this->repository->checksum( $post_id );
 	}
 }
