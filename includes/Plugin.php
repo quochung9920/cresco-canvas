@@ -22,6 +22,7 @@ use CrescoCanvas\Builder\WebsiteBuilderComprehensiveV3;
 use CrescoCanvas\Builder\WebsiteBuilderInterchange;
 use CrescoCanvas\Builder\WebsiteBuilderProfessionalUx;
 use CrescoCanvas\Builder\WebsiteBuilderRendererParity;
+use CrescoCanvas\Builder\WebsiteBuilderRuntimeGuard;
 use CrescoCanvas\Builder\WebsiteBuilderWorkflowExtensions;
 use CrescoCanvas\Commercial\CommercialManager;
 use CrescoCanvas\Dynamic\AdvancedDynamicData;
@@ -103,6 +104,7 @@ final class Plugin {
 		( new EditorExperience() )->register();
 		( new WebsiteBuilder() )->register();
 		( new WebsiteBuilderBootstrapResilience() )->register();
+		( new WebsiteBuilderRuntimeGuard() )->register();
 		( new WebsiteBuilderCompatibility() )->register();
 		( new WebsiteBuilderRendererParity() )->register();
 		( new WebsiteBuilderProfessionalUx() )->register();
