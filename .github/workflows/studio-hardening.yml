@@ -1,0 +1,82 @@
+name: Studio Hardening
+
+on:
+  push:
+    branches:
+      - main
+      - fix/studio-hardening-audit
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: studio-hardening-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  static:
+    name: Studio source and contract gates
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          tools: composer:v2
+          coverage: none
+      - run: npm ci --no-audit --no-fund
+      - run: composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist
+      - run: npm run lint:runtime
+      - run: npm run check:studio
+      - name: Clean source build
+        shell: bash
+        run: |
+          rm -rf build
+          npm run build
+      - run: npm run lint:runtime
+      - run: npm run check:build-integrity
+      - run: npm run check:studio
+      - name: PHP syntax
+        shell: bash
+        run: find includes tests/php -type f -name '*.php' -print0 | sort -z | xargs -0 -n1 php -l
+
+  browser:
+    name: Studio browser hardening
+    needs: static
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          tools: composer:v2
+          coverage: none
+      - run: npm ci --no-audit --no-fund
+      - run: composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist
+      - run: npm run build
+      - run: npx playwright install --with-deps chromium
+      - run: npx wp-env start --update
+      - name: Studio concurrency and drag flows
+        run: npx playwright test tests/e2e/studio-hardening.spec.ts --project=chromium --workers=1
+      - name: Upload evidence
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: studio-hardening-${{ github.sha }}
+          path: |
+            playwright-report
+            test-results
+          if-no-files-found: ignore
+      - name: Cleanup
+        if: ${{ always() }}
+        run: npx wp-env destroy
