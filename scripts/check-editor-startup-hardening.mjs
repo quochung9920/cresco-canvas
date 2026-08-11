@@ -7,12 +7,14 @@ const errors = [];
 const hash = ( value ) => createHash( 'sha256' ).update( value ).digest( 'hex' );
 const read = ( file ) => readFile( file, 'utf8' );
 
-const [ editorSource, editorBuild, bootstrapSource, bootstrapBuild, resilience ] = await Promise.all( [
+const [ editorSource, editorBuild, bootstrapSource, bootstrapBuild, resilience, editorConfig, runtimeContext ] = await Promise.all( [
 	read( 'runtime-src/build/website-builder-editor.js' ),
 	read( 'build/website-builder-editor.js' ),
 	read( 'runtime-src/build/website-builder-bootstrap.js' ),
 	read( 'build/website-builder-bootstrap.js' ),
 	read( 'includes/Builder/WebsiteBuilderBootstrapResilience.php' ),
+	read( 'includes/Builder/WebsiteBuilderEditorConfig.php' ),
+	read( 'includes/Builder/WebsiteBuilderRuntimeContext.php' ),
 ] );
 
 for ( const file of [
@@ -41,9 +43,7 @@ for ( const token of [
 ] ) if ( ! editorSource.includes( token ) ) errors.push( `Editor startup hardening missing ${ token }` );
 
 if ( editorSource.includes( 'Promise.all(requests)' ) ) errors.push( 'Editor must not block startup on monolithic Promise.all(requests).' );
-if ( editorSource.includes( "var requests=[apiFetch({path:settings.sessionPath}),apiFetch({path:settings.contextPath})" ) ) {
-	errors.push( 'Session must not be bundled with optional startup requests.' );
-}
+if ( editorSource.includes( "var requests=[apiFetch({path:settings.sessionPath}),apiFetch({path:settings.contextPath})" ) ) errors.push( 'Session must not be bundled with optional startup requests.' );
 
 for ( const token of [
 	'new AbortController()',
@@ -58,17 +58,27 @@ for ( const token of [
 ] ) if ( ! bootstrapSource.includes( token ) ) errors.push( `Abortable bootstrap missing ${ token }` );
 
 for ( const token of [
-	"ThemeSessionBridge::PAGE_SLUG",
+	'WebsiteBuilderRuntimeContext::from_request',
+	'WebsiteBuilderEditorConfig::bootstrap_paths',
+	'bootstrap.middlewareInstalled&&bootstrap.abortable',
+	'attach_observer_guards',
+	'window.crescoRuntimeState',
+] ) if ( ! resilience.includes( token ) ) errors.push( `Bootstrap resilience boundary missing ${ token }` );
+
+for ( const token of [
 	"'/cresco-canvas/v1/website-builder/theme-session/'",
 	"'/cresco-canvas/v1/website-builder/theme-context/'",
 	"'/cresco-canvas/v1/website-builder/theme-page-settings/'",
-	'bootstrap.middlewareInstalled&&bootstrap.abortable',
-	'attach_observer_guards',
-] ) if ( ! resilience.includes( token ) ) errors.push( `Bootstrap resilience boundary missing ${ token }` );
+	"'/cresco-canvas/v1/website-builder/theme-history/'",
+] ) if ( ! editorConfig.includes( token ) ) errors.push( `Canonical editor config missing ${ token }` );
+
+for ( const token of [ 'VisualEditor::PAGE_SLUG', 'ThemeSessionBridge::PAGE_SLUG', "current_user_can( 'edit_post', $post_id )" ] ) {
+	if ( ! runtimeContext.includes( token ) ) errors.push( `Runtime context authorization missing ${ token }` );
+}
 
 if ( errors.length ) {
 	process.stderr.write( `${ errors.join( '\n' ) }\n` );
 	process.exit( 1 );
 }
 
-process.stdout.write( 'Website Builder critical boot, abortable optional/Architecture requests, source/build parity, form accessibility, lazy media, and observer stability contracts verified.\n' );
+process.stdout.write( 'Website Builder critical boot, canonical editor config, abortable optional/Architecture requests, source/build parity, form accessibility, lazy media, and observer stability contracts verified.\n' );

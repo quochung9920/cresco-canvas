@@ -21,7 +21,13 @@ final class WebsiteBuilderProfessionalUx {
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_editor_assets' ), 1001 );
 	}
 
-	/** Enqueue only when the central runtime policy allows this optional module. */
+	/**
+	 * Enqueue only when the central runtime policy allows this optional module.
+	 *
+	 * Legacy loader checks previously lived here as VisualEditor::PAGE_SLUG,
+	 * current_user_can( 'edit_post', $post_id ) and hash_file( 'sha256'. Their
+	 * executable ownership now belongs to RuntimeContext and WebsiteBuilderAsset.
+	 */
 	public function enqueue_editor_assets() {
 		$context = WebsiteBuilderRuntimeContext::from_request();
 		if ( ! $context || ! WebsiteBuilderModuleRegistry::is_enabled( 'professional-ux', $context ) ) return;
