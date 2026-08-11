@@ -22,9 +22,14 @@ final class WebsiteBuilderRuntimeOwner {
 	const SCRIPT           = 'build/website-builder-studio.js';
 	const POINTER_HANDLE   = 'cresco-canvas-website-builder-pointer-drag';
 	const STRUCTURE_HANDLE = 'cresco-canvas-website-builder-structure-row-drag';
+	const AJAX_ACTION      = 'cresco_canvas_studio_runtime';
 
 	/** Register ownership before, during, and after compatibility policy runs. */
 	public function register() {
+		// Serve the canonical Studio source through WordPress so a known generated
+		// syntax defect can be repaired before the browser parser sees the file.
+		add_action( 'wp_ajax_' . self::AJAX_ACTION, array( $this, 'serve_runtime' ) );
+
 		// Claim the public handle before WebsiteBuilder::enqueue_editor() (120), so
 		// its retired source can never become the registered implementation.
 		add_action( 'admin_enqueue_scripts', array( $this, 'claim_runtime_handle' ), 119 );
@@ -41,6 +46,46 @@ final class WebsiteBuilderRuntimeOwner {
 		// RuntimeGuard applies the module policy at 1400. Verify that the required
 		// drag extensions are actually registered and enqueued after that policy.
 		add_action( 'admin_enqueue_scripts', array( $this, 'verify_drag_extensions' ), 1410 );
+	}
+
+	/**
+	 * Serve the generated Studio runtime after repairing the known malformed
+	 * spacing-control closure. This keeps the browser on the canonical Studio
+	 * implementation while the generated artifact remains content-addressed.
+	 */
+	public function serve_runtime() {
+		if ( ! current_user_can( 'edit_pages' ) ) {
+			status_header( 403 );
+			exit;
+		}
+
+		$path = WebsiteBuilderAsset::absolute( self::SCRIPT );
+		if ( ! is_readable( $path ) ) {
+			status_header( 404 );
+			exit;
+		}
+
+		$source = file_get_contents( $path );
+		if ( ! is_string( $source ) || '' === $source ) {
+			status_header( 500 );
+			exit;
+		}
+
+		// Generated Page Settings spacingControl() missed the h('label') closing
+		// parenthesis before the .map() callback closes. Repair exactly that token
+		// sequence. Once the checked-in artifact is regenerated correctly this
+		// replacement becomes a no-op and the endpoint simply serves the source.
+		$malformed = "setPageSettings(n)}})})),h('select'";
+		$corrected = "setPageSettings(n)}}))})),h('select'";
+		$repairs   = 0;
+		$source    = str_replace( $malformed, $corrected, $source, $repairs );
+
+		nocache_headers();
+		header( 'Content-Type: application/javascript; charset=UTF-8' );
+		header( 'X-Content-Type-Options: nosniff' );
+		header( 'X-Cresco-Studio-Syntax-Repair: ' . ( $repairs > 0 ? '1' : '0' ) );
+		echo $source; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- JavaScript asset bytes.
+		exit;
 	}
 
 	/** Register Cresco Studio on the public handle before any retired owner runs. */
@@ -97,22 +142,36 @@ final class WebsiteBuilderRuntimeOwner {
 		$scripts = wp_scripts();
 		if ( ! $scripts ) return;
 
+		$runtime_url = $this->runtime_url();
+		$version     = WebsiteBuilderAsset::version( self::SCRIPT );
+
 		if ( ! isset( $scripts->registered[ self::HANDLE ] ) ) {
 			wp_register_script(
 				self::HANDLE,
-				WebsiteBuilderAsset::url( self::SCRIPT ),
+				$runtime_url,
 				$dependencies,
-				WebsiteBuilderAsset::version( self::SCRIPT ),
+				$version,
 				true
 			);
 		} else {
 			$registered       = $scripts->registered[ self::HANDLE ];
-			$registered->src  = WebsiteBuilderAsset::url( self::SCRIPT );
+			$registered->src  = $runtime_url;
 			$registered->deps = $dependencies;
-			$registered->ver  = WebsiteBuilderAsset::version( self::SCRIPT );
+			$registered->ver  = $version;
 		}
 
 		wp_enqueue_script( self::HANDLE );
+	}
+
+	/** Return the authenticated, cache-busted JavaScript transport URL. */
+	private function runtime_url() {
+		return add_query_arg(
+			array(
+				'action'       => self::AJAX_ACTION,
+				'studio_asset' => WebsiteBuilderAsset::version( self::SCRIPT ),
+			),
+			admin_url( 'admin-ajax.php' )
+		);
 	}
 
 	/** Ensure Canvas and Structure movement modules are present after policy. */
@@ -156,6 +215,7 @@ final class WebsiteBuilderRuntimeOwner {
 		$payload = array(
 			'expectedRuntime' => 'studio',
 			'canonicalScript' => self::SCRIPT,
+			'runtimeTransport'=> 'authenticated-syntax-guard',
 			'registeredSrc'   => $runtime ? (string) $runtime->src : '',
 			'pointerDrag'     => wp_script_is( self::POINTER_HANDLE, 'enqueued' ),
 			'structureDrag'   => wp_script_is( self::STRUCTURE_HANDLE, 'enqueued' ),
