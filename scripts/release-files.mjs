@@ -25,6 +25,7 @@ export const releaseDocs = [
 	'docs/RELEASE_CHECKLIST.md',
 	'docs/RELEASE_ENGINEERING.md',
 	'docs/SECURITY.md',
+	'docs/STUDIO_EDITOR_EXPERIENCE_2.md',
 	'docs/UPGRADE_ROLLBACK.md',
 	'docs/WEBSITE_BUILDER_CORE.md',
 	'docs/WEBSITE_BUILDER_V3.md',
@@ -77,6 +78,7 @@ export const assetFiles = [
 	'assets/css/website-builder-controls.css',
 	'assets/css/website-builder-frontend.css',
 	'assets/css/website-builder-professional-ux.css',
+	'assets/css/website-builder-studio.css',
 	'assets/css/widget-control-enhancements.css',
 	'assets/css/widget-inspector-persistent.css',
 ];
@@ -155,6 +157,7 @@ export const buildFiles = [
 	'build/website-builder-frontend.js',
 	'build/website-builder-preview-fit.js',
 	'build/website-builder-professional-ux.js',
+	'build/website-builder-studio.js',
 	'build/widget-control-enhancements.js',
 	'build/widget-inspector-persistent.asset.php',
 	'build/widget-inspector-persistent.js',
