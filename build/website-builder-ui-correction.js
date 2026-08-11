@@ -4,17 +4,10 @@ var root=document.getElementById('cresco-canvas-standalone-editor');
 if(!root)return;
 var NS='http://www.w3.org/2000/svg';
 var order=['wide','desktop','laptop','tablet','mobile'];
-var meta={
- wide:{label:'Wide',width:1920},
- desktop:{label:'Desktop',width:1440},
- laptop:{label:'Laptop',width:1366},
- tablet:{label:'Tablet',width:768},
- mobile:{label:'Mobile',width:390}
-};
+var meta={wide:{label:'Wide',width:1920},desktop:{label:'Desktop',width:1440},laptop:{label:'Laptop',width:1366},tablet:{label:'Tablet',width:768},mobile:{label:'Mobile',width:390}};
 var settings=window.crescoWebsiteBuilderSettings||{};
 var widths=Object.assign({},Object.keys(meta).reduce(function(out,key){out[key]=meta[key].width;return out;},{}),settings.previewWidths||{});
 var scheduled=false;
-
 function all(selector,scope){return Array.prototype.slice.call((scope||root).querySelectorAll(selector));}
 function text(node){return node?String(node.textContent||'').trim():'';}
 function svgNode(name,attrs){var node=document.createElementNS(NS,name);Object.keys(attrs||{}).forEach(function(key){node.setAttribute(key,String(attrs[key]));});return node;}
@@ -22,74 +15,22 @@ function line(svg,x1,y1,x2,y2){svg.appendChild(svgNode('line',{x1:x1,y1:y1,x2:x2
 function rect(svg,x,y,width,height,rx){svg.appendChild(svgNode('rect',{x:x,y:y,width:width,height:height,rx:rx||0}));}
 function path(svg,d){svg.appendChild(svgNode('path',{d:d}));}
 function circle(svg,cx,cy,r){svg.appendChild(svgNode('circle',{cx:cx,cy:cy,r:r}));}
-function deviceSvg(id){
- var svg=svgNode('svg',{viewBox:'0 0 24 18','aria-hidden':'true','focusable':'false','data-cresco-device-icon':id});
- svg.classList.add('cc-cresco-device-icon');
- if(id==='wide'){
-  rect(svg,1,2,22,11,1.5);line(svg,7,15,17,15);line(svg,10,13.5,10,15);line(svg,14,13.5,14,15);line(svg,5,17,19,17);
- }else if(id==='desktop'){
-  rect(svg,3,2,18,11,1.5);line(svg,12,13,12,16);line(svg,8,16,16,16);
- }else if(id==='laptop'){
-  rect(svg,4,2,16,10,1.4);path(svg,'M2.5 14.2h19l-1.8 2H4.3z');line(svg,10,15.2,14,15.2);
- }else if(id==='tablet'){
-  rect(svg,6.5,1,11,16,1.8);line(svg,10,14.5,14,14.5);
- }else{
-  rect(svg,8,1,8,16,2);circle(svg,12,14.5,.55);
- }
- return svg;
-}
-function deviceId(button,index){
- var explicit=button&&button.dataset?button.dataset.device||button.dataset.crescoDevice:'';
- if(explicit&&meta[explicit])return explicit;
- var name=String(button&&button.getAttribute&&(button.getAttribute('aria-label')||button.getAttribute('title'))||'').toLowerCase();
- for(var i=0;i<order.length;i++){
-  var id=order[i];
-  if(name===id||name===meta[id].label.toLowerCase()||name.indexOf(id)===0)return id;
- }
- return order[index]||'desktop';
-}
-function decorateButton(button,id){
- if(!button||!meta[id])return;
- button.dataset.crescoDevice=id;
- all('.dashicons',button).forEach(function(icon){icon.remove();});
- var current=button.querySelector('svg[data-cresco-device-icon]');
- if(!current||current.getAttribute('data-cresco-device-icon')!==id){
-  if(current)current.remove();
-  button.insertBefore(deviceSvg(id),button.firstChild||null);
- }
- button.title=meta[id].label+' · '+String(widths[id]||meta[id].width)+'px';
-}
-function activeToolbarDevice(){
- var buttons=all('.cc-studio-device-toolbar button');
- for(var i=0;i<buttons.length;i++)if(buttons[i].classList.contains('is-active'))return deviceId(buttons[i],i);
- return buttons.length?deviceId(buttons[0],0):'wide';
-}
-function decorateResponsive(){
- all('.cc-studio-device-toolbar button').forEach(function(button,index){decorateButton(button,deviceId(button,index));});
- all('.cc-studio-property-device').forEach(function(button,index){decorateButton(button,deviceId(button,index));});
- var active=activeToolbarDevice(),widthNode=root.querySelector('.cc-studio-width');
- if(widthNode){
-  var value=meta[active].label+' · '+String(widths[active]||meta[active].width)+'px';
-  if(text(widthNode)!==value)widthNode.textContent=value;
-  widthNode.dataset.crescoBreakpointLabel='1';
- }
-}
-function decorateStructure(){
- all('.cc-studio-tree-label').forEach(function(label){
-  var value=text(label);
-  if(value&&label.title!==value)label.title=value;
- });
- all('.cc-studio-tree-row').forEach(function(row){
-  var label=row.querySelector('.cc-studio-tree-label'),more=row.querySelector('.cc-studio-tree-actions button:last-child');
-  if(label&&more){
-   var name=text(label);
-   if(name)more.setAttribute('aria-label','More actions for '+name);
-  }
- });
-}
-function apply(){scheduled=false;decorateResponsive();decorateStructure();window.crescoStudioUiCorrection={version:'1.0.0',structure:'tree-grid-v2',responsiveIcons:'cresco-device-v1',breakpointLabel:true,appliedAt:Date.now()};}
+function deviceSvg(id){var svg=svgNode('svg',{viewBox:'0 0 24 18','aria-hidden':'true','focusable':'false','data-cresco-device-icon':id});svg.classList.add('cc-cresco-device-icon');if(id==='wide'){rect(svg,1,2,22,11,1.5);line(svg,7,15,17,15);line(svg,10,13.5,10,15);line(svg,14,13.5,14,15);line(svg,5,17,19,17);}else if(id==='desktop'){rect(svg,3,2,18,11,1.5);line(svg,12,13,12,16);line(svg,8,16,16,16);}else if(id==='laptop'){rect(svg,4,2,16,10,1.4);path(svg,'M2.5 14.2h19l-1.8 2H4.3z');line(svg,10,15.2,14,15.2);}else if(id==='tablet'){rect(svg,6.5,1,11,16,1.8);line(svg,10,14.5,14,14.5);}else{rect(svg,8,1,8,16,2);circle(svg,12,14.5,.55);}return svg;}
+function deviceId(button,index){var explicit=button&&button.dataset?button.dataset.device||button.dataset.crescoDevice:'';if(explicit&&meta[explicit])return explicit;var name=String(button&&button.getAttribute&&(button.getAttribute('aria-label')||button.getAttribute('title'))||'').toLowerCase();for(var i=0;i<order.length;i++){var id=order[i];if(name===id||name===meta[id].label.toLowerCase()||name.indexOf(id)===0)return id;}return order[index]||'desktop';}
+function decorateButton(button,id){if(!button||!meta[id])return;button.dataset.crescoDevice=id;all('.dashicons',button).forEach(function(icon){icon.remove();});var current=button.querySelector('svg[data-cresco-device-icon]');if(!current||current.getAttribute('data-cresco-device-icon')!==id){if(current)current.remove();button.insertBefore(deviceSvg(id),button.firstChild||null);}button.title=meta[id].label+' · '+String(widths[id]||meta[id].width)+'px';}
+function activeToolbarDevice(){var buttons=all('.cc-studio-device-toolbar button');for(var i=0;i<buttons.length;i++)if(buttons[i].classList.contains('is-active'))return deviceId(buttons[i],i);return buttons.length?deviceId(buttons[0],0):'wide';}
+function decorateResponsive(){all('.cc-studio-device-toolbar button').forEach(function(button,index){decorateButton(button,deviceId(button,index));});all('.cc-studio-property-device').forEach(function(button,index){decorateButton(button,deviceId(button,index));});var active=activeToolbarDevice(),widthNode=root.querySelector('.cc-studio-width');if(widthNode){var value=meta[active].label+' · '+String(widths[active]||meta[active].width)+'px';if(text(widthNode)!==value)widthNode.textContent=value;widthNode.dataset.crescoBreakpointLabel='1';}}
+function decorateStructure(){all('.cc-studio-tree-label').forEach(function(label){var value=text(label);if(value&&label.title!==value)label.title=value;});all('.cc-studio-tree-row').forEach(function(row){var label=row.querySelector('.cc-studio-tree-label'),more=row.querySelector('.cc-studio-tree-actions button:last-child');if(label&&more){var name=text(label);if(name)more.setAttribute('aria-label','More actions for '+name);}});}
+function installHardeningStyles(){if(document.getElementById('cresco-studio-ui-hardening-styles'))return;var style=document.createElement('style');style.id='cresco-studio-ui-hardening-styles';style.textContent='.cc-studio-canvas-node.is-cresco-globally-hidden-preview{min-height:54px!important;border:1px dashed #c9ced8!important;background:#f7f8fa!important;color:#667085!important;opacity:.72;display:flex!important;align-items:center;justify-content:center;padding:12px}.cc-studio-canvas-node.is-cresco-globally-hidden-preview>:not(.cc-studio-canvas-toolbar){display:none!important}.cc-studio-canvas-node.is-cresco-globally-hidden-preview:after{content:"Hidden globally";font:600 12px/1.3 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;letter-spacing:.01em}.cc-studio-canvas-node.is-cresco-globally-hidden-preview.is-selected{outline:2px solid var(--cc-accent)!important;opacity:.9}.cc-studio-aux-dirty-badge{display:inline-flex;align-items:center;min-height:26px;padding:2px 8px;border:1px solid rgba(253,176,34,.45);border-radius:999px;background:rgba(253,176,34,.1);color:#fdb022;font-size:10px;font-weight:700;white-space:nowrap}';document.head.appendChild(style);}
+function hiddenMap(){var guard=window.crescoStudioConsistencyGuard,session=guard&&guard.latestSession,map={};function walk(nodes){(Array.isArray(nodes)?nodes:[]).forEach(function(node){if(node&&node.id){map[node.id]=!!(node.meta&&node.meta.hidden);walk(node.children);}});}if(session&&session.schema==='cresco-session/v1')walk(session.nodes);return map;}
+function decorateVisibility(){var hidden=hiddenMap();all('.cc-studio-canvas-node[data-cresco-id]').forEach(function(node){var isHidden=!!hidden[node.getAttribute('data-cresco-id')];node.classList.toggle('is-cresco-globally-hidden-preview',isHidden);if(isHidden)node.setAttribute('data-cresco-global-hidden','1');else node.removeAttribute('data-cresco-global-hidden');});}
+function decorateDirtyState(){var app=root.querySelector('.cc-studio-app'),guard=window.crescoStudioConsistencyGuard;if(!app||!guard)return;var dirty=!!(guard.auxDirty&&(guard.auxDirty.pageSettings||guard.auxDirty.globalSettings)),actions=app.querySelector('.cc-studio-top-actions'),badge=app.querySelector('.cc-studio-aux-dirty-badge');app.classList.toggle('has-cresco-aux-dirty',dirty);if(dirty&&actions&&!badge){badge=document.createElement('span');badge.className='cc-studio-aux-dirty-badge';badge.textContent='Unsaved settings';badge.title='Page Settings or Global Design has unsaved changes';actions.insertBefore(badge,actions.firstChild||null);}else if(!dirty&&badge)badge.remove();}
+function apply(){scheduled=false;decorateResponsive();decorateStructure();decorateVisibility();decorateDirtyState();window.crescoStudioUiCorrection={version:'1.1.0',structure:'tree-grid-v2',responsiveIcons:'cresco-device-v1',breakpointLabel:true,globalHiddenPreview:true,appliedAt:Date.now()};}
 function schedule(){if(scheduled)return;scheduled=true;window.requestAnimationFrame(apply);}
+installHardeningStyles();
 apply();
 if(window.MutationObserver)new window.MutationObserver(schedule).observe(root,{childList:true,subtree:true,attributes:true,attributeFilter:['class']});
 window.addEventListener('cresco:studio-session-change',schedule);
+window.addEventListener('cresco:studio-ready',schedule);
+window.addEventListener('cresco:studio-consistency-change',schedule);
 })(window,document);
