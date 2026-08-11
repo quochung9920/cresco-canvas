@@ -72,7 +72,7 @@ final class WebsiteBuilderRuntimeOwner {
 				if (
 					! is_array( $function )
 					|| ! isset( $function[0], $function[1] )
-					|| ! $function[0] instanceof WebsiteBuilderCompatibility
+					|| ! ( $function[0] instanceof WebsiteBuilderCompatibility )
 					|| 'render_editor_bootstrap_watchdog' !== $function[1]
 				) {
 					continue;
@@ -126,12 +126,15 @@ final class WebsiteBuilderRuntimeOwner {
 		$module = WebsiteBuilderModuleRegistry::get( 'pointer-drag' );
 		if ( ! is_array( $module ) || ! WebsiteBuilderModuleRegistry::is_enabled( 'pointer-drag', $context ) ) return;
 
+		$scripts = wp_scripts();
+		if ( ! $scripts ) return;
+
 		foreach ( isset( $module['scripts'] ) && is_array( $module['scripts'] ) ? $module['scripts'] : array() as $asset ) {
 			if ( empty( $asset['handle'] ) || empty( $asset['file'] ) || ! WebsiteBuilderAsset::readable( $asset['file'] ) ) continue;
 
 			$handle = (string) $asset['handle'];
-			if ( ! wp_script_is( $handle, 'registered' ) ) {
-				$deps = isset( $asset['deps'] ) && is_array( $asset['deps'] ) ? $asset['deps'] : array( self::HANDLE );
+			$deps   = isset( $asset['deps'] ) && is_array( $asset['deps'] ) ? $asset['deps'] : array( self::HANDLE );
+			if ( ! isset( $scripts->registered[ $handle ] ) ) {
 				wp_register_script(
 					$handle,
 					WebsiteBuilderAsset::url( $asset['file'] ),
@@ -140,15 +143,20 @@ final class WebsiteBuilderRuntimeOwner {
 					true
 				);
 			} else {
-				WebsiteBuilderAsset::refresh_registered_script( $handle, $asset['file'] );
+				$registered       = $scripts->registered[ $handle ];
+				$registered->src  = WebsiteBuilderAsset::url( $asset['file'] );
+				$registered->deps = $deps;
+				$registered->ver  = WebsiteBuilderAsset::version( $asset['file'] );
 			}
 
 			wp_enqueue_script( $handle );
 		}
 
+		$runtime = isset( $scripts->registered[ self::HANDLE ] ) ? $scripts->registered[ self::HANDLE ] : null;
 		$payload = array(
 			'expectedRuntime' => 'studio',
 			'canonicalScript' => self::SCRIPT,
+			'registeredSrc'   => $runtime ? (string) $runtime->src : '',
 			'pointerDrag'     => wp_script_is( self::POINTER_HANDLE, 'enqueued' ),
 			'structureDrag'   => wp_script_is( self::STRUCTURE_HANDLE, 'enqueued' ),
 			'legacyWatchdog'  => false,
