@@ -54,7 +54,8 @@ final class WebsiteBuilderRuntimeOwner {
 	 * implementation while the generated artifact remains content-addressed.
 	 */
 	public function serve_runtime() {
-		if ( ! current_user_can( 'edit_pages' ) ) {
+		$post_id = isset( $_GET['post_id'] ) ? absint( wp_unslash( $_GET['post_id'] ) ) : 0; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only authenticated asset request.
+		if ( ! $post_id || 'page' !== get_post_type( $post_id ) || ! current_user_can( 'edit_post', $post_id ) ) {
 			status_header( 403 );
 			exit;
 		}
@@ -165,9 +166,13 @@ final class WebsiteBuilderRuntimeOwner {
 
 	/** Return the authenticated, cache-busted JavaScript transport URL. */
 	private function runtime_url() {
+		$context = WebsiteBuilderRuntimeContext::from_request();
+		$post_id = $context ? $context->post_id() : 0;
+
 		return add_query_arg(
 			array(
 				'action'       => self::AJAX_ACTION,
+				'post_id'      => $post_id,
 				'studio_asset' => WebsiteBuilderAsset::version( self::SCRIPT ),
 			),
 			admin_url( 'admin-ajax.php' )
