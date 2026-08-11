@@ -5,6 +5,7 @@ on:
     branches:
       - main
       - fix/studio-hardening-audit
+      - fix/structure-responsive-ui
   pull_request:
   workflow_dispatch:
 
@@ -34,6 +35,7 @@ jobs:
       - run: composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist
       - run: npm run lint:runtime
       - run: npm run check:studio
+      - run: npm run check:studio-ui
       - name: Clean source build
         shell: bash
         run: |
@@ -42,6 +44,7 @@ jobs:
       - run: npm run lint:runtime
       - run: npm run check:build-integrity
       - run: npm run check:studio
+      - run: npm run check:studio-ui
       - name: PHP syntax
         shell: bash
         run: find includes tests/php -type f -name '*.php' -print0 | sort -z | xargs -0 -n1 php -l
@@ -66,8 +69,8 @@ jobs:
       - run: npm run build
       - run: npx playwright install --with-deps chromium
       - run: npx wp-env start --update
-      - name: Studio concurrency and drag flows
-        run: npx playwright test tests/e2e/studio-hardening.spec.ts --project=chromium --workers=1
+      - name: Studio concurrency, drag and UI correction flows
+        run: npx playwright test tests/e2e/studio-hardening.spec.ts tests/e2e/studio-ui-correction.spec.ts --project=chromium --workers=1
       - name: Upload evidence
         if: ${{ always() }}
         uses: actions/upload-artifact@v4
