@@ -63,7 +63,7 @@ final class WebsiteBuilderModuleRegistry {
 
 	public static function get( $key ) {
 		$all = self::all();
-		return $all[ $key] ?? null;
+		return $all[ $key ] ?? null;
 	}
 
 	/** Determine the only module keys allowed to execute for this request. */
