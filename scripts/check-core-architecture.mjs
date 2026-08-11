@@ -27,6 +27,7 @@ const phpFiles = [
 	'includes/Core/Storage/DocumentRepository.php',
 	'includes/Core/Module/ModuleRegistry.php',
 	'includes/Infrastructure/WordPress/Storage/WordPressDocumentRepository.php',
+	'includes/Styles/StyleCascade.php',
 	'includes/Rendering/RenderEngine.php',
 	'includes/Application/BuilderArchitecture.php',
 	'includes/AI/ContractRegistry.php',
@@ -48,7 +49,7 @@ for ( const file of [ 'runtime-src/build/website-builder-architecture.js', 'buil
 }
 if ( hash( source ) !== hash( build ) ) errors.push( 'Architecture runtime source/build mismatch.' );
 const phpCorpus = ( await Promise.all( phpFiles.map( read ) ) ).join( '\n' );
-for ( const token of [ 'cresco-ai-context/v2', 'ScopeEngine', 'CommandBus', 'TransactionManager', 'RenderEngine', 'UiRegistry', 'WidgetRegistry', 'DocumentRepository', 'ModuleRegistry', 'cresco-command/v1', 'cresco-transaction/v1', 'cresco_command_scope_mismatch' ] ) {
+for ( const token of [ 'cresco-ai-context/v2', 'ScopeEngine', 'CommandBus', 'TransactionManager', 'StyleCascade', 'RenderEngine', 'UiRegistry', 'WidgetRegistry', 'DocumentRepository', 'ModuleRegistry', 'cresco-command/v1', 'cresco-transaction/v1', 'cresco_command_scope_mismatch' ] ) {
 	if ( ! phpCorpus.includes( token ) ) errors.push( `Architecture PHP missing ${ token }` );
 }
 for ( const token of [ 'metaKey||e.ctrlKey', 'crescoBuilderArchitecture', 'addCommand', 'data-cresco-zone', 'Scoped AI', 'Authoritative Renderer Preview', 'Cresco Documents', 'selection' ] ) {
@@ -77,6 +78,10 @@ const transactions = await read( 'includes/Core/Command/TransactionManager.php' 
 for ( const token of [ 'cresco-transaction/v1', 'CommandBus::preview', 'DiffEngine::compare', 'beforeChecksum', 'afterChecksum' ] ) {
 	if ( ! transactions.includes( token ) ) errors.push( `TransactionManager missing ${ token }` );
 }
+const styleCascade = await read( 'includes/Styles/StyleCascade.php' );
+for ( const token of [ "const BREAKPOINTS = array( 'wide', 'desktop', 'laptop', 'tablet', 'mobile' )", "const SOURCES     = array( 'token', 'global', 'component', 'local' )", 'previousBreakpoint', 'explicitAtCurrent', "return 'clamp('" ] ) {
+	if ( ! styleCascade.includes( token ) ) errors.push( `StyleCascade missing ${ token }` );
+}
 
 const renderEngine = await read( 'includes/Rendering/RenderEngine.php' );
 if ( ! renderEngine.includes( 'WebsiteBuilderRendererParity::repair_document_html' ) ) errors.push( 'RenderEngine must finalize native Form parity before returning HTML.' );
@@ -98,6 +103,7 @@ for ( const token of [ '/website-builder/theme-history/', 'ThemeBuilder::POST_TY
 }
 const repository = await read( 'includes/Infrastructure/WordPress/Storage/WordPressDocumentRepository.php' );
 if ( ! repository.includes( "'header', 'footer', 'single', 'page', 'archive', 'search', '404'" ) ) errors.push( 'WordPress document type mapping must preserve Theme page templates.' );
+for ( const token of [ 'public function checksum( $document_id )', 'public function verify( $document_id, $expected_checksum )', "'cresco_document_storage_verify'" ] ) if ( ! repository.includes( token ) ) errors.push( `Document repository missing ${ token }` );
 
 const plugin = await read( 'includes/Plugin.php' );
 if ( ! plugin.includes( 'BuilderArchitecture' ) || ! plugin.includes( '( new BuilderArchitecture() )->register();' ) ) errors.push( 'Plugin does not register BuilderArchitecture.' );
@@ -115,4 +121,4 @@ if ( errors.length ) {
 	process.stderr.write( `${ errors.join( '\n' ) }\n` );
 	process.exit( 1 );
 }
-process.stdout.write( 'Cresco Core contracts, canonical transactions, AI validation, scoped commands, unified render parity, Theme history/settings, stabilization runtime, release ownership, and architecture runtime verified.\n' );
+process.stdout.write( 'Cresco Core contracts, canonical transactions, style provenance, AI validation, scoped commands, unified render parity, Theme history/settings, persistence verification, stabilization runtime, release ownership, and architecture runtime verified.\n' );
