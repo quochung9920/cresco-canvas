@@ -152,11 +152,11 @@ export const buildFiles = [
 	'build/website-builder-bootstrap.js',
 	'build/website-builder-comprehensive-v3.js',
 	'build/website-builder-workflow-extensions.js',
+	'build/website-builder-consistency-guard.js',
 	'build/website-builder-controls.js',
 	'build/website-builder-editor.js',
 	'build/website-builder-frontend.js',
 	'build/website-builder-pointer-drag.js',
-	'build/website-builder-structure-row-drag.js',
 	'build/website-builder-preview-fit.js',
 	'build/website-builder-professional-ux.js',
 	'build/website-builder-responsive-properties.js',
@@ -190,13 +190,10 @@ async function walkFiles( root, relativePath, predicate ) {
 	const files = [];
 	for ( const entry of entries.sort( ( left, right ) => left.name.localeCompare( right.name ) ) ) {
 		const child = path.join( relativePath, entry.name );
-		if ( entry.isDirectory() ) {
-			files.push( ...( await walkFiles( root, child, predicate ) ) );
-		} else if ( entry.isFile() ) {
+		if ( entry.isDirectory() ) files.push( ...( await walkFiles( root, child, predicate ) ) );
+		else if ( entry.isFile() ) {
 			if ( predicate( child ) ) files.push( child );
-		} else {
-			throw new Error( `Release input must be a regular file: ${ child }` );
-		}
+		} else throw new Error( `Release input must be a regular file: ${ child }` );
 	}
 	return files;
 }
@@ -205,16 +202,7 @@ export async function collectReleaseFiles( root = process.cwd() ) {
 	const contracts = await walkFiles( root, 'contracts', ( file ) => file.endsWith( '.json' ) );
 	const includes = await walkFiles( root, 'includes', ( file ) => file.endsWith( '.php' ) );
 	const vendor = await walkFiles( root, 'vendor', () => true );
-	const files = [
-		...topLevelFiles,
-		...releaseDocs,
-		...blockFiles,
-		...assetFiles,
-		...buildFiles,
-		...contracts,
-		...includes,
-		...vendor,
-	];
+	const files = [ ...topLevelFiles, ...releaseDocs, ...blockFiles, ...assetFiles, ...buildFiles, ...contracts, ...includes, ...vendor ];
 	const unique = [ ...new Set( files.map( ( file ) => file.replaceAll( path.sep, '/' ) ) ) ].sort();
 	for ( const file of unique ) {
 		const stat = await lstat( path.join( root, file ) );
