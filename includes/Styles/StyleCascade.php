@@ -27,7 +27,9 @@ final class StyleCascade {
 	 */
 	public static function resolve( $node, $property, $breakpoint = 'wide', $state = 'normal', $shared = array() ) {
 		if ( ! is_array( $node ) ) return new WP_Error( 'cresco_style_node', __( 'Style resolution requires a Cresco node.', 'cresco-canvas' ) );
-		$property   = sanitize_key( (string) $property );
+		// CSS/style contract keys are camelCase (for example fontSize). sanitize_key()
+		// lowercases them and would silently break provenance lookup.
+		$property   = preg_replace( '/[^a-zA-Z0-9_-]/', '', (string) $property );
 		$breakpoint = sanitize_key( (string) $breakpoint );
 		$state      = sanitize_key( (string) $state );
 		if ( '' === $property ) return new WP_Error( 'cresco_style_property', __( 'Style resolution requires a property name.', 'cresco-canvas' ) );
