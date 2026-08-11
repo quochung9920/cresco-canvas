@@ -31,6 +31,18 @@ final class WebsiteBuilderModuleRegistry {
 					array( 'handle' => 'cresco-canvas-website-builder-studio', 'file' => 'assets/css/website-builder-studio.css' ),
 				),
 			),
+			'pointer-drag' => array(
+				'label' => 'Pointer drag move', 'coreExtension' => true,
+				'scripts' => array(
+					array(
+						'handle'   => 'cresco-canvas-website-builder-pointer-drag',
+						'file'     => 'build/website-builder-pointer-drag.js',
+						'register' => true,
+						'deps'     => array( 'cresco-canvas-website-builder-responsive-properties' ),
+					),
+				),
+				'styles' => array(),
+			),
 			'controls' => array(
 				'label' => 'Controls compatibility (opt-in)', 'required' => false, 'transitional' => true, 'enabledDefault' => false,
 				'scripts' => array( array( 'handle' => 'cresco-canvas-website-builder-controls', 'file' => 'build/website-builder-controls.js' ) ),
@@ -69,7 +81,9 @@ final class WebsiteBuilderModuleRegistry {
 	/** Determine the only module keys allowed to execute for this request. */
 	public static function enabled_keys( WebsiteBuilderRuntimeContext $context ) {
 		$all      = self::all();
-		$required = array_keys( array_filter( $all, static function ( $module ) { return ! empty( $module['required'] ); } ) );
+		$required = array_keys( array_filter( $all, static function ( $module ) {
+			return ! empty( $module['required'] ) || ! empty( $module['coreExtension'] );
+		} ) );
 		$mode     = $context->isolation_mode();
 
 		if ( 'core' === $mode ) return $required;
@@ -101,6 +115,7 @@ final class WebsiteBuilderModuleRegistry {
 			$output[ $key ] = array(
 				'label'              => $module['label'],
 				'required'           => ! empty( $module['required'] ),
+				'coreExtension'      => ! empty( $module['coreExtension'] ),
 				'transitional'       => ! empty( $module['transitional'] ),
 				'defaultEnabled'     => ! array_key_exists( 'enabledDefault', $module ) || false !== $module['enabledDefault'],
 				'quarantinedDefault' => ! empty( $module['quarantinedDefault'] ),
