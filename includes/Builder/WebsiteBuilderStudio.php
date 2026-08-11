@@ -12,8 +12,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 final class WebsiteBuilderStudio {
-	const SCRIPT = 'build/website-builder-studio.js';
-	const STYLE  = 'assets/css/website-builder-studio.css';
+	const SCRIPT            = 'build/website-builder-studio.js';
+	const RESPONSIVE_SCRIPT = 'build/website-builder-responsive-properties.js';
+	const STYLE             = 'assets/css/website-builder-studio.css';
 
 	public function register() {
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue' ), 121 );
@@ -53,6 +54,16 @@ final class WebsiteBuilderStudio {
 		wp_enqueue_script( 'cresco-canvas-website-builder' );
 		wp_add_inline_script( 'cresco-canvas-website-builder', 'window.crescoWebsiteBuilderSettings=' . wp_json_encode( $config ) . ';', 'before' );
 		wp_set_script_translations( 'cresco-canvas-website-builder', 'cresco-canvas' );
+
+		if ( WebsiteBuilderAsset::readable( self::RESPONSIVE_SCRIPT ) ) {
+			wp_enqueue_script(
+				'cresco-canvas-website-builder-responsive-properties',
+				WebsiteBuilderAsset::url( self::RESPONSIVE_SCRIPT ),
+				array( 'cresco-canvas-website-builder' ),
+				WebsiteBuilderAsset::version( self::RESPONSIVE_SCRIPT ),
+				true
+			);
+		}
 
 		wp_enqueue_style(
 			'cresco-canvas-website-builder-studio',
