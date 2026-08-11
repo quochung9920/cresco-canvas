@@ -23,14 +23,10 @@ final class HistoryManager {
 	const DOCUMENT_META = '_cresco_revision_document';
 	const CHECKSUM_META = '_cresco_revision_checksum';
 	const MAX_REVISIONS = 50;
-
-	/** @var bool */
 	private $capturing = false;
 
 	public function register() {
 		add_action( 'init', array( $this, 'register_post_type' ), 6 );
-		// Register after ThemeSessionBridge so the compatibility alias can replace
-		// its historical empty theme-history placeholder.
 		add_action( 'rest_api_init', array( $this, 'register_routes' ), 40 );
 		add_action( 'added_post_meta', array( $this, 'capture_session_update' ), 20, 4 );
 		add_action( 'updated_post_meta', array( $this, 'capture_session_update' ), 20, 4 );
@@ -53,21 +49,10 @@ final class HistoryManager {
 
 	public function register_routes() {
 		$permission = array( $this, 'can_edit_post' );
-		$list = array(
-			'methods' => WP_REST_Server::READABLE,
-			'callback' => array( $this, 'rest_list_revisions' ),
-			'permission_callback' => $permission,
-		);
-		$restore = array(
-			'methods' => WP_REST_Server::CREATABLE,
-			'callback' => array( $this, 'rest_restore_revision' ),
-			'permission_callback' => $permission,
-		);
-
+		$list = array( 'methods' => WP_REST_Server::READABLE, 'callback' => array( $this, 'rest_list_revisions' ), 'permission_callback' => $permission );
+		$restore = array( 'methods' => WP_REST_Server::CREATABLE, 'callback' => array( $this, 'rest_restore_revision' ), 'permission_callback' => $permission );
 		register_rest_route( 'cresco-canvas/v1', '/history/(?P<postId>\d+)', $list );
 		register_rest_route( 'cresco-canvas/v1', '/history/(?P<postId>\d+)/(?P<revisionId>\d+)/restore', $restore );
-		// Theme editor uses its legacy-prefixed paths. Override the old empty
-		// endpoint with the same authoritative revision service.
 		register_rest_route( 'cresco-canvas/v1', '/website-builder/theme-history/(?P<postId>\d+)', $list, true );
 		register_rest_route( 'cresco-canvas/v1', '/website-builder/theme-history/(?P<postId>\d+)/(?P<revisionId>\d+)/restore', $restore, true );
 	}
@@ -82,25 +67,13 @@ final class HistoryManager {
 		unset( $meta_id );
 		$post_type = (string) get_post_type( $object_id );
 		if ( $this->capturing || SessionManager::META_KEY !== $meta_key || ! in_array( $post_type, array( 'page', ThemeBuilder::POST_TYPE ), true ) ) return;
-
 		$decoded = is_string( $meta_value ) ? json_decode( $meta_value, true ) : null;
 		$session = $this->sanitize_document( $decoded, $object_id );
 		if ( ! is_array( $session ) ) return;
 		$json = wp_json_encode( $session, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE );
 		if ( ! is_string( $json ) ) return;
-
 		$checksum = hash( 'sha256', $json );
-		$latest = get_posts(
-			array(
-				'post_type' => self::POST_TYPE,
-				'post_status' => 'private',
-				'post_parent' => absint( $object_id ),
-				'posts_per_page' => 1,
-				'orderby' => 'date ID',
-				'order' => 'DESC',
-				'fields' => 'ids',
-			)
-		);
+		$latest = get_posts( array( 'post_type' => self::POST_TYPE, 'post_status' => 'private', 'post_parent' => absint( $object_id ), 'posts_per_page' => 1, 'orderby' => 'date ID', 'order' => 'DESC', 'fields' => 'ids' ) );
 		if ( $latest && $checksum === (string) get_post_meta( (int) $latest[0], self::CHECKSUM_META, true ) ) return;
 
 		$this->capturing = true;
@@ -129,24 +102,13 @@ final class HistoryManager {
 		$current = $current_raw ? json_decode( $current_raw, true ) : null;
 		$current = $this->sanitize_document( $current, $post_id );
 		$current_checksum = '';
-
 		if ( is_array( $current ) ) {
 			$current_json = wp_json_encode( $current, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE );
 			$current_checksum = is_string( $current_json ) ? hash( 'sha256', $current_json ) : '';
 			$items[] = $this->revision_payload( get_post( $post_id ), 0, $current_checksum, true, count( $this->flatten_nodes( $current['nodes'] ?? array() ) ) );
 		}
 
-		$revisions = get_posts(
-			array(
-				'post_type' => self::POST_TYPE,
-				'post_status' => 'private',
-				'post_parent' => $post_id,
-				'posts_per_page' => self::MAX_REVISIONS,
-				'orderby' => 'date ID',
-				'order' => 'DESC',
-			)
-		);
-
+		$revisions = get_posts( array( 'post_type' => self::POST_TYPE, 'post_status' => 'private', 'post_parent' => $post_id, 'posts_per_page' => self::MAX_REVISIONS, 'orderby' => 'date ID', 'order' => 'DESC' ) );
 		$seen = array();
 		if ( $current_checksum ) $seen[ $current_checksum ] = true;
 		foreach ( $revisions as $revision ) {
@@ -167,40 +129,30 @@ final class HistoryManager {
 		$revision_id = absint( $request['revisionId'] );
 		if ( 0 === $revision_id ) return new WP_REST_Response( array( 'restored' => true, 'revisionId' => 0, 'current' => true ) );
 		$revision = get_post( $revision_id );
-		if ( ! $revision || self::POST_TYPE !== $revision->post_type || $post_id !== (int) $revision->post_parent ) {
-			return new WP_Error( 'cresco_history_revision_not_found', __( 'That Cresco revision could not be found.', 'cresco-canvas' ), array( 'status' => 404 ) );
-		}
-
+		if ( ! $revision || self::POST_TYPE !== $revision->post_type || $post_id !== (int) $revision->post_parent ) return new WP_Error( 'cresco_history_revision_not_found', __( 'That Cresco revision could not be found.', 'cresco-canvas' ), array( 'status' => 404 ) );
 		$raw = (string) get_post_meta( $revision_id, self::DOCUMENT_META, true );
 		$decoded = $raw ? json_decode( $raw, true ) : null;
 		$session = $this->sanitize_document( $decoded, $post_id );
 		if ( ! is_array( $session ) ) return new WP_Error( 'cresco_history_revision_invalid', __( 'That Cresco revision is invalid.', 'cresco-canvas' ), array( 'status' => 400 ) );
 		$json = wp_json_encode( $session, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE );
 		if ( ! is_string( $json ) ) return new WP_Error( 'cresco_history_revision_encode_failed', __( 'The Cresco revision could not be restored.', 'cresco-canvas' ), array( 'status' => 500 ) );
-
 		update_post_meta( $post_id, SessionManager::META_KEY, $json );
 		if ( $this->uses_builder_contract( $decoded, $post_id ) ) update_post_meta( $post_id, WebsiteBuilder::BUILDER_META, WebsiteBuilder::BUILDER_VERSION );
 		return new WP_REST_Response( array( 'restored' => true, 'revisionId' => $revision_id, 'checksum' => hash( 'sha256', $json ) ) );
 	}
 
-	/** Preserve legacy checksum semantics while understanding the expanded Website Builder contract. */
+	/** Select one validator from the document contract; never trial-parse both. */
 	private function sanitize_document( $decoded, $post_id = 0 ) {
 		if ( ! is_array( $decoded ) ) return null;
-		$builder = $this->uses_builder_contract( $decoded, $post_id );
-		if ( $builder && class_exists( WebsiteBuilder::class ) ) {
+		if ( $this->uses_builder_contract( $decoded, $post_id ) ) {
+			if ( ! class_exists( WebsiteBuilder::class ) ) return null;
 			$session = WebsiteBuilder::sanitize_session( $decoded );
-			if ( is_array( $session ) ) return $session;
+			return is_array( $session ) ? $session : null;
 		}
 		$session = SessionManager::sanitize_session( $decoded );
-		if ( is_array( $session ) ) return $session;
-		if ( class_exists( WebsiteBuilder::class ) ) {
-			$session = WebsiteBuilder::sanitize_session( $decoded );
-			if ( is_array( $session ) ) return $session;
-		}
-		return null;
+		return is_array( $session ) ? $session : null;
 	}
 
-	/** Detect the expanded builder document without relying solely on save-order metadata. */
 	private function uses_builder_contract( $decoded, $post_id = 0 ) {
 		if ( $post_id && class_exists( WebsiteBuilder::class ) && WebsiteBuilder::BUILDER_VERSION === (string) get_post_meta( $post_id, WebsiteBuilder::BUILDER_META, true ) ) return true;
 		$legacy = array_fill_keys( array_keys( SessionManager::widget_catalog() ), true );
@@ -236,17 +188,7 @@ final class HistoryManager {
 	}
 
 	private function trim_revisions( $post_id ) {
-		$ids = get_posts(
-			array(
-				'post_type' => self::POST_TYPE,
-				'post_status' => 'private',
-				'post_parent' => absint( $post_id ),
-				'posts_per_page' => -1,
-				'orderby' => 'date ID',
-				'order' => 'DESC',
-				'fields' => 'ids',
-			)
-		);
+		$ids = get_posts( array( 'post_type' => self::POST_TYPE, 'post_status' => 'private', 'post_parent' => absint( $post_id ), 'posts_per_page' => -1, 'orderby' => 'date ID', 'order' => 'DESC', 'fields' => 'ids' ) );
 		foreach ( array_slice( $ids, self::MAX_REVISIONS ) as $id ) wp_delete_post( $id, true );
 	}
 
