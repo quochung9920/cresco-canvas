@@ -20,8 +20,7 @@ final class WebsiteBuilderRuntimeGuard {
 
 	/**
 	 * Refresh required runtime versions and install the only user-facing startup
-	 * recovery panel. Other resilience services publish state but do not compete
-	 * for recovery UI ownership.
+	 * recovery panel. Bootstrap services publish state but never render recovery UI.
 	 */
 	public function harden_editor_assets() {
 		$context = WebsiteBuilderRuntimeContext::from_request();
@@ -46,34 +45,30 @@ final class WebsiteBuilderRuntimeGuard {
 var root=document.getElementById('cresco-canvas-standalone-editor');
 if(!root)return;
 var started=Date.now(),postId={$post_id};
-function ready(){return !!root.querySelector('.cc-studio-app')}
+function bootstrap(){return window.crescoWebsiteBuilderBootstrap||window.crescoWebsiteBuilderRequestGuard||null;}
+function ready(){var b=bootstrap(),state=window.crescoRuntimeState||{};return !!root.querySelector('.cc-studio-app')&&!(b&&b.fatal)&&state.phase!=='FAILED'&&(!b||b.ready===true);}
 function runtimeState(){return window.crescoRuntimeState||window.crescoWebsiteBuilderBootstrap||{};}
-function diagnostics(){var editor=window.crescoWebsiteBuilderEditorBoot||{},state=runtimeState(),diag=window.crescoDiagnostics&&window.crescoDiagnostics.snapshot?window.crescoDiagnostics.snapshot():(window.crescoStudioDiagnostics||null);return{postId:postId,elapsedMs:Date.now()-started,ready:ready(),state:state,editorBoot:editor,diagnostics:diag,runtimeOwner:window.crescoCanonicalRuntimeOwner||null,settingsPresent:!!window.crescoWebsiteBuilderSettings,wpElement:!!(window.wp&&window.wp.element),wpApiFetch:!!(window.wp&&window.wp.apiFetch),isolationMode:window.crescoRuntimeIsolationMode||'normal',architectureQuarantined:!!window.crescoArchitectureQuarantined};}
+function diagnostics(){var editor=window.crescoWebsiteBuilderEditorBoot||{},state=runtimeState(),boot=bootstrap(),diag=window.crescoDiagnostics&&window.crescoDiagnostics.snapshot?window.crescoDiagnostics.snapshot():(window.crescoStudioDiagnostics||null);return{postId:postId,elapsedMs:Date.now()-started,ready:ready(),state:state,editorBoot:editor,bootstrap:boot,diagnostics:diag,runtimeOwner:window.crescoCanonicalRuntimeOwner||null,settingsPresent:!!window.crescoWebsiteBuilderSettings,wpElement:!!(window.wp&&window.wp.element),wpApiFetch:!!(window.wp&&window.wp.apiFetch),isolationMode:window.crescoRuntimeIsolationMode||'normal',architectureQuarantined:!!window.crescoArchitectureQuarantined};}
 function copyText(value){if(navigator.clipboard&&navigator.clipboard.writeText)return navigator.clipboard.writeText(value);var area=document.createElement('textarea');area.value=value;area.style.position='fixed';area.style.opacity='0';document.body.appendChild(area);area.select();try{document.execCommand('copy')}catch(e){}area.remove();return Promise.resolve();}
 function recover(){
  if(ready()||root.querySelector('[data-cresco-runtime-guard]'))return;
- var loading=root.querySelector('.cc-builder-loading,.cc-studio-loading,.cc-standalone-loading');
- if(!loading)return;
  while(root.firstChild)root.removeChild(root.firstChild);
  var panel=document.createElement('div');panel.className='cc-builder-loading cc-builder-bootstrap-recovery';panel.setAttribute('data-cresco-runtime-guard','1');panel.setAttribute('role','alert');
  var title=document.createElement('strong');title.textContent='Cresco Studio could not finish loading.';panel.appendChild(title);
- var message=document.createElement('p');message.textContent='The canonical Studio runtime did not mount inside the safe loading window. The retired Website Builder runtime will not be used as a fallback, and the saved document was not changed. Use Cresco Diagnostics to identify the failing module or request.';panel.appendChild(message);
+ var message=document.createElement('p');message.textContent='A critical Studio request or the canonical runtime failed. The retired Website Builder runtime will not be used as a fallback, and the saved document was not changed. Use Cresco Diagnostics to identify the failing module or request.';panel.appendChild(message);
  var actions=document.createElement('div');actions.className='cc-builder-ai-actions';
  var retry=document.createElement('button');retry.type='button';retry.className='cc-builder-primary';retry.textContent='Reload fresh';retry.onclick=function(){var u=new URL(window.location.href);u.searchParams.set('cresco-runtime',String(Date.now()));window.location.replace(u.toString())};actions.appendChild(retry);
  var copy=document.createElement('button');copy.type='button';copy.className='cc-builder-secondary';copy.textContent='Copy diagnostics';copy.onclick=function(){copyText(JSON.stringify(diagnostics(),null,2))};actions.appendChild(copy);panel.appendChild(actions);
  var details=document.createElement('details'),summary=document.createElement('summary'),pre=document.createElement('pre');summary.textContent='Startup diagnostics';pre.textContent=JSON.stringify(diagnostics(),null,2);details.appendChild(summary);details.appendChild(pre);panel.appendChild(details);root.appendChild(panel);
 }
 window.setTimeout(recover,12000);
+window.addEventListener('cresco:builder-bootstrap-fatal',function(){window.setTimeout(recover,0);});
 })(window,document);
 JS;
 		wp_add_inline_script( 'cresco-canvas-website-builder', $guard, 'after' );
 	}
 
-	/**
-	 * Apply one central module policy after all enhancement services had a chance
-	 * to register/enqueue. Normal mode keeps every healthy module except modules
-	 * explicitly quarantined by the registry. Isolation modes are deterministic.
-	 */
+	/** Apply the single runtime module policy after all modules registered. */
 	public function apply_module_policy() {
 		$context = WebsiteBuilderRuntimeContext::from_request();
 		if ( ! $context ) return;
