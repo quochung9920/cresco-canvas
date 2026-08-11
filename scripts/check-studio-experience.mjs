@@ -43,6 +43,7 @@ for (const token of [
 	'Collapse all',
 	'dragExpandTimer.current = window.setTimeout',
 	'Selected subtree',
+	'selection-subtrees',
 	'interchangeExport',
 	'interchangePreview',
 	'BroadcastChannel',
@@ -50,14 +51,6 @@ for (const token of [
 	'cresco-diagnostics-last-',
 ]) expect('runtime-src/build/website-builder-studio.js', token);
 
-for (const token of [
-	"'WebsiteBuilderStudio'",
-	'build/website-builder-studio.js',
-	'assets/css/website-builder-studio.css',
-]) {
-	// The class token lives in Plugin.php without quotes; the remaining assets live in Studio/Registry.
-	if (token === "'WebsiteBuilderStudio'") continue;
-}
 expect('includes/Plugin.php', 'new WebsiteBuilderStudio()');
 expect('includes/Plugin.php', 'new WebsiteBuilderPlatform()');
 expect('includes/Builder/WebsiteBuilderModuleRegistry.php', 'build/website-builder-studio.js');
@@ -67,9 +60,11 @@ expect('includes/Builder/WebsiteBuilderPlatform.php', 'cresco_canvas_extension_m
 expect('includes/Builder/WebsiteBuilderPlatform.php', 'cresco_canvas_document_adapters');
 expect('includes/Builder/WebsiteBuilderPlatform.php', '/presence');
 expect('includes/Builder/WebsiteBuilderPlatform.php', '/comments');
+expect('includes/AI/ScopeResolver.php', "'selection-subtrees'");
+expect('includes/Builder/WebsiteBuilderInterchange.php', "'selection-subtrees'");
 
 if (errors.length) {
 	process.stderr.write(`${errors.join('\n')}\n`);
 	process.exit(1);
 }
-process.stdout.write('[studio] Studio runtime, source/build parity, Structure 2.0, responsive controls, AI interchange, collaboration foundation and extension contracts verified.\n');
+process.stdout.write('[studio] Studio runtime, source/build parity, Structure 2.0, responsive controls, multi-subtree AI interchange, collaboration foundation and extension contracts verified.\n');
