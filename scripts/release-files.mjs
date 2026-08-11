@@ -79,6 +79,7 @@ export const assetFiles = [
 	'assets/css/website-builder-frontend.css',
 	'assets/css/website-builder-professional-ux.css',
 	'assets/css/website-builder-studio.css',
+	'assets/css/website-builder-ui-correction.css',
 	'assets/css/widget-control-enhancements.css',
 	'assets/css/widget-inspector-persistent.css',
 ];
@@ -161,6 +162,7 @@ export const buildFiles = [
 	'build/website-builder-professional-ux.js',
 	'build/website-builder-responsive-properties.js',
 	'build/website-builder-studio.js',
+	'build/website-builder-ui-correction.js',
 	'build/widget-control-enhancements.js',
 	'build/widget-inspector-persistent.asset.php',
 	'build/widget-inspector-persistent.js',
