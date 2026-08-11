@@ -62,8 +62,8 @@ final class WebsiteBuilderInterchange {
 		$session = $this->current_session( $post_id, $payload['currentSession'] ?? null );
 		if ( is_wp_error( $session ) ) return $session;
 
-		$scope  = sanitize_key( (string) ( $payload['scope'] ?? 'page' ) );
-		$target = isset( $payload['target'] ) && is_array( $payload['target'] ) ? $payload['target'] : array();
+		$scope    = sanitize_key( (string) ( $payload['scope'] ?? 'page' ) );
+		$target   = isset( $payload['target'] ) && is_array( $payload['target'] ) ? $payload['target'] : array();
 		$resolved = ScopeResolver::resolve( $session, $scope, $target );
 		if ( is_wp_error( $resolved ) ) return $resolved;
 		$context = ContextBuilder::build( $post_id, $session, $scope, $target, 'optimized' );
@@ -72,7 +72,7 @@ final class WebsiteBuilderInterchange {
 		$content = array();
 		if ( 'page' === $scope ) {
 			$content['session'] = $session;
-		} elseif ( 'selection' === $scope ) {
+		} elseif ( in_array( $scope, array( 'selection', 'selection-subtrees' ), true ) ) {
 			$content['nodes'] = (array) ( $resolved['content']['nodes'] ?? array() );
 		} else {
 			$content['node'] = (array) ( $resolved['content']['node'] ?? array() );
@@ -142,13 +142,13 @@ final class WebsiteBuilderInterchange {
 		$validated = PatchValidator::validate( $current, $patch );
 		if ( is_wp_error( $validated ) ) return $validated;
 		$validated['packageSchema'] = self::SCHEMA;
-		$validated['warnings'] = $this->dependency_warnings( $package );
+		$validated['warnings']      = $this->dependency_warnings( $package );
 		return new WP_REST_Response( $validated );
 	}
 
 	private function current_session( $post_id, $provided ) {
 		if ( is_array( $provided ) ) return WebsiteBuilder::sanitize_session( $provided );
-		$raw = (string) get_post_meta( $post_id, SessionManager::META_KEY, true );
+		$raw     = (string) get_post_meta( $post_id, SessionManager::META_KEY, true );
 		$decoded = '' !== $raw ? json_decode( $raw, true ) : WebsiteBuilder::empty_session( $post_id );
 		if ( ! is_array( $decoded ) ) return new WP_Error( 'cresco_interchange_session', __( 'The current Website Builder document is invalid.', 'cresco-canvas' ), array( 'status' => 400 ) );
 		return WebsiteBuilder::sanitize_session( $decoded );
@@ -167,18 +167,20 @@ final class WebsiteBuilderInterchange {
 
 	private function package_session( $package, $current ) {
 		if ( isset( $package['content']['session'] ) && is_array( $package['content']['session'] ) ) {
-			$candidate = $package['content']['session'];
+			$candidate               = $package['content']['session'];
 			$candidate['documentId'] = $current['documentId'];
 			return WebsiteBuilder::sanitize_session( $candidate );
 		}
 		$nodes = $this->package_nodes( $package );
 		if ( is_wp_error( $nodes ) ) return $nodes;
-		return WebsiteBuilder::sanitize_session( array(
-			'schema' => SessionManager::SCHEMA,
-			'version' => SessionManager::VERSION,
-			'documentId' => $current['documentId'],
-			'nodes' => $nodes,
-		) );
+		return WebsiteBuilder::sanitize_session(
+			array(
+				'schema'     => SessionManager::SCHEMA,
+				'version'    => SessionManager::VERSION,
+				'documentId' => $current['documentId'],
+				'nodes'      => $nodes,
+			)
+		);
 	}
 
 	private function package_nodes( $package ) {
@@ -190,17 +192,17 @@ final class WebsiteBuilderInterchange {
 
 	private function import_operations( $current, $nodes, $destination, $target_id ) {
 		if ( 'replace' === $destination ) return array( array( 'op' => 'replaceSubtree', 'nodeId' => $target_id, 'node' => $nodes[0] ) );
-		$map = ScopeResolver::parent_map( $current['nodes'] ?? array() );
+		$map    = ScopeResolver::parent_map( $current['nodes'] ?? array() );
 		$target = $map[ $target_id ] ?? null;
 		if ( ! $target ) return new WP_Error( 'cresco_interchange_target', __( 'The target widget could not be resolved.', 'cresco-canvas' ), array( 'status' => 400 ) );
 
 		if ( 'inside' === $destination ) {
 			$target_node = ScopeResolver::find_node( $current['nodes'] ?? array(), $target_id );
-			$start = count( (array) ( $target_node['children'] ?? array() ) );
-			$parent_id = $target_id;
+			$start       = count( (array) ( $target_node['children'] ?? array() ) );
+			$parent_id   = $target_id;
 		} else {
 			$parent_id = $target['parentId'];
-			$start = (int) $target['index'] + ( 'after' === $destination ? 1 : 0 );
+			$start     = (int) $target['index'] + ( 'after' === $destination ? 1 : 0 );
 		}
 		$operations = array();
 		foreach ( array_values( $nodes ) as $offset => $node ) {
@@ -226,13 +228,19 @@ final class WebsiteBuilderInterchange {
 
 	private function dependency_warnings( $package ) {
 		$dependencies = (array) ( $package['dependencies'] ?? array() );
-		$warnings = array();
+		$warnings     = array();
 		if ( ! empty( $dependencies['media'] ) ) $warnings[] = __( 'Media references are site-local; verify imported images and attachments.', 'cresco-canvas' );
 		if ( ! empty( $dependencies['tokens'] ) ) $warnings[] = __( 'This design uses Global Design tokens; verify token mappings on the destination site.', 'cresco-canvas' );
 		return $warnings;
 	}
 
 	private function kind_for_scope( $scope ) {
-		return array( 'page' => 'page', 'subtree' => 'section', 'widget' => 'widget', 'selection' => 'selection' )[ $scope ] ?? 'selection';
+		return array(
+			'page'               => 'page',
+			'subtree'            => 'section',
+			'widget'             => 'widget',
+			'selection'          => 'selection',
+			'selection-subtrees' => 'selection',
+		)[ $scope ] ?? 'selection';
 	}
 }
