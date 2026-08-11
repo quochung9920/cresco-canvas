@@ -22,6 +22,8 @@ const studioFiles = [
 	'runtime-src/build/website-builder-studio.js',
 	'build/website-builder-responsive-properties.js',
 	'runtime-src/build/website-builder-responsive-properties.js',
+	'build/website-builder-pointer-drag.js',
+	'runtime-src/build/website-builder-pointer-drag.js',
 	'assets/css/website-builder-studio.css',
 ];
 for (const relative of studioFiles) if (!exists(relative)) errors.push(`Missing Studio file: ${relative}`);
@@ -29,6 +31,7 @@ for (const relative of studioFiles) if (!exists(relative)) errors.push(`Missing 
 for (const pair of [
 	['build/website-builder-studio.js', 'runtime-src/build/website-builder-studio.js', 'Studio runtime source/build parity failed.'],
 	['build/website-builder-responsive-properties.js', 'runtime-src/build/website-builder-responsive-properties.js', 'Responsive property runtime source/build parity failed.'],
+	['build/website-builder-pointer-drag.js', 'runtime-src/build/website-builder-pointer-drag.js', 'Pointer drag runtime source/build parity failed.'],
 ]) {
 	if (exists(pair[0]) && exists(pair[1]) && hash(read(pair[0])) !== hash(read(pair[1]))) errors.push(pair[2]);
 }
@@ -61,17 +64,22 @@ for (const token of [
 	'is-cresco-structure-managed',
 	'cc-studio-responsive-layout-note',
 	'new MutationObserver',
-	'window.crescoStudioDragMove',
-	'cc-studio-tree-drag-handle',
-	'application/x-cresco-studio-node',
-	"root.addEventListener('dragstart'",
-	"root.addEventListener('dragover'",
-	"root.addEventListener('drop'",
-	'syntheticDragEvent',
-	'is-cresco-drop-inside',
-	'expandAllStructure',
-	'containsDragNode',
 ]) expect('runtime-src/build/website-builder-responsive-properties.js', token);
+
+for (const token of [
+	'window.crescoStudioDragMove',
+	"engine:'pointer-core-dispatch'",
+	'cc-studio-tree-drag-handle',
+	"root.addEventListener('pointerdown'",
+	"window.addEventListener('pointermove'",
+	"window.addEventListener('pointerup'",
+	'dispatchCore',
+	'crescoForwarded',
+	'is-cresco-pointer-drop-inside',
+	'containsNode',
+	'stopImmediatePropagation',
+	'application/x-cresco-studio-node',
+]) expect('runtime-src/build/website-builder-pointer-drag.js', token);
 
 expect('includes/Plugin.php', 'new WebsiteBuilderStudio()');
 expect('includes/Plugin.php', 'new WebsiteBuilderPlatform()');
@@ -99,8 +107,12 @@ expect('includes/Builder/WebsiteBuilderStudio.php', "root.addEventListener('dblc
 expect('includes/Builder/WebsiteBuilderStudio.php', "event.key!=='F2'");
 expect('includes/Builder/WebsiteBuilderModuleRegistry.php', 'build/website-builder-studio.js');
 expect('includes/Builder/WebsiteBuilderModuleRegistry.php', 'build/website-builder-responsive-properties.js');
+expect('includes/Builder/WebsiteBuilderModuleRegistry.php', 'build/website-builder-pointer-drag.js');
+expect('includes/Builder/WebsiteBuilderModuleRegistry.php', "'coreExtension' => true");
 expect('includes/Builder/WebsiteBuilderRuntimeGuard.php', '.cc-builder-app,.cc-studio-app');
 expect('includes/Builder/WebsiteBuilderRuntimeGuard.php', 'Object.assign({},window.crescoWebsiteBuilderSettings||{}');
+expect('includes/Builder/WebsiteBuilderRuntimeGuard.php', "! empty( $asset['register'] )");
+expect('includes/Builder/WebsiteBuilderRuntimeGuard.php', 'wp_register_script(');
 expect('includes/Builder/WebsiteBuilderPlatform.php', 'cresco_canvas_extension_manifest');
 expect('includes/Builder/WebsiteBuilderPlatform.php', 'cresco_canvas_document_adapters');
 expect('includes/Builder/WebsiteBuilderPlatform.php', '/presence');
@@ -108,9 +120,11 @@ expect('includes/Builder/WebsiteBuilderPlatform.php', '/comments');
 expect('includes/AI/ScopeResolver.php', "'selection-subtrees'");
 expect('includes/Builder/WebsiteBuilderInterchange.php', "'selection-subtrees'");
 expect('scripts/release-files.mjs', 'build/website-builder-responsive-properties.js');
+expect('scripts/release-files.mjs', 'build/website-builder-pointer-drag.js');
+expect('runtime-src/manifest.json', 'website-builder-pointer-drag.js');
 
 if (errors.length) {
 	process.stderr.write(`${errors.join('\n')}\n`);
 	process.exit(1);
 }
-process.stdout.write('[studio] Canonical Studio runtime ownership, Structure-only widget management, hover-only Structure actions with locked/hidden status icons, reliable Structure/Canvas drag moves, property-level responsive controls, source/build parity, Structure 2.0, multi-subtree AI interchange, collaboration foundation and extension contracts verified.\n');
+process.stdout.write('[studio] Canonical Studio runtime ownership, Structure-only widget management, hover-only Structure actions with locked/hidden status icons, pointer-driven Structure/Canvas drag moves through the core move path, property-level responsive controls, source/build parity, Structure 2.0, multi-subtree AI interchange, collaboration foundation and extension contracts verified.\n');
