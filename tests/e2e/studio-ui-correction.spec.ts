@@ -53,7 +53,7 @@ test.describe( 'Studio UI correction', () => {
 		await expect( rows ).toHaveCount( 2 );
 		const selected = page.locator( '.cc-studio-tree-row.is-selected' ).first();
 		await expect( selected ).toBeVisible();
-		await expect( selected.locator( '.cc-studio-tree-actions button:visible' ) ).toHaveCount( 1 );
+		await expect( selected.locator( '.cc-studio-tree-actions button:visible' ) ).toHaveCount( 2 );
 
 		const metrics = await selected.evaluate( ( row ) => {
 			const select = row.querySelector<HTMLElement>( '.cc-studio-tree-select' );
