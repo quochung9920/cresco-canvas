@@ -37,10 +37,13 @@ for (const token of [
 ]) expect('runtime-src/build/website-builder-pointer-drag.js', token);
 
 for (const token of [
-	"version:'1.0.1'",
+	"version:'1.1.0'",
 	'getDocument:function()',
 	'getRevision:function()',
 	'getSelection:function()',
+	'function rebuildIndex()',
+	"getNode:function(id){return nodeIndex[String(id||'')]||null;}",
+	'getNodeCount:function()',
 	'beginTransaction:beginTransaction',
 	'commitTransaction:commitTransaction',
 	'cancelTransaction:cancelTransaction',
@@ -119,4 +122,4 @@ if (errors.length) {
 	process.stderr.write(`${errors.join('\n')}\n`);
 	process.exit(1);
 }
-process.stdout.write('[known-defects] Save races, canonical document-store/recovery ownership, transaction cancellation, source/build parity, atomic persistence, legacy Session preconditions, single drag ownership, fail-closed startup, hidden preview, auxiliary dirty-state, and safe rich-text preview contracts verified.\n');
+process.stdout.write('[known-defects] Save races, canonical document-store/recovery ownership, transaction cancellation, indexed node lookup, source/build parity, atomic persistence, legacy Session preconditions, single drag ownership, fail-closed startup, hidden preview, auxiliary dirty-state, and safe rich-text preview contracts verified.\n');
