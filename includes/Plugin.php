@@ -45,6 +45,7 @@ use CrescoCanvas\Interactions\InteractiveComponents;
 use CrescoCanvas\Lifecycle\LifecycleManager;
 use CrescoCanvas\Migration\Migrator;
 use CrescoCanvas\Page\PageSettings;
+use CrescoCanvas\Security\PublicRequestAtomicity;
 use CrescoCanvas\Security\SecurityHardening;
 use CrescoCanvas\Security\UploadSecurity;
 use CrescoCanvas\Session\HistoryManager;
@@ -66,7 +67,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 final class Plugin {
 	/** @var Plugin|null */
 	private static $instance = null;
-
 	/** @var bool */
 	private $booted = false;
 
@@ -90,6 +90,7 @@ final class Plugin {
 		$styles = new GlobalStyles();
 		$tokens = new DesignTokens();
 
+		( new PublicRequestAtomicity() )->register();
 		( new SecurityHardening() )->register();
 		( new UploadSecurity() )->register();
 		( new QueryCache() )->register();
