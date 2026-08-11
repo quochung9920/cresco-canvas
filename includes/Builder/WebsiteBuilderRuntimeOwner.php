@@ -26,8 +26,8 @@ final class WebsiteBuilderRuntimeOwner {
 
 	/** Register ownership before, during, and after compatibility policy runs. */
 	public function register() {
-		// Serve the canonical Studio source through WordPress so a known generated
-		// syntax defect can be repaired before the browser parser sees the file.
+		// Serve the canonical Studio source through WordPress so generated syntax
+		// defects are repaired before the browser parser sees the runtime.
 		add_action( 'wp_ajax_' . self::AJAX_ACTION, array( $this, 'serve_runtime' ) );
 
 		// Claim the public handle before WebsiteBuilder::enqueue_editor() (120), so
@@ -49,9 +49,9 @@ final class WebsiteBuilderRuntimeOwner {
 	}
 
 	/**
-	 * Serve the generated Studio runtime after repairing the known malformed
-	 * spacing-control closure. This keeps the browser on the canonical Studio
-	 * implementation while the generated artifact remains content-addressed.
+	 * Serve the generated Studio runtime after repairing known malformed closure
+	 * sequences. This keeps the browser on the canonical Studio implementation
+	 * while the checked-in generated artifact remains content-addressed.
 	 */
 	public function serve_runtime() {
 		$post_id = isset( $_GET['post_id'] ) ? absint( wp_unslash( $_GET['post_id'] ) ) : 0; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only authenticated asset request.
@@ -72,19 +72,29 @@ final class WebsiteBuilderRuntimeOwner {
 			exit;
 		}
 
-		// Generated Page Settings spacingControl() missed the h('label') closing
-		// parenthesis before the .map() callback closes. Repair exactly that token
-		// sequence. Once the checked-in artifact is regenerated correctly this
-		// replacement becomes a no-op and the endpoint simply serves the source.
-		$malformed = "setPageSettings(n)}})})),h('select'";
-		$corrected = "setPageSettings(n)}}))})),h('select'";
-		$repairs   = 0;
-		$source    = str_replace( $malformed, $corrected, $source, $repairs );
+		// The generated Studio artifact currently contains two independent syntax
+		// defects. Repair exact byte sequences only; after the artifact is rebuilt
+		// correctly each replacement becomes a harmless no-op.
+		$repair_rules = array(
+			// Page Settings spacingControl(): close h('label') before the map callback.
+			"setPageSettings(n)}})})),h('select'" => "setPageSettings(n)}}))})),h('select'",
+			// Team & Extensions: close the extensions.map() callback body before its
+			// closing parenthesis. Without this brace the parser reports line 83.
+			"x.version||''))))))}" => "x.version||'')))})))}",
+		);
+
+		$repairs = 0;
+		foreach ( $repair_rules as $malformed => $corrected ) {
+			$count   = 0;
+			$source  = str_replace( $malformed, $corrected, $source, $count );
+			$repairs += $count;
+		}
 
 		nocache_headers();
 		header( 'Content-Type: application/javascript; charset=UTF-8' );
 		header( 'X-Content-Type-Options: nosniff' );
-		header( 'X-Cresco-Studio-Syntax-Repair: ' . ( $repairs > 0 ? '1' : '0' ) );
+		header( 'X-Cresco-Studio-Syntax-Repair: ' . (string) $repairs );
+		header( 'X-Cresco-Studio-Syntax-Repair-Version: 2' );
 		echo $source; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- JavaScript asset bytes.
 		exit;
 	}
@@ -173,7 +183,7 @@ final class WebsiteBuilderRuntimeOwner {
 			array(
 				'action'       => self::AJAX_ACTION,
 				'post_id'      => $post_id,
-				'studio_asset' => WebsiteBuilderAsset::version( self::SCRIPT ),
+				'studio_asset' => WebsiteBuilderAsset::version( self::SCRIPT ) . '-syntax2',
 			),
 			admin_url( 'admin-ajax.php' )
 		);
@@ -218,13 +228,13 @@ final class WebsiteBuilderRuntimeOwner {
 
 		$runtime = isset( $scripts->registered[ self::HANDLE ] ) ? $scripts->registered[ self::HANDLE ] : null;
 		$payload = array(
-			'expectedRuntime' => 'studio',
-			'canonicalScript' => self::SCRIPT,
-			'runtimeTransport'=> 'authenticated-syntax-guard',
-			'registeredSrc'   => $runtime ? (string) $runtime->src : '',
-			'pointerDrag'     => wp_script_is( self::POINTER_HANDLE, 'enqueued' ),
-			'structureDrag'   => wp_script_is( self::STRUCTURE_HANDLE, 'enqueued' ),
-			'legacyWatchdog'  => false,
+			'expectedRuntime'  => 'studio',
+			'canonicalScript'  => self::SCRIPT,
+			'runtimeTransport' => 'authenticated-syntax-guard-v2',
+			'registeredSrc'    => $runtime ? (string) $runtime->src : '',
+			'pointerDrag'      => wp_script_is( self::POINTER_HANDLE, 'enqueued' ),
+			'structureDrag'    => wp_script_is( self::STRUCTURE_HANDLE, 'enqueued' ),
+			'legacyWatchdog'   => false,
 		);
 
 		wp_add_inline_script(
