@@ -19,6 +19,7 @@ use CrescoCanvas\Builder\WebsiteBuilderBootstrapResilience;
 use CrescoCanvas\Builder\WebsiteBuilderCompatibility;
 use CrescoCanvas\Builder\WebsiteBuilderComponentSync;
 use CrescoCanvas\Builder\WebsiteBuilderComprehensiveV3;
+use CrescoCanvas\Builder\WebsiteBuilderConcurrencyGuard;
 use CrescoCanvas\Builder\WebsiteBuilderDiagnostics;
 use CrescoCanvas\Builder\WebsiteBuilderInterchange;
 use CrescoCanvas\Builder\WebsiteBuilderPlatform;
@@ -107,6 +108,7 @@ final class Plugin {
 		( new VisualEditor() )->register();
 		( new EditorExperience() )->register();
 		( new WebsiteBuilder() )->register();
+		( new WebsiteBuilderConcurrencyGuard() )->register();
 		( new WebsiteBuilderStudio() )->register();
 		( new WebsiteBuilderBootstrapResilience() )->register();
 		( new WebsiteBuilderRuntimeGuard() )->register();
