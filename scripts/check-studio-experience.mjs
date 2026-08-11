@@ -74,9 +74,13 @@ expect('includes/Builder/WebsiteBuilderStudio.php', '.cc-builder-inspector .cc-b
 expect('includes/Builder/WebsiteBuilderStudio.php', 'is-cresco-structure-managed');
 expect('includes/Builder/WebsiteBuilderStudio.php', "querySelectorAll('.cc-studio-meta-grid,.cc-builder-inspector .cc-builder-mini-actions')");
 expect('includes/Builder/WebsiteBuilderStudio.php', 'inspectorManagementRemoved');
-expect('includes/Builder/WebsiteBuilderStudio.php', '.cc-studio-tree-actions>button:nth-child(2)');
-expect('includes/Builder/WebsiteBuilderStudio.php', '.cc-studio-tree-row:hover .cc-studio-tree-actions>button');
-expect('includes/Builder/WebsiteBuilderStudio.php', '.cc-studio-tree-select>.dashicons-hidden');
+expect('includes/Builder/WebsiteBuilderStudio.php', '.cc-studio-tree-actions{display:none!important');
+expect('includes/Builder/WebsiteBuilderStudio.php', '.cc-studio-tree-row:hover .cc-studio-tree-actions');
+expect('includes/Builder/WebsiteBuilderStudio.php', '.cc-studio-tree-select>.dashicons-lock,.cc-studio-tree-select>.dashicons-hidden');
+expect('includes/Builder/WebsiteBuilderStudio.php', '.cc-cresco-legacy-tree-actions{position:absolute');
+expect('includes/Builder/WebsiteBuilderStudio.php', 'display:none;align-items:center');
+expect('includes/Builder/WebsiteBuilderStudio.php', 'hasDirectStatus');
+expect('includes/Builder/WebsiteBuilderStudio.php', "structureActionMode:'hover-with-status-icons'");
 expect('includes/Builder/WebsiteBuilderStudio.php', 'cc-cresco-legacy-tree-actions');
 expect('includes/Builder/WebsiteBuilderStudio.php', 'startLegacyRename');
 expect('includes/Builder/WebsiteBuilderStudio.php', 'toggleLegacy');
@@ -99,4 +103,4 @@ if (errors.length) {
 	process.stderr.write(`${errors.join('\n')}\n`);
 	process.exit(1);
 }
-process.stdout.write('[studio] Canonical Studio runtime ownership, Structure-only widget management, property-level responsive controls, Structure hover actions/fallback management, source/build parity, Structure 2.0, multi-subtree AI interchange, collaboration foundation and extension contracts verified.\n');
+process.stdout.write('[studio] Canonical Studio runtime ownership, Structure-only widget management, hover-only Structure actions with locked/hidden status icons, property-level responsive controls, source/build parity, Structure 2.0, multi-subtree AI interchange, collaboration foundation and extension contracts verified.\n');
