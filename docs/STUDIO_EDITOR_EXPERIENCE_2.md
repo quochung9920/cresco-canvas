@@ -39,11 +39,13 @@ Wide/Desktop/Laptop/Tablet/Mobile previews share the same Session. Widget styles
 - Dynamic Data: insert safe Dynamic Field, Loop Grid and Woo product widgets using existing widget contracts.
 - Command Palette: Ctrl/Cmd+K commands for navigation, save/history, devices and widget insertion; extension commands can be registered.
 - History & Recovery: local undo/redo, server revisions, autosave, dirty-state guard, crash recovery and same-browser edit warnings.
-- Canvas: synchronized selection, breadcrumbs, quick actions, resize affordances and context menus.
+- Canvas: synchronized selection, quick actions, responsive preview and context menus.
 
 ## P3 - AI, Theme, Loop and WooCommerce
 
-AI uses the existing interchange boundary. Scope can be widget, subtree, selection or document. Exported `cresco-interchange/v1` packages can be processed externally; imported Session/interchange payloads are validated and previewed before applying to the editor. Applying never directly saves the document.
+AI uses the existing interchange boundary. Scope can be `widget`, `subtree`, `selection`, `selection-subtrees` or the whole document. `selection-subtrees` exports multiple selected roots together with all descendants while automatically collapsing overlapping ancestor/child selections so the same node is never duplicated in an AI package.
+
+Exported `cresco-interchange/v1` packages can be processed externally; imported Session/interchange payloads are validated and previewed before applying to the editor. Applying never directly saves the document.
 
 Theme Builder remains a shared domain service while the Studio provides the same shell for Theme-document routes supplied by canonical editor config. Loop Grid and WooCommerce widgets use the same Inspector/responsive/style contracts rather than separate presentation systems.
 
