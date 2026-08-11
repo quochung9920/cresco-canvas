@@ -56,6 +56,7 @@ use CrescoCanvas\Styles\StyleEngine;
 use CrescoCanvas\Templates\TemplateLibrary;
 use CrescoCanvas\Theme\ThemeBuilder;
 use CrescoCanvas\Theme\ThemeDiagnostics;
+use CrescoCanvas\Theme\ThemePageSettingsBridge;
 use CrescoCanvas\Theme\ThemeSessionBridge;
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -80,8 +81,6 @@ final class Plugin {
 		if ( $this->booted ) return;
 		$this->booted = true;
 
-		// Fail closed on downgrade before any REST/editor/domain service can write
-		// a data format older than the schema already stored on this site.
 		if ( Migrator::is_downgrade() ) {
 			add_action( 'admin_notices', array( Migrator::class, 'render_failure_notice' ) );
 			add_action( 'network_admin_notices', array( Migrator::class, 'render_failure_notice' ) );
@@ -97,9 +96,6 @@ final class Plugin {
 		( new LifecycleManager() )->register();
 		( new CommercialManager() )->register();
 
-		// Cresco owns the standalone visual workflow and the authoritative
-		// cresco-session/v1 document. WordPress remains the host, media layer,
-		// permissions system, routing layer, and native fallback environment.
 		( new EditorIntegration() )->register();
 		( new SessionManager() )->register();
 		( new AIInterchange() )->register();
@@ -122,12 +118,9 @@ final class Plugin {
 		( new WebsiteBuilderComponentSync() )->register();
 		( new WebsiteBuilderComprehensiveV3() )->register();
 		( new WebsiteBuilderWorkflowExtensions() )->register();
-		// Stable architecture boundary; V2/V3 services above remain compatibility adapters.
 		( new BuilderArchitecture() )->register();
 		( new ContainerWidth() )->register();
 
-		// Dashicons are used by Site/Icon/Social widgets on public Website
-		// Builder Pages. WordPress does not enqueue them for logged-out visitors.
 		add_action(
 			'wp_enqueue_scripts',
 			static function () {
@@ -139,11 +132,11 @@ final class Plugin {
 			44
 		);
 
-		// Backend/domain services stay available to the editor and frontend.
 		( new RestApi() )->register();
 		( new TemplateLibrary() )->register();
 		( new ThemeBuilder() )->register();
 		( new ThemeSessionBridge() )->register();
+		( new ThemePageSettingsBridge() )->register();
 		( new ThemeDiagnostics() )->register();
 		( new DynamicData() )->register();
 		( new AdvancedDynamicData() )->register();
@@ -167,7 +160,6 @@ final class Plugin {
 		add_action( 'init', array( $this, 'load_textdomain' ), 0 );
 	}
 
-	/** Load translations from the release package. */
 	public function load_textdomain() {
 		load_plugin_textdomain( 'cresco-canvas', false, dirname( plugin_basename( CRESCO_CANVAS_FILE ) ) . '/languages' );
 	}
