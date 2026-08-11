@@ -21,9 +21,12 @@ final class WebsiteBuilderModuleRegistry {
 				'scripts' => array( array( 'handle' => 'cresco-canvas-website-builder-bootstrap', 'file' => 'build/website-builder-bootstrap.js' ) ), 'styles' => array(),
 			),
 			'core' => array(
-				'label' => 'Core editor', 'required' => true,
-				'scripts' => array( array( 'handle' => 'cresco-canvas-website-builder', 'file' => 'build/website-builder-editor.js' ) ),
-				'styles' => array( array( 'handle' => 'cresco-canvas-website-builder', 'file' => 'assets/css/website-builder.css' ) ),
+				'label' => 'Cresco Studio core', 'required' => true,
+				'scripts' => array( array( 'handle' => 'cresco-canvas-website-builder', 'file' => 'build/website-builder-studio.js' ) ),
+				'styles' => array(
+					array( 'handle' => 'cresco-canvas-website-builder', 'file' => 'assets/css/website-builder.css' ),
+					array( 'handle' => 'cresco-canvas-website-builder-studio', 'file' => 'assets/css/website-builder-studio.css' ),
+				),
 			),
 			'controls' => array(
 				'label' => 'Controls', 'required' => false,
@@ -31,7 +34,7 @@ final class WebsiteBuilderModuleRegistry {
 				'styles' => array( array( 'handle' => 'cresco-canvas-website-builder-controls', 'file' => 'assets/css/website-builder-controls.css' ) ),
 			),
 			'professional-ux' => array(
-				'label' => 'Professional UX', 'required' => false,
+				'label' => 'Professional UX compatibility', 'required' => false, 'transitional' => true,
 				'scripts' => array(
 					array( 'handle' => 'cresco-canvas-website-builder-professional-ux', 'file' => 'build/website-builder-professional-ux.js' ),
 					array( 'handle' => 'cresco-canvas-website-builder-preview-fit', 'file' => 'build/website-builder-preview-fit.js' ),
