@@ -34,7 +34,7 @@ for (const pair of [
 	['build/website-builder-studio.js', 'runtime-src/build/website-builder-studio.js', 'Studio runtime source/build parity failed.'],
 	['build/website-builder-responsive-properties.js', 'runtime-src/build/website-builder-responsive-properties.js', 'Responsive property runtime source/build parity failed.'],
 	['build/website-builder-pointer-drag.js', 'runtime-src/build/website-builder-pointer-drag.js', 'Pointer drag runtime source/build parity failed.'],
-	['build/website-builder-structure-row-drag.js', 'runtime-src/build/website-builder-structure-row-drag.js', 'Structure row drag runtime source/build parity failed.'],
+	['build/website-builder-structure-row-drag.js', 'runtime-src/build/website-builder-structure-row-drag.js', 'Structure tree sorter runtime source/build parity failed.'],
 ]) {
 	if (exists(pair[0]) && exists(pair[1]) && hash(read(pair[0])) !== hash(read(pair[1]))) errors.push(pair[2]);
 }
@@ -58,6 +58,8 @@ for (const token of [
 	'BroadcastChannel',
 	'AUTO_SAVE_KEY',
 	'cresco-diagnostics-last-',
+	'function moveNode(nodes,sourceId,targetId,zone,catalog)',
+	"updateNodes(moveNode(nodes,drag.sourceId,desc.targetId,desc.zone,catalog),'structure-move')",
 ]) expect('runtime-src/build/website-builder-studio.js', token);
 
 for (const token of [
@@ -71,8 +73,7 @@ for (const token of [
 
 for (const token of [
 	'window.crescoStudioDragMove',
-	"engine:'pointer-core-dispatch'",
-	'cc-studio-tree-drag-handle',
+	"engine:'canvas-pointer-core-dispatch'",
 	"root.addEventListener('pointerdown'",
 	"window.addEventListener('pointermove'",
 	"window.addEventListener('pointerup'",
@@ -82,18 +83,28 @@ for (const token of [
 	'containsNode',
 	'stopImmediatePropagation',
 	'application/x-cresco-studio-node',
+	'function canvasManaged(event)',
 ]) expect('runtime-src/build/website-builder-pointer-drag.js', token);
 
 for (const token of [
 	'window.crescoStudioStructureRowDrag',
-	"mode:'row-anywhere-proxy'",
+	"mode:'native-tree-sorter'",
+	'reorderSibling:true',
+	'reparent:true',
+	'moveIntoContainer:true',
+	'moveOutOfContainer:true',
+	'subtree:true',
 	'.cc-studio-tree-row[data-cresco-node-id]',
 	'.cc-studio-tree-select',
-	'.cc-studio-tree-actions',
-	'.cc-studio-tree-toggle',
-	'crescoRowProxy',
-	"new window.PointerEvent('pointerdown'",
-	"root.addEventListener('pointerdown'",
+	"row.setAttribute('draggable',enabled?'true':'false')",
+	"select.setAttribute('draggable',enabled?'true':'false')",
+	"root.addEventListener('dragstart'",
+	"root.addEventListener('dragover'",
+	"root.addEventListener('drop'",
+	"event.detail.reason==='structure-move'",
+	'is-cresco-native-drop-inside',
+	'containsNode',
+	'scheduleExpand',
 ]) expect('runtime-src/build/website-builder-structure-row-drag.js', token);
 
 expect('includes/Plugin.php', 'new WebsiteBuilderStudio()');
@@ -145,4 +156,4 @@ if (errors.length) {
 	process.stderr.write(`${errors.join('\n')}\n`);
 	process.exit(1);
 }
-process.stdout.write('[studio] Canonical Studio runtime ownership, Structure-only widget management, hover-only Structure actions with locked/hidden status icons, row-anywhere pointer drag activation for Structure/Canvas moves through the core move path, property-level responsive controls, source/build parity, Structure 2.0, multi-subtree AI interchange, collaboration foundation and extension contracts verified.\n');
+process.stdout.write('[studio] Canonical Studio runtime ownership, Structure-only widget management, hover-only Structure actions with locked/hidden status icons, native Structure tree sorting with sibling reorder/reparent/inside-outside/subtree moves through the core moveNode path, Canvas pointer moves, property-level responsive controls, source/build parity, Structure 2.0, multi-subtree AI interchange, collaboration foundation and extension contracts verified.\n');
