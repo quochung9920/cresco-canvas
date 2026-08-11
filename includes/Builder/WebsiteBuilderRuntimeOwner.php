@@ -7,6 +7,9 @@
 
 namespace CrescoCanvas\Builder;
 
+use CrescoCanvas\Styles\GlobalStyles;
+use CrescoCanvas\Theme\ThemeSessionBridge;
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
@@ -14,6 +17,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 final class WebsiteBuilderRuntimeOwner {
 	const HANDLE             = 'cresco-canvas-website-builder';
 	const SCRIPT             = 'build/website-builder-studio.js';
+	const STYLE              = 'assets/css/website-builder.css';
 	const CONSISTENCY_HANDLE = 'cresco-canvas-website-builder-consistency-guard';
 	const CONSISTENCY_SCRIPT = 'build/website-builder-consistency-guard.js';
 	const POINTER_HANDLE     = 'cresco-canvas-website-builder-pointer-drag';
@@ -25,8 +29,15 @@ final class WebsiteBuilderRuntimeOwner {
 		add_action( 'admin_enqueue_scripts', array( $this, 'verify_core_extensions' ), 1410 );
 	}
 
+	/**
+	 * Bootstrap all presentation prerequisites before any historical editor
+	 * callback can execute, then remove those callbacks from the request.
+	 */
 	public function claim_runtime_handle() {
-		if ( ! $this->is_editor_request() ) return;
+		$context = WebsiteBuilderRuntimeContext::from_request();
+		if ( ! $context || ! WebsiteBuilderModuleRegistry::is_enabled( 'core', $context ) ) return;
+		$this->retire_historical_editor_enqueue_callbacks();
+		$this->register_base_presentation( $context );
 		$this->register_studio_runtime();
 	}
 
@@ -43,6 +54,16 @@ final class WebsiteBuilderRuntimeOwner {
 		$this->remove_object_method( 'admin_enqueue_scripts', WebsiteBuilderBootstrapResilience::class, 'attach_observer_guards' );
 	}
 
+	/**
+	 * The old WebsiteBuilder and ThemeSessionBridge enqueue methods both point at
+	 * website-builder-editor.js. Studio now owns their media/base-style duties,
+	 * so the historical runtime callbacks can be removed entirely.
+	 */
+	private function retire_historical_editor_enqueue_callbacks() {
+		$this->remove_object_method( 'admin_enqueue_scripts', WebsiteBuilder::class, 'enqueue_editor' );
+		$this->remove_object_method( 'admin_enqueue_scripts', ThemeSessionBridge::class, 'enqueue_editor' );
+	}
+
 	private function remove_object_method( $hook_name, $class_name, $method_name ) {
 		global $wp_filter;
 		$hook = $wp_filter[ $hook_name ] ?? null;
@@ -54,6 +75,39 @@ final class WebsiteBuilderRuntimeOwner {
 				if ( ! is_object( $function[0] ) || ! is_a( $function[0], $class_name ) || $method_name !== $function[1] ) continue;
 				remove_action( $hook_name, $function, (int) $priority );
 			}
+		}
+	}
+
+	/** Re-home media and base CSS responsibilities formerly owned by legacy bootstraps. */
+	private function register_base_presentation( WebsiteBuilderRuntimeContext $context ) {
+		wp_enqueue_media( array( 'post' => $context->post_id() ) );
+		wp_enqueue_style( 'wp-components' );
+		if ( ! WebsiteBuilderAsset::readable( self::STYLE ) ) return;
+
+		$styles = wp_styles();
+		if ( ! $styles ) return;
+		if ( ! isset( $styles->registered[ self::HANDLE ] ) ) {
+			wp_register_style(
+				self::HANDLE,
+				WebsiteBuilderAsset::url( self::STYLE ),
+				array( 'wp-components' ),
+				WebsiteBuilderAsset::version( self::STYLE )
+			);
+		} else {
+			$registered       = $styles->registered[ self::HANDLE ];
+			$registered->src  = WebsiteBuilderAsset::url( self::STYLE );
+			$registered->deps = array( 'wp-components' );
+			$registered->ver  = WebsiteBuilderAsset::version( self::STYLE );
+		}
+		wp_enqueue_style( self::HANDLE );
+		wp_add_inline_style( self::HANDLE, GlobalStyles::css( '.cc-builder-canvas' ) . GlobalStyles::visual_css( '.cc-builder-canvas' ) );
+
+		if ( $context->is_theme_editor() ) {
+			$screen = sanitize_html_class( ThemeSessionBridge::PAGE_SLUG );
+			wp_add_inline_style(
+				self::HANDLE,
+				'html.wp-toolbar{padding-top:0!important}body.admin_page_' . $screen . '{overflow:hidden;margin:0!important;background:#f3f5f8}body.admin_page_' . $screen . ' #wpadminbar,body.admin_page_' . $screen . ' #adminmenumain,body.admin_page_' . $screen . ' #wpfooter{display:none!important}body.admin_page_' . $screen . ' #wpcontent,body.admin_page_' . $screen . ' #wpbody-content{margin:0!important;padding:0!important}'
+			);
 		}
 	}
 
@@ -109,6 +163,7 @@ final class WebsiteBuilderRuntimeOwner {
 			'consistencyGuard' => wp_script_is( self::CONSISTENCY_HANDLE, 'enqueued' ),
 			'pointerDrag' => wp_script_is( self::POINTER_HANDLE, 'enqueued' ),
 			'legacyWatchdog' => false,
+			'legacyEditorEnqueue' => false,
 			'observerMonkeypatch' => false,
 		);
 		wp_add_inline_script( self::HANDLE, 'window.crescoCanonicalRuntimeOwner=' . wp_json_encode( $payload ) . ';window.crescoExpectedWebsiteBuilderRuntime="studio";', 'before' );
