@@ -143,6 +143,8 @@ final class WebsiteBuilderStudio {
 	private function install_structure_ownership() {
 		$css = <<<'CSS'
 .cc-studio-meta-grid,.cc-builder-meta-row{display:none!important}
+.cc-builder-inspector .cc-builder-mini-actions{display:none!important}
+.cc-studio-panel.is-cresco-structure-managed .cc-studio-panel-head .cc-studio-panel-actions{display:none!important}
 .cc-studio-tree-label{cursor:text}
 .cc-studio-tree-select>.dashicons-hidden{display:none!important}
 .cc-studio-tree-row{padding-right:31px}
@@ -168,11 +170,24 @@ CSS;
 (function(window,document){
 'use strict';
 var root=document.getElementById('cresco-canvas-standalone-editor');
-if(!root||root.dataset.crescoStructureOwnership==='3')return;
-root.dataset.crescoStructureOwnership='3';
+if(!root||root.dataset.crescoStructureOwnership==='4')return;
+root.dataset.crescoStructureOwnership='4';
 var scheduled=false;
 function purgeInspectorManagement(){
- root.querySelectorAll('.cc-studio-meta-grid').forEach(function(node){node.remove();});
+ root.querySelectorAll('.cc-studio-meta-grid,.cc-builder-inspector .cc-builder-mini-actions').forEach(function(node){node.remove();});
+ root.querySelectorAll('.cc-studio-inspector-tabs').forEach(function(tabs){
+  var panel=tabs.closest('.cc-studio-panel');
+  if(!panel)return;
+  panel.classList.add('is-cresco-structure-managed');
+  var head=panel.querySelector('.cc-studio-panel-head');
+  if(!head)return;
+  var group=head.querySelector('.cc-studio-panel-actions');
+  if(group)group.remove();
+  head.querySelectorAll('button').forEach(function(button){
+   var name=String(button.getAttribute('title')||button.getAttribute('aria-label')||button.textContent||'').trim().toLowerCase();
+   if(/^(rename|hide|show|lock|unlock|duplicate|delete|copy styles?|paste styles?)$/.test(name))button.remove();
+  });
+ });
 }
 function renameFrom(target){
  var label=target&&target.closest?target.closest('.cc-studio-tree-label'):null;
@@ -320,7 +335,8 @@ schedule();
 window.setTimeout(function(){
  var studio=root.querySelector('.cc-studio-app');
  var legacy=root.querySelector('.cc-builder-app:not(.cc-studio-app)');
- window.crescoStudioRuntimeOwnership={expected:'studio',studioMounted:!!studio,legacyMounted:!!legacy,legacyStructureAdapter:!!root.querySelector('.cc-cresco-legacy-tree-actions'),checkedAt:Date.now()};
+ var inspectorManagementRemoved=!root.querySelector('.cc-studio-meta-grid,.cc-builder-inspector .cc-builder-mini-actions');
+ window.crescoStudioRuntimeOwnership={expected:'studio',studioMounted:!!studio,legacyMounted:!!legacy,legacyStructureAdapter:!!root.querySelector('.cc-cresco-legacy-tree-actions'),inspectorManagementRemoved:inspectorManagementRemoved,checkedAt:Date.now()};
  if(legacy&&!studio){
   legacy.setAttribute('data-cresco-retired-runtime','1');
   schedule();
