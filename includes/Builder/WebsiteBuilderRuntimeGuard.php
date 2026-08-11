@@ -32,7 +32,11 @@ final class WebsiteBuilderRuntimeGuard {
 
 		$canonical_config = WebsiteBuilderEditorConfig::for_context( $context );
 		if ( $canonical_config ) {
-			wp_add_inline_script( 'cresco-canvas-website-builder', 'window.crescoWebsiteBuilderSettings=' . wp_json_encode( $canonical_config ) . ';', 'before' );
+			wp_add_inline_script(
+				'cresco-canvas-website-builder',
+				'window.crescoWebsiteBuilderSettings=Object.assign({},window.crescoWebsiteBuilderSettings||{},' . wp_json_encode( $canonical_config ) . ');',
+				'before'
+			);
 		}
 
 		$post_id = wp_json_encode( $context->post_id() );
@@ -42,13 +46,13 @@ final class WebsiteBuilderRuntimeGuard {
 var root=document.getElementById('cresco-canvas-standalone-editor');
 if(!root)return;
 var started=Date.now(),postId={$post_id};
-function ready(){return !!root.querySelector('.cc-builder-app')}
+function ready(){return !!root.querySelector('.cc-builder-app,.cc-studio-app')}
 function runtimeState(){return window.crescoRuntimeState||window.crescoWebsiteBuilderBootstrap||{};}
-function diagnostics(){var editor=window.crescoWebsiteBuilderEditorBoot||{},state=runtimeState(),diag=window.crescoDiagnostics&&window.crescoDiagnostics.snapshot?window.crescoDiagnostics.snapshot():null;return{postId:postId,elapsedMs:Date.now()-started,ready:ready(),state:state,editorBoot:editor,diagnostics:diag,settingsPresent:!!window.crescoWebsiteBuilderSettings,wpElement:!!(window.wp&&window.wp.element),wpApiFetch:!!(window.wp&&window.wp.apiFetch),isolationMode:window.crescoRuntimeIsolationMode||'normal',architectureQuarantined:!!window.crescoArchitectureQuarantined};}
+function diagnostics(){var editor=window.crescoWebsiteBuilderEditorBoot||{},state=runtimeState(),diag=window.crescoDiagnostics&&window.crescoDiagnostics.snapshot?window.crescoDiagnostics.snapshot():(window.crescoStudioDiagnostics||null);return{postId:postId,elapsedMs:Date.now()-started,ready:ready(),state:state,editorBoot:editor,diagnostics:diag,settingsPresent:!!window.crescoWebsiteBuilderSettings,wpElement:!!(window.wp&&window.wp.element),wpApiFetch:!!(window.wp&&window.wp.apiFetch),isolationMode:window.crescoRuntimeIsolationMode||'normal',architectureQuarantined:!!window.crescoArchitectureQuarantined};}
 function copyText(value){if(navigator.clipboard&&navigator.clipboard.writeText)return navigator.clipboard.writeText(value);var area=document.createElement('textarea');area.value=value;area.style.position='fixed';area.style.opacity='0';document.body.appendChild(area);area.select();try{document.execCommand('copy')}catch(e){}area.remove();return Promise.resolve();}
 function recover(){
  if(ready()||root.querySelector('[data-cresco-runtime-guard]'))return;
- var loading=root.querySelector('.cc-builder-loading,.cc-standalone-loading');
+ var loading=root.querySelector('.cc-builder-loading,.cc-studio-loading,.cc-standalone-loading');
  if(!loading)return;
  while(root.firstChild)root.removeChild(root.firstChild);
  var panel=document.createElement('div');panel.className='cc-builder-loading cc-builder-bootstrap-recovery';panel.setAttribute('data-cresco-runtime-guard','1');panel.setAttribute('role','alert');
