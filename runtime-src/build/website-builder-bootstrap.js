@@ -1,7 +1,7 @@
 (function(window,document,wp){
 'use strict';
 var cfg=window.crescoWebsiteBuilderBootstrapSettings||{};
-var state={version:'2.0.0',startedAt:Date.now(),degraded:[],timedOut:[],aborted:[],fatal:null,lastError:null,ready:false,abortable:!!window.AbortController,active:{},recoveryOwner:'runtime-guard'};
+var state={version:'2.0.0',startedAt:Date.now(),degraded:[],timedOut:[],aborted:[],fatal:null,lastError:null,ready:false,abortable:!!window.AbortController,active:{},recoveryOwner:'document-store'};
 var activeControllers={};
 window.crescoWebsiteBuilderBootstrap=state;
 function pathOf(options){return options&&typeof options==='object'?String(options.path||''):'';}

@@ -66,11 +66,12 @@ reject('runtime-src/build/website-builder-consistency-guard.js', 'function local
 expectParity('runtime-src/build/website-builder-consistency-guard.js', 'build/website-builder-consistency-guard.js');
 
 for (const token of [
-	"recoveryOwner:'runtime-guard'",
+	"recoveryOwner:'document-store'",
 	'path===paths.session||path===paths.pageSettings',
 	"addEventListener('cresco:studio-ready'",
 ]) expect('runtime-src/build/website-builder-bootstrap.js', token);
 reject('runtime-src/build/website-builder-bootstrap.js', 'showRecovery(');
+expectParity('runtime-src/build/website-builder-bootstrap.js', 'build/website-builder-bootstrap.js');
 
 for (const token of [
 	"add_filter( 'rest_post_dispatch', array( $this, 'verify_and_release' ), 90, 3 )",
@@ -116,4 +117,4 @@ if (errors.length) {
 	process.stderr.write(`${errors.join('\n')}\n`);
 	process.exit(1);
 }
-process.stdout.write('[known-defects] Save races, canonical document-store ownership, source/build parity, atomic persistence, legacy Session preconditions, single drag ownership, fail-closed startup, hidden preview, auxiliary dirty-state, and safe rich-text preview contracts verified.\n');
+process.stdout.write('[known-defects] Save races, canonical document-store/recovery ownership, source/build parity, atomic persistence, legacy Session preconditions, single drag ownership, fail-closed startup, hidden preview, auxiliary dirty-state, and safe rich-text preview contracts verified.\n');
