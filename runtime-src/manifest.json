@@ -82,6 +82,7 @@
     "website-builder-pointer-drag.js": "runtime-src/build/website-builder-pointer-drag.js",
     "website-builder-responsive-properties.js": "runtime-src/build/website-builder-responsive-properties.js",
     "website-builder-studio.js": "runtime-src/build/website-builder-studio.js",
+    "website-builder-ui-correction.js": "runtime-src/build/website-builder-ui-correction.js",
     "widget-control-enhancements.js": "src/standalone/widget-control-enhancements.js"
   }
 }
