@@ -71,5 +71,63 @@ final class WebsiteBuilderStudio {
 			array( 'cresco-canvas-website-builder', 'wp-components' ),
 			WebsiteBuilderAsset::version( self::STYLE )
 		);
+
+		$this->install_structure_ownership();
+	}
+
+	/**
+	 * Keep node-management controls in Structure instead of duplicating them in
+	 * the widget Inspector. Visibility remains available as the persistent icon
+	 * at the right edge of every Structure row; other actions appear on hover.
+	 */
+	private function install_structure_ownership() {
+		$css = <<<'CSS'
+.cc-studio-meta-grid{display:none!important}
+.cc-studio-tree-label{cursor:text}
+.cc-studio-tree-actions{display:flex!important;gap:1px;padding-right:4px;margin-left:auto}
+.cc-studio-tree-actions>button{display:none!important}
+.cc-studio-tree-actions>button:nth-child(2){display:inline-flex!important}
+.cc-studio-tree-row:hover .cc-studio-tree-actions>button,.cc-studio-tree-row:focus-within .cc-studio-tree-actions>button{display:inline-flex!important}
+CSS;
+		wp_add_inline_style( 'cresco-canvas-website-builder-studio', $css );
+
+		$js = <<<'JS'
+(function(document){
+'use strict';
+var root=document.getElementById('cresco-canvas-standalone-editor');
+if(!root||root.dataset.crescoStructureOwnership==='1')return;
+root.dataset.crescoStructureOwnership='1';
+function renameFrom(target){
+ var label=target&&target.closest?target.closest('.cc-studio-tree-label'):null;
+ if(!label||!root.contains(label))return false;
+ var row=label.closest('.cc-studio-tree-row');
+ var buttons=row?row.querySelectorAll('.cc-studio-tree-actions button'):[];
+ for(var i=0;i<buttons.length;i++){
+  if(String(buttons[i].getAttribute('title')||buttons[i].getAttribute('aria-label')||'').toLowerCase()==='rename'){
+   buttons[i].click();
+   return true;
+  }
+ }
+ return false;
+}
+root.addEventListener('dblclick',function(event){
+ if(renameFrom(event.target)){
+  event.preventDefault();
+  event.stopPropagation();
+ }
+},true);
+root.addEventListener('keydown',function(event){
+ if(event.key!=='F2')return;
+ var selected=event.target&&event.target.closest?event.target.closest('.cc-studio-tree-select'):null;
+ if(!selected)return;
+ var label=selected.querySelector('.cc-studio-tree-label');
+ if(label&&renameFrom(label)){
+  event.preventDefault();
+  event.stopPropagation();
+ }
+},true);
+})(document);
+JS;
+		wp_add_inline_script( 'cresco-canvas-website-builder', $js, 'after' );
 	}
 }
