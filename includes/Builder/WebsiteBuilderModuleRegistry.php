@@ -25,10 +25,12 @@ final class WebsiteBuilderModuleRegistry {
 				'scripts' => array(
 					array( 'handle' => 'cresco-canvas-website-builder', 'file' => 'build/website-builder-studio.js' ),
 					array( 'handle' => 'cresco-canvas-website-builder-responsive-properties', 'file' => 'build/website-builder-responsive-properties.js' ),
+					array( 'handle' => 'cresco-canvas-website-builder-ui-correction', 'file' => 'build/website-builder-ui-correction.js' ),
 				),
 				'styles' => array(
 					array( 'handle' => 'cresco-canvas-website-builder', 'file' => 'assets/css/website-builder.css' ),
 					array( 'handle' => 'cresco-canvas-website-builder-studio', 'file' => 'assets/css/website-builder-studio.css' ),
+					array( 'handle' => 'cresco-canvas-website-builder-ui-correction', 'file' => 'assets/css/website-builder-ui-correction.css' ),
 				),
 			),
 			'pointer-drag' => array(
