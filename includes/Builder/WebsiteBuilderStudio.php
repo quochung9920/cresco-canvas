@@ -15,7 +15,9 @@ final class WebsiteBuilderStudio {
 	const HANDLE            = 'cresco-canvas-website-builder';
 	const SCRIPT            = 'build/website-builder-studio.js';
 	const RESPONSIVE_SCRIPT = 'build/website-builder-responsive-properties.js';
+	const UI_SCRIPT         = 'build/website-builder-ui-correction.js';
 	const STYLE             = 'assets/css/website-builder-studio.css';
+	const UI_STYLE          = 'assets/css/website-builder-ui-correction.css';
 	const CONSISTENCY       = 'cresco-canvas-website-builder-consistency-guard';
 
 	public function register() {
@@ -89,12 +91,23 @@ final class WebsiteBuilderStudio {
 	}
 
 	private function enqueue_support_assets() {
+		$responsive_handle = self::HANDLE;
 		if ( WebsiteBuilderAsset::readable( self::RESPONSIVE_SCRIPT ) ) {
+			$responsive_handle = 'cresco-canvas-website-builder-responsive-properties';
 			wp_enqueue_script(
-				'cresco-canvas-website-builder-responsive-properties',
+				$responsive_handle,
 				WebsiteBuilderAsset::url( self::RESPONSIVE_SCRIPT ),
 				array( self::HANDLE ),
 				WebsiteBuilderAsset::version( self::RESPONSIVE_SCRIPT ),
+				true
+			);
+		}
+		if ( WebsiteBuilderAsset::readable( self::UI_SCRIPT ) ) {
+			wp_enqueue_script(
+				'cresco-canvas-website-builder-ui-correction',
+				WebsiteBuilderAsset::url( self::UI_SCRIPT ),
+				array( $responsive_handle ),
+				WebsiteBuilderAsset::version( self::UI_SCRIPT ),
 				true
 			);
 		}
@@ -104,6 +117,14 @@ final class WebsiteBuilderStudio {
 			array( self::HANDLE, 'wp-components' ),
 			WebsiteBuilderAsset::version( self::STYLE )
 		);
+		if ( WebsiteBuilderAsset::readable( self::UI_STYLE ) ) {
+			wp_enqueue_style(
+				'cresco-canvas-website-builder-ui-correction',
+				WebsiteBuilderAsset::url( self::UI_STYLE ),
+				array( 'cresco-canvas-website-builder-studio' ),
+				WebsiteBuilderAsset::version( self::UI_STYLE )
+			);
+		}
 	}
 
 	/**
@@ -131,7 +152,7 @@ CSS;
 'use strict';
 var root=document.getElementById('cresco-canvas-standalone-editor');
 if(!root)return;
-window.crescoStudioRuntimeOwnership={expected:'studio',studioMounted:!!root.querySelector('.cc-studio-app'),legacyMounted:!!root.querySelector('.cc-builder-app:not(.cc-studio-app)'),legacyStructureAdapter:false,inspectorManagementRemoved:false,structureActionMode:'hover-with-status-icons',checkedAt:Date.now()};
+window.crescoStudioRuntimeOwnership={expected:'studio',studioMounted:!!root.querySelector('.cc-studio-app'),legacyMounted:!!root.querySelector('.cc-builder-app:not(.cc-studio-app)'),legacyStructureAdapter:false,inspectorManagementRemoved:false,structureActionMode:'single-more-action',checkedAt:Date.now()};
 })(window,document);
 JS;
 		wp_add_inline_script( self::HANDLE, $diagnostic, 'after' );
