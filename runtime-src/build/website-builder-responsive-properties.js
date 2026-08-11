@@ -1,0 +1,66 @@
+(function(window,document){
+'use strict';
+var root=document.getElementById('cresco-canvas-standalone-editor');
+if(!root)return;
+
+var settings=window.crescoWebsiteBuilderSettings||{};
+var widths=Object.assign({wide:1920,desktop:1440,laptop:1366,tablet:768,mobile:390},settings.previewWidths||{});
+var devices=[
+ {id:'wide',label:'Base / Wide',icon:'editor-expand'},
+ {id:'desktop',label:'Desktop',icon:'desktop'},
+ {id:'laptop',label:'Laptop',icon:'laptop'},
+ {id:'tablet',label:'Tablet',icon:'tablet'},
+ {id:'mobile',label:'Mobile',icon:'smartphone'}
+];
+var humanLabels={
+ display:'Display',width:'Width',maxWidth:'Max width',minWidth:'Min width',height:'Height',maxHeight:'Max height',minHeight:'Min height',aspectRatio:'Aspect ratio',
+ gap:'Gap',columnGap:'Column gap',rowGap:'Row gap',alignItems:'Align items',alignSelf:'Align self',justifyContent:'Content alignment',justifySelf:'Self alignment',
+ flexDirection:'Direction',flexWrap:'Wrap',flexGrow:'Grow',flexShrink:'Shrink',flexBasis:'Basis',order:'Order',gridTemplateColumns:'Grid columns',gridTemplateRows:'Grid rows',gridColumn:'Grid column',gridRow:'Grid row',
+ color:'Text color',background:'Background',backgroundColor:'Background color',fontFamily:'Font',fontSize:'Font size',fontWeight:'Weight',fontStyle:'Style',lineHeight:'Line height',letterSpacing:'Letter spacing',textAlign:'Text alignment',textTransform:'Text transform',textDecoration:'Decoration',
+ borderColor:'Border color',borderWidth:'Border width',borderStyle:'Border style',borderRadius:'Corner radius',boxShadow:'Shadow',opacity:'Opacity',position:'Position',top:'Top',right:'Right',bottom:'Bottom',left:'Left',inset:'Inset',zIndex:'Layer order',
+ overflow:'Overflow',overflowX:'Horizontal overflow',overflowY:'Vertical overflow',transform:'Transform',filter:'Filter',transition:'Transition',objectFit:'Image fit',objectPosition:'Image position',cursor:'Cursor',visibility:'Visibility'
+};
+var contentLayoutLabels={
+ 'Layout':true,
+ 'Direction':true,
+ 'Wrap':true,
+ 'Align items':true,
+ 'Justify content':true,
+ 'Grid columns':true,
+ 'Grid template':true
+};
+var scheduled=false;
+var stats=window.crescoStudioResponsiveProperties={version:'1.0.0',enhancements:0,lastRun:0};
+
+function all(selector,scope){return Array.prototype.slice.call((scope||root).querySelectorAll(selector));}
+function one(selector,scope){return(scope||root).querySelector(selector);}
+function text(node){return node?String(node.textContent||'').trim():'';}
+function stateIsNormal(){var active=one('.cc-studio-state-tabs .is-active',root);return!active||text(active).toLowerCase()==='normal';}
+function currentDevice(){var buttons=all('.cc-studio-device-toolbar button',root);for(var i=0;i<buttons.length;i++){if(buttons[i].classList.contains('is-active'))return deviceId(buttons[i],i);}return'desktop';}
+function deviceId(button,index){var name=String(button.getAttribute('aria-label')||button.getAttribute('title')||'').toLowerCase();for(var i=0;i<devices.length;i++){if(name===devices[i].id||name===devices[i].label.toLowerCase())return devices[i].id;}return devices[index]?devices[index].id:'desktop';}
+function toolbarButton(id){var buttons=all('.cc-studio-device-toolbar button',root);for(var i=0;i<buttons.length;i++){if(deviceId(buttons[i],i)===id)return buttons[i];}return null;}
+function activateDevice(id){var button=toolbarButton(id);if(button&&!button.disabled)button.click();window.requestAnimationFrame(syncDeviceBars);}
+function icon(name){var node=document.createElement('span');node.className='dashicons dashicons-'+name;node.setAttribute('aria-hidden','true');return node;}
+function deviceBar(){var bar=document.createElement('div');bar.className='cc-studio-property-devices';bar.setAttribute('data-cresco-responsive-ui','1');bar.setAttribute('role','group');bar.setAttribute('aria-label','Responsive breakpoint');devices.forEach(function(item){var button=document.createElement('button');button.type='button';button.className='cc-studio-property-device';button.dataset.device=item.id;button.setAttribute('aria-label',item.label);button.appendChild(icon(item.icon));button.addEventListener('click',function(event){event.preventDefault();event.stopPropagation();activateDevice(item.id);});bar.appendChild(button);});return bar;}
+function syncDeviceBars(){var active=currentDevice(),normal=stateIsNormal();all('.cc-studio-property-device',root).forEach(function(button){var id=button.dataset.device,item=devices.find(function(candidate){return candidate.id===id;})||devices[0];var isActive=id===active;button.classList.toggle('is-active',isActive);button.setAttribute('aria-pressed',isActive?'true':'false');button.disabled=!normal;button.title=normal?(item.label+' · '+String(widths[id]||'')+'px'):(item.label+' · Responsive editing is available in Normal state');});all('.cc-studio-property-responsive-state',root).forEach(function(node){node.textContent=normal?'Responsive per property':'State styles apply across breakpoints';});}
+function humanize(value){if(humanLabels[value])return humanLabels[value];return String(value||'').replace(/([a-z])([A-Z])/g,'$1 $2').replace(/[-_]+/g,' ').replace(/^./,function(first){return first.toUpperCase();});}
+function addBar(owner,before){if(!owner||owner.querySelector(':scope > .cc-studio-property-devices'))return;owner.insertBefore(deviceBar(),before||owner.firstChild);stats.enhancements++;}
+function enhanceStyleFields(){all('.cc-studio-style-field',root).forEach(function(field){var label=one('.cc-studio-style-field__label',field);if(!label)return;addBar(field,label);var labelNode=one(':scope > span',label)||label.firstElementChild;if(labelNode&&!labelNode.dataset.crescoHumanized){var raw=text(labelNode);labelNode.dataset.crescoHumanized='1';labelNode.dataset.crescoPropertyKey=raw;labelNode.textContent=humanize(raw);if(raw==='gridTemplateColumns')enhanceGridColumns(field);}field.classList.add('has-cresco-property-responsive');});}
+function enhanceSpacing(){all('.cc-studio-spacing',root).forEach(function(section){var title=one(':scope > strong',section);addBar(section,title);section.classList.add('has-cresco-property-responsive');});}
+function enhanceCustomCss(){all('.cc-studio-custom-css',root).forEach(function(section){var title=one(':scope > h3',section);addBar(section,title);});}
+function nativeValue(input,value){var proto=input instanceof window.HTMLTextAreaElement?window.HTMLTextAreaElement.prototype:input instanceof window.HTMLSelectElement?window.HTMLSelectElement.prototype:window.HTMLInputElement.prototype;var descriptor=Object.getOwnPropertyDescriptor(proto,'value');if(descriptor&&descriptor.set)descriptor.set.call(input,value);else input.value=value;input.dispatchEvent(new window.Event('input',{bubbles:true}));input.dispatchEvent(new window.Event('change',{bubbles:true}));}
+function gridCount(value){var match=String(value||'').match(/^repeat\(\s*(\d+)\s*,/i);return match?Math.max(1,Math.min(12,parseInt(match[1],10))):'';}
+function enhanceGridColumns(field){if(field.dataset.crescoGridColumns==='1')return;var source=one('input',field);if(!source)return;field.dataset.crescoGridColumns='1';source.classList.add('cc-studio-grid-columns-source');var proxy=document.createElement('div');proxy.className='cc-studio-grid-columns-proxy';proxy.setAttribute('data-cresco-responsive-ui','1');var number=document.createElement('input');number.type='number';number.min='1';number.max='12';number.step='1';number.placeholder='inherit';number.setAttribute('aria-label','Grid columns');number.value=gridCount(source.value);var suffix=document.createElement('span');suffix.textContent='columns';proxy.appendChild(number);proxy.appendChild(suffix);source.parentNode.insertBefore(proxy,source);source.classList.add('is-proxied');function apply(){var value=String(number.value||'').trim();nativeValue(source,value?('repeat('+Math.max(1,Math.min(12,parseInt(value,10)||1))+', minmax(0, 1fr))'):'');}number.addEventListener('change',apply);number.addEventListener('input',function(){if(number.value==='')apply();});}
+function hideInspectorDeviceRow(){all('.cc-studio-context-row',root).forEach(function(row){row.classList.add('is-cresco-property-responsive');var tabs=one('.cc-studio-device-tabs',row);if(tabs)tabs.hidden=true;Array.prototype.slice.call(row.children).forEach(function(child){if(child===tabs||child.classList.contains('cc-studio-state-tabs'))return;var titles=all('button',child).map(function(button){return String(button.getAttribute('title')||button.getAttribute('aria-label')||'').toLowerCase();}).join(' ');if(titles.indexOf('breakpoint')!==-1)child.hidden=true;});if(!one('.cc-studio-property-responsive-state',row)){var hint=document.createElement('small');hint.className='cc-studio-property-responsive-state';hint.setAttribute('data-cresco-responsive-ui','1');row.appendChild(hint);}});}
+function moveNodeManagementToStructure(){all('.cc-studio-meta-grid',root).forEach(function(grid){var inspector=grid.closest('.cc-studio-panel');if(!inspector||!inspector.querySelector('.cc-studio-inspector-tabs'))return;grid.hidden=true;grid.classList.add('is-cresco-structure-managed');});}
+function moveLayoutPropsToLayoutTab(){var fields=all('.cc-studio-fields > .cc-studio-field',root),hidden=0;fields.forEach(function(field){var label=one('.cc-studio-field__label',field),name=text(label&&one(':scope > span',label)||label);if(!contentLayoutLabels[name])return;field.hidden=true;field.classList.add('is-cresco-layout-moved');hidden++;});if(!hidden)return;var container=one('.cc-studio-fields',root);if(container&&!one('.cc-studio-responsive-layout-note',container)){var note=document.createElement('button');note.type='button';note.className='cc-studio-responsive-layout-note';note.setAttribute('data-cresco-responsive-ui','1');note.innerHTML='<span class="dashicons dashicons-move" aria-hidden="true"></span><span><strong>Responsive layout controls</strong><small>Layout, direction, alignment and grid columns are in the Layout tab.</small></span><span class="dashicons dashicons-arrow-right-alt2" aria-hidden="true"></span>';note.addEventListener('click',function(){var tabs=all('.cc-studio-inspector-tabs button',root);var layout=tabs.find(function(button){return text(button).toLowerCase()==='layout';});if(layout)layout.click();});container.insertBefore(note,container.firstChild);}}
+function run(){scheduled=false;stats.lastRun=Date.now();hideInspectorDeviceRow();moveNodeManagementToStructure();moveLayoutPropsToLayoutTab();enhanceStyleFields();enhanceSpacing();enhanceCustomCss();syncDeviceBars();}
+function schedule(){if(scheduled)return;scheduled=true;window.requestAnimationFrame(run);}
+function owned(target){return target&&target.nodeType===1&&target.closest&&target.closest('[data-cresco-responsive-ui]');}
+var observer=new MutationObserver(function(records){if(records.length&&records.every(function(record){return owned(record.target);})){return;}schedule();});
+observer.observe(root,{childList:true,subtree:true});
+root.addEventListener('click',function(event){if(event.target.closest&&event.target.closest('.cc-studio-device-toolbar,.cc-studio-state-tabs,.cc-studio-inspector-tabs,.cc-studio-tree-select,.cc-studio-canvas-node'))window.requestAnimationFrame(schedule);},true);
+window.addEventListener('cresco:studio-session-change',schedule);
+window.addEventListener('cresco:studio-ready',schedule);
+schedule();
+})(window,document);
