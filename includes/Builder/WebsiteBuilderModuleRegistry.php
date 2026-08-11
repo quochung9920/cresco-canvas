@@ -22,7 +22,10 @@ final class WebsiteBuilderModuleRegistry {
 			),
 			'core' => array(
 				'label' => 'Cresco Studio core', 'required' => true,
-				'scripts' => array( array( 'handle' => 'cresco-canvas-website-builder', 'file' => 'build/website-builder-studio.js' ) ),
+				'scripts' => array(
+					array( 'handle' => 'cresco-canvas-website-builder', 'file' => 'build/website-builder-studio.js' ),
+					array( 'handle' => 'cresco-canvas-website-builder-responsive-properties', 'file' => 'build/website-builder-responsive-properties.js' ),
+				),
 				'styles' => array(
 					array( 'handle' => 'cresco-canvas-website-builder', 'file' => 'assets/css/website-builder.css' ),
 					array( 'handle' => 'cresco-canvas-website-builder-studio', 'file' => 'assets/css/website-builder-studio.css' ),
@@ -60,7 +63,7 @@ final class WebsiteBuilderModuleRegistry {
 
 	public static function get( $key ) {
 		$all = self::all();
-		return $all[ $key ] ?? null;
+		return $all[ $key] ?? null;
 	}
 
 	/** Determine the only module keys allowed to execute for this request. */
