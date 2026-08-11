@@ -78,6 +78,7 @@
     "preview.js": "src/preview/index.tsx",
     "standalone-ai-bridge.js": "src/standalone/standalone-ai-bridge.js",
     "website-builder-consistency-guard.js": "runtime-src/build/website-builder-consistency-guard.js",
+    "website-builder-document-store.js": "runtime-src/build/website-builder-document-store.js",
     "website-builder-editor.js": "runtime-src/build/website-builder-editor.js",
     "website-builder-pointer-drag.js": "runtime-src/build/website-builder-pointer-drag.js",
     "website-builder-responsive-properties.js": "runtime-src/build/website-builder-responsive-properties.js",
