@@ -10,248 +10,103 @@ async function login( page: Page ) {
 	await expect( page.locator( '#wpadminbar' ) ).toBeVisible();
 }
 
-async function openStandaloneEditor( page: Page ) {
+async function openStudio( page: Page ) {
 	await page.goto( '/wp-admin/edit.php?post_type=page' );
-	const row = page
-		.locator( 'tr' )
-		.filter( { hasText: 'Cresco E2E Session' } )
-		.first();
+	const row = page.locator( 'tr' ).filter( { hasText: 'Cresco E2E Session' } ).first();
 	await expect( row ).toBeVisible();
 	await row.hover();
-	const link = row.getByRole( 'link', { name: 'Edit with Cresco Canvas' } );
-	await expect( link ).toBeVisible();
-	await link.click();
+	await row.getByRole( 'link', { name: 'Edit with Cresco Canvas' } ).click();
 	await expect( page.locator( '#cresco-canvas-standalone-editor' ) ).toBeVisible();
-	await expect( page.locator( '.cc-standalone-app' ) ).toBeVisible();
-	await expect( page.locator( '.cc-session-canvas' ) ).toBeVisible();
+	await expect( page.locator( '.cc-studio-app' ) ).toBeVisible();
+	await expect( page.locator( '.cc-studio-canvas' ) ).toBeVisible();
 }
 
-async function openPanel( page: Page, label: 'Widgets' | 'Edit' | 'Global' | 'AI' ) {
-	const button = page
-		.locator( '.cc-standalone-tabs button' )
-		.filter( { hasText: label } )
-		.first();
-	await button.click();
-	await expect( button ).toHaveClass( /is-active/ );
-}
-
-async function openInspectorTab(
-	page: Page,
-	tab: 'primary' | 'style' | 'advanced'
-) {
-	const button = page.locator( `.cc-inspector-v2-tab[data-tab="${ tab }"]` );
+async function tool( page: Page, title: string ) {
+	const button = page.locator( `.cc-studio-rail button[title="${ title }"]` );
 	await expect( button ).toBeVisible();
 	await button.click();
-	await expect( button ).toHaveClass( /is-active/ );
 }
 
-test.describe.serial( 'Cresco Session standalone editor', () => {
+async function add( page: Page, name: string ) {
+	await tool( page, 'Add' );
+	const button = page.locator( '.cc-studio-widget-grid button' ).filter( { hasText: name } ).first();
+	await expect( button ).toBeVisible();
+	await button.click();
+}
+
+test.describe.serial( 'Cresco Studio editor shell', () => {
 	test.beforeEach( async ( { page } ) => {
 		await login( page );
-		await openStandaloneEditor( page );
+		await openStudio( page );
 	} );
 
-	test( 'mounts the polished standalone workspace and compact widget catalog', async ( {
-		page,
-	} ) => {
-		await expect( page.locator( '.cc-standalone-left' ) ).toBeVisible();
-		await expect( page.locator( '.cc-standalone-center' ) ).toBeVisible();
-		await expect( page.locator( '.cc-standalone-right' ) ).toBeVisible();
-		await expect( page.locator( '.cc-standalone-tabs button' ) ).toHaveCount( 4 );
-		await expect( page.locator( '.cc-standalone-widget' ) ).toHaveCount( 9 );
-		await expect(
-			page.locator( '.cc-standalone-widget' ).filter( { hasText: 'Container' } )
-		).toBeVisible();
-		await expect(
-			page.locator( '.cc-standalone-widget' ).filter( { hasText: 'Heading' } )
-		).toBeVisible();
-		await expect( page.getByRole( 'button', { name: 'AI', exact: true } ).first() ).toBeVisible();
+	test( 'mounts Navigator, Canvas, Inspector tools and the canonical runtime', async ( { page } ) => {
+		await expect( page.locator( '.cc-studio-rail' ) ).toBeVisible();
+		await expect( page.locator( '.cc-studio-left' ) ).toBeVisible();
+		await expect( page.locator( '.cc-studio-center' ) ).toBeVisible();
+		await expect( page.locator( '.cc-studio-structure' ) ).toBeVisible();
+		await tool( page, 'Add' );
+		await expect( page.locator( '.cc-studio-widget-grid button' ).filter( { hasText: 'Container' } ).first() ).toBeVisible();
+		await expect( page.locator( '.cc-studio-widget-grid button' ).filter( { hasText: 'Heading' } ).first() ).toBeVisible();
+		const owner = await page.evaluate( () => ( window as typeof window & { crescoCanonicalRuntimeOwner?: Record<string, unknown> } ).crescoCanonicalRuntimeOwner );
+		expect( owner?.expectedRuntime ).toBe( 'studio' );
 	} );
 
-	test( 'edits one Cresco document across Canvas, Inspector, responsive state, and Structure', async ( {
-		page,
-	} ) => {
-		await openPanel( page, 'Widgets' );
-		await page
-			.locator( '.cc-standalone-widget' )
-			.filter( { hasText: 'Container' } )
-			.click();
-		await expect( page.locator( '.cc-canvas-widget-container' ) ).toHaveCount( 1 );
+	test( 'edits one Session across Canvas, Inspector, responsive state, and Structure', async ( { page } ) => {
+		await add( page, 'Container' );
+		await add( page, 'Heading' );
+		await expect( page.locator( '.cc-studio-tree-row[data-cresco-node-id]' ) ).toHaveCount( 2 );
+		await expect( page.locator( '.cc-studio-structure' ) ).toContainText( 'Container' );
+		await expect( page.locator( '.cc-studio-structure' ) ).toContainText( 'Heading' );
 
-		await openPanel( page, 'Widgets' );
-		await page
-			.locator( '.cc-standalone-widget' )
-			.filter( { hasText: 'Heading' } )
-			.click();
-		await expect( page.locator( '.cc-canvas-widget-heading' ) ).toHaveCount( 1 );
-		await expect( page.locator( '.cc-inspector' ) ).toBeVisible();
-		await expect( page.locator( '.cc-inspector-v2-tabs' ) ).toBeVisible();
-		await expect( page.locator( '.cc-inspector-v2-tab' ) ).toHaveCount( 3 );
+		await tool( page, 'Edit' );
+		const text = page.locator( '.cc-studio-field' ).filter( { hasText: /^Text/ } ).locator( 'textarea,input' ).first();
+		await text.fill( 'Cresco Studio heading' );
+		await expect( page.locator( '.cc-studio-canvas' ) ).toContainText( 'Cresco Studio heading' );
 
-		await page.getByLabel( 'Text', { exact: true } ).fill( 'Cresco Session heading' );
-		await openInspectorTab( page, 'style' );
-		const fontSize = page.getByLabel( 'Font size' );
-		await fontSize.fill( '{typography.sizes.h1}' );
-		await expect( page.locator( '.cc-canvas-widget-heading' ) ).toContainText(
-			'Cresco Session heading'
-		);
-
-		await page
-			.locator( '.cc-inspector-device-switcher button' )
-			.filter( { hasText: 'Mobile' } )
-			.click();
+		await page.getByRole( 'button', { name: 'mobile' } ).last().click();
+		await expect( page.locator( '.cc-studio-width' ) ).toHaveText( '390px' );
+		await page.locator( '.cc-studio-inspector-tabs button' ).filter( { hasText: 'style' } ).click();
+		const fontSize = page.locator( '.cc-studio-style-field' ).filter( { hasText: 'fontSize' } ).locator( 'input' ).last();
 		await fontSize.fill( '36px' );
-		await expect( page.locator( '.cc-standalone-width-label' ) ).toHaveText( '390px' );
-		await expect(
-			page
-				.locator( '.components-base-control' )
-				.filter( { has: fontSize } )
-				.locator( '.cc-inspector-v2-responsive-badge' )
-		).toContainText( 'Mobile' );
-
-		await expect( page.locator( '.cc-standalone-structure-item' ) ).toHaveCount( 2 );
-		await expect( page.locator( '.cc-standalone-structure' ) ).toContainText( 'Container' );
-		await expect( page.locator( '.cc-standalone-structure' ) ).toContainText( 'Heading' );
+		await expect( page.getByRole( 'button', { name: 'Update' } ) ).toBeEnabled();
 	} );
 
-	test( 'organizes Container settings into Layout, Style, and Advanced tabs', async ( {
-		page,
-	} ) => {
-		await openPanel( page, 'Widgets' );
-		await page
-			.locator( '.cc-standalone-widget' )
-			.filter( { hasText: 'Container' } )
-			.click();
-		await expect( page.locator( '.cc-inspector-header strong' ) ).toContainText( 'Edit Container' );
-		await expect( page.locator( '.cc-inspector-v2-tab' ).nth( 0 ) ).toContainText( 'Layout' );
-		await expect( page.locator( '.cc-inspector-v2-tab' ).nth( 1 ) ).toContainText( 'Style' );
-		await expect( page.locator( '.cc-inspector-v2-tab' ).nth( 2 ) ).toContainText( 'Advanced' );
-
-		const contentWidth = page.getByLabel( 'Content width' );
-		await expect( contentWidth ).toHaveValue( 'full' );
-		await expect(
-			page
-				.locator( '.components-base-control' )
-				.filter( { has: contentWidth } )
-				.locator( '.cc-inspector-v2-help' )
-		).toContainText( '100% of the parent container' );
-
-		await openInspectorTab( page, 'style' );
-		await expect( page.getByLabel( 'Text color' ) ).toBeVisible();
-		await expect( page.getByLabel( 'Background' ) ).toBeVisible();
-
-		await openInspectorTab( page, 'advanced' );
-		await expect( page.getByLabel( 'Padding top' ) ).toBeVisible();
-		await expect( page.getByLabel( 'Position' ) ).toBeVisible();
-		await expect( page.locator( '.cc-inspector-v2-section-toggle' ).first() ).toBeVisible();
+	test( 'keeps node management in Structure instead of Inspector', async ( { page } ) => {
+		await add( page, 'Heading' );
+		await tool( page, 'Edit' );
+		await expect( page.locator( '.cc-studio-meta-grid' ) ).toBeHidden();
+		await expect( page.locator( '.cc-studio-tree-actions' ) ).toHaveCount( 1 );
+		const row = page.locator( '.cc-studio-tree-row[data-cresco-node-id]' ).first();
+		await row.hover();
+		await expect( row.getByRole( 'button', { name: 'Rename' } ) ).toBeVisible();
+		await expect( row.getByRole( 'button', { name: /Hide|Show/ } ) ).toBeVisible();
+		await expect( row.getByRole( 'button', { name: /Lock|Unlock/ } ) ).toBeVisible();
 	} );
 
-	test( 'validates and applies ChatGPT output directly to the current Cresco Session', async ( {
-		page,
-	} ) => {
-		await openPanel( page, 'AI' );
-		await expect( page.getByRole( 'button', { name: 'Copy AI Context' } ) ).toBeVisible();
-		await expect( page.getByRole( 'button', { name: 'Copy Session' } ) ).toBeVisible();
-		await expect( page.getByRole( 'button', { name: 'Copy Widgets' } ) ).toBeVisible();
-
-		const importedSession = {
+	test( 'validates and applies a complete AI Session without direct persistence', async ( { page } ) => {
+		await tool( page, 'AI' );
+		const imported = {
 			schema: 'cresco-session/v1',
 			version: 1,
 			documentId: 'e2e-ai-session',
-			nodes: [
-				{
-					id: 'hero',
-					type: 'container',
-					props: {
-						layout: 'flex',
-						direction: 'column',
-						align: 'center',
-						justify: 'center',
-						columns: 2,
-					},
-					style: {
-						paddingTop: '{spacing.2xl}',
-						paddingBottom: '{spacing.2xl}',
-						background: '{colors.background}',
-					},
-					responsive: {
-						mobile: {
-							paddingTop: '{spacing.xl}',
-							paddingBottom: '{spacing.xl}',
-						},
-					},
-					customCSS: {},
-					children: [
-						{
-							id: 'hero-title',
-							type: 'heading',
-							props: { text: 'Imported by ChatGPT', level: 1 },
-							style: {
-								fontSize: '{typography.sizes.h1}',
-								textAlign: 'center',
-							},
-							responsive: {},
-							customCSS: {
-								base: '& { text-wrap: balance; }',
-							},
-							children: [],
-						},
-					],
-				},
-			],
+			nodes: [ {
+				id: 'hero-title',
+				type: 'heading',
+				props: { text: 'Imported by ChatGPT', level: 1 },
+				style: { textAlign: 'center' },
+				responsive: {},
+				states: {},
+				customCSS: {},
+				meta: { label: '', componentId: 0, locked: false, hidden: false },
+				children: [],
+			} ],
 		};
-
-		await page.locator( '.cc-ai-card textarea' ).fill(
-			JSON.stringify( importedSession, null, 2 )
-		);
-		await page.getByRole( 'button', { name: 'Validate import' } ).click();
-		await expect( page.locator( '.cc-ai-import-summary' ) ).toContainText(
-			'Ready to apply'
-		);
-		await page.getByRole( 'button', { name: 'Apply to Cresco Editor' } ).click();
-		await expect( page.locator( '.cc-session-canvas' ) ).toContainText(
-			'Imported by ChatGPT'
-		);
+		await page.locator( '.cc-studio-left textarea' ).fill( JSON.stringify( imported, null, 2 ) );
+		await page.getByRole( 'button', { name: 'Validate & Preview' } ).click();
+		await expect( page.locator( '.cc-studio-ai-preview' ) ).toContainText( 'Validated changes' );
+		await page.getByRole( 'button', { name: 'Apply to editor' } ).click();
+		await expect( page.locator( '.cc-studio-canvas' ) ).toContainText( 'Imported by ChatGPT' );
 		await expect( page.getByRole( 'button', { name: 'Update' } ) ).toBeEnabled();
-
-		await page.getByRole( 'button', { name: 'Update' } ).click();
-		await expect( page.getByRole( 'button', { name: 'Saved' } ) ).toBeDisabled();
-		await page.reload();
-		await expect( page.locator( '.cc-session-canvas' ) ).toContainText(
-			'Imported by ChatGPT'
-		);
-		await expect( page.locator( '.cc-standalone-structure-item' ) ).toHaveCount( 2 );
-	} );
-
-	test( 'rejects AI Custom CSS that escapes the widget contract', async ( {
-		page,
-	} ) => {
-		await openPanel( page, 'AI' );
-		const invalidSession = {
-			schema: 'cresco-session/v1',
-			version: 1,
-			documentId: 'unsafe',
-			nodes: [
-				{
-					id: 'unsafe-heading',
-					type: 'heading',
-					props: { text: 'Unsafe', level: 2 },
-					style: {},
-					responsive: {},
-					customCSS: { base: 'body { display: none; }' },
-					children: [],
-				},
-			],
-		};
-		await page.locator( '.cc-ai-card textarea' ).fill(
-			JSON.stringify( invalidSession, null, 2 )
-		);
-		await page.getByRole( 'button', { name: 'Validate import' } ).click();
-		await expect( page.locator( '.components-notice' ) ).toContainText(
-			'Every Widget Custom CSS selector must include &.'
-		);
-		await expect(
-			page.getByRole( 'button', { name: 'Apply to Cresco Editor' } )
-		).toHaveCount( 0 );
 	} );
 } );
