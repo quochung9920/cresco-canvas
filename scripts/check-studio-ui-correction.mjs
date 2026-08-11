@@ -31,7 +31,8 @@ for ( const token of [
 ] ) expect( source, token );
 
 for ( const token of [
-	'grid-template-columns: 24px 18px minmax(0, 1fr) 30px',
+	'grid-template-columns: 24px 18px minmax(0, 1fr) 58px',
+	'.cc-studio-tree-actions > button:nth-child(2)',
 	'.cc-studio-tree-actions > button:last-child',
 	'.cc-studio-tree ul',
 	'.cc-cresco-device-icon',
