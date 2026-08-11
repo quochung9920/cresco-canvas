@@ -37,6 +37,7 @@ final class WebsiteBuilderRuntimeOwner {
 		$context = WebsiteBuilderRuntimeContext::from_request();
 		if ( ! $context || ! WebsiteBuilderModuleRegistry::is_enabled( 'core', $context ) ) return;
 		$this->retire_historical_editor_enqueue_callbacks();
+		$this->dequeue_retired_presentation();
 		$this->register_base_presentation( $context );
 		$this->register_studio_runtime();
 	}
@@ -62,6 +63,45 @@ final class WebsiteBuilderRuntimeOwner {
 	private function retire_historical_editor_enqueue_callbacks() {
 		$this->remove_object_method( 'admin_enqueue_scripts', WebsiteBuilder::class, 'enqueue_editor' );
 		$this->remove_object_method( 'admin_enqueue_scripts', ThemeSessionBridge::class, 'enqueue_editor' );
+	}
+
+	/**
+	 * VisualEditor and older experience services enqueue before priority 119.
+	 * Remove their already-queued browser assets so no second React application,
+	 * inspector observer, history adapter, or viewport shell can mount beside
+	 * Cresco Studio.
+	 */
+	private function dequeue_retired_presentation() {
+		$scripts = array(
+			'cresco-canvas-standalone-ai-bridge',
+			'cresco-canvas-editor-experience-v2-tools',
+			'cresco-canvas-editor-experience-v2-sync',
+			'cresco-canvas-editor-experience-v2',
+			'cresco-canvas-standalone-history',
+			'cresco-canvas-standalone-page-settings',
+			'cresco-canvas-standalone-ui-v3',
+			'cresco-canvas-widget-control-enhancements',
+			'cresco-canvas-standalone-inspector-v2',
+			'cresco-canvas-global-config-import',
+			'cresco-canvas-viewport-shell',
+			'cresco-canvas-standalone-visual-editor',
+		);
+		$styles = array(
+			'cresco-canvas-standalone-ai-bridge',
+			'cresco-canvas-editor-experience-v2-tools',
+			'cresco-canvas-editor-experience-v2-polish',
+			'cresco-canvas-editor-experience-v2',
+			'cresco-canvas-standalone-history',
+			'cresco-canvas-standalone-page-settings',
+			'cresco-canvas-standalone-ui-v3',
+			'cresco-canvas-widget-control-enhancements',
+			'cresco-canvas-standalone-inspector-v2',
+			'cresco-canvas-global-config-import',
+			'cresco-canvas-viewport-shell',
+			'cresco-canvas-standalone-visual-editor',
+		);
+		foreach ( $scripts as $handle ) wp_dequeue_script( $handle );
+		foreach ( $styles as $handle ) wp_dequeue_style( $handle );
 	}
 
 	private function remove_object_method( $hook_name, $class_name, $method_name ) {
@@ -164,6 +204,7 @@ final class WebsiteBuilderRuntimeOwner {
 			'pointerDrag' => wp_script_is( self::POINTER_HANDLE, 'enqueued' ),
 			'legacyWatchdog' => false,
 			'legacyEditorEnqueue' => false,
+			'retiredPresentation' => true,
 			'observerMonkeypatch' => false,
 		);
 		wp_add_inline_script( self::HANDLE, 'window.crescoCanonicalRuntimeOwner=' . wp_json_encode( $payload ) . ';window.crescoExpectedWebsiteBuilderRuntime="studio";', 'before' );
