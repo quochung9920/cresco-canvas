@@ -37,13 +37,15 @@ for (const token of [
 ]) expect('runtime-src/build/website-builder-pointer-drag.js', token);
 
 for (const token of [
-	"version:'1.0.0'",
+	"version:'1.0.1'",
 	'getDocument:function()',
 	'getRevision:function()',
 	'getSelection:function()',
 	'beginTransaction:beginTransaction',
 	'commitTransaction:commitTransaction',
 	'cancelTransaction:cancelTransaction',
+	'beforeDirty:state.dirty',
+	'state.dirty=!!tx.beforeDirty',
 	'beginSave:beginSave',
 	'markPersisted:markPersisted',
 	"schema:'cresco-recovery/v1'",
@@ -117,4 +119,4 @@ if (errors.length) {
 	process.stderr.write(`${errors.join('\n')}\n`);
 	process.exit(1);
 }
-process.stdout.write('[known-defects] Save races, canonical document-store/recovery ownership, source/build parity, atomic persistence, legacy Session preconditions, single drag ownership, fail-closed startup, hidden preview, auxiliary dirty-state, and safe rich-text preview contracts verified.\n');
+process.stdout.write('[known-defects] Save races, canonical document-store/recovery ownership, transaction cancellation, source/build parity, atomic persistence, legacy Session preconditions, single drag ownership, fail-closed startup, hidden preview, auxiliary dirty-state, and safe rich-text preview contracts verified.\n');
