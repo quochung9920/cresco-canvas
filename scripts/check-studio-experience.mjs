@@ -13,10 +13,18 @@ const expect = (relative, token) => {
 	}
 	if (!read(relative).includes(token)) errors.push(`${relative} missing ${token}`);
 };
+const reject = (relative, token) => {
+	if (!exists(relative)) {
+		errors.push(`Missing ${relative}`);
+		return;
+	}
+	if (read(relative).includes(token)) errors.push(`${relative} must not contain ${token}`);
+};
 const hash = (value) => crypto.createHash('sha256').update(value).digest('hex');
 
 const studioFiles = [
 	'includes/Builder/WebsiteBuilderStudio.php',
+	'includes/Builder/WebsiteBuilderRuntimeOwner.php',
 	'includes/Builder/WebsiteBuilderPlatform.php',
 	'build/website-builder-studio.js',
 	'runtime-src/build/website-builder-studio.js',
@@ -120,7 +128,25 @@ for (const token of [
 ]) expect('runtime-src/build/website-builder-structure-row-drag.js', token);
 
 expect('includes/Plugin.php', 'new WebsiteBuilderStudio()');
+expect('includes/Plugin.php', 'new WebsiteBuilderRuntimeOwner()');
 expect('includes/Plugin.php', 'new WebsiteBuilderPlatform()');
+
+for (const token of [
+	"const SCRIPT           = 'build/website-builder-studio.js'",
+	"add_action( 'admin_enqueue_scripts', array( $this, 'claim_runtime_handle' ), 119 )",
+	"add_action( 'admin_enqueue_scripts', array( $this, 'remove_legacy_watchdog' ), 998 )",
+	"add_action( 'admin_enqueue_scripts', array( $this, 'reassert_runtime_handle' ), 1000 )",
+	"add_action( 'admin_enqueue_scripts', array( $this, 'verify_drag_extensions' ), 1410 )",
+	"$registered->src  = WebsiteBuilderAsset::url( self::SCRIPT )",
+	"'render_editor_bootstrap_watchdog' !== $function[1]",
+	"WebsiteBuilderModuleRegistry::get( 'pointer-drag' )",
+	"'pointerDrag'     => wp_script_is( self::POINTER_HANDLE, 'enqueued' )",
+	"'structureDrag'   => wp_script_is( self::STRUCTURE_HANDLE, 'enqueued' )",
+	'window.crescoCanonicalRuntimeOwner=',
+	'window.crescoExpectedWebsiteBuilderRuntime=\"studio\"',
+]) expect('includes/Builder/WebsiteBuilderRuntimeOwner.php', token);
+reject('includes/Builder/WebsiteBuilderRuntimeOwner.php', "CRESCO_CANVAS_URL . 'build/website-builder-editor.js'");
+
 expect('includes/Builder/WebsiteBuilderStudio.php', 'website-builder-responsive-properties.js');
 expect('includes/Builder/WebsiteBuilderStudio.php', 'enforce_runtime_ownership');
 expect('includes/Builder/WebsiteBuilderStudio.php', "$registered->src  = WebsiteBuilderAsset::url( self::SCRIPT )");
@@ -148,7 +174,9 @@ expect('includes/Builder/WebsiteBuilderModuleRegistry.php', 'build/website-build
 expect('includes/Builder/WebsiteBuilderModuleRegistry.php', 'build/website-builder-pointer-drag.js');
 expect('includes/Builder/WebsiteBuilderModuleRegistry.php', 'build/website-builder-structure-row-drag.js');
 expect('includes/Builder/WebsiteBuilderModuleRegistry.php', "'coreExtension' => true");
-expect('includes/Builder/WebsiteBuilderRuntimeGuard.php', '.cc-builder-app,.cc-studio-app');
+expect('includes/Builder/WebsiteBuilderRuntimeGuard.php', "function ready(){return !!root.querySelector('.cc-studio-app')}");
+expect('includes/Builder/WebsiteBuilderRuntimeGuard.php', 'runtimeOwner:window.crescoCanonicalRuntimeOwner||null');
+reject('includes/Builder/WebsiteBuilderRuntimeGuard.php', ".cc-builder-app,.cc-studio-app");
 expect('includes/Builder/WebsiteBuilderRuntimeGuard.php', 'Object.assign({},window.crescoWebsiteBuilderSettings||{}');
 expect('includes/Builder/WebsiteBuilderRuntimeGuard.php', "! empty( $asset['register'] )");
 expect('includes/Builder/WebsiteBuilderRuntimeGuard.php', 'wp_register_script(');
@@ -168,4 +196,4 @@ if (errors.length) {
 	process.stderr.write(`${errors.join('\n')}\n`);
 	process.exit(1);
 }
-process.stdout.write('[studio] Canonical Studio runtime ownership, Structure-only widget management, hover-only Structure actions with locked/hidden status icons, native Structure tree sorting and Canvas pointer moves with core-first durable session fallback, sibling reorder/reparent/inside-outside/subtree moves, property-level responsive controls, source/build parity, Structure 2.0, multi-subtree AI interchange, collaboration foundation and extension contracts verified.\n');
+process.stdout.write('[studio] Canonical Studio runtime owner, fail-closed startup recovery, required drag extensions, Structure-only widget management, hover-only Structure actions with locked/hidden status icons, native Structure tree sorting and Canvas pointer moves with core-first durable session fallback, sibling reorder/reparent/inside-outside/subtree moves, property-level responsive controls, source/build parity, Structure 2.0, multi-subtree AI interchange, collaboration foundation and extension contracts verified.\n');
