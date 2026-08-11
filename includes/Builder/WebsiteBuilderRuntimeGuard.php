@@ -86,6 +86,23 @@ JS;
 			$keep = in_array( $key, $enabled, true );
 			foreach ( $module['scripts'] as $asset ) {
 				$handle = $asset['handle'];
+				if (
+					$keep
+					&& ! wp_script_is( $handle, 'registered' )
+					&& ! empty( $asset['register'] )
+					&& WebsiteBuilderAsset::readable( $asset['file'] )
+				) {
+					$deps = isset( $asset['deps'] ) && is_array( $asset['deps'] )
+						? $asset['deps']
+						: array( 'cresco-canvas-website-builder' );
+					wp_register_script(
+						$handle,
+						WebsiteBuilderAsset::url( $asset['file'] ),
+						$deps,
+						WebsiteBuilderAsset::version( $asset['file'] ),
+						true
+					);
+				}
 				if ( $keep && wp_script_is( $handle, 'registered' ) ) wp_enqueue_script( $handle );
 				if ( ! $keep ) wp_dequeue_script( $handle );
 			}
