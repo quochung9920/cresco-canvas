@@ -1,16 +1,15 @@
 <?php
 /**
- * Comprehensive Website Builder V3 integration layer.
+ * Transitional comprehensive Website Builder compatibility module.
  *
- * Keeps editor/frontend CSS parity, exposes production diagnostics, and loads
- * portable interchange / professional workflow tools without replacing core.
+ * Production capabilities are kept available while runtime ownership moves to
+ * stable services and the central module registry.
  *
  * @package CrescoCanvas
  */
 
 namespace CrescoCanvas\Builder;
 
-use CrescoCanvas\Admin\VisualEditor;
 use CrescoCanvas\Session\SessionManager;
 use WP_REST_Request;
 use WP_REST_Response;
@@ -32,18 +31,17 @@ final class WebsiteBuilderComprehensiveV3 {
 	}
 
 	public function register_routes() {
-		register_rest_route(
-			'cresco-canvas/v1',
-			'/website-builder/v3/diagnostics/(?P<postId>\d+)',
-			array(
-				'methods'             => WP_REST_Server::READABLE,
-				'callback'            => array( $this, 'rest_diagnostics' ),
-				'permission_callback' => static function ( WP_REST_Request $request ) {
-					$post_id = absint( $request['postId'] ?? 0 );
-					return $post_id > 0 && current_user_can( 'edit_post', $post_id );
-				},
-			)
+		$route = array(
+			'methods'             => WP_REST_Server::READABLE,
+			'callback'            => array( $this, 'rest_diagnostics' ),
+			'permission_callback' => static function ( WP_REST_Request $request ) {
+				$post_id = absint( $request['postId'] ?? 0 );
+				return $post_id > 0 && current_user_can( 'edit_post', $post_id );
+			},
 		);
+		register_rest_route( 'cresco-canvas/v1', '/website-builder/document-diagnostics/(?P<postId>\d+)', $route );
+		// Compatibility alias retained for existing runtime clients.
+		register_rest_route( 'cresco-canvas/v1', '/website-builder/v3/diagnostics/(?P<postId>\d+)', $route );
 	}
 
 	/** Keep Woo capability detection robust across plugin bootstrap variations. */
@@ -61,41 +59,45 @@ final class WebsiteBuilderComprehensiveV3 {
 	}
 
 	public function enqueue_editor() {
-		if ( ! isset( $_GET['page'] ) || VisualEditor::PAGE_SLUG !== sanitize_key( wp_unslash( $_GET['page'] ) ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only screen routing.
-			return;
-		}
-		$post_id = isset( $_GET['post'] ) ? absint( wp_unslash( $_GET['post'] ) ) : 0; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only screen routing.
-		if ( ! $post_id || 'page' !== get_post_type( $post_id ) || ! current_user_can( 'edit_post', $post_id ) ) return;
+		$context = WebsiteBuilderRuntimeContext::from_request();
+		if ( ! $context || ! $context->is_page_editor() || ! WebsiteBuilderModuleRegistry::is_enabled( 'comprehensive-v3', $context ) ) return;
 		if ( ! wp_script_is( 'cresco-canvas-website-builder', 'enqueued' ) || ! wp_style_is( 'cresco-canvas-website-builder', 'enqueued' ) ) return;
+		if ( ! WebsiteBuilderAsset::readable( 'build/website-builder-comprehensive-v3.js' ) || ! WebsiteBuilderAsset::readable( 'assets/css/website-builder-comprehensive-v3.css' ) ) return;
 
-		$script = CRESCO_CANVAS_PATH . 'build/website-builder-comprehensive-v3.js';
-		$style  = CRESCO_CANVAS_PATH . 'assets/css/website-builder-comprehensive-v3.css';
-		if ( ! is_readable( $script ) || ! is_readable( $style ) ) return;
-		$version = $this->asset_version( $script, 'v3-js' );
-		$style_version = $this->asset_version( $style, 'v3-css' );
-
-		wp_enqueue_style( self::STYLE_HANDLE, CRESCO_CANVAS_URL . 'assets/css/website-builder-comprehensive-v3.css', array( 'cresco-canvas-website-builder' ), $style_version );
-		wp_enqueue_script( self::SCRIPT_HANDLE, CRESCO_CANVAS_URL . 'build/website-builder-comprehensive-v3.js', array( 'cresco-canvas-website-builder', 'wp-api-fetch' ), $version, true );
+		$post_id = $context->post_id();
+		wp_enqueue_style(
+			self::STYLE_HANDLE,
+			WebsiteBuilderAsset::url( 'assets/css/website-builder-comprehensive-v3.css' ),
+			array( 'cresco-canvas-website-builder' ),
+			WebsiteBuilderAsset::version( 'assets/css/website-builder-comprehensive-v3.css' )
+		);
+		wp_enqueue_script(
+			self::SCRIPT_HANDLE,
+			WebsiteBuilderAsset::url( 'build/website-builder-comprehensive-v3.js' ),
+			array( 'cresco-canvas-website-builder', 'wp-api-fetch' ),
+			WebsiteBuilderAsset::version( 'build/website-builder-comprehensive-v3.js' ),
+			true
+		);
 		$settings = array(
-			'postId'             => $post_id,
-			'exportPath'         => '/cresco-canvas/v1/website-builder/interchange/' . $post_id . '/export',
-			'previewImportPath'  => '/cresco-canvas/v1/website-builder/interchange/' . $post_id . '/preview',
-			'componentSyncPath'  => '/cresco-canvas/v1/website-builder/components/sync',
-			'diagnosticsPath'    => '/cresco-canvas/v1/website-builder/v3/diagnostics/' . $post_id,
-			'themeTemplatesPath' => '/cresco-canvas/v1/theme-templates',
-			'componentsPath'     => '/cresco-canvas/v1/website-builder/components',
-			'aiContextPath'      => '/cresco-canvas/v1/ai-interchange/' . $post_id . '/context',
-			'woocommerce'       => self::has_woocommerce(),
-			'maxRecommendedNodes' => 600,
-			'version'            => 'comprehensive-v3',
+			'postId'              => $post_id,
+			'exportPath'          => '/cresco-canvas/v1/website-builder/interchange/' . $post_id . '/export',
+			'previewImportPath'   => '/cresco-canvas/v1/website-builder/interchange/' . $post_id . '/preview',
+			'componentSyncPath'   => '/cresco-canvas/v1/website-builder/components/sync',
+			'diagnosticsPath'     => '/cresco-canvas/v1/website-builder/document-diagnostics/' . $post_id,
+		
+'themeTemplatesPath'  => '/cresco-canvas/v1/theme-templates',
+			'componentsPath'      => '/cresco-canvas/v1/website-builder/components',
+			'aiContextPath'       => '/cresco-canvas/v1/ai-interchange/' . $post_id . '/context',
+			'woocommerce'        => self::has_woocommerce(),
+			'maxRecommendedNodes'=> 600,
+			'version'             => 'comprehensive-v3-compatibility',
 		);
 		wp_add_inline_script( self::SCRIPT_HANDLE, 'window.crescoWebsiteBuilderV3Settings=' . wp_json_encode( $settings ) . ';', 'before' );
 	}
 
 	/**
-	 * Replace the legacy max-width compiler output with the authoritative range
-	 * compiler. The handle is dedicated to Website Builder document CSS, so only
-	 * inline chunks containing node selectors are replaced.
+	 * Transitional cleanup: replace only old node-selector CSS fragments with
+	 * the authoritative compiler output. Rendering owns the final CSS contract.
 	 */
 	public function replace_legacy_compiled_css() {
 		if ( ! is_singular( 'page' ) ) return;
@@ -108,13 +110,14 @@ final class WebsiteBuilderComprehensiveV3 {
 
 		$styles = wp_styles();
 		if ( isset( $styles->registered[ $handle ]->extra['after'] ) && is_array( $styles->registered[ $handle ]->extra['after'] ) ) {
-			$styles->registered[ $handle ]->extra['after'] = array_values( array_filter(
-				$styles->registered[ $handle ]->extra['after'],
-				static function ( $css ) {
-					$css = (string) $css;
-					return false === strpos( $css, '.cresco-website-builder-root [data-cresco-id=' );
-				}
-			) );
+			$styles->registered[ $handle ]->extra['after'] = array_values(
+				array_filter(
+					$styles->registered[ $handle ]->extra['after'],
+					static function ( $css ) {
+						return false === strpos( (string) $css, '.cresco-website-builder-root [data-cresco-id=' );
+					}
+				)
+			);
 		}
 		wp_add_inline_style( $handle, WebsiteBuilderCssCompiler::compile( $session ) );
 	}
@@ -131,20 +134,22 @@ final class WebsiteBuilderComprehensiveV3 {
 		if ( $stats['customCssBytes'] > 8000 ) $warnings[] = __( 'Heavy Custom CSS detected; move repeatable styling into structured controls or Global Design.', 'cresco-canvas' );
 		if ( $stats['wooWidgets'] && ! self::has_woocommerce() ) $warnings[] = __( 'WooCommerce widgets exist but WooCommerce is not active.', 'cresco-canvas' );
 
-		return new WP_REST_Response( array(
-			'healthy'      => empty( $warnings ),
-			'stats'        => $stats,
-			'warnings'     => $warnings,
-			'capabilities' => array(
-				'woocommerce' => self::has_woocommerce(),
-				'acf'         => function_exists( 'get_field' ),
-				'forms'       => post_type_exists( 'cresco_submission' ),
-				'themeBuilder'=> post_type_exists( 'cresco_template' ),
-				'interchange' => true,
-				'patches'     => true,
-				'componentSync'=> true,
-			),
-		) );
+		return new WP_REST_Response(
+			array(
+				'healthy'      => empty( $warnings ),
+				'stats'        => $stats,
+				'warnings'     => $warnings,
+				'capabilities' => array(
+					'woocommerce' => self::has_woocommerce(),
+					'acf'         => function_exists( 'get_field' ),
+					'forms'       => post_type_exists( 'cresco_submission' ),
+					'themeBuilder'=> post_type_exists( 'cresco_template' ),
+					'interchange' => true,
+					'patches'     => true,
+					'componentSync'=> true,
+				),
+			)
+		);
 	}
 
 	public static function has_woocommerce() {
@@ -171,10 +176,5 @@ final class WebsiteBuilderComprehensiveV3 {
 			foreach ( (array) ( $node['customCSS'] ?? array() ) as $css ) $stats['customCssBytes'] += strlen( (string) $css );
 			if ( ! empty( $node['children'] ) ) $this->inspect_nodes( $node['children'], $depth + 1, $stats );
 		}
-	}
-
-	private function asset_version( $path, $fallback ) {
-		$contents = @file_get_contents( $path ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- Local immutable plugin asset.
-		return false === $contents ? CRESCO_CANVAS_VERSION . '-' . $fallback : substr( hash( 'sha256', $contents ), 0, 12 );
 	}
 }

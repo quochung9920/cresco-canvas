@@ -54,13 +54,31 @@ Feature modules extend the UI through the registry contract (`activity.register`
 
 The checked-in architecture runtime exposes `window.crescoBuilderArchitecture` with a browser registry, command palette (`Ctrl/Cmd+K`), scoped-AI dialog, status/breadcrumb layer, authoritative renderer preview, and compatibility bridge hooks. The current Website Builder runtime remains the presentation adapter during consolidation.
 
+## Runtime consolidation boundary
+
+Website Builder browser startup has one server-side policy surface:
+
+- `WebsiteBuilderRuntimeContext` resolves and authorizes Page/Theme editor requests and diagnostics/isolation flags.
+- `WebsiteBuilderEditorConfig` owns the shared editor endpoint/configuration contract.
+- `WebsiteBuilderAsset` owns content-addressed asset paths, versions, and reports.
+- `WebsiteBuilderModuleRegistry` is the authoritative catalog for required and optional browser modules.
+- `WebsiteBuilderBootstrapResilience` owns startup request middleware/state publication and observer boot guards.
+- `WebsiteBuilderRuntimeGuard` owns final module policy and the only user-facing fatal startup recovery panel.
+- `WebsiteBuilderDiagnostics` consumes the same registry/config contracts and remains usable outside a frozen editor tab.
+
+Required modules must never depend on optional presentation modules. Normal mode may quarantine an unstable optional module without blocking the core editor. Diagnostic isolation modes must be derived from the same module registry rather than hard-coded in a second system.
+
+Every optional runtime using `MutationObserver` must coalesce work, avoid no-op writes, provide teardown/guard behavior, and expose diagnostic evidence. An optional module failure must degrade the feature, not prevent Session loading or core editor mount.
+
 ## Compatibility policy
 
 Professional UX V2 and Comprehensive V3 remain compatibility adapters while their capabilities are migrated behind Core APIs. New features must not create `V4`, `V5`, or another standalone builder layer. Versioning belongs in contracts and migrations, not service names.
 
+Compatibility adapters may translate old handles, payloads, events, routes, or stored values, but they must not become the permanent authority for editor configuration, runtime policy, persistence, or rendering.
+
 ## Release gates
 
-`npm run check:architecture` verifies contract JSON, PHP/JS syntax, source/build equality, service registration, release-package ownership, UI registry tokens, scoped AI contracts, command bus contracts, and documentation. Hosted browser/accessibility/performance/upgrade evidence remains required before declaring a stable commercial release.
+`npm run check:architecture` verifies contract JSON, PHP/JS syntax, source/build equality, service registration, release-package ownership, UI registry tokens, scoped AI contracts, command bus contracts, and documentation. `npm run check:runtime-modules` verifies the consolidated runtime module contract, stable feature routes, Architecture observer guard, and dependency direction between Workflow and transitional V3 presentation code. Hosted browser/accessibility/performance/upgrade evidence remains required before declaring a stable commercial release.
 
 ## WordPress persistence port
 

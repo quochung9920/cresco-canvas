@@ -7,7 +7,6 @@
 
 namespace CrescoCanvas\Builder;
 
-use CrescoCanvas\Admin\VisualEditor;
 use CrescoCanvas\Session\SessionManager;
 use CrescoCanvas\Theme\ThemeBuilder;
 use CrescoCanvas\Theme\ThemeSessionBridge;
@@ -28,29 +27,36 @@ final class WebsiteBuilderWorkflowExtensions {
 	}
 
 	public function register_routes() {
-		register_rest_route(
-			'cresco-canvas/v1',
-			'/website-builder/v3/woo-single-template',
-			array(
-				'methods'             => WP_REST_Server::CREATABLE,
-				'callback'            => array( $this, 'rest_woo_single_template' ),
-				'permission_callback' => static function () { return current_user_can( 'edit_pages' ); },
-			)
+		$route = array(
+			'methods'             => WP_REST_Server::CREATABLE,
+			'callback'            => array( $this, 'rest_woo_single_template' ),
+			'permission_callback' => static function () { return current_user_can( 'edit_pages' ); },
 		);
+		register_rest_route( 'cresco-canvas/v1', '/website-builder/woocommerce/templates/single', $route );
+		// Compatibility alias. New code must use the stable feature route above.
+		register_rest_route( 'cresco-canvas/v1', '/website-builder/v3/woo-single-template', $route );
 	}
 
 	public function enqueue_editor() {
-		$page = isset( $_GET['page'] ) ? sanitize_key( wp_unslash( $_GET['page'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only screen routing.
-		if ( ! in_array( $page, array( VisualEditor::PAGE_SLUG, ThemeSessionBridge::PAGE_SLUG ), true ) ) return;
-		$script = CRESCO_CANVAS_PATH . 'build/website-builder-workflow-extensions.js';
-		if ( ! is_readable( $script ) ) return;
-		wp_enqueue_script( self::HANDLE, CRESCO_CANVAS_URL . 'build/website-builder-workflow-extensions.js', array( 'cresco-canvas-website-builder-comprehensive-v3', 'wp-api-fetch' ), $this->asset_version( $script ), true );
+		$context = WebsiteBuilderRuntimeContext::from_request();
+		if ( ! $context || ! WebsiteBuilderModuleRegistry::is_enabled( 'workflow', $context ) ) return;
+		if ( ! WebsiteBuilderAsset::readable( 'build/website-builder-workflow-extensions.js' ) ) return;
+
+		wp_enqueue_script(
+			self::HANDLE,
+			WebsiteBuilderAsset::url( 'build/website-builder-workflow-extensions.js' ),
+			array( 'cresco-canvas-website-builder', 'wp-api-fetch' ),
+			WebsiteBuilderAsset::version( 'build/website-builder-workflow-extensions.js' ),
+			true
+		);
 		wp_add_inline_script(
 			self::HANDLE,
-			'window.crescoWebsiteBuilderWorkflowSettings=' . wp_json_encode( array(
-				'wooTemplatePath' => '/cresco-canvas/v1/website-builder/v3/woo-single-template',
-				'woocommerce'    => WebsiteBuilderComprehensiveV3::has_woocommerce(),
-			) ) . ';',
+			'window.crescoWebsiteBuilderWorkflowSettings=' . wp_json_encode(
+				array(
+					'wooTemplatePath' => '/cresco-canvas/v1/website-builder/woocommerce/templates/single',
+					'woocommerce'    => WebsiteBuilderComprehensiveV3::has_woocommerce(),
+				)
+			) . ';',
 			'before'
 		);
 	}
@@ -64,10 +70,10 @@ final class WebsiteBuilderWorkflowExtensions {
 
 		$post_id = wp_insert_post(
 			array(
-				'post_type'   => ThemeBuilder::POST_TYPE,
-				'post_status' => 'draft',
-				'post_title'  => __( 'Single Product — Cresco', 'cresco-canvas' ),
-				'post_content'=> '<!-- wp:paragraph --><p>' . esc_html__( 'Open this template with Cresco Canvas.', 'cresco-canvas' ) . '</p><!-- /wp:paragraph -->',
+				'post_type'    => ThemeBuilder::POST_TYPE,
+				'post_status'  => 'draft',
+				'post_title'   => __( 'Single Product — Cresco', 'cresco-canvas' ),
+				'post_content' => '<!-- wp:paragraph --><p>' . esc_html__( 'Open this template with Cresco Canvas.', 'cresco-canvas' ) . '</p><!-- /wp:paragraph -->',
 			),
 			true
 		);
@@ -94,14 +100,16 @@ final class WebsiteBuilderWorkflowExtensions {
 	}
 
 	private function find_product_template() {
-		$ids = get_posts( array(
-			'post_type'      => ThemeBuilder::POST_TYPE,
-			'post_status'    => array( 'publish', 'draft' ),
-			'posts_per_page' => 100,
-			'fields'         => 'ids',
-			'meta_key'       => ThemeBuilder::META_TYPE, // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key -- Small Theme Builder template collection.
-			'meta_value'     => 'single', // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_value -- Small Theme Builder template collection.
-		) );
+		$ids = get_posts(
+			array(
+				'post_type'      => ThemeBuilder::POST_TYPE,
+				'post_status'    => array( 'publish', 'draft' ),
+				'posts_per_page' => 100,
+				'fields'         => 'ids',
+				'meta_key'       => ThemeBuilder::META_TYPE, // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key -- Small Theme Builder template collection.
+				'meta_value'     => 'single', // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_value -- Small Theme Builder template collection.
+			)
+		);
 		foreach ( $ids as $id ) {
 			foreach ( (array) get_post_meta( $id, ThemeBuilder::META_CONDITIONS, true ) as $condition ) {
 				if ( 'include' === ( $condition['operator'] ?? '' ) && 'post_type' === ( $condition['rule'] ?? '' ) && 'product' === ( $condition['value'] ?? '' ) ) return absint( $id );
@@ -123,30 +131,44 @@ final class WebsiteBuilderWorkflowExtensions {
 
 	private function default_product_session( $post_id ) {
 		return array(
-			'schema' => SessionManager::SCHEMA,
-			'version' => SessionManager::VERSION,
+			'schema'     => SessionManager::SCHEMA,
+			'version'    => SessionManager::VERSION,
 			'documentId' => 'theme-' . absint( $post_id ),
-			'nodes' => array(
-				$this->node( 'product-shell', 'container', array( 'contentWidth' => 'boxed', 'layout' => 'grid', 'columns' => 2, 'gridTemplate' => 'minmax(0,1fr) minmax(0,1fr)', 'tag' => 'main', 'ariaLabel' => 'Product' ), array( 'paddingTop' => '{spacing.xl}', 'paddingRight' => '{spacing.containerGutter}', 'paddingBottom' => '{spacing.xl}', 'paddingLeft' => '{spacing.containerGutter}', 'gap' => '{spacing.xl}', 'alignItems' => 'start' ), array( 'tablet' => array( 'gridTemplateColumns' => '1fr' ), 'mobile' => array( 'gridTemplateColumns' => '1fr', 'gap' => '{spacing.lg}' ) ), array(
-					$this->node( 'product-media', 'container', array( 'contentWidth' => 'full', 'layout' => 'flex', 'direction' => 'column', 'wrap' => 'nowrap', 'align' => 'stretch', 'justify' => 'flex-start', 'columns' => 1, 'gridTemplate' => '1fr', 'tag' => 'section', 'ariaLabel' => 'Product gallery' ), array(), array(), array(
-						$this->node( 'product-image', 'woo-product-image', array( 'size' => 'large' ), array( 'width' => '100%', 'borderRadius' => '{radius.md}', 'overflow' => 'hidden' ) )
-					) ),
-					$this->node( 'product-summary', 'container', array( 'contentWidth' => 'full', 'layout' => 'flex', 'direction' => 'column', 'wrap' => 'nowrap', 'align' => 'stretch', 'justify' => 'flex-start', 'columns' => 1, 'gridTemplate' => '1fr', 'tag' => 'section', 'ariaLabel' => 'Product summary' ), array( 'gap' => '{spacing.md}' ), array(), array(
-						$this->node( 'product-title', 'woo-product-title', array( 'tag' => 'h1' ), array( 'fontSize' => '{typography.sizes.h2}', 'lineHeight' => '1.08', 'marginTop' => '0', 'marginBottom' => '0' ) ),
-						$this->node( 'product-price', 'woo-product-price', array(), array( 'fontSize' => '{typography.sizes.xl}', 'fontWeight' => '700' ) ),
-						$this->node( 'product-cart', 'woo-add-to-cart', array( 'label' => 'Add to cart' ), array( 'marginTop' => '{spacing.sm}' ) )
-					) ),
-				) )
+			'nodes'      => array(
+				$this->node(
+					'product-shell',
+					'container',
+					array( 'contentWidth' => 'boxed', 'layout' => 'grid', 'columns' => 2, 'gridTemplate' => 'minmax(0,1fr) minmax(0,1fr)', 'tag' => 'main', 'ariaLabel' => 'Product' ),
+					array( 'paddingTop' => '{spacing.xl}', 'paddingRight' => '{spacing.containerGutter}', 'paddingBottom' => '{spacing.xl}', 'paddingLeft' => '{spacing.containerGutter}', 'gap' => '{spacing.xl}', 'alignItems' => 'start' ),
+					array( 'tablet' => array( 'gridTemplateColumns' => '1fr' ), 'mobile' => array( 'gridTemplateColumns' => '1fr', 'gap' => '{spacing.lg}' ) ),
+					array(
+						$this->node(
+							'product-media',
+							'container',
+							array( 'contentWidth' => 'full', 'layout' => 'flex', 'direction' => 'column', 'wrap' => 'nowrap', 'align' => 'stretch', 'justify' => 'flex-start', 'columns' => 1, 'gridTemplate' => '1fr', 'tag' => 'section', 'ariaLabel' => 'Product gallery' ),
+							array(),
+							array(),
+							array( $this->node( 'product-image', 'woo-product-image', array( 'size' => 'large' ), array( 'width' => '100%', 'borderRadius' => '{radius.md}', 'overflow' => 'hidden' ) ) )
+						),
+						$this->node(
+							'product-summary',
+							'container',
+							array( 'contentWidth' => 'full', 'layout' => 'flex', 'direction' => 'column', 'wrap' => 'nowrap', 'align' => 'stretch', 'justify' => 'flex-start', 'columns' => 1, 'gridTemplate' => '1fr', 'tag' => 'section', 'ariaLabel' => 'Product summary' ),
+							array( 'gap' => '{spacing.md}' ),
+							array(),
+							array(
+								$this->node( 'product-title', 'woo-product-title', array( 'tag' => 'h1' ), array( 'fontSize' => '{typography.sizes.h2}', 'lineHeight' => '1.08', 'marginTop' => '0', 'marginBottom' => '0' ) ),
+								$this->node( 'product-price', 'woo-product-price', array(), array( 'fontSize' => '{typography.sizes.xl}', 'fontWeight' => '700' ) ),
+								$this->node( 'product-cart', 'woo-add-to-cart', array( 'label' => 'Add to cart' ), array( 'marginTop' => '{spacing.sm}' ) ),
+							)
+						),
+					)
+				),
 			),
 		);
 	}
 
 	private function node( $id, $type, $props = array(), $style = array(), $responsive = array(), $children = array() ) {
 		return array( 'id' => $id, 'type' => $type, 'props' => $props, 'style' => $style, 'responsive' => $responsive, 'states' => array(), 'customCSS' => array(), 'meta' => array( 'label' => '', 'componentId' => 0, 'locked' => false, 'hidden' => false ), 'children' => $children );
-	}
-
-	private function asset_version( $path ) {
-		$hash = is_readable( $path ) ? hash_file( 'sha256', $path ) : false;
-		return CRESCO_CANVAS_VERSION . ( is_string( $hash ) && '' !== $hash ? '-' . substr( $hash, 0, 12 ) : '' );
 	}
 }

@@ -1,0 +1,104 @@
+<?php
+/**
+ * Canonical registry for Website Builder browser modules.
+ *
+ * @package CrescoCanvas
+ */
+
+namespace CrescoCanvas\Builder;
+
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
+final class WebsiteBuilderModuleRegistry {
+	private function __construct() {}
+
+	public static function all() {
+		return array(
+			'bootstrap' => array(
+				'label' => 'Bootstrap resilience', 'required' => true,
+				'scripts' => array( array( 'handle' => 'cresco-canvas-website-builder-bootstrap', 'file' => 'build/website-builder-bootstrap.js' ) ), 'styles' => array(),
+			),
+			'core' => array(
+				'label' => 'Core editor', 'required' => true,
+				'scripts' => array( array( 'handle' => 'cresco-canvas-website-builder', 'file' => 'build/website-builder-editor.js' ) ),
+				'styles' => array( array( 'handle' => 'cresco-canvas-website-builder', 'file' => 'assets/css/website-builder.css' ) ),
+			),
+			'controls' => array(
+				'label' => 'Controls', 'required' => false,
+				'scripts' => array( array( 'handle' => 'cresco-canvas-website-builder-controls', 'file' => 'build/website-builder-controls.js' ) ),
+				'styles' => array( array( 'handle' => 'cresco-canvas-website-builder-controls', 'file' => 'assets/css/website-builder-controls.css' ) ),
+			),
+			'professional-ux' => array(
+				'label' => 'Professional UX', 'required' => false,
+				'scripts' => array(
+					array( 'handle' => 'cresco-canvas-website-builder-professional-ux', 'file' => 'build/website-builder-professional-ux.js' ),
+					array( 'handle' => 'cresco-canvas-website-builder-preview-fit', 'file' => 'build/website-builder-preview-fit.js' ),
+				),
+				'styles' => array( array( 'handle' => 'cresco-canvas-website-builder-professional-ux', 'file' => 'assets/css/website-builder-professional-ux.css' ) ),
+			),
+			'architecture' => array(
+				'label' => 'Architecture', 'required' => false, 'quarantinedDefault' => true,
+				'scripts' => array( array( 'handle' => 'cresco-canvas-builder-architecture', 'file' => 'build/website-builder-architecture.js' ) ),
+				'styles' => array( array( 'handle' => 'cresco-canvas-builder-architecture', 'file' => 'assets/css/website-builder-architecture.css' ) ),
+			),
+			'comprehensive-v3' => array(
+				'label' => 'Comprehensive V3 compatibility', 'required' => false, 'transitional' => true,
+				'scripts' => array( array( 'handle' => 'cresco-canvas-website-builder-comprehensive-v3', 'file' => 'build/website-builder-comprehensive-v3.js' ) ),
+				'styles' => array( array( 'handle' => 'cresco-canvas-website-builder-comprehensive-v3', 'file' => 'assets/css/website-builder-comprehensive-v3.css' ) ),
+			),
+			'workflow' => array(
+				'label' => 'Workflow extensions', 'required' => false,
+				'scripts' => array( array( 'handle' => 'cresco-canvas-website-builder-workflow-extensions', 'file' => 'build/website-builder-workflow-extensions.js' ) ), 'styles' => array(),
+			),
+		);
+	}
+
+	public static function get( $key ) {
+		$all = self::all();
+		return $all[ $key ] ?? null;
+	}
+
+	/** Determine the only module keys allowed to execute for this request. */
+	public static function enabled_keys( WebsiteBuilderRuntimeContext $context ) {
+		$all      = self::all();
+		$required = array_keys( array_filter( $all, static function ( $module ) { return ! empty( $module['required'] ); } ) );
+		$mode     = $context->isolation_mode();
+
+		if ( 'core' === $mode ) return $required;
+		if ( 'controls' === $mode ) return array_values( array_unique( array_merge( $required, array( 'controls' ) ) ) );
+		if ( 'professional-ux' === $mode ) return array_values( array_unique( array_merge( $required, array( 'controls', 'professional-ux' ) ) ) );
+		if ( 'architecture' === $mode ) return array_values( array_unique( array_merge( $required, array( 'architecture' ) ) ) );
+		if ( 'all' === $mode ) return array_keys( $all );
+
+		$enabled = array();
+		foreach ( $all as $key => $module ) {
+			if ( ! empty( $module['quarantinedDefault'] ) && ! $context->architecture_debug_enabled() ) continue;
+			$enabled[] = $key;
+		}
+		return $enabled;
+	}
+
+	public static function is_enabled( $key, WebsiteBuilderRuntimeContext $context ) {
+		return in_array( $key, self::enabled_keys( $context ), true );
+	}
+
+	public static function asset_reports() {
+		$output = array();
+		foreach ( self::all() as $key => $module ) {
+			$assets = array();
+			foreach ( array_merge( $module['scripts'], $module['styles'] ) as $asset ) {
+				$assets[] = WebsiteBuilderAsset::report( $asset['file'] );
+			}
+			$output[ $key ] = array(
+				'label'              => $module['label'],
+				'required'           => ! empty( $module['required'] ),
+				'transitional'       => ! empty( $module['transitional'] ),
+				'quarantinedDefault' => ! empty( $module['quarantinedDefault'] ),
+				'assets'              => $assets,
+			);
+		}
+		return $output;
+	}
+}

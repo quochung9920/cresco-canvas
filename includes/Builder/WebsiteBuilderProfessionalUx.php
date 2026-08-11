@@ -7,8 +7,6 @@
 
 namespace CrescoCanvas\Builder;
 
-use CrescoCanvas\Admin\VisualEditor;
-
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
@@ -23,52 +21,34 @@ final class WebsiteBuilderProfessionalUx {
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_editor_assets' ), 1001 );
 	}
 
-	/** Enqueue only on the Cresco Website Builder screen. */
+	/** Enqueue only when the central runtime policy allows this optional module. */
 	public function enqueue_editor_assets() {
-		$post_id = $this->requested_editor_post_id();
-		if ( ! $post_id ) return;
-
-		$script_path         = CRESCO_CANVAS_PATH . 'build/website-builder-professional-ux.js';
-		$style_path          = CRESCO_CANVAS_PATH . 'assets/css/website-builder-professional-ux.css';
-		$preview_script_path = CRESCO_CANVAS_PATH . 'build/website-builder-preview-fit.js';
-		if ( ! is_readable( $script_path ) || ! is_readable( $style_path ) ) return;
+		$context = WebsiteBuilderRuntimeContext::from_request();
+		if ( ! $context || ! WebsiteBuilderModuleRegistry::is_enabled( 'professional-ux', $context ) ) return;
+		if ( ! WebsiteBuilderAsset::readable( 'build/website-builder-professional-ux.js' ) || ! WebsiteBuilderAsset::readable( 'assets/css/website-builder-professional-ux.css' ) ) return;
 
 		wp_enqueue_style(
 			self::SCRIPT_HANDLE,
-			CRESCO_CANVAS_URL . 'assets/css/website-builder-professional-ux.css',
+			WebsiteBuilderAsset::url( 'assets/css/website-builder-professional-ux.css' ),
 			array( 'cresco-canvas-website-builder-controls' ),
-			$this->asset_version( $style_path )
+			WebsiteBuilderAsset::version( 'assets/css/website-builder-professional-ux.css' )
 		);
 		wp_enqueue_script(
 			self::SCRIPT_HANDLE,
-			CRESCO_CANVAS_URL . 'build/website-builder-professional-ux.js',
+			WebsiteBuilderAsset::url( 'build/website-builder-professional-ux.js' ),
 			array( 'cresco-canvas-website-builder-controls' ),
-			$this->asset_version( $script_path ),
+			WebsiteBuilderAsset::version( 'build/website-builder-professional-ux.js' ),
 			true
 		);
 
-		if ( is_readable( $preview_script_path ) ) {
+		if ( WebsiteBuilderAsset::readable( 'build/website-builder-preview-fit.js' ) ) {
 			wp_enqueue_script(
 				self::PREVIEW_SCRIPT_HANDLE,
-				CRESCO_CANVAS_URL . 'build/website-builder-preview-fit.js',
+				WebsiteBuilderAsset::url( 'build/website-builder-preview-fit.js' ),
 				array( self::SCRIPT_HANDLE ),
-				$this->asset_version( $preview_script_path ),
+				WebsiteBuilderAsset::version( 'build/website-builder-preview-fit.js' ),
 				true
 			);
 		}
-	}
-
-	/** Resolve and authorize the current Website Builder Page. */
-	private function requested_editor_post_id() {
-		$page    = isset( $_GET['page'] ) ? sanitize_key( wp_unslash( $_GET['page'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only screen routing.
-		$post_id = isset( $_GET['post'] ) ? absint( wp_unslash( $_GET['post'] ) ) : 0; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only screen routing.
-		if ( VisualEditor::PAGE_SLUG !== $page || ! $post_id || 'page' !== get_post_type( $post_id ) || ! current_user_can( 'edit_post', $post_id ) ) return 0;
-		return $post_id;
-	}
-
-	/** Content-derived cache version so UX changes cannot be hidden by stale assets. */
-	private function asset_version( $path ) {
-		$hash = is_readable( $path ) ? hash_file( 'sha256', $path ) : false;
-		return CRESCO_CANVAS_VERSION . ( is_string( $hash ) && '' !== $hash ? '-' . substr( $hash, 0, 12 ) : '' );
 	}
 }
