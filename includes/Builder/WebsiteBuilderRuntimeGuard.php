@@ -46,9 +46,9 @@ final class WebsiteBuilderRuntimeGuard {
 var root=document.getElementById('cresco-canvas-standalone-editor');
 if(!root)return;
 var started=Date.now(),postId={$post_id};
-function ready(){return !!root.querySelector('.cc-builder-app,.cc-studio-app')}
+function ready(){return !!root.querySelector('.cc-studio-app')}
 function runtimeState(){return window.crescoRuntimeState||window.crescoWebsiteBuilderBootstrap||{};}
-function diagnostics(){var editor=window.crescoWebsiteBuilderEditorBoot||{},state=runtimeState(),diag=window.crescoDiagnostics&&window.crescoDiagnostics.snapshot?window.crescoDiagnostics.snapshot():(window.crescoStudioDiagnostics||null);return{postId:postId,elapsedMs:Date.now()-started,ready:ready(),state:state,editorBoot:editor,diagnostics:diag,settingsPresent:!!window.crescoWebsiteBuilderSettings,wpElement:!!(window.wp&&window.wp.element),wpApiFetch:!!(window.wp&&window.wp.apiFetch),isolationMode:window.crescoRuntimeIsolationMode||'normal',architectureQuarantined:!!window.crescoArchitectureQuarantined};}
+function diagnostics(){var editor=window.crescoWebsiteBuilderEditorBoot||{},state=runtimeState(),diag=window.crescoDiagnostics&&window.crescoDiagnostics.snapshot?window.crescoDiagnostics.snapshot():(window.crescoStudioDiagnostics||null);return{postId:postId,elapsedMs:Date.now()-started,ready:ready(),state:state,editorBoot:editor,diagnostics:diag,runtimeOwner:window.crescoCanonicalRuntimeOwner||null,settingsPresent:!!window.crescoWebsiteBuilderSettings,wpElement:!!(window.wp&&window.wp.element),wpApiFetch:!!(window.wp&&window.wp.apiFetch),isolationMode:window.crescoRuntimeIsolationMode||'normal',architectureQuarantined:!!window.crescoArchitectureQuarantined};}
 function copyText(value){if(navigator.clipboard&&navigator.clipboard.writeText)return navigator.clipboard.writeText(value);var area=document.createElement('textarea');area.value=value;area.style.position='fixed';area.style.opacity='0';document.body.appendChild(area);area.select();try{document.execCommand('copy')}catch(e){}area.remove();return Promise.resolve();}
 function recover(){
  if(ready()||root.querySelector('[data-cresco-runtime-guard]'))return;
@@ -56,8 +56,8 @@ function recover(){
  if(!loading)return;
  while(root.firstChild)root.removeChild(root.firstChild);
  var panel=document.createElement('div');panel.className='cc-builder-loading cc-builder-bootstrap-recovery';panel.setAttribute('data-cresco-runtime-guard','1');panel.setAttribute('role','alert');
- var title=document.createElement('strong');title.textContent='Cresco Website Builder could not finish loading.';panel.appendChild(title);
- var message=document.createElement('p');message.textContent='Startup exceeded the safe loading window. The saved document was not changed. Use Cresco Diagnostics to identify the failing module or request.';panel.appendChild(message);
+ var title=document.createElement('strong');title.textContent='Cresco Studio could not finish loading.';panel.appendChild(title);
+ var message=document.createElement('p');message.textContent='The canonical Studio runtime did not mount inside the safe loading window. The retired Website Builder runtime will not be used as a fallback, and the saved document was not changed. Use Cresco Diagnostics to identify the failing module or request.';panel.appendChild(message);
  var actions=document.createElement('div');actions.className='cc-builder-ai-actions';
  var retry=document.createElement('button');retry.type='button';retry.className='cc-builder-primary';retry.textContent='Reload fresh';retry.onclick=function(){var u=new URL(window.location.href);u.searchParams.set('cresco-runtime',String(Date.now()));window.location.replace(u.toString())};actions.appendChild(retry);
  var copy=document.createElement('button');copy.type='button';copy.className='cc-builder-secondary';copy.textContent='Copy diagnostics';copy.onclick=function(){copyText(JSON.stringify(diagnostics(),null,2))};actions.appendChild(copy);panel.appendChild(actions);
