@@ -74,13 +74,20 @@ for (const token of [
 for (const token of [
 	'window.crescoStudioDragMove',
 	"engine:'canvas-pointer-core-dispatch'",
+	"transport:'core-first-session-fallback'",
+	'fallbackMoves:0',
 	"root.addEventListener('pointerdown'",
 	"window.addEventListener('pointermove'",
 	"window.addEventListener('pointerup'",
 	'dispatchCore',
+	'new window.DragEvent',
 	'crescoForwarded',
 	'is-cresco-pointer-drop-inside',
 	'containsNode',
+	'moveTree',
+	'fallbackMove',
+	"method:'POST',data:{session:next}",
+	'user-select:none',
 	'stopImmediatePropagation',
 	'application/x-cresco-studio-node',
 	'function canvasManaged(event)',
@@ -89,6 +96,8 @@ for (const token of [
 for (const token of [
 	'window.crescoStudioStructureRowDrag',
 	"mode:'native-tree-sorter'",
+	"transport:'core-first-session-fallback'",
+	'fallbackMoves:0',
 	'reorderSibling:true',
 	'reparent:true',
 	'moveIntoContainer:true',
@@ -104,6 +113,9 @@ for (const token of [
 	"event.detail.reason==='structure-move'",
 	'is-cresco-native-drop-inside',
 	'containsNode',
+	'moveTree',
+	'fallbackMove',
+	"method:'POST',data:{session:next}",
 	'scheduleExpand',
 ]) expect('runtime-src/build/website-builder-structure-row-drag.js', token);
 
@@ -156,4 +168,4 @@ if (errors.length) {
 	process.stderr.write(`${errors.join('\n')}\n`);
 	process.exit(1);
 }
-process.stdout.write('[studio] Canonical Studio runtime ownership, Structure-only widget management, hover-only Structure actions with locked/hidden status icons, native Structure tree sorting with sibling reorder/reparent/inside-outside/subtree moves through the core moveNode path, Canvas pointer moves, property-level responsive controls, source/build parity, Structure 2.0, multi-subtree AI interchange, collaboration foundation and extension contracts verified.\n');
+process.stdout.write('[studio] Canonical Studio runtime ownership, Structure-only widget management, hover-only Structure actions with locked/hidden status icons, native Structure tree sorting and Canvas pointer moves with core-first durable session fallback, sibling reorder/reparent/inside-outside/subtree moves, property-level responsive controls, source/build parity, Structure 2.0, multi-subtree AI interchange, collaboration foundation and extension contracts verified.\n');
