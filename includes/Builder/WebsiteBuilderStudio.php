@@ -136,9 +136,10 @@ final class WebsiteBuilderStudio {
 
 	/**
 	 * Keep node-management controls in Structure instead of duplicating them in
-	 * the widget Inspector. Studio gets native hover actions. A small legacy DOM
-	 * adapter mirrors Rename / Visibility / Lock through the hidden Inspector
-	 * controls only when an older runtime is still mounted by a stale local copy.
+	 * the widget Inspector. Normal rows stay visually clean, locked/hidden rows
+	 * retain only their status icon, and the complete action toolbar appears on
+	 * the row being hovered (or keyboard-focused). A small legacy DOM adapter
+	 * mirrors the same behavior if an older runtime is mounted by a stale copy.
 	 */
 	private function install_structure_ownership() {
 		$css = <<<'CSS'
@@ -146,21 +147,19 @@ final class WebsiteBuilderStudio {
 .cc-builder-inspector .cc-builder-mini-actions{display:none!important}
 .cc-studio-panel.is-cresco-structure-managed .cc-studio-panel-head .cc-studio-panel-actions{display:none!important}
 .cc-studio-tree-label{cursor:text}
-.cc-studio-tree-select>.dashicons-hidden{display:none!important}
-.cc-studio-tree-row{padding-right:31px}
+.cc-studio-tree-row{padding-right:4px}
 .cc-studio-tree-select{min-width:0!important;overflow:hidden}
-.cc-studio-tree-actions{display:flex!important;align-items:center;gap:1px;position:absolute;right:3px;top:4px;z-index:8;margin-left:0!important;padding-right:0!important;border-radius:6px}
-.cc-studio-tree-actions>button{display:none!important}
-.cc-studio-tree-actions>button:nth-child(2){display:inline-flex!important}
-.cc-studio-tree-row:hover .cc-studio-tree-actions,.cc-studio-tree-row:focus-within .cc-studio-tree-actions{background:var(--cc-panel-2);box-shadow:-10px 0 14px rgba(17,20,27,.92)}
-.cc-studio-tree-row:hover .cc-studio-tree-actions>button,.cc-studio-tree-row:focus-within .cc-studio-tree-actions>button{display:inline-flex!important}
+.cc-studio-tree-select>.dashicons-lock,.cc-studio-tree-select>.dashicons-hidden{display:inline-flex!important;flex:0 0 17px;opacity:.72}
+.cc-studio-tree-actions{display:none!important;align-items:center;gap:1px;position:absolute;right:3px;top:4px;z-index:8;margin-left:0!important;padding-right:0!important;border-radius:6px;background:var(--cc-panel-2);box-shadow:-10px 0 14px rgba(17,20,27,.92)}
+.cc-studio-tree-actions>button{display:inline-flex!important}
+.cc-studio-tree-row:hover .cc-studio-tree-actions,.cc-studio-tree-row:focus-within .cc-studio-tree-actions{display:flex!important}
+.cc-studio-tree-row:hover .cc-studio-tree-select>.dashicons-lock,.cc-studio-tree-row:hover .cc-studio-tree-select>.dashicons-hidden,.cc-studio-tree-row:focus-within .cc-studio-tree-select>.dashicons-lock,.cc-studio-tree-row:focus-within .cc-studio-tree-select>.dashicons-hidden{opacity:0}
 .cc-builder-structure-item{position:relative!important;padding-right:34px!important}
-.cc-cresco-legacy-tree-actions{position:absolute;right:4px;top:50%;transform:translateY(-50%);z-index:9;display:flex;align-items:center;gap:1px;border-radius:6px}
-.cc-cresco-legacy-tree-action{display:none;align-items:center;justify-content:center;width:24px;height:24px;border-radius:5px;color:inherit;cursor:pointer}
+.cc-cresco-legacy-tree-actions{position:absolute;right:4px;top:50%;transform:translateY(-50%);z-index:9;display:none;align-items:center;gap:1px;border-radius:6px;background:#fff;box-shadow:-10px 0 14px rgba(255,255,255,.96)}
+.cc-cresco-legacy-tree-action{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:5px;color:inherit;cursor:pointer}
 .cc-cresco-legacy-tree-action:hover,.cc-cresco-legacy-tree-action:focus-visible{background:rgba(127,86,217,.12);outline:1px solid rgba(127,86,217,.35)}
-.cc-cresco-legacy-tree-action.is-visibility{display:inline-flex}
-.cc-builder-structure-item:hover .cc-cresco-legacy-tree-actions,.cc-builder-structure-item:focus-within .cc-cresco-legacy-tree-actions{background:#fff;box-shadow:-10px 0 14px rgba(255,255,255,.96)}
-.cc-builder-structure-item:hover .cc-cresco-legacy-tree-action,.cc-builder-structure-item:focus-within .cc-cresco-legacy-tree-action{display:inline-flex}
+.cc-builder-structure-item:hover .cc-cresco-legacy-tree-actions,.cc-builder-structure-item:focus-within .cc-cresco-legacy-tree-actions{display:flex}
+.cc-builder-structure-item:hover>.dashicons-lock,.cc-builder-structure-item:hover>.dashicons-hidden,.cc-builder-structure-item:focus-within>.dashicons-lock,.cc-builder-structure-item:focus-within>.dashicons-hidden{opacity:0}
 .cc-cresco-legacy-tree-action .dashicons{font-size:16px;width:16px;height:16px;line-height:16px}
 .cc-builder-structure-item.is-cresco-inline-renaming .cc-builder-structure-copy strong{outline:2px solid #7f56d9;outline-offset:2px;border-radius:3px;cursor:text;min-width:64px}
 CSS;
@@ -170,8 +169,8 @@ CSS;
 (function(window,document){
 'use strict';
 var root=document.getElementById('cresco-canvas-standalone-editor');
-if(!root||root.dataset.crescoStructureOwnership==='4')return;
-root.dataset.crescoStructureOwnership='4';
+if(!root||root.dataset.crescoStructureOwnership==='5')return;
+root.dataset.crescoStructureOwnership='5';
 var scheduled=false;
 function purgeInspectorManagement(){
  root.querySelectorAll('.cc-studio-meta-grid,.cc-builder-inspector .cc-builder-mini-actions').forEach(function(node){node.remove();});
@@ -282,8 +281,16 @@ function action(iconName,label,className,handler){
  item.addEventListener('keydown',function(event){if(event.key==='Enter'||event.key===' '){run(event);}});
  return item;
 }
+function hasDirectStatus(row,className){
+ if(!row)return false;
+ for(var i=0;i<row.children.length;i++){
+  var child=row.children[i];
+  if(child.classList&&child.classList.contains(className))return true;
+ }
+ return false;
+}
 function refreshLegacyActionState(row,actions){
- var hidden=!!row.querySelector('.dashicons-hidden'),locked=!!row.querySelector('.dashicons-lock');
+ var hidden=hasDirectStatus(row,'dashicons-hidden'),locked=hasDirectStatus(row,'dashicons-lock');
  var visibility=actions.querySelector('.is-visibility .dashicons'),lock=actions.querySelector('.is-lock .dashicons');
  if(visibility)visibility.className='dashicons dashicons-'+(hidden?'visibility':'hidden');
  var visibilityAction=actions.querySelector('.is-visibility');
@@ -336,7 +343,7 @@ window.setTimeout(function(){
  var studio=root.querySelector('.cc-studio-app');
  var legacy=root.querySelector('.cc-builder-app:not(.cc-studio-app)');
  var inspectorManagementRemoved=!root.querySelector('.cc-studio-meta-grid,.cc-builder-inspector .cc-builder-mini-actions');
- window.crescoStudioRuntimeOwnership={expected:'studio',studioMounted:!!studio,legacyMounted:!!legacy,legacyStructureAdapter:!!root.querySelector('.cc-cresco-legacy-tree-actions'),inspectorManagementRemoved:inspectorManagementRemoved,checkedAt:Date.now()};
+ window.crescoStudioRuntimeOwnership={expected:'studio',studioMounted:!!studio,legacyMounted:!!legacy,legacyStructureAdapter:!!root.querySelector('.cc-cresco-legacy-tree-actions'),inspectorManagementRemoved:inspectorManagementRemoved,structureActionMode:'hover-with-status-icons',checkedAt:Date.now()};
  if(legacy&&!studio){
   legacy.setAttribute('data-cresco-retired-runtime','1');
   schedule();
