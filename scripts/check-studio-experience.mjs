@@ -20,6 +20,7 @@ const required = [
 	'includes/Builder/WebsiteBuilderStudio.php',
 	'includes/Builder/WebsiteBuilderRuntimeOwner.php',
 	'includes/Builder/WebsiteBuilderConcurrencyGuard.php',
+	'includes/Security/PublicRequestAtomicity.php',
 	'includes/Theme/ThemePageSettingsBridge.php',
 	'build/website-builder-studio.js',
 	'runtime-src/build/website-builder-studio.js',
@@ -32,6 +33,7 @@ const required = [
 	'build/website-builder-consistency-guard.js',
 	'runtime-src/build/website-builder-consistency-guard.js',
 	'assets/css/website-builder-studio.css',
+	'tests/e2e/studio-hardening.spec.ts',
 ];
 for ( const relative of required ) if ( ! exists( relative ) ) errors.push( `Missing Studio file: ${ relative }` );
 for ( const retired of [ 'build/website-builder-structure-row-drag.js', 'runtime-src/build/website-builder-structure-row-drag.js' ] ) {
@@ -88,14 +90,21 @@ for ( const token of [
 
 for ( const token of [
 	"const SCRIPT             = 'build/website-builder-studio.js'",
+	"const STYLE              = 'assets/css/website-builder.css'",
 	"const CONSISTENCY_SCRIPT = 'build/website-builder-consistency-guard.js'",
-	"retire_legacy_admin_runtime",
-	"retire_observer_monkeypatch",
+	'retire_historical_editor_enqueue_callbacks',
+	"WebsiteBuilder::class, 'enqueue_editor'",
+	"ThemeSessionBridge::class, 'enqueue_editor'",
+	'retire_legacy_admin_runtime',
+	'retire_observer_monkeypatch',
+	'wp_enqueue_media',
+	'GlobalStyles::css',
 	"WebsiteBuilderAsset::url( self::SCRIPT )",
 	"runtimeTransport' => 'direct-content-addressed-asset'",
+	"legacyEditorEnqueue' => false",
 	'window.crescoCanonicalRuntimeOwner=',
 ] ) expect( 'includes/Builder/WebsiteBuilderRuntimeOwner.php', token );
-for ( const token of [ 'wp_ajax_', 'serve_runtime', 'syntax-repair', 'website-builder-editor.js' ] ) reject( 'includes/Builder/WebsiteBuilderRuntimeOwner.php', token );
+for ( const token of [ 'wp_ajax_', 'serve_runtime', 'syntax-repair', "CRESCO_CANVAS_URL . 'build/website-builder-editor.js'" ] ) reject( 'includes/Builder/WebsiteBuilderRuntimeOwner.php', token );
 
 for ( const token of [
 	'.cc-studio-meta-grid{display:none!important}',
@@ -112,6 +121,16 @@ for ( const token of [
 	"'status' => 409",
 	'hash_equals',
 ] ) expect( 'includes/Builder/WebsiteBuilderConcurrencyGuard.php', token );
+
+for ( const token of [
+	"add_filter( 'rest_pre_dispatch', array( $this, 'acquire' ), 4, 3 )",
+	"add_filter( 'rest_pre_dispatch', array( $this, 'release' ), 6, 3 )",
+	'add_option( $key, $value',
+	'cresco_request_busy',
+	'idempotency_key_for_request',
+	'request_identity',
+] ) expect( 'includes/Security/PublicRequestAtomicity.php', token );
+expect( 'includes/Plugin.php', 'new PublicRequestAtomicity()' );
 expect( 'includes/Plugin.php', 'new WebsiteBuilderConcurrencyGuard()' );
 expect( 'includes/Plugin.php', 'new ThemePageSettingsBridge()' );
 
@@ -131,8 +150,13 @@ reject( 'scripts/release-files.mjs', 'build/website-builder-structure-row-drag.j
 expect( 'runtime-src/manifest.json', 'website-builder-consistency-guard.js' );
 reject( 'runtime-src/manifest.json', 'website-builder-structure-row-drag.js' );
 
+for ( const testFile of [ 'tests/e2e/release-critical.spec.ts', 'tests/e2e/editor-shell.spec.ts', 'tests/e2e/page-settings.spec.ts', 'tests/e2e/accessibility-release.spec.ts', 'tests/e2e/theme-shell.spec.ts' ] ) {
+	expect( testFile, '.cc-studio-app' );
+	reject( testFile, '.cc-standalone-app' );
+}
+
 if ( errors.length ) {
 	process.stderr.write( `${ errors.join( '\n' ) }\n` );
 	process.exit( 1 );
 }
-process.stdout.write( '[studio] Hardened Studio verified: direct canonical runtime, repaired source/build parity, optimistic concurrency, fail-closed Page Settings, one Core Structure move path, core-only Canvas pointer bridge, no duplicate Structure drag runtime, no legacy DOM adapter, and privileged quarantine controls.\n' );
+process.stdout.write( '[studio] Hardened Studio verified: one direct canonical bootstrap, repaired source/build parity, optimistic concurrency, atomic public abuse controls, fail-closed Page Settings, durable Theme settings, one Core Structure move path, core-only Canvas pointer bridge, no duplicate Structure drag runtime, no legacy DOM adapter, and privileged quarantine controls.\n' );
