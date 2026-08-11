@@ -1,6 +1,6 @@
 <?php
 /**
- * Resolves page, subtree, widget, and selection export scopes.
+ * Resolves page, subtree, widget, selection, and multi-subtree export scopes.
  *
  * @package CrescoCanvas
  */
@@ -14,7 +14,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 final class ScopeResolver {
-	const SCOPES = array( 'page', 'subtree', 'widget', 'selection' );
+	const SCOPES = array( 'page', 'subtree', 'widget', 'selection', 'selection-subtrees' );
 
 	public static function resolve( $session, $scope, $target = array() ) {
 		$scope = sanitize_key( (string) $scope );
@@ -33,30 +33,59 @@ final class ScopeResolver {
 			);
 		}
 
-		if ( 'selection' === $scope ) {
+		if ( in_array( $scope, array( 'selection', 'selection-subtrees' ), true ) ) {
 			$ids = array_values( array_unique( array_filter( array_map( 'strval', (array) ( $target['nodeIds'] ?? array() ) ) ) ) );
 			if ( ! $ids ) {
 				return new WP_Error( 'cresco_ai_selection_empty', __( 'Selection export requires at least one node ID.', 'cresco-canvas' ), array( 'status' => 400 ) );
 			}
+			foreach ( $ids as $id ) if ( ! self::find_node( $nodes, $id ) ) return self::not_found( $id );
+
+			// When entire subtrees are requested, collapse overlapping roots. If a
+			// selected ancestor already contains another selected ID, exporting both
+			// would duplicate the same document nodes and make AI patches ambiguous.
+			if ( 'selection-subtrees' === $scope ) {
+				$id_set = array_fill_keys( $ids, true );
+				$ids    = array_values(
+					array_filter(
+						$ids,
+						static function ( $id ) use ( $parent_map, $id_set ) {
+							$cursor = $parent_map[ $id ]['parentId'] ?? null;
+							while ( $cursor && isset( $parent_map[ $cursor ] ) ) {
+								if ( isset( $id_set[ $cursor ] ) ) return false;
+								$cursor = $parent_map[ $cursor ]['parentId'];
+							}
+							return true;
+						}
+					)
+				);
+			}
+
 			$selected = array();
 			$types    = array();
+			$node_ids = array();
 			$ancestry = array();
 			foreach ( $ids as $id ) {
 				$node = self::find_node( $nodes, $id );
-				if ( ! $node ) return self::not_found( $id );
-				$selected_node = $node;
-				$selected_node['children'] = array();
-				$selected[] = $selected_node;
-				$types[]    = (string) $node['type'];
+				if ( 'selection' === $scope ) {
+					$selected_node             = $node;
+					$selected_node['children'] = array();
+					$selected[]                = $selected_node;
+					$node_ids[]                = $id;
+					$types[]                   = (string) $node['type'];
+				} else {
+					$selected[] = $node;
+					$node_ids   = array_merge( $node_ids, self::collect_ids( array( $node ) ) );
+					$types      = array_merge( $types, self::collect_types( array( $node ) ) );
+				}
 				foreach ( self::ancestry_for( $id, $parent_map ) as $ancestor ) {
 					$ancestry[ $ancestor['id'] ] = $ancestor;
 					$types[] = $ancestor['type'];
 				}
 			}
 			return array(
-				'target'        => array( 'scope' => 'selection', 'nodeIds' => $ids, 'type' => 'selection' ),
+				'target'        => array( 'scope' => $scope, 'nodeIds' => $ids, 'type' => $scope ),
 				'content'       => array( 'nodes' => $selected, 'ancestry' => array_values( $ancestry ) ),
-				'nodeIds'       => $ids,
+				'nodeIds'       => array_values( array_unique( $node_ids ) ),
 				'requiredTypes' => array_values( array_unique( $types ) ),
 			);
 		}
@@ -68,7 +97,7 @@ final class ScopeResolver {
 		$types    = array_merge( array( (string) $node['type'] ), array_column( $ancestry, 'type' ) );
 
 		if ( 'widget' === $scope ) {
-			$widget = $node;
+			$widget             = $node;
 			$widget['children'] = array();
 			return array(
 				'target'        => array( 'scope' => 'widget', 'nodeId' => $node_id, 'type' => (string) $node['type'] ),
@@ -160,7 +189,7 @@ final class ScopeResolver {
 
 	private static function ancestry_style( $style ) {
 		$allowed = array( 'display', 'width', 'maxWidth', 'minHeight', 'gap', 'paddingTop', 'paddingRight', 'paddingBottom', 'paddingLeft', 'alignItems', 'justifyContent', 'flexDirection', 'flexWrap', 'gridTemplateColumns', 'position', 'overflow' );
-		$output = array();
+		$output  = array();
 		foreach ( $allowed as $key ) if ( array_key_exists( $key, (array) $style ) ) $output[ $key ] = $style[ $key ];
 		return $output;
 	}
