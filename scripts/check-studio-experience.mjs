@@ -70,7 +70,10 @@ expect('includes/Builder/WebsiteBuilderStudio.php', 'enforce_runtime_ownership')
 expect('includes/Builder/WebsiteBuilderStudio.php', "$registered->src  = WebsiteBuilderAsset::url( self::SCRIPT )");
 expect('includes/Builder/WebsiteBuilderStudio.php', 'crescoExpectedWebsiteBuilderRuntime');
 expect('includes/Builder/WebsiteBuilderStudio.php', '.cc-studio-meta-grid,.cc-builder-meta-row{display:none!important}');
-expect('includes/Builder/WebsiteBuilderStudio.php', "querySelectorAll('.cc-studio-meta-grid')");
+expect('includes/Builder/WebsiteBuilderStudio.php', '.cc-builder-inspector .cc-builder-mini-actions{display:none!important}');
+expect('includes/Builder/WebsiteBuilderStudio.php', 'is-cresco-structure-managed');
+expect('includes/Builder/WebsiteBuilderStudio.php', "querySelectorAll('.cc-studio-meta-grid,.cc-builder-inspector .cc-builder-mini-actions')");
+expect('includes/Builder/WebsiteBuilderStudio.php', 'inspectorManagementRemoved');
 expect('includes/Builder/WebsiteBuilderStudio.php', '.cc-studio-tree-actions>button:nth-child(2)');
 expect('includes/Builder/WebsiteBuilderStudio.php', '.cc-studio-tree-row:hover .cc-studio-tree-actions>button');
 expect('includes/Builder/WebsiteBuilderStudio.php', '.cc-studio-tree-select>.dashicons-hidden');
@@ -96,4 +99,4 @@ if (errors.length) {
 	process.stderr.write(`${errors.join('\n')}\n`);
 	process.exit(1);
 }
-process.stdout.write('[studio] Canonical Studio runtime ownership, property-level responsive controls, Structure hover actions/fallback management, source/build parity, Structure 2.0, multi-subtree AI interchange, collaboration foundation and extension contracts verified.\n');
+process.stdout.write('[studio] Canonical Studio runtime ownership, Structure-only widget management, property-level responsive controls, Structure hover actions/fallback management, source/build parity, Structure 2.0, multi-subtree AI interchange, collaboration foundation and extension contracts verified.\n');
