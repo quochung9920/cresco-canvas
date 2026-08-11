@@ -55,7 +55,7 @@ final class WebsiteBuilderBootstrapResilience {
 
 	/**
 	 * Emergency request guard used only when the dedicated bootstrap middleware
-	 * could not install. Optional requests degrade; only the Session is critical.
+	 * could not install. Session and Page Settings are always fail-closed.
 	 */
 	public function attach_request_guard() {
 		$context = WebsiteBuilderRuntimeContext::from_request();
@@ -68,13 +68,14 @@ var wp=window.wp,settings=window.crescoWebsiteBuilderSettings||{},boot=window.cr
 if(bootstrap.middlewareInstalled&&bootstrap.abortable){window.crescoWebsiteBuilderRequestGuard=bootstrap;return;}
 if(!original||original.__crescoStartupGuard)return;
 var bp=boot.paths||{},paths={session:settings.sessionPath||bp.session||'',context:settings.contextPath||bp.context||'',options:settings.optionsPath||bp.options||'',components:settings.componentsPath||bp.components||'',pageSettings:settings.pageSettingsPath||bp.pageSettings||'',themeTemplates:settings.themeTemplatesPath||bp.themeTemplates||'',globalSettings:settings.settingsPath||bp.globalSettings||''};
-var state={startedAt:Date.now(),fallbacks:[],timeouts:[],aborted:[],fatal:null,active:{},abortable:!!window.AbortController};window.crescoWebsiteBuilderRequestGuard=state;
+var state={startedAt:Date.now(),fallbacks:[],timeouts:[],aborted:[],fatal:null,active:{},abortable:!!window.AbortController,ready:false,recoveryOwner:'runtime-guard'};window.crescoWebsiteBuilderRequestGuard=state;
 function method(o){return String(o&&o.method||'GET').toUpperCase()}function reqPath(o){return String(o&&o.path||'')}
 function clone(v){if(v===null||v===undefined)return v;try{return JSON.parse(JSON.stringify(v))}catch(e){return v}}
 function record(list,p,e){list.push({path:p,message:e&&e.message?String(e.message):String(e||'Request failed'),at:Date.now()})}
-function fallback(p){if(p===paths.context)return{matched:true,value:{format:'cresco-website-builder-context/v1',builder:settings.builderVersion||boot.builderVersion||'website-core/v1',global:{},widgets:settings.widgetCatalog||{},session:null,postTitle:settings.postTitle||'',capabilities:{degraded:true},instructions:[]}};if(p===paths.options)return{matched:true,value:{menus:[],postTypes:[],taxonomies:[],woocommerce:false,acf:false,siteName:'',themeTypes:[]}};if(p===paths.components)return{matched:true,value:[]};if(p===paths.pageSettings)return{matched:true,value:{settings:{}}};if(p===paths.themeTemplates)return{matched:true,value:[]};if(p===paths.globalSettings)return{matched:true,value:null};return{matched:false,value:null}}
-function guarded(options){var p=reqPath(options),fb=fallback(p),critical=p===paths.session&&!!p;if(method(options)!=='GET'||(!critical&&!fb.matched))return original(options);var ms=critical?Number(boot.criticalTimeoutMs||8000):Number(boot.optionalTimeoutMs||2500);return new Promise(function(resolve,reject){var settled=false,controller=window.AbortController?new AbortController():null,requestOptions=Object.assign({},options||{}),id=p+'#'+Date.now()+'-'+Math.random().toString(36).slice(2,7);if(controller)requestOptions.signal=controller.signal;state.active[id]={path:p,startedAt:Date.now(),timeoutMs:ms};function finish(){delete state.active[id]}var timer=window.setTimeout(function(){if(settled)return;settled=true;var e=new Error('Website Builder request timed out after '+ms+'ms: '+p);e.code='cresco_builder_startup_timeout';if(controller&&!controller.signal.aborted){controller.abort();record(state.aborted,p,e)}record(state.timeouts,p,e);finish();if(critical){state.fatal={path:p,message:e.message,at:Date.now()};reject(e)}else{record(state.fallbacks,p,e);resolve(clone(fb.value))}},ms);Promise.resolve(original(requestOptions)).then(function(v){if(settled)return;settled=true;window.clearTimeout(timer);finish();resolve(v)},function(e){if(settled)return;settled=true;window.clearTimeout(timer);finish();if(critical){state.fatal={path:p,message:e&&e.message?String(e.message):String(e||'Session request failed'),at:Date.now()};reject(e)}else{record(state.fallbacks,p,e);resolve(clone(fb.value))}})})}
+function fallback(p){if(p===paths.context)return{matched:true,value:{format:'cresco-website-builder-context/v1',builder:settings.builderVersion||boot.builderVersion||'website-core/v1',global:{},widgets:settings.widgetCatalog||{},session:null,postTitle:settings.postTitle||'',capabilities:{degraded:true},instructions:[]}};if(p===paths.options)return{matched:true,value:{menus:[],postTypes:[],taxonomies:[],woocommerce:false,acf:false,siteName:'',themeTypes:[]}};if(p===paths.components)return{matched:true,value:[]};if(p===paths.themeTemplates)return{matched:true,value:[]};if(p===paths.globalSettings)return{matched:true,value:null};return{matched:false,value:null}}
+function guarded(options){var p=reqPath(options),fb=fallback(p),critical=(p===paths.session||p===paths.pageSettings)&&!!p;if(method(options)!=='GET'||(!critical&&!fb.matched))return original(options);var ms=critical?Number(boot.criticalTimeoutMs||8000):Number(boot.optionalTimeoutMs||2500);return new Promise(function(resolve,reject){var settled=false,controller=window.AbortController?new AbortController():null,requestOptions=Object.assign({},options||{}),id=p+'#'+Date.now()+'-'+Math.random().toString(36).slice(2,7);if(controller)requestOptions.signal=controller.signal;state.active[id]={path:p,startedAt:Date.now(),timeoutMs:ms};function finish(){delete state.active[id]}var timer=window.setTimeout(function(){if(settled)return;settled=true;var e=new Error('Website Builder request timed out after '+ms+'ms: '+p);e.code='cresco_builder_startup_timeout';if(controller&&!controller.signal.aborted){controller.abort();record(state.aborted,p,e)}record(state.timeouts,p,e);finish();if(critical){state.fatal={path:p,message:e.message,at:Date.now()};reject(e)}else{record(state.fallbacks,p,e);resolve(clone(fb.value))}},ms);Promise.resolve(original(requestOptions)).then(function(v){if(settled)return;settled=true;window.clearTimeout(timer);finish();resolve(v)},function(e){if(settled)return;settled=true;window.clearTimeout(timer);finish();if(critical){state.fatal={path:p,message:e&&e.message?String(e.message):String(e||'Critical request failed'),at:Date.now()};reject(e)}else{record(state.fallbacks,p,e);resolve(clone(fb.value))}})})}
 try{Object.keys(original).forEach(function(k){guarded[k]=original[k]})}catch(e){}if(typeof original.use==='function')guarded.use=original.use.bind(original);guarded.__crescoStartupGuard=true;guarded.__crescoOriginal=original;wp.apiFetch=guarded;
+window.addEventListener('cresco:studio-ready',function(){if(!state.fatal)state.ready=true;});
 })(window);
 JS;
 		wp_add_inline_script( 'cresco-canvas-website-builder', $guard, 'before' );
@@ -91,7 +92,7 @@ JS;
 var started=Date.now(),state=window.crescoRuntimeState=window.crescoRuntimeState||{phase:'CORE_LOADED',postId:{$post_id},startedAt:Date.now(),events:[]};
 function emit(phase,detail){state.phase=phase;state.updatedAt=Date.now();state.events.push({at:state.updatedAt-started,phase:phase,detail:detail||null});if(state.events.length>80)state.events.shift();}
 emit('CORE_LOADED');
-function inspect(){var root=document.getElementById('cresco-canvas-standalone-editor'),app=root&&root.querySelector('.cc-builder-app');if(app){emit('READY');return true}var editor=window.crescoWebsiteBuilderEditorBoot||{},bootstrap=window.crescoWebsiteBuilderBootstrap||window.crescoWebsiteBuilderRequestGuard||{};if(editor.phase==='session')emit('SESSION_PENDING');if(bootstrap.fatal)emit('FAILED',bootstrap.fatal);return false;}
+function inspect(){var root=document.getElementById('cresco-canvas-standalone-editor'),app=root&&root.querySelector('.cc-studio-app'),editor=window.crescoWebsiteBuilderEditorBoot||{},bootstrap=window.crescoWebsiteBuilderBootstrap||window.crescoWebsiteBuilderRequestGuard||{};if(bootstrap.fatal){emit('FAILED',bootstrap.fatal);return false}if(app&&bootstrap.ready===true){emit('READY');return true}if(editor.phase==='session')emit('SESSION_PENDING');return false;}
 var timer=window.setInterval(function(){if(inspect())window.clearInterval(timer)},250);window.setTimeout(function(){window.clearInterval(timer);if(!inspect()&&state.phase!=='FAILED')emit('FAILED',{reason:'startup-timeout'});},10500);
 })(window,document);
 JS;
@@ -99,8 +100,8 @@ JS;
 	}
 
 	/**
-	 * Guard enhancement observers against mutating the DOM they are currently
-	 * observing. The wrapper is active only while each optional runtime boots.
+	 * Transitional observer wrapper retained for compatibility modules only.
+	 * WebsiteBuilderRuntimeOwner removes this callback for canonical Studio.
 	 */
 	public function attach_observer_guards() {
 		$context = WebsiteBuilderRuntimeContext::from_request();
