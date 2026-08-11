@@ -10,6 +10,7 @@ const contractFiles = [
 	'contracts/document/v1.schema.json',
 	'contracts/scope/v1.schema.json',
 	'contracts/command/v1.schema.json',
+	'contracts/transaction/v1.schema.json',
 	'contracts/ai-context/v2.schema.json',
 ];
 for ( const file of contractFiles ) {
@@ -20,6 +21,7 @@ const phpFiles = [
 	'includes/Core/Scope/ScopeEngine.php',
 	'includes/Core/Context/ContextEngine.php',
 	'includes/Core/Command/CommandBus.php',
+	'includes/Core/Command/TransactionManager.php',
 	'includes/Core/UI/UiRegistry.php',
 	'includes/Core/Widget/WidgetRegistry.php',
 	'includes/Core/Storage/DocumentRepository.php',
@@ -46,7 +48,7 @@ for ( const file of [ 'runtime-src/build/website-builder-architecture.js', 'buil
 }
 if ( hash( source ) !== hash( build ) ) errors.push( 'Architecture runtime source/build mismatch.' );
 const phpCorpus = ( await Promise.all( phpFiles.map( read ) ) ).join( '\n' );
-for ( const token of [ 'cresco-ai-context/v2', 'ScopeEngine', 'CommandBus', 'RenderEngine', 'UiRegistry', 'WidgetRegistry', 'DocumentRepository', 'ModuleRegistry', 'cresco-command/v1', 'cresco_command_scope_mismatch' ] ) {
+for ( const token of [ 'cresco-ai-context/v2', 'ScopeEngine', 'CommandBus', 'TransactionManager', 'RenderEngine', 'UiRegistry', 'WidgetRegistry', 'DocumentRepository', 'ModuleRegistry', 'cresco-command/v1', 'cresco-transaction/v1', 'cresco_command_scope_mismatch' ] ) {
 	if ( ! phpCorpus.includes( token ) ) errors.push( `Architecture PHP missing ${ token }` );
 }
 for ( const token of [ 'metaKey||e.ctrlKey', 'crescoBuilderArchitecture', 'addCommand', 'data-cresco-zone', 'Scoped AI', 'Authoritative Renderer Preview', 'Cresco Documents', 'selection' ] ) {
@@ -67,8 +69,14 @@ for ( const token of [ 'WebsiteBuilder::sanitize_session', 'Document::checksum',
 if ( patchValidator.includes( 'SessionManager::sanitize_session' ) ) errors.push( 'PatchValidator regressed to legacy Session sanitization.' );
 
 const commandBus = await read( 'includes/Core/Command/CommandBus.php' );
-if ( ! commandBus.includes( 'Document::checksum' ) ) errors.push( 'CommandBus must checksum through the Core Document boundary.' );
+for ( const token of [ 'Document::checksum', "'node.group'", "'node.duplicate'", "'responsive.reset'", "'state.update'", "'ai.applyPatch'" ] ) {
+	if ( ! commandBus.includes( token ) ) errors.push( `CommandBus missing canonical command support ${ token }` );
+}
 if ( commandBus.includes( 'use CrescoCanvas\\AI\\ContextBuilder;' ) ) errors.push( 'CommandBus must not depend on AI ContextBuilder for checksums.' );
+const transactions = await read( 'includes/Core/Command/TransactionManager.php' );
+for ( const token of [ 'cresco-transaction/v1', 'CommandBus::preview', 'DiffEngine::compare', 'beforeChecksum', 'afterChecksum' ] ) {
+	if ( ! transactions.includes( token ) ) errors.push( `TransactionManager missing ${ token }` );
+}
 
 const renderEngine = await read( 'includes/Rendering/RenderEngine.php' );
 if ( ! renderEngine.includes( 'WebsiteBuilderRendererParity::repair_document_html' ) ) errors.push( 'RenderEngine must finalize native Form parity before returning HTML.' );
@@ -107,4 +115,4 @@ if ( errors.length ) {
 	process.stderr.write( `${ errors.join( '\n' ) }\n` );
 	process.exit( 1 );
 }
-process.stdout.write( 'Cresco Core contracts, canonical AI validation, scoped commands, unified render parity, Theme history/settings, stabilization runtime, release ownership, and architecture runtime verified.\n' );
+process.stdout.write( 'Cresco Core contracts, canonical transactions, AI validation, scoped commands, unified render parity, Theme history/settings, stabilization runtime, release ownership, and architecture runtime verified.\n' );
