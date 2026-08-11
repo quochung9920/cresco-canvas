@@ -16,56 +16,59 @@ async function openEditor( page: Page ) {
 	await expect( row ).toBeVisible();
 	await row.hover();
 	await row.getByRole( 'link', { name: 'Edit with Cresco Canvas' } ).click();
-	await expect( page.locator( '.cc-standalone-app.cc-ui-v3-ready' ) ).toBeVisible();
+	await expect( page.locator( '.cc-studio-app' ) ).toBeVisible();
 }
 
-test.describe.serial( 'commercial critical editor flow', () => {
-	test( 'undo, redo, History, save/reload, responsive, Settings, and AI stay usable', async ( { page } ) => {
+async function openTool( page: Page, title: string ) {
+	const button = page.locator( `.cc-studio-rail button[title="${ title }"]` );
+	await expect( button ).toBeVisible();
+	await button.click();
+}
+
+test.describe.serial( 'commercial critical Studio flow', () => {
+	test( 'undo, redo, History, save/reload, responsive, Page Settings, and AI stay usable', async ( { page } ) => {
 		await login( page );
 		await openEditor( page );
 
-		const widgets = page.locator( '.cc-standalone-tabs button' ).filter( { hasText: 'Widgets' } ).first();
-		await widgets.click();
-		await page.locator( '.cc-standalone-widget' ).filter( { hasText: 'Heading' } ).click();
-		await expect( page.locator( '.cc-canvas-widget-heading' ) ).toHaveCount( 1 );
+		await openTool( page, 'Add' );
+		await page.locator( '.cc-studio-widget-grid button' ).filter( { hasText: 'Heading' } ).first().click();
+		await expect( page.locator( '.cc-studio-canvas-node' ).filter( { hasText: 'Heading' } ).first() ).toBeVisible();
 
 		const undo = page.getByRole( 'button', { name: 'Undo' } );
 		const redo = page.getByRole( 'button', { name: 'Redo' } );
 		await expect( undo ).toBeEnabled();
 		await undo.click();
-		await expect( page.locator( '.cc-canvas-widget-heading' ) ).toHaveCount( 0 );
+		await expect( page.locator( '.cc-studio-tree-row[data-cresco-node-id]' ) ).toHaveCount( 0 );
 		await expect( redo ).toBeEnabled();
 		await redo.click();
-		await expect( page.locator( '.cc-canvas-widget-heading' ) ).toHaveCount( 1 );
+		await expect( page.locator( '.cc-studio-tree-row[data-cresco-node-id]' ) ).toHaveCount( 1 );
 
-		await page.getByRole( 'button', { name: 'History' } ).click();
-		const history = page.locator( '.cc-history-drawer' );
-		await expect( history ).toBeVisible();
-		await expect( history ).toContainText( /Add Heading|History/ );
+		await openTool( page, 'Edit' );
+		const text = page.locator( '.cc-studio-field' ).filter( { hasText: /^Text/ } ).locator( 'textarea,input' ).first();
+		await expect( text ).toBeVisible();
+		await text.fill( 'Commercial gate heading' );
+		await expect( page.locator( '.cc-studio-canvas' ) ).toContainText( 'Commercial gate heading' );
 
-		const edit = page.locator( '.cc-standalone-tabs button' ).filter( { hasText: 'Edit' } ).first();
-		await edit.click();
-		await page.getByLabel( 'Text', { exact: true } ).fill( 'Commercial gate heading' );
-		await page.locator( '.cc-inspector-device-switcher button' ).filter( { hasText: 'Mobile' } ).click();
-		await expect( page.locator( '.cc-standalone-width-label' ) ).toHaveText( '390px' );
+		await page.getByRole( 'button', { name: 'mobile' } ).last().click();
+		await expect( page.locator( '.cc-studio-width' ) ).toHaveText( '390px' );
 
-		const settings = page.locator( '.cc-standalone-tabs button' ).filter( { hasText: 'Settings' } ).first();
-		await settings.click();
-		await expect( page.getByRole( 'region', { name: 'Settings Center' } ) ).toBeVisible();
+		await openTool( page, 'Page' );
+		await expect( page.locator( '.cc-studio-left' ) ).toContainText( 'Page Settings 2.0' );
+		await expect( page.getByRole( 'button', { name: 'Save Page Settings' } ) ).toBeVisible();
 
-		const ai = page.locator( '.cc-standalone-tabs button' ).filter( { hasText: 'AI' } ).first();
-		await ai.click();
-		await expect( page.locator( '.cc-ai-panel' ) ).toBeVisible();
-		await expect( page.getByRole( 'button', { name: 'Validate import' } ) ).toBeVisible();
+		await openTool( page, 'AI' );
+		await expect( page.locator( '.cc-studio-left' ) ).toContainText( 'AI Studio' );
+		await expect( page.getByRole( 'button', { name: 'Validate & Preview' } ) ).toBeVisible();
 
-		await edit.click();
 		await page.getByRole( 'button', { name: 'Update' } ).click();
 		await expect( page.getByRole( 'button', { name: 'Saved' } ) ).toBeDisabled();
 		await page.reload();
-		await expect( page.locator( '.cc-session-canvas' ) ).toContainText( 'Commercial gate heading' );
+		await expect( page.locator( '.cc-studio-app' ) ).toBeVisible();
+		await expect( page.locator( '.cc-studio-canvas' ) ).toContainText( 'Commercial gate heading' );
 
-		await page.getByRole( 'button', { name: 'History' } ).click();
-		await page.locator( '.cc-history-tabs button' ).filter( { hasText: 'Revisions' } ).click();
-		await expect( page.locator( '.cc-history-drawer' ) ).toContainText( /Revisions|Current|Apply/ );
+		await openTool( page, 'History' );
+		await expect( page.locator( '.cc-studio-left' ) ).toContainText( 'History & Recovery' );
+		await page.getByRole( 'button', { name: 'Load revisions' } ).click();
+		await expect( page.locator( '.cc-studio-left' ) ).toContainText( /Current version|Saved revision|History & Recovery/ );
 	} );
 } );
