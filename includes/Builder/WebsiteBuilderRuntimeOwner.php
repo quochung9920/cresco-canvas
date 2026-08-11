@@ -11,7 +11,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-/** Own the public Website Builder handle with one direct Cresco Studio runtime. */
 final class WebsiteBuilderRuntimeOwner {
 	const HANDLE             = 'cresco-canvas-website-builder';
 	const SCRIPT             = 'build/website-builder-studio.js';
@@ -22,6 +21,7 @@ final class WebsiteBuilderRuntimeOwner {
 	public function register() {
 		add_action( 'admin_enqueue_scripts', array( $this, 'claim_runtime_handle' ), 119 );
 		add_action( 'admin_enqueue_scripts', array( $this, 'retire_legacy_admin_runtime' ), 998 );
+		add_action( 'admin_enqueue_scripts', array( $this, 'retire_observer_monkeypatch' ), 1198 );
 		add_action( 'admin_enqueue_scripts', array( $this, 'verify_core_extensions' ), 1410 );
 	}
 
@@ -30,28 +30,29 @@ final class WebsiteBuilderRuntimeOwner {
 		$this->register_studio_runtime();
 	}
 
-	/**
-	 * Compatibility keeps its frontend CSS bridge, but old admin bootstrap and
-	 * watchdog callbacks are removed before they can mutate the canonical handle.
-	 */
+	/** Keep frontend compatibility, but remove retired admin bootstrap paths. */
 	public function retire_legacy_admin_runtime() {
 		if ( ! $this->is_editor_request() ) return;
-		global $wp_filter;
-		$this->remove_compatibility_callbacks( $wp_filter['admin_enqueue_scripts'] ?? null, array( 'remove_legacy_editor_assets' ) );
-		$this->remove_compatibility_callbacks( $wp_filter['admin_footer'] ?? null, array( 'render_editor_bootstrap_watchdog' ) );
+		$this->remove_object_method( 'admin_enqueue_scripts', WebsiteBuilderCompatibility::class, 'remove_legacy_editor_assets' );
+		$this->remove_object_method( 'admin_footer', WebsiteBuilderCompatibility::class, 'render_editor_bootstrap_watchdog' );
 	}
 
-	private function remove_compatibility_callbacks( $hook, $methods ) {
+	/** Optional modules use their own observers; never monkey-patch the browser global. */
+	public function retire_observer_monkeypatch() {
+		if ( ! $this->is_editor_request() ) return;
+		$this->remove_object_method( 'admin_enqueue_scripts', WebsiteBuilderBootstrapResilience::class, 'attach_observer_guards' );
+	}
+
+	private function remove_object_method( $hook_name, $class_name, $method_name ) {
+		global $wp_filter;
+		$hook = $wp_filter[ $hook_name ] ?? null;
 		if ( ! $hook instanceof \WP_Hook || empty( $hook->callbacks ) ) return;
 		foreach ( $hook->callbacks as $priority => $callbacks ) {
 			foreach ( $callbacks as $callback ) {
 				$function = $callback['function'] ?? null;
 				if ( ! is_array( $function ) || ! isset( $function[0], $function[1] ) ) continue;
-				if ( ! ( $function[0] instanceof WebsiteBuilderCompatibility ) || ! in_array( $function[1], $methods, true ) ) continue;
-				remove_action( current_filter(), $function, (int) $priority );
-				// current_filter() is admin_enqueue_scripts here; admin_footer is a
-				// different hook and must be removed explicitly below.
-				if ( 'render_editor_bootstrap_watchdog' === $function[1] ) remove_action( 'admin_footer', $function, (int) $priority );
+				if ( ! is_object( $function[0] ) || ! is_a( $function[0], $class_name ) || $method_name !== $function[1] ) continue;
+				remove_action( $hook_name, $function, (int) $priority );
 			}
 		}
 	}
@@ -67,13 +68,12 @@ final class WebsiteBuilderRuntimeOwner {
 		foreach ( array( 'wp-element', 'wp-components', 'wp-api-fetch', 'wp-i18n' ) as $dependency ) wp_enqueue_script( $dependency );
 		$scripts = wp_scripts();
 		if ( ! $scripts ) return;
-		if ( ! isset( $scripts->registered[ self::HANDLE ] ) ) {
-			wp_register_script( self::HANDLE, WebsiteBuilderAsset::url( self::SCRIPT ), $dependencies, WebsiteBuilderAsset::version( self::SCRIPT ), true );
-		} else {
-			$registered       = $scripts->registered[ self::HANDLE ];
-			$registered->src  = WebsiteBuilderAsset::url( self::SCRIPT );
+		if ( ! isset( $scripts->registered[ self::HANDLE ] ) ) wp_register_script( self::HANDLE, WebsiteBuilderAsset::url( self::SCRIPT ), $dependencies, WebsiteBuilderAsset::version( self::SCRIPT ), true );
+		else {
+			$registered = $scripts->registered[ self::HANDLE ];
+			$registered->src = WebsiteBuilderAsset::url( self::SCRIPT );
 			$registered->deps = $dependencies;
-			$registered->ver  = WebsiteBuilderAsset::version( self::SCRIPT );
+			$registered->ver = WebsiteBuilderAsset::version( self::SCRIPT );
 		}
 		wp_enqueue_script( self::HANDLE );
 	}
@@ -85,20 +85,18 @@ final class WebsiteBuilderRuntimeOwner {
 		$module = WebsiteBuilderModuleRegistry::get( 'pointer-drag' );
 		if ( is_array( $module ) && WebsiteBuilderModuleRegistry::is_enabled( 'pointer-drag', $context ) ) {
 			$scripts = wp_scripts();
-			if ( $scripts ) {
-				foreach ( (array) ( $module['scripts'] ?? array() ) as $asset ) {
-					if ( empty( $asset['handle'] ) || empty( $asset['file'] ) || ! WebsiteBuilderAsset::readable( $asset['file'] ) ) continue;
-					$handle = (string) $asset['handle'];
-					$deps = isset( $asset['deps'] ) && is_array( $asset['deps'] ) ? $asset['deps'] : array( self::HANDLE );
-					if ( ! isset( $scripts->registered[ $handle ] ) ) wp_register_script( $handle, WebsiteBuilderAsset::url( $asset['file'] ), $deps, WebsiteBuilderAsset::version( $asset['file'] ), true );
-					else {
-						$registered = $scripts->registered[ $handle ];
-						$registered->src = WebsiteBuilderAsset::url( $asset['file'] );
-						$registered->deps = $deps;
-						$registered->ver = WebsiteBuilderAsset::version( $asset['file'] );
-					}
-					wp_enqueue_script( $handle );
+			if ( $scripts ) foreach ( (array) ( $module['scripts'] ?? array() ) as $asset ) {
+				if ( empty( $asset['handle'] ) || empty( $asset['file'] ) || ! WebsiteBuilderAsset::readable( $asset['file'] ) ) continue;
+				$handle = (string) $asset['handle'];
+				$deps = isset( $asset['deps'] ) && is_array( $asset['deps'] ) ? $asset['deps'] : array( self::HANDLE );
+				if ( ! isset( $scripts->registered[ $handle ] ) ) wp_register_script( $handle, WebsiteBuilderAsset::url( $asset['file'] ), $deps, WebsiteBuilderAsset::version( $asset['file'] ), true );
+				else {
+					$registered = $scripts->registered[ $handle ];
+					$registered->src = WebsiteBuilderAsset::url( $asset['file'] );
+					$registered->deps = $deps;
+					$registered->ver = WebsiteBuilderAsset::version( $asset['file'] );
 				}
+				wp_enqueue_script( $handle );
 			}
 		}
 		$scripts = wp_scripts();
@@ -111,6 +109,7 @@ final class WebsiteBuilderRuntimeOwner {
 			'consistencyGuard' => wp_script_is( self::CONSISTENCY_HANDLE, 'enqueued' ),
 			'pointerDrag' => wp_script_is( self::POINTER_HANDLE, 'enqueued' ),
 			'legacyWatchdog' => false,
+			'observerMonkeypatch' => false,
 		);
 		wp_add_inline_script( self::HANDLE, 'window.crescoCanonicalRuntimeOwner=' . wp_json_encode( $payload ) . ';window.crescoExpectedWebsiteBuilderRuntime="studio";', 'before' );
 	}
