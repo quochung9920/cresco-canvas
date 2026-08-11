@@ -61,6 +61,16 @@ for (const token of [
 	'is-cresco-structure-managed',
 	'cc-studio-responsive-layout-note',
 	'new MutationObserver',
+	'window.crescoStudioDragMove',
+	'cc-studio-tree-drag-handle',
+	'application/x-cresco-studio-node',
+	"root.addEventListener('dragstart'",
+	"root.addEventListener('dragover'",
+	"root.addEventListener('drop'",
+	'syntheticDragEvent',
+	'is-cresco-drop-inside',
+	'expandAllStructure',
+	'containsDragNode',
 ]) expect('runtime-src/build/website-builder-responsive-properties.js', token);
 
 expect('includes/Plugin.php', 'new WebsiteBuilderStudio()');
@@ -103,4 +113,4 @@ if (errors.length) {
 	process.stderr.write(`${errors.join('\n')}\n`);
 	process.exit(1);
 }
-process.stdout.write('[studio] Canonical Studio runtime ownership, Structure-only widget management, hover-only Structure actions with locked/hidden status icons, property-level responsive controls, source/build parity, Structure 2.0, multi-subtree AI interchange, collaboration foundation and extension contracts verified.\n');
+process.stdout.write('[studio] Canonical Studio runtime ownership, Structure-only widget management, hover-only Structure actions with locked/hidden status icons, reliable Structure/Canvas drag moves, property-level responsive controls, source/build parity, Structure 2.0, multi-subtree AI interchange, collaboration foundation and extension contracts verified.\n');
