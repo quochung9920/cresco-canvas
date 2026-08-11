@@ -23,6 +23,7 @@ final class WebsiteBuilderModuleRegistry {
 			'core' => array(
 				'label' => 'Cresco Studio core', 'required' => true,
 				'scripts' => array(
+					array( 'handle' => 'cresco-canvas-website-builder-document-store', 'file' => 'build/website-builder-document-store.js' ),
 					array( 'handle' => 'cresco-canvas-website-builder', 'file' => 'build/website-builder-studio.js' ),
 					array( 'handle' => 'cresco-canvas-website-builder-responsive-properties', 'file' => 'build/website-builder-responsive-properties.js' ),
 					array( 'handle' => 'cresco-canvas-website-builder-ui-correction', 'file' => 'build/website-builder-ui-correction.js' ),
@@ -90,7 +91,7 @@ final class WebsiteBuilderModuleRegistry {
 
 		if ( 'core' === $mode ) return $required;
 		if ( 'controls' === $mode ) return array_values( array_unique( array_merge( $required, array( 'controls' ) ) ) );
-		if ( 'professional-ux' === $mode ) return array_values( array_unique( array_merge( $required, array( 'controls', 'professional-ux' ) ) ) );
+		if ( 'professional-ux' === $mode ) return array_values( array_unique( array_merge( $required, array( 'controls', 'professional-ux' ) ) );
 		if ( 'architecture' === $mode ) return array_values( array_unique( array_merge( $required, array( 'architecture' ) ) ) );
 		if ( 'all' === $mode ) return array_keys( $all );
 
