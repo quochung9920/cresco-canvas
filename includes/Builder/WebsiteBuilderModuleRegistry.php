@@ -40,6 +40,12 @@ final class WebsiteBuilderModuleRegistry {
 						'register' => true,
 						'deps'     => array( 'cresco-canvas-website-builder-responsive-properties' ),
 					),
+					array(
+						'handle'   => 'cresco-canvas-website-builder-structure-row-drag',
+						'file'     => 'build/website-builder-structure-row-drag.js',
+						'register' => true,
+						'deps'     => array( 'cresco-canvas-website-builder-pointer-drag' ),
+					),
 				),
 				'styles' => array(),
 			),
