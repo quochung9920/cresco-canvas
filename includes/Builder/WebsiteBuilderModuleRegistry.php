@@ -29,12 +29,12 @@ final class WebsiteBuilderModuleRegistry {
 				),
 			),
 			'controls' => array(
-				'label' => 'Controls', 'required' => false,
+				'label' => 'Controls compatibility (opt-in)', 'required' => false, 'transitional' => true, 'enabledDefault' => false,
 				'scripts' => array( array( 'handle' => 'cresco-canvas-website-builder-controls', 'file' => 'build/website-builder-controls.js' ) ),
 				'styles' => array( array( 'handle' => 'cresco-canvas-website-builder-controls', 'file' => 'assets/css/website-builder-controls.css' ) ),
 			),
 			'professional-ux' => array(
-				'label' => 'Professional UX compatibility', 'required' => false, 'transitional' => true,
+				'label' => 'Professional UX compatibility (opt-in)', 'required' => false, 'transitional' => true, 'enabledDefault' => false,
 				'scripts' => array(
 					array( 'handle' => 'cresco-canvas-website-builder-professional-ux', 'file' => 'build/website-builder-professional-ux.js' ),
 					array( 'handle' => 'cresco-canvas-website-builder-preview-fit', 'file' => 'build/website-builder-preview-fit.js' ),
@@ -47,12 +47,12 @@ final class WebsiteBuilderModuleRegistry {
 				'styles' => array( array( 'handle' => 'cresco-canvas-builder-architecture', 'file' => 'assets/css/website-builder-architecture.css' ) ),
 			),
 			'comprehensive-v3' => array(
-				'label' => 'Comprehensive V3 compatibility', 'required' => false, 'transitional' => true,
+				'label' => 'Comprehensive V3 compatibility (opt-in)', 'required' => false, 'transitional' => true, 'enabledDefault' => false,
 				'scripts' => array( array( 'handle' => 'cresco-canvas-website-builder-comprehensive-v3', 'file' => 'build/website-builder-comprehensive-v3.js' ) ),
 				'styles' => array( array( 'handle' => 'cresco-canvas-website-builder-comprehensive-v3', 'file' => 'assets/css/website-builder-comprehensive-v3.css' ) ),
 			),
 			'workflow' => array(
-				'label' => 'Workflow extensions', 'required' => false,
+				'label' => 'Workflow compatibility (opt-in)', 'required' => false, 'transitional' => true, 'enabledDefault' => false,
 				'scripts' => array( array( 'handle' => 'cresco-canvas-website-builder-workflow-extensions', 'file' => 'build/website-builder-workflow-extensions.js' ) ), 'styles' => array(),
 			),
 		);
@@ -77,6 +77,7 @@ final class WebsiteBuilderModuleRegistry {
 
 		$enabled = array();
 		foreach ( $all as $key => $module ) {
+			if ( array_key_exists( 'enabledDefault', $module ) && false === $module['enabledDefault'] ) continue;
 			if ( ! empty( $module['quarantinedDefault'] ) && ! $context->architecture_debug_enabled() ) continue;
 			$enabled[] = $key;
 		}
@@ -98,6 +99,7 @@ final class WebsiteBuilderModuleRegistry {
 				'label'              => $module['label'],
 				'required'           => ! empty( $module['required'] ),
 				'transitional'       => ! empty( $module['transitional'] ),
+				'defaultEnabled'     => ! array_key_exists( 'enabledDefault', $module ) || false !== $module['enabledDefault'],
 				'quarantinedDefault' => ! empty( $module['quarantinedDefault'] ),
 				'assets'              => $assets,
 			);
