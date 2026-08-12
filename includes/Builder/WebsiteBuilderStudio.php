@@ -85,6 +85,7 @@ final class WebsiteBuilderStudio {
 			'commentsPath'       => '/cresco-canvas/v1/website-builder/platform/' . $context->post_id() . '/comments',
 			'interchangeExport'  => '/cresco-canvas/v1/website-builder/interchange/' . $context->post_id() . '/export',
 			'interchangePreview' => '/cresco-canvas/v1/website-builder/interchange/' . $context->post_id() . '/preview',
+			'aiValidateResult'   => '/cresco-canvas/v1/ai-interchange/' . $context->post_id() . '/validate',
 			'diagnosticsUrl'     => add_query_arg( array( 'page' => 'cresco-canvas-diagnostics', 'post' => $context->post_id() ), admin_url( 'tools.php' ) ),
 		);
 		return $config;
