@@ -79,4 +79,32 @@ test.describe( 'Studio UI correction', () => {
 		const borderWidth = await nestedGuide.evaluate( ( node ) => Number.parseFloat( getComputedStyle( node ).borderLeftWidth ) || 0 );
 		expect( borderWidth ).toBeGreaterThanOrEqual( 1 );
 	} );
+
+	test( 'keeps the Structure context menu fully inside the viewport', async ( { page } ) => {
+		await addWidget( page, 'Heading' );
+		const selected = page.locator( '.cc-studio-tree-row.is-selected' ).first();
+		await selected.hover();
+		const more = selected.locator( '.cc-studio-tree-actions button:last-child' );
+		await expect( more ).toBeVisible();
+		await more.click();
+
+		const menu = page.locator( '.cc-studio-context-menu' );
+		await expect( menu ).toBeVisible();
+		await expect( menu ).toHaveAttribute( 'data-cresco-viewport-clamped', '1' );
+		const bounds = await menu.evaluate( ( node ) => {
+			const rect = node.getBoundingClientRect();
+			return {
+				left: rect.left,
+				right: rect.right,
+				top: rect.top,
+				bottom: rect.bottom,
+				viewportWidth: window.innerWidth,
+				viewportHeight: window.innerHeight,
+			};
+		} );
+		expect( bounds.left ).toBeGreaterThanOrEqual( 7 );
+		expect( bounds.right ).toBeLessThanOrEqual( bounds.viewportWidth - 7 );
+		expect( bounds.top ).toBeGreaterThanOrEqual( 7 );
+		expect( bounds.bottom ).toBeLessThanOrEqual( bounds.viewportHeight - 7 );
+	} );
 } );
