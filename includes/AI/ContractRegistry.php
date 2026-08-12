@@ -179,7 +179,7 @@ final class ContractRegistry {
 	private static function validate_prop_value( $value, $schema, $path ) {
 		$kind = (string) ( $schema['type'] ?? 'string' );
 		if ( 'enum' === $kind && ! in_array( $value, (array) ( $schema['values'] ?? array() ), true ) ) {
-			return self::error( 'cresco_ai_prop_value', 'AI result contains an unsupported enum value.', $path, array( 'value' => $value, 'allowed' => array_values( (array) ( $schema['values'] ?? array() ) ) );
+			return self::error( 'cresco_ai_prop_value', 'AI result contains an unsupported enum value.', $path, array( 'value' => $value, 'allowed' => array_values( (array) ( $schema['values'] ?? array() ) ) ) );
 		}
 		if ( 'int' === $kind ) {
 			if ( ! is_numeric( $value ) || (int) $value != $value ) { // phpcs:ignore Universal.Operators.StrictComparisons.LooseNotEqual
