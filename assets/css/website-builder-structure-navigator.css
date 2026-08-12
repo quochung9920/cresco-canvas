@@ -1,0 +1,342 @@
+/* Cresco Studio Structure Navigator 3.0
+ * Visual-only upgrade for the Structure tree.
+ * Keeps document/session behavior unchanged.
+ */
+
+.cc-studio-structure {
+	--cc-tree-row-height: 38px;
+	--cc-tree-indent: 11px;
+	--cc-tree-guide: rgba(148, 163, 184, 0.16);
+	--cc-tree-hover: rgba(255, 255, 255, 0.045);
+	--cc-tree-selected: rgba(139, 92, 246, 0.16);
+	background: linear-gradient(180deg, #11141b 0%, #0f1219 100%);
+	scrollbar-color: #303746 transparent;
+	scrollbar-width: thin;
+}
+
+.cc-studio-structure::-webkit-scrollbar { width: 8px; }
+.cc-studio-structure::-webkit-scrollbar-track { background: transparent; }
+.cc-studio-structure::-webkit-scrollbar-thumb {
+	background: #303746;
+	border: 2px solid transparent;
+	border-radius: 999px;
+	background-clip: padding-box;
+}
+
+.cc-studio-structure > header {
+	height: 60px;
+	padding: 9px 10px 9px 12px;
+	background: rgba(17, 20, 27, 0.96);
+	border-bottom-color: rgba(148, 163, 184, 0.13);
+	backdrop-filter: blur(12px);
+}
+.cc-studio-structure > header > div:first-child { display: grid; gap: 3px; }
+.cc-studio-structure > header strong {
+	font-size: 14px;
+	font-weight: 700;
+	letter-spacing: -0.01em;
+}
+.cc-studio-structure > header small {
+	display: inline-flex;
+	align-items: center;
+	width: max-content;
+	margin: 0;
+	padding: 1px 6px;
+	border: 1px solid rgba(148, 163, 184, 0.12);
+	border-radius: 999px;
+	background: rgba(255, 255, 255, 0.025);
+	color: #98a2b3;
+	font-size: 9px;
+	font-weight: 650;
+	line-height: 1.45;
+}
+.cc-studio-structure > header > div:last-child {
+	display: flex;
+	align-items: center;
+	gap: 3px;
+	padding: 2px;
+	border: 1px solid rgba(148, 163, 184, 0.12);
+	border-radius: 8px;
+	background: rgba(7, 10, 15, 0.42);
+}
+.cc-studio-structure > header .cc-studio-icon-btn {
+	width: 28px !important;
+	min-width: 28px !important;
+	height: 28px !important;
+	min-height: 28px !important;
+	padding: 0 !important;
+	border: 0 !important;
+	border-radius: 6px !important;
+	background: transparent !important;
+	color: #b8c0cc !important;
+}
+.cc-studio-structure > header .cc-studio-icon-btn:hover {
+	background: rgba(255, 255, 255, 0.06) !important;
+	color: #fff !important;
+}
+
+.cc-studio-structure > .cc-studio-search {
+	height: 38px;
+	min-height: 38px;
+	margin: 10px 10px 8px;
+	padding: 0 10px;
+	gap: 8px;
+	border-color: rgba(148, 163, 184, 0.18);
+	border-radius: 9px;
+	background: #0c0f15;
+	box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.02);
+	transition: border-color 0.14s ease, box-shadow 0.14s ease, background 0.14s ease;
+}
+.cc-studio-structure > .cc-studio-search:focus-within {
+	border-color: rgba(167, 139, 250, 0.72);
+	background: #0d1017;
+	box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.11);
+}
+.cc-studio-structure > .cc-studio-search > .dashicons {
+	flex: 0 0 17px;
+	width: 17px;
+	height: 17px;
+	font-size: 17px;
+	color: #7f8998;
+}
+.cc-studio-structure > .cc-studio-search input {
+	min-width: 0;
+	font-size: 12px;
+	color: #eef2f7;
+}
+.cc-studio-structure > .cc-studio-search input::placeholder { color: #6f7886; }
+
+.cc-studio-tree { padding: 4px 6px 18px; }
+.cc-studio-tree ul {
+	margin-left: var(--cc-tree-indent);
+	padding-left: 8px;
+	border-left-color: var(--cc-tree-guide);
+}
+.cc-studio-tree ul > .cc-studio-tree-node::before {
+	left: -8px;
+	top: calc(var(--cc-tree-row-height) / 2);
+	width: 8px;
+	border-top-color: var(--cc-tree-guide);
+}
+
+.cc-studio-tree-row {
+	grid-template-columns: 26px minmax(0, 1fr) 58px !important;
+	grid-template-rows: var(--cc-tree-row-height) !important;
+	column-gap: 5px !important;
+	height: var(--cc-tree-row-height) !important;
+	min-height: var(--cc-tree-row-height) !important;
+	margin: 1px 2px;
+	padding: 0 4px !important;
+	border: 1px solid transparent !important;
+	border-radius: 8px;
+	transition: background 0.12s ease, border-color 0.12s ease, box-shadow 0.12s ease;
+}
+.cc-studio-tree-row:hover { background: var(--cc-tree-hover); }
+.cc-studio-tree-row.is-selected {
+	background: linear-gradient(90deg, rgba(139, 92, 246, 0.19), rgba(139, 92, 246, 0.105));
+	border-color: rgba(167, 139, 250, 0.18) !important;
+	box-shadow: inset 3px 0 0 var(--cc-accent), inset 0 0 0 1px rgba(255, 255, 255, 0.012);
+}
+
+.cc-studio-tree-toggle,
+.cc-studio-tree-toggle-spacer {
+	grid-column: 1 !important;
+	grid-row: 1 !important;
+}
+.cc-studio-tree-toggle {
+	width: 26px !important;
+	min-width: 26px !important;
+	height: 28px !important;
+	min-height: 28px !important;
+	border-radius: 6px !important;
+	color: #9aa4b2 !important;
+}
+.cc-studio-tree-toggle:hover {
+	background: rgba(255, 255, 255, 0.05) !important;
+	color: #fff !important;
+}
+.cc-studio-tree-toggle .dashicons {
+	font-size: 17px !important;
+	width: 17px !important;
+	height: 17px !important;
+	line-height: 17px !important;
+}
+.cc-studio-tree-toggle-spacer { width: 26px; height: 28px; }
+
+/* React does not render this handle, so do not reserve a dead column for it. */
+.cc-studio-tree-drag-handle { display: none !important; }
+
+.cc-studio-tree-select {
+	grid-column: 2 !important;
+	grid-row: 1 !important;
+	width: 100% !important;
+	min-width: 0 !important;
+	height: 34px !important;
+	min-height: 34px !important;
+	gap: 8px !important;
+	padding: 2px !important;
+	overflow: hidden !important;
+	border-radius: 6px !important;
+}
+.cc-studio-tree-select > .dashicons:first-child {
+	display: grid !important;
+	place-items: center;
+	flex: 0 0 24px !important;
+	width: 24px !important;
+	height: 24px !important;
+	font-size: 15px !important;
+	line-height: 24px !important;
+	margin: 0 !important;
+	border: 1px solid rgba(148, 163, 184, 0.15);
+	border-radius: 7px;
+	background: rgba(255, 255, 255, 0.035);
+	color: #cbd2dc;
+}
+.cc-studio-tree-row:hover .cc-studio-tree-select > .dashicons:first-child {
+	border-color: rgba(148, 163, 184, 0.25);
+	background: rgba(255, 255, 255, 0.055);
+	color: #eef2f7;
+}
+.cc-studio-tree-row.is-selected .cc-studio-tree-select > .dashicons:first-child {
+	border-color: rgba(167, 139, 250, 0.42);
+	background: rgba(139, 92, 246, 0.16);
+	color: #e8e1ff;
+	box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.025);
+}
+.cc-studio-tree-label {
+	min-width: 0;
+	flex: 1 1 auto;
+	font-size: 12px;
+	font-weight: 620;
+	letter-spacing: 0.002em;
+	line-height: 1.25;
+	color: #e4e7ec;
+}
+.cc-studio-tree-row:hover .cc-studio-tree-label { color: #f5f7fb; }
+.cc-studio-tree-row.is-selected .cc-studio-tree-label { color: #fff; }
+.cc-studio-tree-select > .dashicons-lock {
+	flex: 0 0 14px !important;
+	width: 14px !important;
+	height: 14px !important;
+	font-size: 13px !important;
+	line-height: 14px !important;
+	margin-left: auto;
+	opacity: 0.64 !important;
+	color: #98a2b3 !important;
+}
+.cc-studio-tree-select > .dashicons-hidden { display: none !important; }
+
+.cc-studio-tree-actions {
+	grid-column: 3 !important;
+	grid-row: 1 !important;
+	display: flex !important;
+	align-items: center;
+	justify-content: flex-end;
+	gap: 2px;
+	width: 58px;
+	height: 32px;
+	min-width: 58px;
+}
+.cc-studio-tree-actions > button { display: none !important; }
+.cc-studio-tree-actions > button:nth-child(2),
+.cc-studio-tree-actions > button:last-child {
+	display: inline-flex !important;
+	align-items: center;
+	justify-content: center;
+	width: 28px !important;
+	min-width: 28px !important;
+	height: 28px !important;
+	min-height: 28px !important;
+	padding: 0 !important;
+	border: 0 !important;
+	border-radius: 6px !important;
+	background: transparent !important;
+	color: #98a2b3 !important;
+	opacity: 0;
+	pointer-events: none;
+	transition: opacity 0.12s ease, background 0.12s ease, color 0.12s ease;
+}
+.cc-studio-tree-actions > button:nth-child(2)[aria-label="Show"],
+.cc-studio-tree-actions > button:nth-child(2)[title="Show"] {
+	opacity: 0.72;
+	pointer-events: auto;
+}
+.cc-studio-tree-row:hover .cc-studio-tree-actions > button:nth-child(2),
+.cc-studio-tree-row:focus-within .cc-studio-tree-actions > button:nth-child(2),
+.cc-studio-tree-row.is-selected .cc-studio-tree-actions > button:nth-child(2),
+.cc-studio-tree-row:hover .cc-studio-tree-actions > button:last-child,
+.cc-studio-tree-row:focus-within .cc-studio-tree-actions > button:last-child,
+.cc-studio-tree-row.is-selected .cc-studio-tree-actions > button:last-child {
+	opacity: 1;
+	pointer-events: auto;
+}
+.cc-studio-tree-row.is-selected .cc-studio-tree-actions > button:last-child {
+	background: rgba(139, 92, 246, 0.12) !important;
+	color: #e7ddff !important;
+}
+.cc-studio-tree-actions > button:nth-child(2):hover,
+.cc-studio-tree-actions > button:last-child:hover {
+	background: rgba(255, 255, 255, 0.065) !important;
+	color: #fff !important;
+}
+.cc-studio-tree-actions > button .dashicons {
+	font-size: 16px !important;
+	width: 16px !important;
+	height: 16px !important;
+	line-height: 16px !important;
+}
+
+.cc-studio-bulk-bar {
+	margin: 7px 10px 8px;
+	padding: 6px 7px;
+	border-color: rgba(167, 139, 250, 0.2);
+	border-radius: 9px;
+	background: rgba(139, 92, 246, 0.08);
+}
+.cc-studio-bulk-bar strong {
+	font-size: 10px;
+	font-weight: 700;
+	color: #ddd6fe;
+}
+.cc-studio-tree-row.is-drop-before::before,
+.cc-studio-tree-row.is-drop-after::after {
+	left: 4px !important;
+	right: 4px !important;
+	height: 2px !important;
+	box-shadow: 0 0 0 1px rgba(139, 92, 246, 0.14);
+}
+.cc-studio-tree-row.is-drop-inside {
+	outline-width: 1px !important;
+	background: rgba(139, 92, 246, 0.14) !important;
+	box-shadow: inset 0 0 0 1px rgba(167, 139, 250, 0.28);
+}
+.cc-studio-tree-select:focus-visible,
+.cc-studio-tree-actions > button:nth-child(2):focus-visible,
+.cc-studio-tree-actions > button:last-child:focus-visible,
+.cc-studio-tree-toggle:focus-visible {
+	outline: 2px solid rgba(167, 139, 250, 0.92) !important;
+	outline-offset: 1px !important;
+}
+
+@media (min-width: 1201px) {
+	.cc-studio-workspace {
+		grid-template-columns: 64px minmax(260px, 330px) minmax(420px, 1fr) minmax(320px, 360px);
+	}
+}
+@media (min-width: 961px) and (max-width: 1200px) {
+	.cc-studio-workspace { grid-template-columns: 56px 290px minmax(360px, 1fr) 320px; }
+	.cc-studio-structure { --cc-tree-indent: 10px; }
+}
+@media (max-width: 960px) {
+	.cc-studio-structure {
+		width: min(340px, calc(100vw - 52px));
+		--cc-tree-indent: 10px;
+	}
+}
+@media (prefers-reduced-motion: reduce) {
+	.cc-studio-tree-row,
+	.cc-studio-tree-actions > button,
+	.cc-studio-structure > .cc-studio-search {
+		transition: none !important;
+	}
+}
