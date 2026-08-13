@@ -241,9 +241,19 @@ final class WebsiteRenderer {
 	}
 
 	private static function render_icon_box( $attrs, $props ) {
-		$content = '<div class="cresco-icon-box__icon">' . self::dashicon( $props['icon'] ?? '' ) . '</div><div class="cresco-icon-box__body"><h3>' . esc_html( (string) ( $props['title'] ?? '' ) ) . '</h3><p>' . nl2br( esc_html( (string) ( $props['text'] ?? '' ) ) ) . '</p></div>';
-		if ( ! empty( $props['url'] ) ) $content = '<a class="cresco-icon-box__link" href="' . esc_url( $props['url'] ) . '">' . $content . '</a>';
-		return '<div' . $attrs . '>' . $content . '</div>';
+		$position = in_array( $props['position'] ?? '', array( 'top', 'start', 'end' ), true ) ? $props['position'] : 'start';
+		$align = in_array( $props['contentAlign'] ?? '', array( 'start', 'center', 'end', 'justify' ), true ) ? $props['contentAlign'] : 'start';
+		$gap = WebsiteBuilder::sanitize_css_value( $props['iconGap'] ?? '' );
+		$style = '' !== $gap ? ' style="--cresco-icon-box-gap:' . esc_attr( $gap ) . '"' : '';
+		$icon = '<div class="cresco-icon-box__icon">' . self::dashicon( $props['icon'] ?? '' ) . '</div>';
+		$body = '<div class="cresco-icon-box__body"><h3>' . esc_html( (string) ( $props['title'] ?? '' ) ) . '</h3><p>' . nl2br( esc_html( (string) ( $props['text'] ?? '' ) ) ) . '</p></div>';
+		$content = 'end' === $position ? $body . $icon : $icon . $body;
+		if ( ! empty( $props['url'] ) ) {
+			$layout = '<a class="cresco-icon-box__layout cresco-icon-box__link" href="' . esc_url( $props['url'] ) . '">' . $content . '</a>';
+		} else {
+			$layout = '<div class="cresco-icon-box__layout">' . $content . '</div>';
+		}
+		return '<div' . $attrs . ' data-icon-position="' . esc_attr( $position ) . '" data-content-align="' . esc_attr( $align ) . '"' . $style . '>' . $layout . '</div>';
 	}
 
 	private static function render_video( $attrs, $props ) {
@@ -258,39 +268,61 @@ final class WebsiteRenderer {
 
 	private static function render_gallery( $attrs, $props ) {
 		$columns = min( 8, max( 1, absint( $props['columns'] ?? 3 ) ) );
+		$gap = WebsiteBuilder::sanitize_css_value( $props['gap'] ?? '' );
+		$ratio = WebsiteBuilder::sanitize_css_value( $props['aspectRatio'] ?? '' );
+		$fit = in_array( $props['objectFit'] ?? '', array( 'cover', 'contain', 'fill', 'none', 'scale-down' ), true ) ? $props['objectFit'] : 'cover';
+		$caption_align = in_array( $props['captionAlign'] ?? '', array( 'start', 'center', 'end', 'justify' ), true ) ? $props['captionAlign'] : 'center';
+		$style = '--cresco-gallery-columns:' . $columns . ';--cresco-gallery-fit:' . $fit . ';--cresco-gallery-caption-align:' . $caption_align . ';';
+		if ( '' !== $gap ) $style .= '--cresco-gallery-gap:' . $gap . ';';
+		if ( '' !== $ratio ) $style .= '--cresco-gallery-ratio:' . $ratio . ';';
 		$items = '';
 		foreach ( (array) ( $props['images'] ?? array() ) as $index => $image ) {
 			$url = esc_url( (string) ( $image['url'] ?? '' ) );
 			if ( '' === $url ) continue;
 			$img = '<img src="' . $url . '" alt="' . esc_attr( (string) ( $image['alt'] ?? '' ) ) . '" loading="lazy" decoding="async">';
 			if ( ! empty( $props['lightbox'] ) ) $img = '<a href="' . $url . '" data-cresco-lightbox="gallery" data-cresco-lightbox-index="' . esc_attr( (string) $index ) . '">' . $img . '</a>';
-			$items .= '<figure class="cresco-gallery__item">' . $img . ( ! empty( $image['caption'] ) ? '<figcaption>' . esc_html( $image['caption'] ) . '</figcaption>' : '' ) . '</figure>';
+			$caption = ! empty( $props['showCaptions'] ) && ! empty( $image['caption'] ) ? '<figcaption>' . esc_html( $image['caption'] ) . '</figcaption>' : '';
+			$items .= '<figure class="cresco-gallery__item">' . $img . $caption . '</figure>';
 		}
-		return '<div' . $attrs . ' style="--cresco-gallery-columns:' . esc_attr( (string) $columns ) . '">' . $items . '</div>';
+		return '<div' . $attrs . ' style="' . esc_attr( $style ) . '">' . $items . '</div>';
 	}
 
 	private static function render_accordion( $attrs, $props ) {
 		$items = '';
 		$widget_id = preg_replace( '/[^a-z0-9_-]/i', '-', self::attr_value( $attrs, 'data-cresco-id' ) );
+		$title_tag = in_array( $props['titleTag'] ?? '', array( 'div', 'h2', 'h3', 'h4', 'h5', 'h6' ), true ) ? $props['titleTag'] : 'h3';
+		$icon_position = 'start' === ( $props['iconPosition'] ?? '' ) ? 'start' : 'end';
+		$expand_icon = sanitize_key( (string) ( $props['expandIcon'] ?? 'plus-alt2' ) ) ?: 'plus-alt2';
+		$collapse_icon = sanitize_key( (string) ( $props['collapseIcon'] ?? 'minus' ) ) ?: 'minus';
 		foreach ( (array) ( $props['items'] ?? array() ) as $index => $item ) {
 			$button_id = $widget_id . '-trigger-' . $index;
 			$panel_id  = $widget_id . '-panel-' . $index;
 			$open = ! empty( $item['open'] );
-			$items .= '<div class="cresco-accordion__item"><h3><button type="button" id="' . esc_attr( $button_id ) . '" class="cresco-accordion__trigger" aria-expanded="' . ( $open ? 'true' : 'false' ) . '" aria-controls="' . esc_attr( $panel_id ) . '"><span>' . esc_html( (string) ( $item['title'] ?? '' ) ) . '</span><span aria-hidden="true">+</span></button></h3><div id="' . esc_attr( $panel_id ) . '" class="cresco-accordion__panel" role="region" aria-labelledby="' . esc_attr( $button_id ) . '"' . ( $open ? '' : ' hidden' ) . '>' . wp_kses_post( (string) ( $item['content'] ?? '' ) ) . '</div></div>';
+			$icon = '<span class="cresco-accordion__icon" aria-hidden="true" data-expand-icon="' . esc_attr( $expand_icon ) . '" data-collapse-icon="' . esc_attr( $collapse_icon ) . '">' . self::dashicon( $open ? $collapse_icon : $expand_icon ) . '</span>';
+			$title = '<span class="cresco-accordion__title">' . esc_html( (string) ( $item['title'] ?? '' ) ) . '</span>';
+			$content = 'start' === $icon_position ? $icon . $title : $title . $icon;
+			$items .= '<div class="cresco-accordion__item"><' . $title_tag . ' class="cresco-accordion__heading"><button type="button" id="' . esc_attr( $button_id ) . '" class="cresco-accordion__trigger" aria-expanded="' . ( $open ? 'true' : 'false' ) . '" aria-controls="' . esc_attr( $panel_id ) . '">' . $content . '</button></' . $title_tag . '><div id="' . esc_attr( $panel_id ) . '" class="cresco-accordion__panel" role="region" aria-labelledby="' . esc_attr( $button_id ) . '"' . ( $open ? '' : ' hidden' ) . '>' . wp_kses_post( (string) ( $item['content'] ?? '' ) ) . '</div></div>';
 		}
-		return '<div' . $attrs . ' data-cresco-accordion data-allow-multi="' . ( ! empty( $props['allowMulti'] ) ? '1' : '0' ) . '">' . $items . '</div>';
+		return '<div' . $attrs . ' data-cresco-accordion data-allow-multi="' . ( ! empty( $props['allowMulti'] ) ? '1' : '0' ) . '" data-icon-position="' . esc_attr( $icon_position ) . '">' . $items . '</div>';
 	}
 
 	private static function render_tabs( $attrs, $props ) {
 		$items = (array) ( $props['items'] ?? array() );
 		$widget_id = preg_replace( '/[^a-z0-9_-]/i', '-', self::attr_value( $attrs, 'data-cresco-id' ) );
+		$direction = in_array( $props['direction'] ?? '', array( 'top', 'bottom', 'start', 'end' ), true ) ? $props['direction'] : 'top';
+		$justify = in_array( $props['justify'] ?? '', array( 'start', 'center', 'end', 'stretch' ), true ) ? $props['justify'] : 'start';
+		$title_align = in_array( $props['titleAlign'] ?? '', array( 'start', 'center', 'end' ), true ) ? $props['titleAlign'] : 'center';
+		$side_width = WebsiteBuilder::sanitize_css_value( $props['sideWidth'] ?? '240px' ) ?: '240px';
+		$tab_gap = WebsiteBuilder::sanitize_css_value( $props['tabGap'] ?? '.25rem' ) ?: '.25rem';
+		$scroll = ! empty( $props['horizontalScroll'] ) ? '1' : '0';
 		$tabs = ''; $panels = '';
 		foreach ( $items as $index => $item ) {
 			$tab_id = $widget_id . '-tab-' . $index; $panel_id = $widget_id . '-tabpanel-' . $index; $selected = 0 === $index;
 			$tabs .= '<button type="button" role="tab" id="' . esc_attr( $tab_id ) . '" aria-selected="' . ( $selected ? 'true' : 'false' ) . '" aria-controls="' . esc_attr( $panel_id ) . '" tabindex="' . ( $selected ? '0' : '-1' ) . '">' . esc_html( (string) ( $item['title'] ?? '' ) ) . '</button>';
 			$panels .= '<div role="tabpanel" id="' . esc_attr( $panel_id ) . '" aria-labelledby="' . esc_attr( $tab_id ) . '"' . ( $selected ? '' : ' hidden' ) . '>' . wp_kses_post( (string) ( $item['content'] ?? '' ) ) . '</div>';
 		}
-		return '<div' . $attrs . ' data-cresco-tabs><div class="cresco-tabs__list" role="tablist">' . $tabs . '</div><div class="cresco-tabs__panels">' . $panels . '</div></div>';
+		$style = '--cresco-tabs-side-width:' . $side_width . ';--cresco-tabs-gap:' . $tab_gap . ';';
+		return '<div' . $attrs . ' data-cresco-tabs data-direction="' . esc_attr( $direction ) . '" data-justify="' . esc_attr( $justify ) . '" data-title-align="' . esc_attr( $title_align ) . '" data-horizontal-scroll="' . esc_attr( $scroll ) . '" style="' . esc_attr( $style ) . '"><div class="cresco-tabs__list" role="tablist" aria-orientation="' . ( in_array( $direction, array( 'start', 'end' ), true ) ? 'vertical' : 'horizontal' ) . '">' . $tabs . '</div><div class="cresco-tabs__panels">' . $panels . '</div></div>';
 	}
 
 	private static function render_testimonial( $attrs, $props ) {

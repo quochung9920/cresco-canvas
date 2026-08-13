@@ -122,10 +122,13 @@ final class WidgetCatalog {
 				'parts'       => array( 'root' => self::part( 'Wrapper', '&' ), 'icon' => self::part( 'Icon', '& .dashicons' ), 'link' => self::part( 'Link', '& > a' ) ),
 			) ),
 			'icon-box' => self::widget( $base, 'Icon Box', 'content', 'info-outline', false, array(
-				'icon'  => self::string( 'lightbulb', 'Icon', array( 'group' => 'Icon', 'control' => 'icon' ) ),
-				'title' => self::string( 'Feature', 'Title', array( 'group' => 'Content' ) ),
-				'text'  => self::textarea( 'Describe this feature.', 'Text', array( 'group' => 'Content' ) ),
-				'url'   => self::url( '', 'Link', array( 'group' => 'Link', 'control' => 'link' ) ),
+				'icon'         => self::string( 'lightbulb', 'Icon', array( 'group' => 'Icon', 'control' => 'icon' ) ),
+				'title'        => self::string( 'Feature', 'Title', array( 'group' => 'Content' ) ),
+				'text'         => self::textarea( 'Describe this feature.', 'Text', array( 'group' => 'Content' ) ),
+				'url'          => self::url( '', 'Link', array( 'group' => 'Link', 'control' => 'link' ) ),
+				'position'     => self::enum( array( 'top', 'start', 'end' ), 'start', 'Icon position', array( 'group' => 'Layout', 'help' => 'Places the icon above, before, or after the content.' ) ),
+				'contentAlign' => self::enum( array( 'start', 'center', 'end', 'justify' ), 'start', 'Content alignment', array( 'group' => 'Layout' ) ),
+				'iconGap'      => self::css( '', 'Icon spacing', array( 'group' => 'Layout', 'placeholder' => '15px', 'help' => 'Leave empty to use the Design System spacing.' ) ),
 			), array(
 				'description' => 'Feature card composed of icon, title, description, and optional link.',
 				'style'       => $card_styles,
@@ -140,28 +143,43 @@ final class WidgetCatalog {
 				'parts'       => array( 'root' => self::part( 'Figure', '&' ), 'embed' => self::part( 'Embed', '& .cresco-video__embed' ), 'caption' => self::part( 'Caption', '& figcaption' ) ),
 			) ),
 			'gallery' => self::widget( $base, 'Gallery', 'media', 'format-gallery', false, array(
-				'images'   => self::json( array(), 'Images', 'gallery', array( 'group' => 'Images', 'control' => 'repeater', 'help' => 'Add, remove, reorder, and edit image metadata without touching JSON.' ) ),
-				'columns'  => self::integer( 1, 8, 3, 'Columns', array( 'group' => 'Layout' ) ),
-				'lightbox' => self::boolean( true, 'Lightbox', array( 'group' => 'Behavior' ) ),
+				'images'       => self::json( array(), 'Images', 'gallery', array( 'group' => 'Images', 'control' => 'repeater', 'help' => 'Add, remove, reorder, and edit image metadata without touching JSON.' ) ),
+				'columns'      => self::integer( 1, 8, 3, 'Columns', array( 'group' => 'Layout' ) ),
+				'gap'          => self::css( '', 'Image gap', array( 'group' => 'Layout', 'placeholder' => '15px', 'help' => 'Leave empty to use the global grid gap.' ) ),
+				'aspectRatio'  => self::css( '', 'Image aspect ratio', array( 'group' => 'Images', 'placeholder' => '1 / 1' ) ),
+				'objectFit'    => self::enum( array( 'cover', 'contain', 'fill', 'none', 'scale-down' ), 'cover', 'Image fit', array( 'group' => 'Images' ) ),
+				'showCaptions' => self::boolean( true, 'Show captions', array( 'group' => 'Caption' ) ),
+				'captionAlign' => self::enum( array( 'start', 'center', 'end', 'justify' ), 'start', 'Caption alignment', array( 'group' => 'Caption', 'condition' => array( 'key' => 'showCaptions', 'equals' => true ) ) ),
+				'lightbox'     => self::boolean( true, 'Lightbox', array( 'group' => 'Behavior' ) ),
 			), array(
-				'description' => 'Image gallery with configurable columns and optional lightbox links.',
+				'description' => 'Image gallery with configurable columns, spacing, media fit, captions, and optional lightbox links.',
 				'style'       => $layout_styles,
 				'parts'       => array( 'root' => self::part( 'Gallery', '&' ), 'item' => self::part( 'Item', '& .cresco-gallery__item' ), 'image' => self::part( 'Image', '& .cresco-gallery__item img' ), 'caption' => self::part( 'Caption', '& .cresco-gallery__item figcaption' ) ),
 			) ),
 			'accordion' => self::widget( $base, 'Accordion', 'interactive', 'menu-alt3', false, array(
-				'items'      => self::json( array( array( 'title' => 'Question', 'content' => 'Answer', 'open' => true ) ), 'Items', 'accordion', array( 'group' => 'Items', 'control' => 'repeater' ) ),
-				'allowMulti' => self::boolean( false, 'Allow multiple open', array( 'group' => 'Behavior' ) ),
+				'items'        => self::json( array( array( 'title' => 'Question', 'content' => 'Answer', 'open' => true ) ), 'Items', 'accordion', array( 'group' => 'Items', 'control' => 'repeater' ) ),
+				'allowMulti'   => self::boolean( false, 'Allow multiple open', array( 'group' => 'Behavior' ) ),
+				'titleTag'     => self::enum( array( 'div', 'h2', 'h3', 'h4', 'h5', 'h6' ), 'h3', 'Title HTML tag', array( 'group' => 'Semantics', 'help' => 'Controls the wrapper around each accordion trigger without changing the visual style.' ) ),
+				'iconPosition' => self::enum( array( 'start', 'end' ), 'end', 'Icon position', array( 'group' => 'Icon' ) ),
+				'expandIcon'   => self::string( 'plus-alt2', 'Expand icon', array( 'group' => 'Icon', 'control' => 'icon' ) ),
+				'collapseIcon' => self::string( 'minus', 'Collapse icon', array( 'group' => 'Icon', 'control' => 'icon' ) ),
 			), array(
-				'description' => 'Accessible disclosure list with independently editable items.',
+				'description' => 'Accessible disclosure list with independently editable items, semantic title tags, and configurable expand/collapse icons.',
 				'style'       => $card_styles,
-				'parts'       => array( 'root' => self::part( 'Accordion', '&' ), 'item' => self::part( 'Item', '& .cresco-accordion__item' ), 'trigger' => self::part( 'Trigger', '& .cresco-accordion__trigger' ), 'panel' => self::part( 'Panel', '& .cresco-accordion__panel' ) ),
+				'parts'       => array( 'root' => self::part( 'Accordion', '&' ), 'item' => self::part( 'Item', '& .cresco-accordion__item' ), 'trigger' => self::part( 'Trigger', '& .cresco-accordion__trigger' ), 'icon' => self::part( 'Icon', '& .cresco-accordion__icon' ), 'panel' => self::part( 'Panel', '& .cresco-accordion__panel' ) ),
 			) ),
 			'tabs' => self::widget( $base, 'Tabs', 'interactive', 'index-card', false, array(
-				'items' => self::json( array( array( 'title' => 'Tab 1', 'content' => 'Tab content' ) ), 'Items', 'tabs', array( 'group' => 'Items', 'control' => 'repeater' ) ),
+				'items'            => self::json( array( array( 'title' => 'Tab 1', 'content' => 'Tab content' ) ), 'Items', 'tabs', array( 'group' => 'Items', 'control' => 'repeater' ) ),
+				'direction'        => self::enum( array( 'top', 'bottom', 'start', 'end' ), 'top', 'Direction', array( 'group' => 'Layout', 'help' => 'Places the tab list above, below, before, or after the content.' ) ),
+				'justify'          => self::enum( array( 'start', 'center', 'end', 'stretch' ), 'start', 'Justify tabs', array( 'group' => 'Layout' ) ),
+				'titleAlign'       => self::enum( array( 'start', 'center', 'end' ), 'center', 'Title alignment', array( 'group' => 'Layout' ) ),
+				'horizontalScroll' => self::boolean( true, 'Horizontal scroll', array( 'group' => 'Responsive', 'condition' => array( 'key' => 'direction', 'in' => array( 'top', 'bottom' ) ), 'help' => 'When enabled, overflowing horizontal tabs stay on one scrollable row.' ) ),
+				'sideWidth'        => self::css( '240px', 'Side tab width', array( 'group' => 'Layout', 'condition' => array( 'key' => 'direction', 'in' => array( 'start', 'end' ) ), 'placeholder' => '240px' ) ),
+				'tabGap'           => self::css( '.25rem', 'Gap between tabs', array( 'group' => 'Layout', 'placeholder' => '0.25rem' ) ),
 			), array(
-				'description' => 'Accessible tab list with editable tab labels and content.',
+				'description' => 'Accessible tab list with editable items and layout controls inspired by mature nested-tab systems.',
 				'style'       => $card_styles,
-				'parts'       => array( 'root' => self::part( 'Tabs', '&' ), 'list' => self::part( 'Tab list', '& .cresco-tabs__list' ), 'tab' => self::part( 'Tab', '& [role="tab"]' ), 'panels' => self::part( 'Panels', '& .cresco-tabs__panels' ), 'panel' => self::part( 'Panel', '& [role="tabpanel"]' ) ),
+				'parts'       => array( 'root' => self::part( 'Tabs', '&' ), 'list' => self::part( 'Tab list', '& .cresco-tabs__list' ), 'tab' => self::part( 'Tab', '& [role="tab"]' ), 'activeTab' => self::part( 'Active tab', '& [role="tab"][aria-selected="true"]' ), 'panels' => self::part( 'Panels', '& .cresco-tabs__panels' ), 'panel' => self::part( 'Panel', '& [role="tabpanel"]' ) ),
 			) ),
 			'testimonial' => self::widget( $base, 'Testimonial', 'content', 'format-quote', false, array(
 				'quote'  => self::textarea( 'A great experience.', 'Quote', array( 'group' => 'Content' ) ),
@@ -338,7 +356,7 @@ final class WidgetCatalog {
 			) ),
 		);
 
-		return $widgets;
+		return self::with_blueprints( $widgets );
 	}
 
 	/** Allow-list of style keys understood by the editor and frontend compiler. */
@@ -349,20 +367,20 @@ final class WidgetCatalog {
 	/** Named style groups used to expose only relevant controls for each widget. */
 	private static function style_groups() {
 		return array(
-			'size'        => array( 'display', 'width', 'maxWidth', 'minWidth', 'height', 'maxHeight', 'minHeight', 'aspectRatio' ),
-			'typography'  => array( 'color', 'fontFamily', 'fontSize', 'fontWeight', 'fontStyle', 'lineHeight', 'letterSpacing', 'textAlign', 'textTransform', 'textDecoration' ),
-			'spacing'     => array( 'paddingTop', 'paddingRight', 'paddingBottom', 'paddingLeft', 'marginTop', 'marginRight', 'marginBottom', 'marginLeft', 'gap', 'columnGap', 'rowGap' ),
-			'background'  => array( 'background', 'backgroundColor' ),
-			'border'      => array( 'border', 'borderColor', 'borderWidth', 'borderStyle', 'borderRadius' ),
-			'effects'     => array( 'boxShadow', 'opacity', 'transform', 'filter', 'transition' ),
-			'position'    => array( 'position', 'top', 'right', 'bottom', 'left', 'inset', 'zIndex' ),
-			'overflow'    => array( 'overflow', 'overflowX', 'overflowY' ),
+			'size'           => array( 'display', 'width', 'maxWidth', 'minWidth', 'height', 'maxHeight', 'minHeight', 'aspectRatio' ),
+			'typography'     => array( 'color', 'fontFamily', 'fontSize', 'fontWeight', 'fontStyle', 'lineHeight', 'letterSpacing', 'textAlign', 'textTransform', 'textDecoration' ),
+			'spacing'        => array( 'paddingTop', 'paddingRight', 'paddingBottom', 'paddingLeft', 'marginTop', 'marginRight', 'marginBottom', 'marginLeft', 'gap', 'columnGap', 'rowGap' ),
+			'background'     => array( 'background', 'backgroundColor' ),
+			'border'         => array( 'border', 'borderColor', 'borderWidth', 'borderStyle', 'borderRadius' ),
+			'effects'        => array( 'boxShadow', 'opacity', 'transform', 'filter', 'transition' ),
+			'position'       => array( 'position', 'top', 'right', 'bottom', 'left', 'inset', 'zIndex' ),
+			'overflow'       => array( 'overflow', 'overflowX', 'overflowY' ),
 			'flex-container' => array( 'alignItems', 'justifyContent', 'flexDirection', 'flexWrap' ),
 			'flex-item'      => array( 'alignSelf', 'flexGrow', 'flexShrink', 'flexBasis', 'order' ),
 			'grid-container' => array( 'gridTemplateColumns', 'gridTemplateRows', 'placeItems', 'placeContent' ),
 			'grid-item'      => array( 'justifySelf', 'gridColumn', 'gridRow' ),
-			'media'       => array( 'objectFit', 'objectPosition' ),
-			'interaction' => array( 'cursor', 'visibility' ),
+			'media'          => array( 'objectFit', 'objectPosition' ),
+			'interaction'    => array( 'cursor', 'visibility' ),
 		);
 	}
 
@@ -376,6 +394,53 @@ final class WidgetCatalog {
 			}
 		}
 		return $output;
+	}
+
+	/** Add a normalized, AI-friendly blueprint without changing the saved node schema. */
+	private static function with_blueprints( $widgets ) {
+		$references = array(
+			'button'    => array( 'e-button' ),
+			'image'     => array( 'image' ),
+			'icon-box'  => array( 'icon-box' ),
+			'gallery'   => array( 'image-gallery' ),
+			'accordion' => array( 'nested-accordion' ),
+			'tabs'      => array( 'nested-tabs' ),
+			'counter'   => array( 'counter' ),
+			'progress'  => array( 'progress' ),
+		);
+		$part_states = array(
+			'button'    => array( 'root' => array( 'normal', 'hover', 'focus', 'active' ) ),
+			'icon-box'  => array( 'title' => array( 'normal', 'hover', 'focus' ) ),
+			'accordion' => array( 'trigger' => array( 'normal', 'hover', 'focus', 'active' ) ),
+			'tabs'      => array( 'tab' => array( 'normal', 'hover', 'focus' ), 'activeTab' => array( 'active' ) ),
+		);
+
+		foreach ( $widgets as $type => &$widget ) {
+			$groups = array();
+			foreach ( (array) ( $widget['props'] ?? array() ) as $key => $schema ) {
+				$group = (string) ( $schema['group'] ?? 'General' );
+				if ( ! isset( $groups[ $group ] ) ) $groups[ $group ] = array();
+				$groups[ $group ][] = $key;
+			}
+			$blueprint = array(
+				'schema'        => 'cresco-widget-blueprint/v1',
+				'controlGroups' => $groups,
+				'styleTargets'  => array_keys( (array) ( $widget['parts'] ?? array() ) ),
+				'states'        => array_values( array_unique( array_merge( array( 'normal' ), (array) ( $widget['states'] ?? array() ) ) ) ),
+				'responsive'    => ! empty( $widget['responsive'] ),
+			);
+			if ( isset( $part_states[ $type ] ) ) $blueprint['partStates'] = $part_states[ $type ];
+			if ( isset( $references[ $type ] ) ) {
+				$blueprint['reference'] = array(
+					'source'  => 'elementor-control-catalog',
+					'widgets' => $references[ $type ],
+					'mode'    => 'capability-reference',
+				);
+			}
+			$widget['blueprint'] = $blueprint;
+		}
+		unset( $widget );
+		return $widgets;
 	}
 
 	private static function widget( $base, $label, $category, $icon, $allows_children, $props, $extra = array() ) {
