@@ -31,6 +31,7 @@ use CrescoCanvas\Builder\WebsiteBuilderRuntimeGuard;
 use CrescoCanvas\Builder\WebsiteBuilderRuntimeOwner;
 use CrescoCanvas\Builder\WebsiteBuilderSessionIsolation;
 use CrescoCanvas\Builder\WebsiteBuilderStudio;
+use CrescoCanvas\Builder\WebsiteBuilderVisualParity;
 use CrescoCanvas\Builder\WebsiteBuilderWorkflowExtensions;
 use CrescoCanvas\Commercial\CommercialManager;
 use CrescoCanvas\Dynamic\AdvancedDynamicData;
@@ -118,6 +119,7 @@ final class Plugin {
 		( new WebsiteBuilderRuntimeOwner() )->register();
 		( new WebsiteBuilderDocumentStore() )->register();
 		( new WebsiteBuilderRendererParity() )->register();
+		( new WebsiteBuilderVisualParity() )->register();
 		( new WebsiteBuilderProfessionalUx() )->register();
 		( new WebsiteBuilderInterchange() )->register();
 		( new WebsiteBuilderPlatform() )->register();

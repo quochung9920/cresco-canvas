@@ -54,23 +54,29 @@ final class WebsiteBuilderCssCompiler {
 		return $css;
 	}
 
-	/** GlobalStyles breakpoints are range starts, not max-width values. */
+	/**
+	 * Compile the same desktop-first cascade used by Studio's effectiveStyle().
+	 *
+	 * GlobalStyles stores breakpoint *starts*: mobile=0, tablet=768,
+	 * laptop=1025, desktop=1440, wide=1920 by default. A responsive bucket is
+	 * therefore active from the next larger range downwards. Emitting cumulative
+	 * max-width queries means a 390px viewport receives desktop, laptop, tablet,
+	 * then mobile overrides in that exact order, matching Studio inheritance.
+	 */
 	private static function wrap_range( $device, $css, $breakpoints ) {
 		$mobile  = max( 0, absint( $breakpoints['mobile'] ?? 0 ) );
 		$tablet  = max( $mobile + 1, absint( $breakpoints['tablet'] ?? 768 ) );
 		$laptop  = max( $tablet + 1, absint( $breakpoints['laptop'] ?? 1025 ) );
 		$desktop = max( $laptop + 1, absint( $breakpoints['desktop'] ?? 1440 ) );
 		$wide    = max( $desktop + 1, absint( $breakpoints['wide'] ?? 1920 ) );
-		$ranges = array(
-			'mobile'  => array( 0, $tablet - 1 ),
-			'tablet'  => array( $tablet, $laptop - 1 ),
-			'laptop'  => array( $laptop, $desktop - 1 ),
-			'desktop' => array( $desktop, $wide - 1 ),
+		$max_widths = array(
+			'desktop' => $wide - 1,
+			'laptop'  => $desktop - 1,
+			'tablet'  => $laptop - 1,
+			'mobile'  => $tablet - 1,
 		);
-		if ( ! isset( $ranges[ $device ] ) || '' === $css ) return '';
-		$range = $ranges[ $device ];
-		if ( 0 === $range[0] ) return '@media (max-width:' . $range[1] . 'px){' . $css . '}';
-		return '@media (min-width:' . $range[0] . 'px) and (max-width:' . $range[1] . 'px){' . $css . '}';
+		if ( ! isset( $max_widths[ $device ] ) || '' === $css ) return '';
+		return '@media (max-width:' . max( 0, (int) $max_widths[ $device ] ) . 'px){' . $css . '}';
 	}
 
 	private static function props_style( $node ) {
