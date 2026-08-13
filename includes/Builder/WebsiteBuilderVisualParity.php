@@ -7,17 +7,23 @@
 
 namespace CrescoCanvas\Builder;
 
+use CrescoCanvas\Session\SessionManager;
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
 final class WebsiteBuilderVisualParity {
-	const EDITOR_SCRIPT_HANDLE = 'cresco-canvas-website-builder';
-	const EDITOR_STYLE_HANDLE  = 'cresco-canvas-website-builder-ui-correction';
+	const EDITOR_SCRIPT_HANDLE   = 'cresco-canvas-website-builder';
+	const EDITOR_STYLE_HANDLE    = 'cresco-canvas-website-builder-ui-correction';
+	const FRONTEND_STYLE_HANDLE  = 'cresco-canvas-website-builder-frontend';
+	const STYLE_CONTRACT_VERSION = 'authoritative-v3';
 
-	/** Apply editor-only markup normalization after the canonical Studio runtime owns the screen. */
+	/** Apply the same visual contract at the last editor and frontend boundaries. */
 	public function register() {
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_editor_parity' ), 1500 );
+		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_frontend_parity' ), 2000 );
+		add_filter( 'the_content', array( $this, 'embed_frontend_parity' ), 110 );
 	}
 
 	public function enqueue_editor_parity() {
@@ -29,6 +35,68 @@ final class WebsiteBuilderVisualParity {
 			: self::EDITOR_SCRIPT_HANDLE;
 		wp_add_inline_style( $style_handle, self::editor_css() );
 		wp_add_inline_script( self::EDITOR_SCRIPT_HANDLE, self::editor_script(), 'after' );
+	}
+
+	/**
+	 * Append an authoritative root + part-style bundle after every compatibility
+	 * compiler. This deliberately does not delete earlier fragments because v2
+	 * component CSS may share the same inline fragment; the final bundle wins by
+	 * source order and neutralizes historical container width:100% defaults.
+	 */
+	public function enqueue_frontend_parity() {
+		$document = $this->frontend_document();
+		if ( ! $document || ! wp_style_is( self::FRONTEND_STYLE_HANDLE, 'enqueued' ) ) return;
+		$css = self::frontend_css( $document['session'], $document['architecture'] );
+		if ( '' === $css ) return;
+		wp_add_inline_style(
+			self::FRONTEND_STYLE_HANDLE,
+			'/* cresco-style-contract:' . self::STYLE_CONTRACT_VERSION . ' */' . $css
+		);
+	}
+
+	/**
+	 * Bind final V2 markup to CSS compiled from the exact same persisted Session.
+	 *
+	 * WordPress themes, preview revisions, cache layers, and late style handles can
+	 * otherwise leave the rendered document paired with an older compiler bundle.
+	 * A body-local style element is intentionally emitted after head styles, giving
+	 * the builder document one deterministic last visual boundary.
+	 */
+	public function embed_frontend_parity( $content ) {
+		if ( ! is_string( $content ) || '' === $content ) return $content;
+		if ( false === strpos( $content, 'cresco-website-builder-root' ) ) return $content;
+		if ( false !== strpos( $content, 'data-cresco-style-contract="' . self::STYLE_CONTRACT_VERSION . '"' ) ) return $content;
+
+		$document = $this->frontend_document();
+		if ( ! $document ) return $content;
+		$css = self::frontend_css( $document['session'], $document['architecture'] );
+		if ( '' === $css ) return $content;
+		$hash = substr( hash( 'sha256', $css ), 0, 16 );
+		return '<style data-cresco-style-contract="' . esc_attr( self::STYLE_CONTRACT_VERSION ) . '" data-cresco-style-hash="' . esc_attr( $hash ) . '">' . $css . '</style>' . $content;
+	}
+
+	/** Compile the final root and Widget Architecture v2 part-style contract. */
+	public static function frontend_css( $session, $architecture = array() ) {
+		if ( ! is_array( $session ) || empty( $session['nodes'] ) ) return '';
+		return WebsiteBuilderCssCompiler::compile( $session ) . WidgetPartStyleCompiler::compile( $session, (array) $architecture );
+	}
+
+	/** Load exactly the persisted frontend document used by the final renderer. */
+	private function frontend_document() {
+		if ( is_admin() || ! is_singular( 'page' ) ) return null;
+		$post_id = absint( get_queried_object_id() );
+		if ( ! $post_id || WebsiteBuilder::BUILDER_VERSION !== (string) get_post_meta( $post_id, WebsiteBuilder::BUILDER_META, true ) ) return null;
+		$raw = (string) get_post_meta( $post_id, SessionManager::META_KEY, true );
+		if ( '' === $raw ) return null;
+		$decoded = json_decode( $raw, true );
+		if ( ! is_array( $decoded ) ) return null;
+		$session = WebsiteBuilder::sanitize_session( $decoded );
+		if ( is_wp_error( $session ) || empty( $session['nodes'] ) ) return null;
+		return array(
+			'postId'       => $post_id,
+			'session'      => $session,
+			'architecture' => WebsiteBuilderArchitectureV2::load_document( $post_id, $session ),
+		);
 	}
 
 	/**
@@ -58,9 +126,10 @@ final class WebsiteBuilderVisualParity {
 	}
 
 	/**
-	 * Annotate Studio's intentionally lightweight preview DOM with the saved node
-	 * contract. The annotations let scoped Custom CSS and editor parity CSS see
-	 * the same widget/field semantics as the frontend without replacing React DOM.
+	 * Annotate Studio's lightweight preview DOM with the saved node contract and
+	 * fill only semantic layout properties that React did not explicitly render.
+	 * This preserves live responsive inline styles while matching frontend props
+	 * defaults for new/unstyled Container, Columns, and Spacer widgets.
 	 */
 	public static function editor_script() {
 		return <<<'JS'
@@ -68,7 +137,7 @@ final class WebsiteBuilderVisualParity {
 'use strict';
 var root=document.getElementById('cresco-canvas-standalone-editor');
 if(!root)return;
-var scheduled=false;
+var scheduled=false,latestSession=null;
 function arr(v){return Array.isArray(v)?v:[];}
 function obj(v){return v&&typeof v==='object'&&!Array.isArray(v)?v:{};}
 function find(nodes,id){
@@ -77,6 +146,7 @@ function find(nodes,id){
  return found;
 }
 function documentState(){
+ if(latestSession&&Array.isArray(latestSession.nodes))return latestSession;
  var store=window.crescoDocumentStore;
  if(store&&typeof store.getState==='function'){
   var state=store.getState()||{};
@@ -91,6 +161,29 @@ function isDecoration(node){
  if(buckets.some(function(style){var p=String(style.position||'').toLowerCase();return p==='absolute'||p==='fixed';}))return true;
  return Object.keys(obj(node.customCSS)).some(function(key){return /position\s*:\s*(?:absolute|fixed)\b|pointer-events\s*:\s*none\b/i.test(String(node.customCSS[key]||''));});
 }
+function applySemanticLayout(el,node){
+ var props=obj(node.props),type=String(node.type||'');
+ function fallback(property,value){if(value!==undefined&&value!==null&&String(value)!==''&&!el.style.getPropertyValue(property))el.style.setProperty(property,String(value));}
+ if(type==='container'){
+  var layout=/^(?:block|flex|grid)$/.test(String(props.layout||''))?String(props.layout):'flex';
+  fallback('display',layout);
+  if(layout==='flex'){
+   fallback('flex-direction',props.direction||'column');
+   fallback('flex-wrap',props.wrap||'nowrap');
+   fallback('align-items',props.align||'stretch');
+   fallback('justify-content',props.justify||'flex-start');
+  }else if(layout==='grid'){
+   var columns=Math.max(1,Math.min(12,parseInt(props.columns||2,10)||2));
+   fallback('grid-template-columns',props.gridTemplate||('repeat('+columns+', minmax(0, 1fr))'));
+  }
+ }else if(type==='columns'){
+  var count=Math.max(1,Math.min(12,parseInt(props.columns||2,10)||2));
+  fallback('display','grid');
+  fallback('grid-template-columns','repeat('+count+', minmax(0, 1fr))');
+ }else if(type==='spacer'){
+  fallback('min-height',props.height||'48px');
+ }
+}
 function patch(){
  scheduled=false;
  var doc=documentState();
@@ -100,6 +193,7 @@ function patch(){
   if(!node)return;
   el.setAttribute('data-cresco-widget',String(node.type||'widget'));
   el.classList.toggle('is-cresco-decoration',isDecoration(node));
+  applySemanticLayout(el,node);
   if(node.type!=='form')return;
   var form=el.querySelector(':scope > form');
   if(!form)return;
@@ -117,8 +211,10 @@ function patch(){
  });
 }
 function schedule(){if(scheduled)return;scheduled=true;if(window.requestAnimationFrame)window.requestAnimationFrame(patch);else window.setTimeout(patch,0);}
+window.addEventListener('cresco:studio-session-change',function(event){var detail=event&&event.detail||{};if(detail.session&&Array.isArray(detail.session.nodes))latestSession=detail.session;schedule();});
 schedule();
 if(window.MutationObserver)new MutationObserver(schedule).observe(root,{childList:true,subtree:true});
+window.addEventListener('cresco:document-store-change',schedule);
 window.addEventListener('cresco:studio-consistency-change',schedule);
 window.addEventListener('cresco:studio-ready',schedule);
 })(window,document);

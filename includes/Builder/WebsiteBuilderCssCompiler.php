@@ -57,11 +57,10 @@ final class WebsiteBuilderCssCompiler {
 	/**
 	 * Compile the same desktop-first cascade used by Studio's effectiveStyle().
 	 *
-	 * GlobalStyles stores breakpoint *starts*: mobile=0, tablet=768,
-	 * laptop=1025, desktop=1440, wide=1920 by default. A responsive bucket is
-	 * therefore active from the next larger range downwards. Emitting cumulative
-	 * max-width queries means a 390px viewport receives desktop, laptop, tablet,
-	 * then mobile overrides in that exact order, matching Studio inheritance.
+	 * GlobalStyles stores breakpoint starts: mobile=0, tablet=768,
+	 * laptop=1025, desktop=1440, wide=1920 by default. Responsive buckets
+	 * inherit downward, so smaller viewports receive the larger bucket first and
+	 * the more specific smaller bucket later in source order.
 	 */
 	private static function wrap_range( $device, $css, $breakpoints ) {
 		$mobile  = max( 0, absint( $breakpoints['mobile'] ?? 0 ) );
@@ -79,13 +78,25 @@ final class WebsiteBuilderCssCompiler {
 		return '@media (max-width:' . max( 0, (int) $max_widths[ $device ] ) . 'px){' . $css . '}';
 	}
 
+	/**
+	 * Semantic layout defaults shared by frontend rendering.
+	 *
+	 * A full-width container is block-level by default, so width:auto already
+	 * fills its containing block. Forcing width:100% is incorrect when that same
+	 * container is a flex/grid item: it changes the flex basis and can squeeze a
+	 * sibling to min-content width. Emit width:auto explicitly so this compiler
+	 * also neutralizes legacy width:100% rules that may have been enqueued before
+	 * the authoritative contract. Boxed containers intentionally keep width:100%
+	 * together with max-width and auto margins.
+	 */
 	private static function props_style( $node ) {
 		$type  = (string) ( $node['type'] ?? '' );
 		$props = (array) ( $node['props'] ?? array() );
 		if ( 'container' === $type ) {
 			$layout = in_array( $props['layout'] ?? '', array( 'block', 'flex', 'grid' ), true ) ? $props['layout'] : 'flex';
-			$style = array( 'display' => $layout, 'width' => '100%' );
+			$style = array( 'display' => $layout, 'width' => 'auto' );
 			if ( 'boxed' === ( $props['contentWidth'] ?? '' ) ) {
+				$style['width'] = '100%';
 				$style['maxWidth'] = '{layout.containerMax}';
 				$style['marginLeft'] = 'auto';
 				$style['marginRight'] = 'auto';
