@@ -7,9 +7,12 @@
 
 namespace CrescoCanvas\Builder;
 
+use CrescoCanvas\Admin\EditorIntegration;
+use CrescoCanvas\Core\Document\Document;
 use CrescoCanvas\Infrastructure\WordPress\Storage\WordPressDocumentRepository;
 use CrescoCanvas\Page\PageSettings;
 use CrescoCanvas\Theme\ThemeBuilder;
+use CrescoCanvas\Theme\ThemeSessionBridge;
 use WP_Error;
 use WP_REST_Request;
 use WP_REST_Response;
@@ -35,6 +38,7 @@ final class WebsiteBuilderConcurrencyGuard {
 
 	public function register() {
 		add_filter( 'rest_pre_dispatch', array( $this, 'guard_session_write' ), 9, 3 );
+		add_filter( 'rest_dispatch_request', array( $this, 'commit_session_write' ), 9, 4 );
 		add_filter( 'rest_post_dispatch', array( $this, 'verify_and_release' ), 90, 3 );
 	}
 
@@ -62,8 +66,19 @@ final class WebsiteBuilderConcurrencyGuard {
 		$base    = sanitize_text_field( (string) ( $payload['baseChecksum'] ?? '' ) );
 		$current = $this->current_checksum( $post_id );
 		if ( is_wp_error( $current ) ) {
-			$this->release_request( $request_id );
-			return $current;
+			// Older Cresco builds could persist JSON without pre-slashing it first.
+			// Their GET route already falls back to an empty Session when that JSON
+			// can no longer be decoded. Accept exactly that empty-session checksum
+			// so the user can rebuild/re-import and replace the corrupt payload.
+			$recoverable = 'cresco_document_storage_decode' === $current->get_error_code()
+				? Document::checksum( WebsiteBuilder::empty_session( $post_id ) )
+				: '';
+			if ( '' !== $base && '' !== $recoverable && hash_equals( $recoverable, $base ) ) {
+				$current = $recoverable;
+			} else {
+				$this->release_request( $request_id );
+				return $current;
+			}
 		}
 		if ( '' === $base ) {
 			$this->release_request( $request_id );
@@ -82,6 +97,64 @@ final class WebsiteBuilderConcurrencyGuard {
 			);
 		}
 		return $result;
+	}
+
+	/**
+	 * Commit canonical Studio Session writes through the verified repository.
+	 *
+	 * rest_dispatch_request runs after the endpoint permission callback. Returning
+	 * a response here prevents the older route callbacks from writing raw JSON
+	 * directly to post meta and makes one slashed, read-back-verified repository
+	 * the single persistence boundary for Page and Theme Studio documents.
+	 */
+	public function commit_session_write( $dispatch_result, $request, $route, $handler ) {
+		unset( $route, $handler );
+		if ( null !== $dispatch_result || ! $request instanceof WP_REST_Request ) return $dispatch_result;
+		if ( 'POST' !== strtoupper( (string) $request->get_method() ) ) return $dispatch_result;
+		$route = (string) $request->get_route();
+		if ( ! preg_match( '#^/cresco-canvas/v1/website-builder/(theme-)?session/(\d+)$#', $route, $match ) ) return $dispatch_result;
+
+		$is_theme = ! empty( $match[1] );
+		$post_id  = absint( $match[2] ?? 0 );
+		$type     = $post_id ? (string) get_post_type( $post_id ) : '';
+		if ( ! $post_id || ( $is_theme ? ThemeBuilder::POST_TYPE !== $type : 'page' !== $type ) ) return $dispatch_result;
+
+		$payload = (array) $request->get_json_params();
+		$input   = isset( $payload['session'] ) && is_array( $payload['session'] ) ? $payload['session'] : $payload;
+		$session = WebsiteBuilder::sanitize_session( $input );
+		if ( is_wp_error( $session ) ) return $session;
+		if ( $is_theme ) $session['documentId'] = 'theme-' . $post_id;
+
+		$saved = $this->repository->save( $post_id, $session );
+		if ( is_wp_error( $saved ) ) return $saved;
+		$session = $saved;
+
+		update_post_meta( $post_id, EditorIntegration::ENABLED_META, true );
+		if ( $is_theme ) {
+			$title = isset( $payload['postTitle'] ) ? sanitize_text_field( (string) $payload['postTitle'] ) : get_the_title( $post_id );
+			$post_update = array( 'ID' => $post_id, 'post_content' => ThemeSessionBridge::block_markup( $post_id ) );
+			if ( '' !== $title ) $post_update['post_title'] = $title;
+			$result = wp_update_post( $post_update, true );
+			if ( is_wp_error( $result ) ) return $result;
+		} elseif ( isset( $payload['postTitle'] ) ) {
+			$title = sanitize_text_field( (string) $payload['postTitle'] );
+			if ( '' !== $title && $title !== get_the_title( $post_id ) ) {
+				$result = wp_update_post( array( 'ID' => $post_id, 'post_title' => $title ), true );
+				if ( is_wp_error( $result ) ) return $result;
+			}
+		}
+
+		$checksum = $this->repository->checksum( $post_id );
+		if ( is_wp_error( $checksum ) ) return $checksum;
+		return new WP_REST_Response(
+			array(
+				'session'   => $session,
+				'checksum'  => $checksum,
+				'nodeCount' => WebsiteBuilder::count_nodes( $session['nodes'] ?? array() ),
+				'savedAt'   => gmdate( 'c' ),
+				'builder'   => WebsiteBuilder::BUILDER_VERSION,
+			)
+		);
 	}
 
 	/** Verify persistence before the successful response leaves WordPress, then release the mutex. */

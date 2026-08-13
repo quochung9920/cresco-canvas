@@ -46,7 +46,12 @@ final class WordPressDocumentRepository implements DocumentRepository {
 		if ( is_wp_error( $session ) ) return $session;
 		$json = wp_json_encode( $session, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE );
 		if ( ! is_string( $json ) ) return new WP_Error( 'cresco_document_storage_encode', __( 'The Cresco document could not be encoded.', 'cresco-canvas' ), array( 'status' => 500 ) );
-		update_post_meta( $document_id, SessionManager::META_KEY, $json );
+
+		// WordPress unslashes metadata values before persistence. Pre-slash the
+		// encoded document so JSON escapes (for quotes/backslashes in Custom CSS,
+		// rich text, URLs, etc.) survive the update_post_meta() boundary intact.
+		$meta_value = function_exists( 'wp_slash' ) ? wp_slash( $json ) : $json;
+		update_post_meta( $document_id, SessionManager::META_KEY, $meta_value );
 		update_post_meta( $document_id, WebsiteBuilder::BUILDER_META, WebsiteBuilder::BUILDER_VERSION );
 
 		$expected = Document::checksum( $session );

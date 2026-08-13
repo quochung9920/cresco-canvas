@@ -88,7 +88,7 @@ final class HistoryManager {
 			true
 		);
 		if ( ! is_wp_error( $revision_id ) ) {
-			update_post_meta( $revision_id, self::DOCUMENT_META, $json );
+			update_post_meta( $revision_id, self::DOCUMENT_META, function_exists( 'wp_slash' ) ? wp_slash( $json ) : $json );
 			update_post_meta( $revision_id, self::CHECKSUM_META, $checksum );
 			$this->trim_revisions( $object_id );
 		}
@@ -136,7 +136,7 @@ final class HistoryManager {
 		if ( ! is_array( $session ) ) return new WP_Error( 'cresco_history_revision_invalid', __( 'That Cresco revision is invalid.', 'cresco-canvas' ), array( 'status' => 400 ) );
 		$json = wp_json_encode( $session, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE );
 		if ( ! is_string( $json ) ) return new WP_Error( 'cresco_history_revision_encode_failed', __( 'The Cresco revision could not be restored.', 'cresco-canvas' ), array( 'status' => 500 ) );
-		update_post_meta( $post_id, SessionManager::META_KEY, $json );
+		update_post_meta( $post_id, SessionManager::META_KEY, function_exists( 'wp_slash' ) ? wp_slash( $json ) : $json );
 		if ( $this->uses_builder_contract( $decoded, $post_id ) ) update_post_meta( $post_id, WebsiteBuilder::BUILDER_META, WebsiteBuilder::BUILDER_VERSION );
 		return new WP_REST_Response( array( 'restored' => true, 'revisionId' => $revision_id, 'checksum' => hash( 'sha256', $json ) ) );
 	}
