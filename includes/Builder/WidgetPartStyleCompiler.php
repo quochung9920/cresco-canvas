@@ -37,7 +37,7 @@ final class WidgetPartStyleCompiler {
 						if ( $decl ) $css .= $selector . '{' . $decl . '}';
 						foreach ( array( 'hover', 'focus', 'active' ) as $state ) {
 							$decl = self::declarations( $part_config['states'][ $state ] ?? array() );
-							if ( $decl ) $css .= str_replace( '&', $root . ':' . $state, $selector_template ) . '{' . $decl . '}';
+							if ( $decl ) $css .= $selector . ':' . $state . '{' . $decl . '}';
 						}
 						foreach ( array( 'desktop', 'laptop', 'tablet', 'mobile' ) as $device ) {
 							$max = absint( $breakpoints[ $device ] ?? 0 );
@@ -47,7 +47,7 @@ final class WidgetPartStyleCompiler {
 							if ( $decl ) $body .= $selector . '{' . $decl . '}';
 							foreach ( array( 'hover', 'focus', 'active' ) as $state ) {
 								$decl = self::declarations( $part_config['responsiveStates'][ $device ][ $state ] ?? array() );
-								if ( $decl ) $body .= str_replace( '&', $root . ':' . $state, $selector_template ) . '{' . $decl . '}';
+								if ( $decl ) $body .= $selector . ':' . $state . '{' . $decl . '}';
 							}
 							if ( $body ) $css .= '@media (max-width:' . $max . 'px){' . $body . '}';
 						}
