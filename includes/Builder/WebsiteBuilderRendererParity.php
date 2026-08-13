@@ -14,14 +14,16 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 final class WebsiteBuilderRendererParity {
-	const EDITOR_STYLE_HANDLE = 'cresco-canvas-website-builder';
+	const EDITOR_STYLE_HANDLE   = 'cresco-canvas-website-builder';
+	const FRONTEND_STYLE_HANDLE = 'cresco-canvas-website-builder-frontend';
 
-	/** Register frontend repair and editor parity styles after the core builder. */
+	/** Register frontend repair and editor/frontend parity styles after the core builder. */
 	public function register() {
 		// Run after every legacy/core render filter so a later renderer cannot
 		// overwrite the canonical Session output or repaired native Form output.
 		add_filter( 'the_content', array( $this, 'repair_frontend_forms' ), 100 );
 		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_frontend_form_assets' ), 46 );
+		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_frontend_parity_styles' ), 47 );
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_editor_parity_styles' ), 1000 );
 	}
 
@@ -122,7 +124,27 @@ final class WebsiteBuilderRendererParity {
 		wp_enqueue_script( 'cresco-canvas-forms-frontend' );
 	}
 
-	/** Add compiled document CSS to the visual canvas instead of a second mock renderer. */
+	/**
+	 * Append the canonical compiler after the core frontend enqueue.
+	 *
+	 * WebsiteBuilder historically enqueued WebsiteRenderer::compile_css(), whose
+	 * breakpoint interpretation predates Studio's desktop-first inheritance.
+	 * Appending the canonical compiler on the same handle makes the final CSS
+	 * cascade match Studio immediately while preserving backward compatibility
+	 * for any third-party code that still calls the legacy compiler directly.
+	 */
+	public function enqueue_frontend_parity_styles() {
+		if ( ! is_singular( 'page' ) ) return;
+		$post_id = get_queried_object_id();
+		if ( ! $post_id || WebsiteBuilder::BUILDER_VERSION !== (string) get_post_meta( $post_id, WebsiteBuilder::BUILDER_META, true ) ) return;
+		if ( ! wp_style_is( self::FRONTEND_STYLE_HANDLE, 'enqueued' ) ) return;
+		$session = $this->load_session( $post_id );
+		if ( ! $session || empty( $session['nodes'] ) ) return;
+		$compiled = WebsiteBuilderCssCompiler::compile( $session );
+		if ( '' !== $compiled ) wp_add_inline_style( self::FRONTEND_STYLE_HANDLE, $compiled );
+	}
+
+	/** Add compiled document CSS to the visual canvas instead of a second mock render. */
 	public function enqueue_editor_parity_styles() {
 		if ( ! wp_style_is( self::EDITOR_STYLE_HANDLE, 'enqueued' ) ) return;
 		$post_id = isset( $_GET['post'] ) ? absint( wp_unslash( $_GET['post'] ) ) : 0; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only screen routing value.
@@ -136,96 +158,5 @@ final class WebsiteBuilderRendererParity {
 		$compiled = is_string( $compiled ) ? $compiled : '';
 
 		$parity = '.cc-builder-frame{container-type:inline-size;}'
-			. '.cc-builder-canvas .cc-widget-form{display:grid;gap:1rem;}'
-			. '.cc-builder-canvas .cc-widget-form>label{display:grid;gap:.4rem;min-width:0;}'
-			. '.cc-builder-canvas .cc-widget-form input,.cc-builder-canvas .cc-widget-form textarea,.cc-builder-canvas .cc-widget-form select{box-sizing:border-box;width:100%;min-height:2.75rem;padding:.65rem .75rem;border:1px solid currentColor;border-radius:.25rem;background:Canvas;color:CanvasText;font:inherit;}'
-			. '.cc-builder-canvas .cc-widget-form textarea{min-height:6rem;resize:vertical;}'
-			. '.cc-builder-canvas .cc-widget-form button{justify-self:start;font:inherit;}'
-			. $this->decoration_css( $session['nodes'] ?? array() )
-			. $compiled;
-		wp_add_inline_style( self::EDITOR_STYLE_HANDLE, $parity );
-	}
-
-	private function load_session( $post_id ) {
-		$raw = (string) get_post_meta( $post_id, SessionManager::META_KEY, true );
-		if ( '' === $raw ) return null;
-		$decoded = json_decode( $raw, true );
-		if ( ! is_array( $decoded ) ) return null;
-		$session = WebsiteBuilder::sanitize_session( $decoded );
-		return is_wp_error( $session ) ? null : $session;
-	}
-
-	private static function collect_form_nodes_static( $nodes, &$forms ) {
-		foreach ( (array) $nodes as $node ) {
-			if ( ! is_array( $node ) ) continue;
-			if ( 'form' === ( $node['type'] ?? '' ) ) $forms[] = $node;
-			if ( ! empty( $node['children'] ) ) self::collect_form_nodes_static( $node['children'], $forms );
-		}
-	}
-
-	private static function render_native_form( $props ) {
-		$fields_markup = '';
-		$valid_fields  = 0;
-		foreach ( (array) ( $props['fields'] ?? array() ) as $field ) {
-			if ( ! is_array( $field ) ) continue;
-			$name = sanitize_key( (string) ( $field['name'] ?? '' ) );
-			if ( '' === $name ) continue;
-			$field_attrs = array_filter(
-				array(
-					'name'        => $name,
-					'label'       => (string) ( $field['label'] ?? '' ),
-					'type'        => (string) ( $field['type'] ?? 'text' ),
-					'required'    => ! empty( $field['required'] ),
-					'placeholder' => (string) ( $field['placeholder'] ?? '' ),
-					'options'     => (string) ( $field['options'] ?? '' ),
-					'min'         => $field['min'] ?? null,
-					'max'         => $field['max'] ?? null,
-				),
-				static function ( $value ) { return null !== $value && '' !== $value; }
-			);
-			$json = wp_json_encode( $field_attrs, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE );
-			if ( ! is_string( $json ) ) continue;
-			$fields_markup .= '<!-- wp:cresco/form-field ' . $json . ' /-->';
-			++$valid_fields;
-		}
-		if ( 0 === $valid_fields ) return '';
-
-		$form_id = sanitize_key( (string) ( $props['formId'] ?? 'contact' ) );
-		if ( '' === $form_id ) return '';
-		$form_attrs = array(
-			'formId'           => $form_id,
-			'submitLabel'      => (string) ( $props['submitLabel'] ?? 'Submit' ),
-			'successMessage'   => (string) ( $props['successMessage'] ?? 'Thank you.' ),
-			'emailTo'          => sanitize_email( (string) ( $props['emailTo'] ?? '' ) ),
-			'storeSubmissions' => ! empty( $props['storeSubmissions'] ),
-			'redirectUrl'      => esc_url_raw( (string) ( $props['redirectUrl'] ?? '' ) ),
-			'retentionDays'    => min( 365, max( 1, absint( $props['retentionDays'] ?? 30 ) ) ),
-		);
-		$json = wp_json_encode( $form_attrs, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE );
-		if ( ! is_string( $json ) ) return '';
-		return do_blocks( '<!-- wp:cresco/form ' . $json . ' -->' . $fields_markup . '<!-- /wp:cresco/form -->' );
-	}
-
-	private function decoration_css( $nodes ) {
-		$css = '';
-		foreach ( (array) $nodes as $node ) {
-			if ( ! is_array( $node ) ) continue;
-			if ( 'container' === ( $node['type'] ?? '' ) && empty( $node['children'] ) && $this->is_decoration( $node ) ) {
-				$id = preg_replace( '/[^a-zA-Z0-9_-]/', '-', (string) ( $node['id'] ?? '' ) );
-				if ( '' !== $id ) $css .= '.cc-builder-canvas [data-cresco-id="' . $id . '"]>.cc-builder-dropzone{display:none;}';
-			}
-			if ( ! empty( $node['children'] ) ) $css .= $this->decoration_css( $node['children'] );
-		}
-		return $css;
-	}
-
-	private function is_decoration( $node ) {
-		$style = (array) ( $node['style'] ?? array() );
-		if ( in_array( strtolower( (string) ( $style['position'] ?? '' ) ), array( 'absolute', 'fixed' ), true ) ) return true;
-		$custom = (array) ( $node['customCSS'] ?? array() );
-		foreach ( $custom as $css ) if ( preg_match( '/position\s*:\s*(?:absolute|fixed)\b|pointer-events\s*:\s*none\b/i', (string) $css ) ) return true;
-		return false;
-	}
-
-	public function __construct() {}
-}
+			. '.cc-builder-canvas .cc-studio-canvas-node{box-sizing:border-box;min-width:0;}'
+			. '.cc-builder-canvas .cc-studio-canvas-node>h1,.cc-builder-canvas .cc-studio-canvas-node>h2,.cc-builder-canvas .cc-studio-canvas-node>kkºwµç
