@@ -19,19 +19,60 @@ final class WebsiteBuilderRendererParity {
 	/** Register frontend repair and editor parity styles after the core builder. */
 	public function register() {
 		// Run after every legacy/core render filter so a later renderer cannot
-		// overwrite the repaired native Form output.
+		// overwrite the canonical Session output or repaired native Form output.
 		add_filter( 'the_content', array( $this, 'repair_frontend_forms' ), 100 );
 		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_frontend_form_assets' ), 46 );
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_editor_parity_styles' ), 1000 );
 	}
 
-	/** Repair Website Builder Form widgets in the final Page content. */
+	/**
+	 * Finalize the authoritative Website Builder document at the last Cresco
+	 * the_content boundary, then repair legacy Form placeholders if necessary.
+	 *
+	 * WordPress previews and some block themes can render the queried Page while
+	 * in_the_loop()/is_main_query() are false. Using the queried Page identity,
+	 * with revision-parent normalization, keeps Preview aligned with Studio
+	 * without hijacking nested posts rendered by secondary queries.
+	 */
 	public function repair_frontend_forms( $content ) {
-		if ( is_admin() || ! is_singular( 'page' ) || ! in_the_loop() || ! is_main_query() ) return $content;
-		$post_id = get_the_ID();
+		$post_id = self::frontend_page_id();
 		if ( ! $post_id || WebsiteBuilder::BUILDER_VERSION !== (string) get_post_meta( $post_id, WebsiteBuilder::BUILDER_META, true ) ) return $content;
 		$session = $this->load_session( $post_id );
-		return $session ? self::repair_document_html( $content, $session ) : $content;
+		if ( ! $session || empty( $session['nodes'] ) ) return $content;
+
+		$architecture = WebsiteBuilderArchitectureV2::load_document( $post_id, $session );
+		$rendered     = WebsiteRendererV2::render_document( $session, $post_id, $architecture );
+		return self::repair_document_html( $rendered, $session );
+	}
+
+	/**
+	 * Decide whether a content post belongs to the queried Page.
+	 *
+	 * A zero content id is accepted because some block-theme preview paths apply
+	 * the_content without populating the traditional Loop globals. A revision or
+	 * autosave is accepted only when its parent is the queried Page.
+	 */
+	public static function matches_frontend_page( $queried_id, $content_id = 0, $revision_parent_id = 0 ) {
+		$queried_id         = absint( $queried_id );
+		$content_id         = absint( $content_id );
+		$revision_parent_id = absint( $revision_parent_id );
+		if ( ! $queried_id ) return false;
+		if ( $revision_parent_id ) $content_id = $revision_parent_id;
+		return ! $content_id || $content_id === $queried_id;
+	}
+
+	/** Resolve the canonical frontend Page without requiring the classic Loop. */
+	private static function frontend_page_id() {
+		if ( is_admin() || ! is_singular( 'page' ) ) return 0;
+		$queried_id = absint( get_queried_object_id() );
+		if ( ! $queried_id || 'page' !== get_post_type( $queried_id ) ) return 0;
+
+		$content_id = absint( get_the_ID() );
+		$parent_id  = 0;
+		if ( $content_id && function_exists( 'wp_is_post_revision' ) ) {
+			$parent_id = absint( wp_is_post_revision( $content_id ) );
+		}
+		return self::matches_frontend_page( $queried_id, $content_id, $parent_id ) ? $queried_id : 0;
 	}
 
 	/**

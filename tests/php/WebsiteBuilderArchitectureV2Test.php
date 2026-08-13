@@ -5,6 +5,7 @@
  * @package CrescoCanvas
  */
 
+use CrescoCanvas\Builder\WebsiteBuilderRendererParity;
 use CrescoCanvas\Builder\WidgetArchitectureV2;
 use CrescoCanvas\Builder\WidgetCatalog;
 use PHPUnit\Framework\TestCase;
@@ -67,5 +68,13 @@ final class WebsiteBuilderArchitectureV2Test extends TestCase {
 		self::assertSame( 44, $clean['nodes']['tabs-one']['slots']['items']['0'] );
 		self::assertSame( 'email', $clean['nodes']['form-one']['form']['replyToField'] );
 		self::assertSame( 'turnstile', $clean['nodes']['form-one']['form']['captcha']['provider'] );
+	}
+
+	public function test_frontend_parity_accepts_preview_revisions_but_rejects_nested_posts(): void {
+		self::assertTrue( WebsiteBuilderRendererParity::matches_frontend_page( 42, 42 ) );
+		self::assertTrue( WebsiteBuilderRendererParity::matches_frontend_page( 42, 84, 42 ) );
+		self::assertTrue( WebsiteBuilderRendererParity::matches_frontend_page( 42, 0 ) );
+		self::assertFalse( WebsiteBuilderRendererParity::matches_frontend_page( 42, 99 ) );
+		self::assertFalse( WebsiteBuilderRendererParity::matches_frontend_page( 0, 0 ) );
 	}
 }
