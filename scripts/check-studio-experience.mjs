@@ -33,6 +33,8 @@ const required = [
 	'runtime-src/build/website-builder-pointer-drag.js',
 	'build/website-builder-consistency-guard.js',
 	'runtime-src/build/website-builder-consistency-guard.js',
+	'build/website-builder-document-store.js',
+	'runtime-src/build/website-builder-document-store.js',
 	'assets/css/website-builder-studio.css',
 	'tests/e2e/studio-hardening.spec.ts',
 	'tests/php/StudioHardeningTest.php',
@@ -48,6 +50,7 @@ for ( const [ built, source, message ] of [
 	[ 'build/website-builder-responsive-properties.js', 'runtime-src/build/website-builder-responsive-properties.js', 'Responsive runtime source/build parity failed.' ],
 	[ 'build/website-builder-pointer-drag.js', 'runtime-src/build/website-builder-pointer-drag.js', 'Pointer drag source/build parity failed.' ],
 	[ 'build/website-builder-consistency-guard.js', 'runtime-src/build/website-builder-consistency-guard.js', 'Consistency guard source/build parity failed.' ],
+	[ 'build/website-builder-document-store.js', 'runtime-src/build/website-builder-document-store.js', 'Document store source/build parity failed.' ],
 ] ) {
 	if ( exists( built ) && exists( source ) && hash( read( built ) ) !== hash( read( source ) ) ) errors.push( message );
 }
@@ -82,13 +85,23 @@ for ( const token of [
 ] ) expect( 'runtime-src/build/website-builder-pointer-drag.js', token );
 for ( const token of [ 'fallbackMove', 'moveTree', "method:'POST'", 'refreshSession' ] ) reject( 'runtime-src/build/website-builder-pointer-drag.js', token );
 
+// The consistency guard owns save preconditions only. Revision/session ownership
+// moved to the canonical document store; requiring those tokens here would
+// recreate the dual-authority defect this gate is meant to prevent.
 for ( const token of [
 	'window.crescoStudioConsistencyGuard',
 	'baseChecksum',
 	'cresco_save_superseded',
-	'cresco:studio-session-change',
-	'state.revision++',
+	"authority:'crescoDocumentStore'",
+	'store.beginSave()',
+	'store.markPersisted(result,save.revision)',
 ] ) expect( 'runtime-src/build/website-builder-consistency-guard.js', token );
+for ( const token of [ 'cresco:studio-session-change', 'state.revision++' ] ) reject( 'runtime-src/build/website-builder-consistency-guard.js', token );
+for ( const token of [
+	"addEventListener('cresco:studio-session-change'",
+	'state.revision+=1',
+	'applyLocalDocument',
+] ) expect( 'runtime-src/build/website-builder-document-store.js', token );
 
 for ( const token of [
 	"const SCRIPT             = 'build/website-builder-studio.js'",
@@ -131,7 +144,7 @@ for ( const token of [
 	'hash_equals',
 ] ) expect( 'includes/Builder/WebsiteBuilderConcurrencyGuard.php', token );
 for ( const token of [
-	"'/cresco-canvas/v1/session/(\\d+)'",
+	"preg_match( '#^/cresco-canvas/v1/session/(\\d+)$#'",
 	"'cresco_legacy_session_write_blocked'",
 	'WebsiteBuilder::BUILDER_META',
 ] ) expect( 'includes/Builder/WebsiteBuilderSessionIsolation.php', token );
@@ -161,8 +174,10 @@ reject( 'includes/Builder/WebsiteBuilderModuleRegistry.php', 'website-builder-st
 expect( 'runtime-src/build/website-builder-bootstrap.js', 'if(path===paths.pageSettings)return{critical:true' );
 reject( 'runtime-src/build/website-builder-bootstrap.js', "if(path===paths.pageSettings)return{matched:true,value:{settings:{}}}" );
 expect( 'scripts/release-files.mjs', 'build/website-builder-consistency-guard.js' );
+expect( 'scripts/release-files.mjs', 'build/website-builder-document-store.js' );
 reject( 'scripts/release-files.mjs', 'build/website-builder-structure-row-drag.js' );
 expect( 'runtime-src/manifest.json', 'website-builder-consistency-guard.js' );
+expect( 'runtime-src/manifest.json', 'website-builder-document-store.js' );
 reject( 'runtime-src/manifest.json', 'website-builder-structure-row-drag.js' );
 
 for ( const testFile of [ 'tests/e2e/release-critical.spec.ts', 'tests/e2e/editor-shell.spec.ts', 'tests/e2e/page-settings.spec.ts', 'tests/e2e/accessibility-release.spec.ts', 'tests/e2e/theme-shell.spec.ts' ] ) {
@@ -176,4 +191,4 @@ if ( errors.length ) {
 	process.stderr.write( `${ errors.join( '\n' ) }\n` );
 	process.exit( 1 );
 }
-process.stdout.write( '[studio] Hardened Studio verified: one direct canonical bootstrap, retired standalone presentation, repaired source/build parity, optimistic concurrency, legacy Session isolation, atomic public abuse controls, fail-closed Page Settings, durable Theme settings, one Core Structure move path, core-only Canvas pointer bridge, no duplicate Structure drag runtime, no legacy DOM adapter, and privileged quarantine controls.\n' );
+process.stdout.write( '[studio] Hardened Studio verified: one direct canonical bootstrap, retired standalone presentation, source/build parity, canonical document-store revision ownership, optimistic concurrency, legacy Session isolation, atomic public abuse controls, fail-closed Page Settings, durable Theme settings, one Core Structure move path, core-only Canvas pointer bridge, no duplicate Structure drag runtime, no legacy DOM adapter, and privileged quarantine controls.\n' );
