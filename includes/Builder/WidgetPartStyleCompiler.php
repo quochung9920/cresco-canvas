@@ -7,7 +7,7 @@
 
 namespace CrescoCanvas\Builder;
 
-use CrescoCanvas\Styles\GlobalStyles;
+use CrescoCanvas\Core\Responsive\ResponsiveResolver;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -16,11 +16,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 final class WidgetPartStyleCompiler {
 	public static function compile( $session, $architecture ) {
 		$catalog = WidgetArchitectureV2::catalog();
-		$settings = GlobalStyles::get_settings();
-		$breakpoints = (array) ( $settings['breakpoints'] ?? array() );
 		$configs = (array) ( $architecture['nodes'] ?? array() );
 		$css = '';
-		$walk = static function ( $nodes ) use ( &$walk, &$css, $configs, $catalog, $breakpoints ) {
+		$walk = static function ( $nodes ) use ( &$walk, &$css, $configs, $catalog ) {
 			foreach ( (array) $nodes as $node ) {
 				if ( ! is_array( $node ) ) continue;
 				$id = self::node_id( $node['id'] ?? '' );
@@ -39,9 +37,7 @@ final class WidgetPartStyleCompiler {
 							$decl = self::declarations( $part_config['states'][ $state ] ?? array() );
 							if ( $decl ) $css .= $selector . ':' . $state . '{' . $decl . '}';
 						}
-						foreach ( array( 'desktop', 'laptop', 'tablet', 'mobile' ) as $device ) {
-							$max = self::max_width_for_device( $device, $breakpoints );
-							if ( $max < 1 ) continue;
+						foreach ( ResponsiveResolver::OVERRIDE_DEVICES as $device ) {
 							$body = '';
 							$decl = self::declarations( $part_config['responsive'][ $device ] ?? array() );
 							if ( $decl ) $body .= $selector . '{' . $decl . '}';
@@ -49,7 +45,7 @@ final class WidgetPartStyleCompiler {
 								$decl = self::declarations( $part_config['responsiveStates'][ $device ][ $state ] ?? array() );
 								if ( $decl ) $body .= $selector . ':' . $state . '{' . $decl . '}';
 							}
-							if ( $body ) $css .= '@media (max-width:' . $max . 'px){' . $body . '}';
+							if ( $body ) $css .= ResponsiveResolver::wrap( $device, $body );
 						}
 					}
 				}
@@ -58,22 +54,6 @@ final class WidgetPartStyleCompiler {
 		};
 		$walk( is_array( $session ) ? ( $session['nodes'] ?? array() ) : array() );
 		return $css;
-	}
-
-	/** Match the root compiler's downward-inheriting breakpoint cascade. */
-	private static function max_width_for_device( $device, $breakpoints ) {
-		$mobile  = max( 0, absint( $breakpoints['mobile'] ?? 0 ) );
-		$tablet  = max( $mobile + 1, absint( $breakpoints['tablet'] ?? 768 ) );
-		$laptop  = max( $tablet + 1, absint( $breakpoints['laptop'] ?? 1025 ) );
-		$desktop = max( $laptop + 1, absint( $breakpoints['desktop'] ?? 1440 ) );
-		$wide    = max( $desktop + 1, absint( $breakpoints['wide'] ?? 1920 ) );
-		$max_widths = array(
-			'desktop' => $wide - 1,
-			'laptop'  => $desktop - 1,
-			'tablet'  => $laptop - 1,
-			'mobile'  => $tablet - 1,
-		);
-		return isset( $max_widths[ $device ] ) ? max( 0, (int) $max_widths[ $device ] ) : 0;
 	}
 
 	private static function declarations( $styles ) {

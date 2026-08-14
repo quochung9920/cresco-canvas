@@ -22,12 +22,19 @@ const phpFiles = [
 	'includes/Core/Context/ContextEngine.php',
 	'includes/Core/Command/CommandBus.php',
 	'includes/Core/Command/TransactionManager.php',
+	'includes/Core/Responsive/ResponsiveResolver.php',
+	'includes/Core/Design/DesignSystemAnalyzer.php',
 	'includes/Core/UI/UiRegistry.php',
+	'includes/Core/UI/InspectorSchema.php',
 	'includes/Core/Widget/WidgetRegistry.php',
 	'includes/Core/Storage/DocumentRepository.php',
 	'includes/Core/Module/ModuleRegistry.php',
 	'includes/Infrastructure/WordPress/Storage/WordPressDocumentRepository.php',
 	'includes/Styles/StyleCascade.php',
+	'includes/Builder/ComponentStyleCompiler.php',
+	'includes/Builder/WebsiteBuilderCorePlatform.php',
+	'includes/Builder/WebsiteBuilderCssCompiler.php',
+	'includes/Builder/WidgetPartStyleCompiler.php',
 	'includes/Rendering/RenderEngine.php',
 	'includes/Application/BuilderArchitecture.php',
 	'includes/AI/ContractRegistry.php',
@@ -49,7 +56,7 @@ for ( const file of [ 'runtime-src/build/website-builder-architecture.js', 'buil
 }
 if ( hash( source ) !== hash( build ) ) errors.push( 'Architecture runtime source/build mismatch.' );
 const phpCorpus = ( await Promise.all( phpFiles.map( read ) ) ).join( '\n' );
-for ( const token of [ 'cresco-ai-context/v2', 'ScopeEngine', 'CommandBus', 'TransactionManager', 'StyleCascade', 'RenderEngine', 'UiRegistry', 'WidgetRegistry', 'DocumentRepository', 'ModuleRegistry', 'cresco-command/v1', 'cresco-transaction/v1', 'cresco_command_scope_mismatch' ] ) {
+for ( const token of [ 'cresco-ai-context/v2', 'ScopeEngine', 'CommandBus', 'TransactionManager', 'ResponsiveResolver', 'DesignSystemAnalyzer', 'InspectorSchema', 'StyleCascade', 'RenderEngine', 'UiRegistry', 'WidgetRegistry', 'DocumentRepository', 'ModuleRegistry', 'cresco-command/v1', 'cresco-transaction/v1', 'cresco_command_scope_mismatch' ] ) {
 	if ( ! phpCorpus.includes( token ) ) errors.push( `Architecture PHP missing ${ token }` );
 }
 for ( const token of [ 'metaKey||e.ctrlKey', 'crescoBuilderArchitecture', 'addCommand', 'data-cresco-zone', 'Scoped AI', 'Authoritative Renderer Preview', 'Cresco Documents', 'selection' ] ) {
@@ -83,12 +90,36 @@ for ( const token of [ "const BREAKPOINTS = array( 'wide', 'desktop', 'laptop', 
 	if ( ! styleCascade.includes( token ) ) errors.push( `StyleCascade missing ${ token }` );
 }
 
+const responsive = await read( 'includes/Core/Responsive/ResponsiveResolver.php' );
+for ( const token of [ "const DEVICES = array( 'wide', 'desktop', 'laptop', 'tablet', 'mobile' )", "'desktop' => $bp['wide'] - 1", "'mobile'  => $bp['tablet'] - 1", 'effective_style', "'schema'      => 'cresco-responsive/v2'" ] ) {
+	if ( ! responsive.includes( token ) ) errors.push( `ResponsiveResolver missing ${ token }` );
+}
+const rootCompiler = await read( 'includes/Builder/WebsiteBuilderCssCompiler.php' );
+const partCompiler = await read( 'includes/Builder/WidgetPartStyleCompiler.php' );
+for ( const compiler of [ rootCompiler, partCompiler ] ) {
+	if ( ! compiler.includes( 'ResponsiveResolver::wrap' ) ) errors.push( 'All style compilers must use ResponsiveResolver::wrap.' );
+}
+if ( partCompiler.includes( 'max_width_for_device' ) ) errors.push( 'Part-style compiler still owns a duplicate breakpoint resolver.' );
+
 const renderEngine = await read( 'includes/Rendering/RenderEngine.php' );
-if ( ! renderEngine.includes( 'WebsiteBuilderRendererParity::repair_document_html' ) ) errors.push( 'RenderEngine must finalize native Form parity before returning HTML.' );
+for ( const token of [ 'WebsiteBuilderArchitectureV2::load_document', 'WebsiteRendererV2::render_document', 'WebsiteBuilderRendererParity::repair_document_html', 'WidgetPartStyleCompiler::compile', 'ComponentStyleCompiler::compile', "'renderOwner'  => 'RenderEngine/v2'" ] ) {
+	if ( ! renderEngine.includes( token ) ) errors.push( `RenderEngine missing canonical v2 boundary ${ token }` );
+}
+if ( renderEngine.includes( 'WebsiteRenderer::render_document' ) ) errors.push( 'RenderEngine regressed to the legacy renderer.' );
+
 const rendererParity = await read( 'includes/Builder/WebsiteBuilderRendererParity.php' );
-for ( const token of [ "add_filter( 'the_content', array( $this, 'repair_frontend_forms' ), 100 )", 'public static function repair_document_html', '<!-- wp:cresco/form-field ' ] ) {
+for ( const token of [ 'public static function repair_document_html', '<!-- wp:cresco/form-field ' ] ) {
 	if ( ! rendererParity.includes( token ) ) errors.push( `Renderer parity missing ${ token }` );
 }
+
+const corePlatform = await read( 'includes/Builder/WebsiteBuilderCorePlatform.php' );
+for ( const token of [ "const SCHEMA = 'cresco-builder-core/v2'", "const STYLE_CONTRACT = 'authoritative-v5'", 'prune_legacy_frontend_hooks', '/website-builder/session/', '/website-builder/theme-session/', '/website-builder/components', '/website-builder/architecture-v2/', '/page-settings/', '/website-builder/theme-page-settings/', '/website-builder/transactions/', '/website-builder/system-status/', 'TransactionManager::preview', 'WordPressDocumentRepository', 'wp_slash( $json )', 'ResponsiveResolver::manifest', 'DesignSystemAnalyzer::manifest', 'InspectorSchema::manifest', 'index=new Map()', 'ThemeSessionBridge::block_markup', 'render_theme_preview', "'privacySafe'   => true" ] ) {
+	if ( ! corePlatform.includes( token ) ) errors.push( `Core Platform v2 missing ${ token }` );
+}
+const inspector = await read( 'includes/Core/UI/InspectorSchema.php' );
+if ( ! inspector.includes( 'WidgetCatalog::all()' ) || ! inspector.includes( 'cresco-inspector/v2' ) ) errors.push( 'Inspector v2 is not catalog-driven.' );
+const design = await read( 'includes/Core/Design/DesignSystemAnalyzer.php' );
+if ( ! design.includes( 'DesignTokens::catalog' ) || ! design.includes( 'cresco-design-system/v2' ) ) errors.push( 'Design System v2 contract is incomplete.' );
 
 const stabilization = await read( 'includes/Builder/WebsiteBuilderStabilization.php' );
 for ( const token of [ "'wp-components'", '/website-builder/theme-page-settings/', "document.querySelector('.cc-builder-pro-context-menu')", "version:'stability-v1'", 'buffer_theme_preview', 'enqueue_theme_form_assets' ] ) {
@@ -103,10 +134,11 @@ for ( const token of [ '/website-builder/theme-history/', 'ThemeBuilder::POST_TY
 }
 const repository = await read( 'includes/Infrastructure/WordPress/Storage/WordPressDocumentRepository.php' );
 if ( ! repository.includes( "'header', 'footer', 'single', 'page', 'archive', 'search', '404'" ) ) errors.push( 'WordPress document type mapping must preserve Theme page templates.' );
-for ( const token of [ 'public function checksum( $document_id )', 'public function verify( $document_id, $expected_checksum )', "'cresco_document_storage_verify'" ] ) if ( ! repository.includes( token ) ) errors.push( `Document repository missing ${ token }` );
+for ( const token of [ 'public function checksum( $document_id )', 'public function verify( $document_id, $expected_checksum )', "'cresco_document_storage_verify'", 'wp_slash( $json )' ] ) if ( ! repository.includes( token ) ) errors.push( `Document repository missing ${ token }` );
 
 const plugin = await read( 'includes/Plugin.php' );
 if ( ! plugin.includes( 'BuilderArchitecture' ) || ! plugin.includes( '( new BuilderArchitecture() )->register();' ) ) errors.push( 'Plugin does not register BuilderArchitecture.' );
+if ( ! plugin.includes( 'WebsiteBuilderCorePlatform' ) || ! plugin.includes( '( new WebsiteBuilderCorePlatform() )->register();' ) ) errors.push( 'Plugin does not register Core Platform v2.' );
 const release = await read( 'scripts/release-files.mjs' );
 for ( const token of [ "'docs/CORE_ARCHITECTURE.md'", "'assets/css/website-builder-architecture.css'", "'build/website-builder-architecture.js'", "walkFiles( root, 'contracts'" ] ) if ( ! release.includes( token ) ) errors.push( `Release inventory missing ${ token }` );
 const manifest = JSON.parse( await read( 'runtime-src/manifest.json' ) );
@@ -116,9 +148,9 @@ if ( packageJson.scripts?.[ 'check:architecture' ] !== 'node scripts/check-core-
 if ( ! String( packageJson.scripts?.[ 'check:quality' ] || '' ).includes( 'check:architecture' ) ) errors.push( 'check:quality does not include check:architecture.' );
 const docs = await read( 'docs/CORE_ARCHITECTURE.md' );
 for ( const token of [ 'One document model', 'One mutation path', 'Scoped AI', 'Editor UX shell', 'Compatibility policy' ] ) if ( ! docs.includes( token ) ) errors.push( `Architecture documentation missing ${ token }` );
-if ( /ComprehensiveV4|ProfessionalUxV4|WebsiteBuilderV4/.test( source + docs ) ) errors.push( 'Architecture consolidation must not introduce a V4 builder layer.' );
+if ( /ComprehensiveV4|ProfessionalUxV4|WebsiteBuilderV4/.test( source + docs + corePlatform ) ) errors.push( 'Architecture consolidation must not introduce a V4 builder layer.' );
 if ( errors.length ) {
 	process.stderr.write( `${ errors.join( '\n' ) }\n` );
 	process.exit( 1 );
 }
-process.stdout.write( 'Cresco Core contracts, canonical transactions, style provenance, AI validation, scoped commands, unified render parity, Theme history/settings, persistence verification, stabilization runtime, release ownership, and architecture runtime verified.\n' );
+process.stdout.write( 'Cresco Core Platform v2, canonical transactions, shared responsive resolver, schema Inspector, Design System usage, unified V2 rendering, persistence verification, AI validation, Theme history/settings, release ownership, and architecture runtime verified.\n' );

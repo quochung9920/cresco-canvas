@@ -7,6 +7,7 @@
 
 namespace CrescoCanvas\Builder;
 
+use CrescoCanvas\Core\Responsive\ResponsiveResolver;
 use CrescoCanvas\Styles\DesignTokens;
 use CrescoCanvas\Styles\GlobalStyles;
 
@@ -17,14 +18,12 @@ if ( ! defined( 'ABSPATH' ) ) {
 final class WebsiteBuilderCssCompiler {
 	/** Compile base, state, responsive, and scoped Custom CSS for one document. */
 	public static function compile( $session ) {
-		$settings    = GlobalStyles::get_settings();
-		$breakpoints = (array) ( $settings['breakpoints'] ?? array() );
 		$css = '';
-		foreach ( (array) ( $session['nodes'] ?? array() ) as $node ) $css .= self::compile_node( $node, $breakpoints );
+		foreach ( (array) ( $session['nodes'] ?? array() ) as $node ) $css .= self::compile_node( $node );
 		return $css;
 	}
 
-	private static function compile_node( $node, $breakpoints ) {
+	private static function compile_node( $node ) {
 		$id       = preg_replace( '/[^a-zA-Z0-9_-]/', '-', (string) ( $node['id'] ?? '' ) );
 		$selector = '.cresco-website-builder-root [data-cresco-id="' . $id . '"]';
 		$css      = '';
@@ -37,45 +36,21 @@ final class WebsiteBuilderCssCompiler {
 			if ( '' !== $decl ) $css .= $selector . ':' . $state . '{' . $decl . '}';
 		}
 
-		foreach ( array( 'desktop', 'laptop', 'tablet', 'mobile' ) as $device ) {
+		foreach ( ResponsiveResolver::OVERRIDE_DEVICES as $device ) {
 			$decl = self::style_declarations( (array) ( $node['responsive'][ $device ] ?? array() ) );
-			if ( '' !== $decl ) $css .= self::wrap_range( $device, $selector . '{' . $decl . '}', $breakpoints );
+			if ( '' !== $decl ) $css .= ResponsiveResolver::wrap( $device, $selector . '{' . $decl . '}' );
 		}
 
 		$custom = (array) ( $node['customCSS'] ?? array() );
 		if ( ! empty( $custom['base'] ) ) $css .= self::scope_custom_css( $selector, $custom['base'] );
-		foreach ( array( 'desktop', 'laptop', 'tablet', 'mobile' ) as $device ) {
+		foreach ( ResponsiveResolver::OVERRIDE_DEVICES as $device ) {
 			if ( empty( $custom[ $device ] ) ) continue;
 			$scoped = self::scope_custom_css( $selector, $custom[ $device ] );
-			if ( '' !== $scoped ) $css .= self::wrap_range( $device, $scoped, $breakpoints );
+			if ( '' !== $scoped ) $css .= ResponsiveResolver::wrap( $device, $scoped );
 		}
 
-		foreach ( (array) ( $node['children'] ?? array() ) as $child ) $css .= self::compile_node( $child, $breakpoints );
+		foreach ( (array) ( $node['children'] ?? array() ) as $child ) $css .= self::compile_node( $child );
 		return $css;
-	}
-
-	/**
-	 * Compile the same desktop-first cascade used by Studio's effectiveStyle().
-	 *
-	 * GlobalStyles stores breakpoint starts: mobile=0, tablet=768,
-	 * laptop=1025, desktop=1440, wide=1920 by default. Responsive buckets
-	 * inherit downward, so smaller viewports receive the larger bucket first and
-	 * the more specific smaller bucket later in source order.
-	 */
-	private static function wrap_range( $device, $css, $breakpoints ) {
-		$mobile  = max( 0, absint( $breakpoints['mobile'] ?? 0 ) );
-		$tablet  = max( $mobile + 1, absint( $breakpoints['tablet'] ?? 768 ) );
-		$laptop  = max( $tablet + 1, absint( $breakpoints['laptop'] ?? 1025 ) );
-		$desktop = max( $laptop + 1, absint( $breakpoints['desktop'] ?? 1440 ) );
-		$wide    = max( $desktop + 1, absint( $breakpoints['wide'] ?? 1920 ) );
-		$max_widths = array(
-			'desktop' => $wide - 1,
-			'laptop'  => $desktop - 1,
-			'tablet'  => $laptop - 1,
-			'mobile'  => $tablet - 1,
-		);
-		if ( ! isset( $max_widths[ $device ] ) || '' === $css ) return '';
-		return '@media (max-width:' . max( 0, (int) $max_widths[ $device ] ) . 'px){' . $css . '}';
 	}
 
 	/**
@@ -102,10 +77,10 @@ final class WebsiteBuilderCssCompiler {
 				$style['marginRight'] = 'auto';
 			}
 			if ( 'flex' === $layout ) {
-				$style['flexDirection']  = (string) ( $props['direction'] ?? 'column' );
-				$style['flexWrap']       = (string) ( $props['wrap'] ?? 'nowrap' );
-				$style['alignItems']      = (string) ( $props['align'] ?? 'stretch' );
-				$style['justifyContent']  = (string) ( $props['justify'] ?? 'flex-start' );
+				$style['flexDirection'] = (string) ( $props['direction'] ?? 'column' );
+				$style['flexWrap'] = (string) ( $props['wrap'] ?? 'nowrap' );
+				$style['alignItems'] = (string) ( $props['align'] ?? 'stretch' );
+				$style['justifyContent'] = (string) ( $props['justify'] ?? 'flex-start' );
 			}
 			if ( 'grid' === $layout ) {
 				$template = WebsiteBuilder::sanitize_css_value( $props['gridTemplate'] ?? '' );

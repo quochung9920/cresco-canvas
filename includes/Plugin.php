@@ -21,6 +21,7 @@ use CrescoCanvas\Builder\WebsiteBuilderCompatibility;
 use CrescoCanvas\Builder\WebsiteBuilderComponentSync;
 use CrescoCanvas\Builder\WebsiteBuilderComprehensiveV3;
 use CrescoCanvas\Builder\WebsiteBuilderConcurrencyGuard;
+use CrescoCanvas\Builder\WebsiteBuilderCorePlatform;
 use CrescoCanvas\Builder\WebsiteBuilderDiagnostics;
 use CrescoCanvas\Builder\WebsiteBuilderDocumentStore;
 use CrescoCanvas\Builder\WebsiteBuilderInterchange;
@@ -128,6 +129,9 @@ final class Plugin {
 		( new WebsiteBuilderArchitectureV2() )->register();
 		( new WebsiteBuilderWorkflowExtensions() )->register();
 		( new BuilderArchitecture() )->register();
+		// Core Platform v2 is registered after compatibility services so it can
+		// consolidate Page frontend ownership without removing editor/REST bridges.
+		( new WebsiteBuilderCorePlatform() )->register();
 		( new ContainerWidth() )->register();
 
 		add_action(
