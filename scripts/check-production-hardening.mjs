@@ -175,9 +175,12 @@ requireTokens( 'FormEnhancements', webhook, [
 const plugin = await readFile( 'includes/Plugin.php', 'utf8' );
 requireTokens( 'Plugin downgrade boundary', plugin, [
 	'Migrator::is_downgrade()',
-	'Fail closed on downgrade',
 	'render_failure_notice',
 ] );
+const downgradeBoundary = plugin.match( /if\s*\(\s*Migrator::is_downgrade\(\)\s*\)\s*\{([\s\S]*?)\n\s*\}/ );
+if ( ! downgradeBoundary || ! /\breturn\s*;/.test( downgradeBoundary[ 1 ] ) ) {
+	errors.push( 'Plugin downgrade boundary must fail closed with an early return after registering the failure notice.' );
+}
 
 const migrator = await readFile( 'includes/Migration/Migrator.php', 'utf8' );
 requireTokens( 'Migrator', migrator, [
