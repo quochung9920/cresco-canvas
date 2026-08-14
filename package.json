@@ -22,6 +22,7 @@
 		"lint:css": "wp-scripts lint-style 'assets/css/**/*.css' 'blocks/**/*.css' 'src/**/*.scss'",
 		"lint:md": "wp-scripts lint-md-docs README.md CHANGELOG.md 'docs/**/*.md' 'runtime-src/**/*.md'",
 		"test:unit": "wp-scripts test-unit-js --runInBand",
+		"test:php": "node scripts/run-php-tests.mjs",
 		"test:e2e": "playwright test",
 		"test:critical": "playwright test tests/e2e/release-critical.spec.ts --project=chromium",
 		"test:accessibility": "playwright test tests/e2e/accessibility-release.spec.ts --project=chromium",
