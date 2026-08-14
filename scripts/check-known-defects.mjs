@@ -19,11 +19,16 @@ const expectParity = (source, build) => {
 	if (digest(read(source)) !== digest(read(build))) errors.push(`Source/build mismatch: ${source} -> ${build}`);
 };
 
+// Responsive properties now owns widget-aware presentation (accordion grouping,
+// per-property breakpoint controls and Grid helpers) but never document mutation
+// or drag persistence. The old responsive-ui-only token described an earlier
+// implementation and no longer matched the shipped behavior.
 for (const token of [
-	"mode:'responsive-ui-only'",
+	"mode:'widget-aware-responsive-accordion'",
 	"dragOwnership:'pointer-drag-only'",
 	'function syncDeviceBars()',
 	'function enhanceGridColumns(field)',
+	'function enhanceInspectorGroups()',
 ]) expect('runtime-src/build/website-builder-responsive-properties.js', token);
 for (const token of ['dragSession', 'refreshDragSession', 'DRAG_MIME', "addEventListener('dragstart'", "method:'POST'"]) reject('runtime-src/build/website-builder-responsive-properties.js', token);
 
@@ -117,9 +122,10 @@ for (const token of [
 ]) expect('includes/Builder/WebsiteBuilderDocumentStore.php', token);
 expect('includes/Builder/WebsiteBuilderModuleRegistry.php', "'cresco-canvas-website-builder-document-store'");
 expect('runtime-src/manifest.json', '"website-builder-document-store.js": "runtime-src/build/website-builder-document-store.js"');
+expect('scripts/release-files.mjs', "'build/website-builder-document-store.js'");
 
 if (errors.length) {
 	process.stderr.write(`${errors.join('\n')}\n`);
 	process.exit(1);
 }
-process.stdout.write('[known-defects] Save races, canonical document-store/recovery ownership, transaction cancellation, indexed node lookup, source/build parity, atomic persistence, legacy Session preconditions, single drag ownership, fail-closed startup, hidden preview, auxiliary dirty-state, and safe rich-text preview contracts verified.\n');
+process.stdout.write('[known-defects] Save races, canonical document-store/recovery ownership, transaction cancellation, indexed node lookup, source/build parity, atomic persistence, legacy Session preconditions, widget-aware responsive presentation with single drag ownership, fail-closed startup, hidden preview, auxiliary dirty-state, and safe rich-text preview contracts verified.\n');
