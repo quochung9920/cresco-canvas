@@ -37,9 +37,36 @@ const releaseOwnershipContract = [
 	'includes/Session/HistoryManager.php',
 	'includes/Session/SessionManager.php',
 ];
+
+// Retired editor assets are listed explicitly so release packaging cannot
+// silently reintroduce an obsolete runtime after a refactor or stale build.
+const retiredReleaseAssets = [
+	'assets/css/editor-hub.css',
+	'assets/css/elements-usage-sort.css',
+	'assets/css/workspace-layout.css',
+	'assets/css/widget-inspector.css',
+	'build/editor-hub.js',
+	'build/editor-hub.asset.php',
+	'build/elements-usage-sort.js',
+	'build/elements-usage-sort.asset.php',
+	'build/workspace-layout.js',
+	'build/workspace-layout.asset.php',
+	'build/widget-inspector.js',
+	'build/widget-inspector.asset.php',
+	'build/widget-inspector-compat.js',
+	'build/widget-inspector-compat.asset.php',
+	'build/standalone-content-bootstrap.js',
+	'build/standalone-content-bootstrap.asset.php',
+	'build/native-gutenberg-bridge.js',
+	'build/native-gutenberg-bridge.asset.php',
+];
+
 const files = await collectReleaseFiles( root );
 for ( const required of releaseOwnershipContract ) {
 	if ( ! files.includes( required ) ) throw new Error( `Required production runtime is not in release allowlist: ${ required }` );
+}
+for ( const retired of retiredReleaseAssets ) {
+	if ( files.includes( retired ) ) throw new Error( `Retired editor asset must not be packaged: ${ retired }` );
 }
 const sha256 = ( bytes ) => createHash( 'sha256' ).update( bytes ).digest( 'hex' );
 

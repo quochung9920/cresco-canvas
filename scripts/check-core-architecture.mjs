@@ -6,6 +6,7 @@ import process from 'node:process';
 const errors = [];
 const read = ( file ) => readFile( file, 'utf8' );
 const hash = ( value ) => createHash( 'sha256' ).update( value ).digest( 'hex' );
+const phpBinary = process.env.CRESCO_PHP_BINARY || ( process.platform === 'win32' ? 'C:\\xampp\\php\\php.exe' : 'php' );
 const contractFiles = [
 	'contracts/document/v1.schema.json',
 	'contracts/scope/v1.schema.json',
@@ -45,7 +46,11 @@ const phpFiles = [
 	'includes/Session/HistoryManager.php',
 ];
 for ( const file of phpFiles ) {
-	const result = spawnSync( 'php', [ '-l', file ], { encoding: 'utf8' } );
+	const result = spawnSync( phpBinary, [ '-l', file ], { encoding: 'utf8' } );
+	if ( result.error ) {
+		errors.push( `${ file }: unable to execute PHP syntax checker at ${ phpBinary }: ${ result.error.message }` );
+		continue;
+	}
 	if ( result.status !== 0 ) errors.push( `${ file }: ${ result.stderr || result.stdout || 'PHP syntax check failed' }` );
 }
 const source = await read( 'runtime-src/build/website-builder-architecture.js' );
@@ -153,4 +158,4 @@ if ( errors.length ) {
 	process.stderr.write( `${ errors.join( '\n' ) }\n` );
 	process.exit( 1 );
 }
-process.stdout.write( 'Cresco Core Platform v2, canonical transactions, shared responsive resolver, schema Inspector, Design System usage, unified V2 rendering, persistence verification, AI validation, Theme history/settings, release ownership, and architecture runtime verified.\n' );
+process.stdout.write( `Cresco Core Platform v2 verified with PHP binary ${ phpBinary }: canonical transactions, shared responsive resolver, schema Inspector, Design System usage, unified V2 rendering, persistence verification, AI validation, Theme history/settings, release ownership, and architecture runtime.\n` );

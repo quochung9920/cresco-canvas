@@ -13,6 +13,7 @@ const [
 	compatibility,
 	professionalUxPhp,
 	cssCompiler,
+	responsiveResolver,
 	renderer,
 	history,
 	plugin,
@@ -37,6 +38,7 @@ const [
 	read( 'includes/Builder/WebsiteBuilderCompatibility.php' ),
 	read( 'includes/Builder/WebsiteBuilderProfessionalUx.php' ),
 	read( 'includes/Builder/WebsiteBuilderCssCompiler.php' ),
+	read( 'includes/Core/Responsive/ResponsiveResolver.php' ),
 	read( 'includes/Builder/WebsiteRenderer.php' ),
 	read( 'includes/Session/HistoryManager.php' ),
 	read( 'includes/Plugin.php' ),
@@ -128,9 +130,22 @@ for ( const token of [
 	"hash_file( 'sha256'",
 ] ) if ( ! professionalUxPhp.includes( token ) ) errors.push( `Website Builder Professional UX loader missing ${ token }` );
 
-for ( const token of [ 'wrap_range', "'mobile'  => array( 0, $tablet - 1 )", "'tablet'  => array( $tablet, $laptop - 1 )", "'desktop' => array( $desktop, $wide - 1 )" ] ) {
-	if ( ! cssCompiler.includes( token ) ) errors.push( `Website Builder responsive compiler missing ${ token }` );
-}
+// Breakpoint ownership was consolidated into ResponsiveResolver. The compiler
+// must consume that shared contract rather than duplicate hard-coded ranges.
+for ( const token of [
+	'use CrescoCanvas\\Core\\Responsive\\ResponsiveResolver;',
+	'ResponsiveResolver::OVERRIDE_DEVICES',
+	'ResponsiveResolver::wrap(',
+] ) if ( ! cssCompiler.includes( token ) ) errors.push( `Website Builder responsive compiler missing shared resolver contract ${ token }` );
+for ( const token of [
+	"const OVERRIDE_DEVICES = array( 'desktop', 'laptop', 'tablet', 'mobile' )",
+	"'wide'",
+	"'desktop'",
+	"'laptop'",
+	"'tablet'",
+	"'mobile'",
+	'public static function wrap',
+] ) if ( ! responsiveResolver.includes( token ) ) errors.push( `ResponsiveResolver missing ${ token }` );
 
 for ( const token of [
 	'render_loop_grid', 'render_dynamic_field', 'render_form', 'render_woo_products',
@@ -272,4 +287,4 @@ if ( errors.length ) {
 	process.stderr.write( `${ errors.join( '\n' ) }\n` );
 	process.exit( 1 );
 }
-process.stdout.write( 'Website Builder Core, Professional UX V2, Preview Fit Area, visual controls, bootstrap recovery, responsive compiler, History compatibility, runtime ownership, package inventory, and integration tokens verified.\n' );
+process.stdout.write( 'Website Builder Core, Professional UX V2, Preview Fit Area, visual controls, bootstrap recovery, shared responsive resolver, History compatibility, runtime ownership, package inventory, and integration tokens verified.\n' );

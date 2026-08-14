@@ -26,6 +26,34 @@ function requireTokens( label, source, tokens ) {
 	}
 }
 
+/**
+ * Count REST routes that are protected by an explicit permission boundary.
+ *
+ * WordPress accepts a reusable route options array, e.g. `$list`, passed to
+ * multiple register_rest_route() calls. The previous gate counted literal
+ * `permission_callback` tokens, so a correct reusable config looked insecure.
+ * This scanner credits each use of a reusable config that itself declares a
+ * permission callback, while continuing to count inline callbacks normally.
+ */
+function permissionBoundRouteCount( source ) {
+	const literalCallbacks = source.match( /['"]permission_callback['"]\s*=>/g ) || [];
+	let reusableDefinitions = 0;
+	let reusableUses = 0;
+	const configPattern = /\$([A-Za-z_][A-Za-z0-9_]*)\s*=\s*array\s*\(([\s\S]*?)\);/g;
+	let configMatch;
+	while ( ( configMatch = configPattern.exec( source ) ) ) {
+		if ( ! /['"]permission_callback['"]\s*=>/.test( configMatch[ 2 ] ) ) continue;
+		reusableDefinitions += 1;
+		const name = configMatch[ 1 ].replace( /[.*+?^${}()|[\]\\]/g, '\\$&' );
+		const usePattern = new RegExp(
+			`register_rest_route\\s*\\([\\s\\S]*?\\$${ name }\\s*(?:,\\s*true)?\\s*\\);`,
+			'g'
+		);
+		reusableUses += ( source.match( usePattern ) || [] ).length;
+	}
+	return literalCallbacks.length - reusableDefinitions + reusableUses;
+}
+
 const phpFiles = await walkPhp( 'includes' );
 const publicRouteFiles = new Set( [
 	'includes/Forms/FormBuilder.php',
@@ -41,12 +69,10 @@ for ( const file of phpFiles ) {
 	if ( ! routeCalls.length ) {
 		continue;
 	}
-	const permissionCallbacks = source.match(
-		/['"]permission_callback['"]\s*=>/g
-	) || [];
-	if ( permissionCallbacks.length < routeCalls.length ) {
+	const permissionBound = permissionBoundRouteCount( source );
+	if ( permissionBound < routeCalls.length ) {
 		errors.push(
-			`${ file } registers ${ routeCalls.length } REST route(s) but declares only ${ permissionCallbacks.length } permission callback(s).`
+			`${ file } registers ${ routeCalls.length } REST route(s) but only ${ permissionBound } route(s) have an explicit permission boundary.`
 		);
 	}
 	if (

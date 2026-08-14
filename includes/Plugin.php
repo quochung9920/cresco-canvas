@@ -59,6 +59,7 @@ use CrescoCanvas\Styles\ContainerWidth;
 use CrescoCanvas\Styles\DesignTokens;
 use CrescoCanvas\Styles\GlobalStyles;
 use CrescoCanvas\Styles\StyleEngine;
+use CrescoCanvas\Support\FeatureFlags;
 use CrescoCanvas\Templates\TemplateLibrary;
 use CrescoCanvas\Theme\ThemeBuilder;
 use CrescoCanvas\Theme\ThemeDiagnostics;
@@ -116,22 +117,41 @@ final class Plugin {
 		( new WebsiteBuilderBootstrapResilience() )->register();
 		( new WebsiteBuilderRuntimeGuard() )->register();
 		( new WebsiteBuilderDiagnostics() )->register();
-		( new WebsiteBuilderCompatibility() )->register();
+
+		// Runtime layers remain enabled by default for backward compatibility, but
+		// can now be isolated independently during support and release bisects.
+		if ( FeatureFlags::is_enabled( 'builderCompatibilityLayer' ) ) {
+			( new WebsiteBuilderCompatibility() )->register();
+		}
 		( new WebsiteBuilderRuntimeOwner() )->register();
 		( new WebsiteBuilderDocumentStore() )->register();
-		( new WebsiteBuilderRendererParity() )->register();
-		( new WebsiteBuilderVisualParity() )->register();
-		( new WebsiteBuilderProfessionalUx() )->register();
+		if ( FeatureFlags::is_enabled( 'builderRendererParity' ) ) {
+			( new WebsiteBuilderRendererParity() )->register();
+		}
+		if ( FeatureFlags::is_enabled( 'builderPresentationLayers' ) ) {
+			( new WebsiteBuilderVisualParity() )->register();
+			( new WebsiteBuilderProfessionalUx() )->register();
+		}
 		( new WebsiteBuilderInterchange() )->register();
 		( new WebsiteBuilderPlatform() )->register();
 		( new WebsiteBuilderComponentSync() )->register();
-		( new WebsiteBuilderComprehensiveV3() )->register();
-		( new WebsiteBuilderArchitectureV2() )->register();
-		( new WebsiteBuilderWorkflowExtensions() )->register();
-		( new BuilderArchitecture() )->register();
+		if ( FeatureFlags::is_enabled( 'builderPresentationLayers' ) ) {
+			( new WebsiteBuilderComprehensiveV3() )->register();
+		}
+		if ( FeatureFlags::is_enabled( 'builderArchitectureV2' ) ) {
+			( new WebsiteBuilderArchitectureV2() )->register();
+		}
+		if ( FeatureFlags::is_enabled( 'builderWorkflowExtensions' ) ) {
+			( new WebsiteBuilderWorkflowExtensions() )->register();
+		}
+		if ( FeatureFlags::is_enabled( 'builderArchitectureV2' ) ) {
+			( new BuilderArchitecture() )->register();
+		}
 		// Core Platform v2 is registered after compatibility services so it can
 		// consolidate Page frontend ownership without removing editor/REST bridges.
-		( new WebsiteBuilderCorePlatform() )->register();
+		if ( FeatureFlags::is_enabled( 'builderCorePlatformV2' ) ) {
+			( new WebsiteBuilderCorePlatform() )->register();
+		}
 		( new ContainerWidth() )->register();
 
 		add_action(

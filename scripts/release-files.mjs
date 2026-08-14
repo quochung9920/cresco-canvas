@@ -158,6 +158,7 @@ export const buildFiles = [
 	'build/website-builder-comprehensive-v3.js',
 	'build/website-builder-workflow-extensions.js',
 	'build/website-builder-consistency-guard.js',
+	'build/website-builder-document-store.js',
 	'build/website-builder-controls.js',
 	'build/website-builder-editor.js',
 	'build/website-builder-frontend.js',
