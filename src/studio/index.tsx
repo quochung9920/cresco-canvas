@@ -21,6 +21,7 @@ import {
 	type ResponsiveDevice,
 	type StyleBearingNode,
 } from './responsiveInheritance';
+import { registerVisualExport } from './visualExport';
 
 interface InspectorRenderArgs {
 	node?: StyleBearingNode | null;
@@ -37,6 +38,12 @@ interface StudioSdk {
 		label?: string;
 		when?: ( args: InspectorWhenArgs ) => boolean;
 		render?: ( args: InspectorRenderArgs ) => unknown;
+	} ) => () => void;
+	registerCommand: ( command: {
+		id: string;
+		label: string;
+		description?: string;
+		run: ( args: { session?: unknown } ) => void;
 	} ) => () => void;
 }
 
@@ -187,6 +194,7 @@ const register = ( sdk: StudioSdk ): void => {
 		when: ( { node } ) => Boolean( node ),
 		render: renderSection,
 	} );
+	registerVisualExport( sdk );
 };
 
 /**

@@ -1,12 +1,24 @@
-import { copyFile, mkdir, readFile, rm } from 'node:fs/promises';
+import { copyFile, mkdir, readdir, readFile, rm } from 'node:fs/promises';
 import path from 'node:path';
 
 const root = process.cwd();
 const manifest = JSON.parse( await readFile( path.join( root, 'runtime-src/manifest.json' ), 'utf8' ) );
 
-// @wordpress/scripts emits an asset manifest for every webpack entry. This runtime
-// is enqueued with explicit dependencies and intentionally does not ship that manifest.
-await rm( path.join( root, 'build', 'widget-control-enhancements.asset.php' ), { force: true } );
+// @wordpress/scripts emits an asset manifest for every webpack entry, including
+// entries whose shipped output is a hand-authored passthrough runtime rather than
+// the webpack bundle. Those manifests describe a bundle that never ships and their
+// dependency lists do not match the runtime that does, so drop any asset manifest
+// the runtime manifest does not claim. Keeping build/ to exactly what the manifest
+// owns is what lets `check:build-integrity` mean something.
+const owned = new Set( [
+	...manifest.reviewed,
+	...Object.keys( manifest.generated || {} ),
+] );
+for ( const entry of await readdir( path.join( root, 'build' ) ) ) {
+	if ( entry.endsWith( '.asset.php' ) && ! owned.has( entry ) ) {
+		await rm( path.join( root, 'build', entry ), { force: true } );
+	}
+}
 
 for ( const file of manifest.reviewed ) {
 	const source = path.join( root, 'runtime-src/build', file );

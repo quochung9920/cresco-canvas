@@ -43,6 +43,15 @@ final class AIInterchange {
 				'permission_callback' => array( $this, 'can_edit_post' ),
 			)
 		);
+		register_rest_route(
+			'cresco-canvas/v1',
+			'/ai-interchange/(?P<postId>\d+)/visual',
+			array(
+				'methods'             => WP_REST_Server::CREATABLE,
+				'callback'            => array( $this, 'rest_export_visual' ),
+				'permission_callback' => array( $this, 'can_edit_post' ),
+			)
+		);
 	}
 
 	/** Load the isolated AI bridge only on the standalone Cresco editor screen. */
@@ -80,9 +89,52 @@ final class AIInterchange {
 			$session,
 			$payload['scope'] ?? 'page',
 			isset( $payload['target'] ) && is_array( $payload['target'] ) ? $payload['target'] : array(),
-			$payload['mode'] ?? 'optimized'
+			$payload['mode'] ?? 'optimized',
+			array(),
+			! empty( $payload['includeVisual'] )
 		);
 		return is_wp_error( $result ) ? $result : new WP_REST_Response( $result );
+	}
+
+	/**
+	 * Standalone HTML rendering of a scope.
+	 *
+	 * Returns a document that opens in any browser without WordPress, so the
+	 * exported design can be inspected visually or handed to a reader that looks
+	 * at pages rather than reading JSON. Nothing leaves the site on its own; the
+	 * editor saves the response to a file the operator carries.
+	 */
+	public function rest_export_visual( WP_REST_Request $request ) {
+		$post_id = absint( $request['postId'] );
+		$payload = (array) $request->get_json_params();
+		$session = isset( $payload['session'] ) && is_array( $payload['session'] ) ? $payload['session'] : $this->saved_session( $post_id );
+		if ( is_wp_error( $session ) ) return $session;
+
+		$scope_data = ScopeResolver::resolve(
+			$session,
+			$payload['scope'] ?? 'page',
+			isset( $payload['target'] ) && is_array( $payload['target'] ) ? $payload['target'] : array()
+		);
+		if ( is_wp_error( $scope_data ) ) return $scope_data;
+
+		$visual = VisualContext::build( $scope_data['content'], $session, $post_id );
+		if ( null === $visual ) {
+			return new WP_Error( 'cresco_ai_visual_empty', __( 'The exported scope renders no content.', 'cresco-canvas' ), array( 'status' => 400 ) );
+		}
+
+		$post  = function_exists( 'get_post' ) ? get_post( $post_id ) : null;
+		$title = $post ? (string) get_the_title( $post ) : '';
+
+		return new WP_REST_Response(
+			array(
+				'schema'   => 'cresco-ai-visual/v1',
+				'version'  => 1,
+				'scope'    => $scope_data['target']['scope'],
+				'filename' => sanitize_file_name( ( $title ? $title : 'cresco-export' ) . '.html' ),
+				'document' => VisualContext::document( $visual, $title ),
+				'visual'   => $visual,
+			)
+		);
 	}
 
 	public function rest_validate_result( WP_REST_Request $request ) {

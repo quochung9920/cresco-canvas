@@ -23,8 +23,21 @@ final class ContextBuilder {
 	const SCHEMA = 'cresco-ai-context/v1';
 	const MODES  = array( 'optimized', 'full' );
 
-	/** Build a context from the editor's current Session, including unsaved state. */
-	public static function build( $post_id, $session, $scope = 'page', $target = array(), $mode = 'optimized', $resources = array() ) {
+	/**
+	 * Build a context from the editor's current Session, including unsaved state.
+	 *
+	 * @param int    $post_id        Page being exported.
+	 * @param array  $session        Session to export.
+	 * @param string $scope          Export scope.
+	 * @param array  $target         Scope target.
+	 * @param string $mode           `optimized` or `full`.
+	 * @param array  $resources      Pre-resolved resources, for callers that already have them.
+	 * @param bool   $include_visual Attach the rendered appearance. Off by default
+	 *                               because markup and CSS dominate the payload;
+	 *                               callers ask for it when a reader needs to judge
+	 *                               how the design looks rather than what it means.
+	 */
+	public static function build( $post_id, $session, $scope = 'page', $target = array(), $mode = 'optimized', $resources = array(), $include_visual = false ) {
 		$session = WebsiteBuilder::sanitize_session( $session );
 		if ( is_wp_error( $session ) ) return $session;
 		$mode = sanitize_key( (string) $mode );
@@ -64,6 +77,12 @@ final class ContextBuilder {
 			'dependencies' => $dependencies,
 			'instructions' => self::instructions( $scope_data['target'] ),
 		);
+
+		if ( $include_visual ) {
+			$visual = VisualContext::build( $scope_data['content'], $session, $post_id );
+			if ( null !== $visual ) $payload['visual'] = $visual;
+		}
+
 		return ContextSanitizer::sanitize( $payload );
 	}
 

@@ -72,11 +72,11 @@
     "widget-inspector-persistent.js"
   ],
   "generated": {
-    "container.asset.php": "src/blocks/container/index.tsx",
-    "container.js": "src/blocks/container/index.tsx",
-    "preview.asset.php": "src/preview/index.tsx",
-    "preview.js": "src/preview/index.tsx",
-    "standalone-ai-bridge.js": "src/standalone/standalone-ai-bridge.js",
+    "container.asset.php": "runtime-src/build/container.asset.php",
+    "container.js": "runtime-src/build/container.js",
+    "preview.asset.php": "runtime-src/build/preview.asset.php",
+    "preview.js": "runtime-src/build/preview.js",
+    "standalone-ai-bridge.js": "runtime-src/build/standalone-ai-bridge.js",
     "studio-responsive-inheritance.asset.php": "src/studio/index.tsx",
     "studio-responsive-inheritance.js": "src/studio/index.tsx",
     "website-builder-consistency-guard.js": "runtime-src/build/website-builder-consistency-guard.js",
@@ -86,6 +86,6 @@
     "website-builder-responsive-properties.js": "runtime-src/build/website-builder-responsive-properties.js",
     "website-builder-studio.js": "runtime-src/build/website-builder-studio.js",
     "website-builder-ui-correction.js": "runtime-src/build/website-builder-ui-correction.js",
-    "widget-control-enhancements.js": "src/standalone/widget-control-enhancements.js"
+    "widget-control-enhancements.js": "runtime-src/build/widget-control-enhancements.js"
   }
 }

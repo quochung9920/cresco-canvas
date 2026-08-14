@@ -73,6 +73,18 @@ if ( ! class_exists( 'WP_Query' ) ) {
 
 function __( $text ){ return $text; }
 function esc_html__( $text ){ return $text; }
+// Output escaping and markup helpers. Used several hundred times across
+// includes/, so any test that reaches rendering code needs them. These mirror
+// WordPress's observable behaviour closely enough to assert on rendered markup;
+// they are not security equivalents and must never be relied on in production.
+function esc_html( $text ){ return htmlspecialchars( (string) $text, ENT_QUOTES, 'UTF-8' ); }
+function esc_attr( $text ){ return htmlspecialchars( (string) $text, ENT_QUOTES, 'UTF-8' ); }
+function esc_attr__( $text ){ return $text; }
+function esc_url( $url ){ $url = trim( (string) $url ); return '' === $url ? '' : htmlspecialchars( $url, ENT_QUOTES, 'UTF-8' ); }
+function sanitize_html_class( $class, $fallback = '' ){ $class = preg_replace( '/[^A-Za-z0-9_-]/', '', (string) $class ); return '' !== $class ? $class : $fallback; }
+function wp_kses( $content, $allowed = array() ){ return (string) $content; }
+function wp_kses_post( $content ){ return (string) $content; }
+function wp_trim_words( $text, $count = 55, $more = null ){ $words = preg_split( '/\s+/', trim( (string) $text ) ); return count( $words ) <= $count ? (string) $text : implode( ' ', array_slice( $words, 0, $count ) ) . ( null === $more ? '&hellip;' : $more ); }
 function absint( $value ){ return abs((int)$value); }
 function add_action( $hook, $callback, $priority=10, $accepted_args=1 ){ $GLOBALS['cresco_test_actions'][$hook][]=$callback; return true; }
 function add_filter( $hook, $callback, $priority=10, $accepted_args=1 ){ $GLOBALS['cresco_test_filters'][$hook][]=$callback; return true; }
