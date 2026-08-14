@@ -209,7 +209,13 @@ export async function collectReleaseFiles( root = process.cwd() ) {
 	const contracts = await walkFiles( root, 'contracts', ( file ) => file.endsWith( '.json' ) );
 	const includes = await walkFiles( root, 'includes', ( file ) => file.endsWith( '.php' ) );
 	const vendor = await walkFiles( root, 'vendor', () => true );
-	const files = [ ...topLevelFiles, ...releaseDocs, ...blockFiles, ...assetFiles, ...buildFiles, ...contracts, ...includes, ...vendor ];
+	// The plugin header declares `Domain Path: /languages`, so the catalogue and
+	// any compiled translations have to travel with the package for that
+	// declaration to mean anything.
+	const languages = await walkFiles( root, 'languages', ( file ) =>
+		file.endsWith( '.pot' ) || file.endsWith( '.po' ) || file.endsWith( '.mo' ) || file.endsWith( '.json' )
+	);
+	const files = [ ...topLevelFiles, ...releaseDocs, ...blockFiles, ...assetFiles, ...buildFiles, ...contracts, ...includes, ...languages, ...vendor ];
 	const unique = [ ...new Set( files.map( ( file ) => file.replaceAll( path.sep, '/' ) ) ) ].sort();
 	for ( const file of unique ) {
 		const stat = await lstat( path.join( root, file ) );

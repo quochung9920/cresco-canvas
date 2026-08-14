@@ -7,6 +7,7 @@
 
 namespace CrescoCanvas\Dynamic;
 
+use CrescoCanvas\Support\ObjectCache;
 use WP_REST_Request;
 use WP_REST_Response;
 
@@ -18,6 +19,9 @@ final class QueryCache {
 	const GENERATION_OPTION = 'cresco_canvas_query_cache_generation';
 	const TTL = 60;
 	const MAX_CACHED_BYTES = 524288;
+
+	/** @var int|null Generation memo; the option is not autoloaded, so reading it costs a query. */
+	private static $generation = null;
 
 	/** Register cache read/write hooks and invalidation signals. */
 	public function register() {
@@ -35,7 +39,7 @@ final class QueryCache {
 	public function read_rest_cache( $result, $server, $request ) {
 		unset( $server );
 		if ( null !== $result || ! $request instanceof WP_REST_Request || ! self::cacheable_request( $request ) ) return $result;
-		$cached = get_transient( self::key_for_request( $request ) );
+		$cached = ObjectCache::get( self::key_for_request( $request ) );
 		if ( ! is_array( $cached ) || ! array_key_exists( 'data', $cached ) ) return $result;
 		$response = new WP_REST_Response( $cached['data'], absint( $cached['status'] ?? 200 ) );
 		foreach ( (array) ( $cached['headers'] ?? array() ) as $name => $value ) $response->header( $name, $value );
@@ -51,7 +55,7 @@ final class QueryCache {
 		$data = $response->get_data();
 		$encoded = wp_json_encode( $data );
 		if ( ! is_string( $encoded ) || strlen( $encoded ) > self::MAX_CACHED_BYTES ) return $response;
-		set_transient(
+		ObjectCache::set(
 			self::key_for_request( $request ),
 			array( 'data' => $data, 'status' => 200, 'headers' => array() ),
 			self::TTL
@@ -69,13 +73,30 @@ final class QueryCache {
 
 	/** Bump a per-site generation instead of scanning/deleting arbitrary transient keys. */
 	public function invalidate() {
-		$generation = max( 1, absint( get_option( self::GENERATION_OPTION, 1 ) ) );
-		update_option( self::GENERATION_OPTION, $generation + 1, false );
+		$generation = self::generation() + 1;
+		update_option( self::GENERATION_OPTION, $generation, false );
+		self::$generation = $generation;
+	}
+
+	/**
+	 * Current cache generation.
+	 *
+	 * Memoized because the option is deliberately not autoloaded, so each read is
+	 * its own query, and key building happens on both the read and write path of
+	 * every cacheable request.
+	 *
+	 * @return int
+	 */
+	public static function generation() {
+		if ( null === self::$generation ) {
+			self::$generation = max( 1, absint( get_option( self::GENERATION_OPTION, 1 ) ) );
+		}
+		return self::$generation;
 	}
 
 	/** Build a stable cache key from canonical request data and current generation. */
 	public static function key_for_request( WP_REST_Request $request ) {
-		$generation = max( 1, absint( get_option( self::GENERATION_OPTION, 1 ) ) );
+		$generation = self::generation();
 		$params = self::canonicalize( (array) $request->get_json_params() );
 		$material = array( 'site' => get_current_blog_id(), 'generation' => $generation, 'route' => $request->get_route(), 'params' => $params );
 		return 'cc_dq_' . substr( hash( 'sha256', (string) wp_json_encode( $material ) ), 0, 40 );

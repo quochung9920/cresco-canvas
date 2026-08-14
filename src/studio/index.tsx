@@ -21,6 +21,7 @@ import {
 	type ResponsiveDevice,
 	type StyleBearingNode,
 } from './responsiveInheritance';
+import { registerAnnouncer } from './announcer';
 import { registerVisualExport } from './visualExport';
 
 interface InspectorRenderArgs {
@@ -196,6 +197,10 @@ const register = ( sdk: StudioSdk ): void => {
 	} );
 	registerVisualExport( sdk );
 };
+
+// The announcer watches the DOM rather than the SDK, so it starts as soon as the
+// editor root exists instead of waiting for the extension registry.
+registerAnnouncer();
 
 /**
  * The SDK is created by the Studio bundle, which may load after this module.

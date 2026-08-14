@@ -1,0 +1,5587 @@
+# Copyright (C) Crescospec
+# This file is distributed under the GPL-2.0-or-later license.
+msgid ""
+msgstr ""
+"Project-Id-Version: Cresco Canvas\n"
+"Report-Msgid-Bugs-To: https://github.com/quochung9920/cresco-canvas\n"
+"POT-Creation-Date: 2026-08-14 09:16:42+0000\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Domain: cresco-canvas\n"
+
+#: includes/Admin/EditorIntegration.php:36
+msgid "Whether Cresco Canvas global design tokens apply to this Page."
+msgstr ""
+
+#: includes/Admin/EditorIntegration.php:37
+msgid "Cresco Canvas Page styles"
+msgstr ""
+
+#: includes/Admin/VisualEditor.php:34
+#: includes/Blocks/Blocks.php:40
+#: includes/Commercial/CommercialManager.php:72
+#: src/editor/components/SettingsSidebar.tsx:197
+#: src/editor/components/SettingsSidebar.tsx:203
+#: runtime-src/build/editor-app-shell.js:114
+msgid "Cresco Canvas"
+msgstr ""
+
+#: includes/Admin/VisualEditor.php:39
+#: includes/Admin/VisualEditor.php:47
+msgid "Edit with Cresco Canvas"
+msgstr ""
+
+#: includes/Admin/VisualEditor.php:52
+msgid "You do not have permission to edit this Page with Cresco Canvas."
+msgstr ""
+
+#: includes/Admin/VisualEditor.php:56
+#: runtime-src/build/standalone-visual-editor.js:530
+msgid "Cresco Canvas could not start."
+msgstr ""
+
+#: includes/Admin/VisualEditor.php:58
+#: runtime-src/build/standalone-visual-editor.js:529
+msgid "Loading Cresco Session…"
+msgstr ""
+
+#: includes/Admin/VisualEditor.php:91
+msgid "Required runtime assets are missing: %s. Run npm run build and reload the editor."
+msgstr ""
+
+#: includes/AI/AIInterchange.php:122
+msgid "The exported scope renders no content."
+msgstr ""
+
+#: includes/AI/AIInterchange.php:150
+#: src/standalone/standalone-ai-bridge.js:151
+#: src/standalone/standalone-ai-bridge.js:167
+#: runtime-src/build/standalone-ai-bridge.js:151
+#: runtime-src/build/standalone-ai-bridge.js:167
+msgid "AI result is not valid JSON."
+msgstr ""
+
+#: includes/AI/AIInterchange.php:153
+msgid "AI result must be a Cresco Session or Cresco Patch object."
+msgstr ""
+
+#: includes/AI/AIInterchange.php:176
+msgid "AI result schema is not supported."
+msgstr ""
+
+#: includes/AI/ContextBuilder.php:45
+msgid "Unsupported AI context mode."
+msgstr ""
+
+#: includes/AI/PatchApplier.php:127
+msgid "Unsupported Cresco Patch operation."
+msgstr ""
+
+#: includes/AI/PatchApplier.php:167
+msgid "A Cresco Patch operation references a node that does not exist."
+msgstr ""
+
+#: includes/AI/PatchApplier.php:94
+msgid "A node cannot be moved inside itself or one of its descendants."
+msgstr ""
+
+#: includes/AI/PatchValidator.php:201
+msgid "Cresco Patch references a node that does not exist."
+msgstr ""
+
+#: includes/AI/PatchValidator.php:31
+msgid "This AI patch was created from a different Cresco Session. Export fresh context before applying it."
+msgstr ""
+
+#: includes/AI/ScopeResolver.php:209
+msgid "The requested AI target node could not be found."
+msgstr ""
+
+#: includes/AI/ScopeResolver.php:22
+msgid "Unsupported AI export scope."
+msgstr ""
+
+#: includes/AI/ScopeResolver.php:39
+msgid "Selection export requires at least one node ID."
+msgstr ""
+
+#: includes/AI/VisualContext.php:115
+msgid "Cresco Canvas export"
+msgstr ""
+
+#: includes/Builder/WebsiteBuilder.php:158
+msgid "The Website Builder document could not be encoded."
+msgstr ""
+
+#: includes/Builder/WebsiteBuilder.php:240
+#: includes/Builder/WebsiteBuilderCorePlatform.php:307
+msgid "Component title and node are required."
+msgstr ""
+
+#: includes/Builder/WebsiteBuilder.php:245
+#: includes/Builder/WebsiteBuilderCorePlatform.php:311
+msgid "Component could not be encoded."
+msgstr ""
+
+#: includes/Builder/WebsiteBuilder.php:260
+#: includes/Builder/WebsiteBuilderCorePlatform.php:326
+msgid "Component could not be moved to Trash."
+msgstr ""
+
+#: includes/Builder/WebsiteBuilder.php:390
+msgid "Website Builder document must be a JSON object."
+msgstr ""
+
+#: includes/Builder/WebsiteBuilder.php:391
+#: includes/Session/SessionManager.php:183
+msgid "Unsupported Cresco Session schema."
+msgstr ""
+
+#: includes/Builder/WebsiteBuilder.php:392
+#: includes/Session/SessionManager.php:184
+msgid "Unsupported Cresco Session version."
+msgstr ""
+
+#: includes/Builder/WebsiteBuilder.php:401
+msgid "Website Builder nesting is too deep."
+msgstr ""
+
+#: includes/Builder/WebsiteBuilder.php:402
+msgid "Website Builder nodes must be an array."
+msgstr ""
+
+#: includes/Builder/WebsiteBuilder.php:406
+msgid "Every Website Builder node must be an object."
+msgstr ""
+
+#: includes/Builder/WebsiteBuilder.php:407
+msgid "Website Builder document contains too many widgets."
+msgstr ""
+
+#: includes/Builder/WebsiteBuilder.php:409
+msgid "Unknown Website Builder widget: %s"
+msgstr ""
+
+#: includes/Builder/WebsiteBuilder.php:411
+msgid "Every Website Builder widget requires a stable id."
+msgstr ""
+
+#: includes/Builder/WebsiteBuilder.php:412
+msgid "Duplicate Website Builder widget id: %s"
+msgstr ""
+
+#: includes/Builder/WebsiteBuilder.php:417
+#: includes/Session/SessionManager.php:210
+msgid "%s does not allow child widgets."
+msgstr ""
+
+#: includes/Builder/WebsiteBuilder.php:612
+#: includes/Session/SessionManager.php:291
+msgid "Widget Custom CSS is too large."
+msgstr ""
+
+#: includes/Builder/WebsiteBuilder.php:613
+#: includes/Session/SessionManager.php:292
+msgid "Widget Custom CSS contains a forbidden construct."
+msgstr ""
+
+#: includes/Builder/WebsiteBuilder.php:614
+#: includes/Session/SessionManager.php:293
+msgid "Widget Custom CSS has unbalanced braces."
+msgstr ""
+
+#: includes/Builder/WebsiteBuilder.php:619
+#: includes/Session/SessionManager.php:299
+msgid "Every Widget Custom CSS selector must include &."
+msgstr ""
+
+#: includes/Builder/WebsiteBuilder.php:620
+#: includes/Session/SessionManager.php:300
+msgid "Widget Custom CSS cannot escape its widget scope."
+msgstr ""
+
+#: includes/Builder/WebsiteBuilder.php:63
+msgid "Cresco Components"
+msgstr ""
+
+#: includes/Builder/WebsiteBuilderArchitectureV2.php:69
+#: includes/Builder/WebsiteBuilderArchitectureV2.php:76
+#: includes/Builder/WebsiteBuilderCorePlatform.php:349
+#: includes/Builder/WebsiteBuilderCorePlatform.php:360
+msgid "The Website Builder session could not be loaded."
+msgstr ""
+
+#: includes/Builder/WebsiteBuilderArchitectureV2.php:81
+#: includes/Builder/WebsiteBuilderCorePlatform.php:365
+msgid "Widget architecture could not be encoded."
+msgstr ""
+
+#: includes/Builder/WebsiteBuilderCompatibility.php:198
+msgid "Website Builder runtime is missing. Reinstall or rebuild Cresco Canvas."
+msgstr ""
+
+#: includes/Builder/WebsiteBuilderCompatibility.php:199
+msgid "Website Builder settings could not be encoded."
+msgstr ""
+
+#: includes/Builder/WebsiteBuilderComprehensiveV3.php:132
+msgid "Large document: consider reusable components and smaller nested sections."
+msgstr ""
+
+#: includes/Builder/WebsiteBuilderComprehensiveV3.php:133
+msgid "Deep nesting can make editing and responsive layout harder to maintain."
+msgstr ""
+
+#: includes/Builder/WebsiteBuilderComprehensiveV3.php:134
+msgid "Heavy Custom CSS detected; move repeatable styling into structured controls or Global Design."
+msgstr ""
+
+#: includes/Builder/WebsiteBuilderComprehensiveV3.php:135
+msgid "WooCommerce widgets exist but WooCommerce is not active."
+msgstr ""
+
+#: includes/Builder/WebsiteBuilderConcurrencyGuard.php:178
+msgid "The document write could not be verified. Your editor still has the local changes; save again after checking storage."
+msgstr ""
+
+#: includes/Builder/WebsiteBuilderConcurrencyGuard.php:205
+msgid "The settings write could not be verified. Keep this editor open and save again after checking storage."
+msgstr ""
+
+#: includes/Builder/WebsiteBuilderConcurrencyGuard.php:58
+msgid "Another save is already being committed for this document. Wait a moment and save again."
+msgstr ""
+
+#: includes/Builder/WebsiteBuilderConcurrencyGuard.php:87
+msgid "Reload this document before saving so Cresco can verify that no newer version exists."
+msgstr ""
+
+#: includes/Builder/WebsiteBuilderConcurrencyGuard.php:95
+msgid "This document changed after it was opened. Reload or reconcile the newer version before saving."
+msgstr ""
+
+#: includes/Builder/WebsiteBuilderCorePlatform.php:234
+msgid "The document changed after it was loaded. Refresh before saving."
+msgstr ""
+
+#: includes/Builder/WebsiteBuilderCorePlatform.php:318
+msgid "The Component write could not be verified."
+msgstr ""
+
+#: includes/Builder/WebsiteBuilderCorePlatform.php:372
+msgid "Widget architecture persistence verification failed."
+msgstr ""
+
+#: includes/Builder/WebsiteBuilderCorePlatform.php:412
+#: includes/Builder/WebsiteBuilderStabilization.php:81
+#: includes/Page/PageSettings.php:120
+msgid "Page Settings could not be encoded."
+msgstr ""
+
+#: includes/Builder/WebsiteBuilderCorePlatform.php:419
+msgid "Page Settings persistence verification failed."
+msgstr ""
+
+#: includes/Builder/WebsiteBuilderCorePlatform.php:519
+msgid "The document changed after this transaction was prepared. Refresh and try again."
+msgstr ""
+
+#: includes/Builder/WebsiteBuilderCorePlatform.php:553
+msgid "Large document: consider reusable Components and smaller nested sections."
+msgstr ""
+
+#: includes/Builder/WebsiteBuilderCorePlatform.php:554
+msgid "Deep nesting can make responsive editing harder to maintain."
+msgstr ""
+
+#: includes/Builder/WebsiteBuilderCorePlatform.php:555
+msgid "Heavy Custom CSS detected; prefer structured controls and Global Design tokens."
+msgstr ""
+
+#: includes/Builder/WebsiteBuilderCorePlatform.php:602
+#: includes/Theme/ThemeSessionBridge.php:253
+msgid "Invalid Theme Template preview request."
+msgstr ""
+
+#: includes/Builder/WebsiteBuilderCorePlatform.php:606
+msgid "This Theme Template has no valid Cresco Session."
+msgstr ""
+
+#: includes/Builder/WebsiteBuilderDiagnostics.php:29
+#: includes/Builder/WebsiteBuilderDiagnostics.php:63
+msgid "Cresco Diagnostics"
+msgstr ""
+
+#: includes/Builder/WebsiteBuilderDiagnostics.php:64
+msgid "Diagnose assets, REST endpoints, persistence and browser startup without depending on the Website Builder tab."
+msgstr ""
+
+#: includes/Builder/WebsiteBuilderDiagnostics.php:65
+msgid "Document ID"
+msgstr ""
+
+#: includes/Builder/WebsiteBuilderDiagnostics.php:65
+msgid "Run server checks"
+msgstr ""
+
+#: includes/Builder/WebsiteBuilderDiagnostics.php:66
+msgid "Unsupported document, missing document, or insufficient permission."
+msgstr ""
+
+#: includes/Builder/WebsiteBuilderDiagnostics.php:69
+msgid "Server report"
+msgstr ""
+
+#: includes/Builder/WebsiteBuilderDiagnostics.php:70
+msgid "Runtime modules"
+msgstr ""
+
+#: includes/Builder/WebsiteBuilderDiagnostics.php:75
+msgid "Module isolation"
+msgstr ""
+
+#: includes/Builder/WebsiteBuilderDiagnostics.php:75
+msgid "Start with Core only, then add one layer. These links use the same central module policy as the editor."
+msgstr ""
+
+#: includes/Builder/WebsiteBuilderDiagnostics.php:78
+msgid "REST runtime tests"
+msgstr ""
+
+#: includes/Builder/WebsiteBuilderDiagnostics.php:78
+msgid "Run REST tests"
+msgstr ""
+
+#: includes/Builder/WebsiteBuilderDiagnostics.php:78
+msgid "Copy full report"
+msgstr ""
+
+#: includes/Builder/WebsiteBuilderDiagnostics.php:81
+msgid "Last editor heartbeat"
+msgstr ""
+
+#: includes/Builder/WebsiteBuilderInterchange.php:114
+msgid "Unsupported import destination."
+msgstr ""
+
+#: includes/Builder/WebsiteBuilderInterchange.php:126
+msgid "The import package does not contain any widgets."
+msgstr ""
+
+#: includes/Builder/WebsiteBuilderInterchange.php:128
+msgid "Choose a valid target widget before importing."
+msgstr ""
+
+#: includes/Builder/WebsiteBuilderInterchange.php:131
+msgid "Replace import accepts exactly one widget or section."
+msgstr ""
+
+#: includes/Builder/WebsiteBuilderInterchange.php:153
+msgid "The current Website Builder document is invalid."
+msgstr ""
+
+#: includes/Builder/WebsiteBuilderInterchange.php:160
+msgid "Expected a cresco-interchange/v1 package."
+msgstr ""
+
+#: includes/Builder/WebsiteBuilderInterchange.php:163
+msgid "The interchange package has no portable content."
+msgstr ""
+
+#: includes/Builder/WebsiteBuilderInterchange.php:190
+msgid "The interchange package does not contain portable widgets."
+msgstr ""
+
+#: includes/Builder/WebsiteBuilderInterchange.php:197
+msgid "The target widget could not be resolved."
+msgstr ""
+
+#: includes/Builder/WebsiteBuilderInterchange.php:232
+msgid "Media references are site-local; verify imported images and attachments."
+msgstr ""
+
+#: includes/Builder/WebsiteBuilderInterchange.php:233
+msgid "This design uses Global Design tokens; verify token mappings on the destination site."
+msgstr ""
+
+#: includes/Builder/WebsiteBuilderPlatform.php:101
+msgid "WordPress"
+msgstr ""
+
+#: includes/Builder/WebsiteBuilderPlatform.php:154
+msgid "Comment text is required."
+msgstr ""
+
+#: includes/Builder/WebsiteBuilderPlatform.php:190
+#: includes/Builder/WebsiteBuilderPlatform.php:200
+msgid "Comment was not found."
+msgstr ""
+
+#: includes/Builder/WebsiteBuilderSessionIsolation.php:34
+msgid "This document is owned by Cresco Studio. Save it through the Website Builder Session endpoint."
+msgstr ""
+
+#: includes/Builder/WebsiteBuilderStabilization.php:64
+msgid "A valid Cresco document is required."
+msgstr ""
+
+#: includes/Builder/WebsiteBuilderWorkflowExtensions.php:66
+msgid "Activate WooCommerce before creating a Single Product template."
+msgstr ""
+
+#: includes/Builder/WebsiteBuilderWorkflowExtensions.php:75
+msgid "Single Product — Cresco"
+msgstr ""
+
+#: includes/Builder/WebsiteBuilderWorkflowExtensions.php:76
+msgid "Open this template with Cresco Canvas."
+msgstr ""
+
+#: includes/Builder/WebsiteBuilderWorkflowExtensions.php:94
+msgid "The Single Product template could not be encoded."
+msgstr ""
+
+#: includes/Builder/WebsiteRenderer.php:283
+msgid "Add a video URL."
+msgstr ""
+
+#: includes/Builder/WebsiteRenderer.php:391
+#: includes/Builder/WebsiteRenderer.php:393
+#: src/editor/elements.ts:29
+#: src/editor/elements.ts:479
+#: runtime-src/build/editor.js:112
+#: runtime-src/build/editor.js:147
+msgid "Navigation"
+msgstr ""
+
+#: includes/Builder/WebsiteRenderer.php:391
+msgid "Choose a WordPress menu."
+msgstr ""
+
+#: includes/Builder/WebsiteRenderer.php:399
+msgid "Home"
+msgstr ""
+
+#: includes/Builder/WebsiteRenderer.php:403
+msgid "Breadcrumbs"
+msgstr ""
+
+#: includes/Builder/WebsiteRenderer.php:498
+#: includes/Builder/WebsiteRendererV2.php:192
+msgid "Add at least one form field."
+msgstr ""
+
+#: includes/Builder/WebsiteRenderer.php:510
+msgid "WooCommerce is not active."
+msgstr ""
+
+#: includes/Builder/WebsiteRendererV2.php:141
+#: includes/Dynamic/AdvancedQuery.php:181
+#: includes/Dynamic/DynamicData.php:277
+#: includes/Dynamic/InteractiveQuery.php:488
+msgid "Previous"
+msgstr ""
+
+#: includes/Builder/WebsiteRendererV2.php:141
+#: includes/Dynamic/AdvancedQuery.php:182
+#: includes/Dynamic/DynamicData.php:278
+#: includes/Dynamic/InteractiveQuery.php:494
+msgid "Next"
+msgstr ""
+
+#: includes/Builder/WebsiteRendererV2.php:142
+#: includes/Dynamic/DynamicData.php:282
+msgid "Loop pagination"
+msgstr ""
+
+#: includes/Commercial/CommercialManager.php:74
+msgid "Version"
+msgstr ""
+
+#: includes/Commercial/CommercialManager.php:75
+msgid "Schema"
+msgstr ""
+
+#: includes/Commercial/CommercialManager.php:76
+msgid "Update channel"
+msgstr ""
+
+#: includes/Commercial/CommercialManager.php:77
+msgid "License status"
+msgstr ""
+
+#: includes/Commercial/CommercialManager.php:78
+msgid "Previous version"
+msgstr ""
+
+#: includes/Commercial/CommercialManager.php:93
+msgid "Cresco Canvas is ready."
+msgstr ""
+
+#: includes/Commercial/CommercialManager.php:93
+msgid "Open the Cresco editor, configure your design system, then review Site Health > Info for the copy-safe system status."
+msgstr ""
+
+#: includes/Commercial/LicenseManager.php:65
+msgid "The license key format is invalid."
+msgstr ""
+
+#: includes/Commercial/LicenseManager.php:70
+msgid "No licensing endpoint is configured."
+msgstr ""
+
+#: includes/Commercial/LicenseManager.php:93
+msgid "The licensing service rejected this key."
+msgstr ""
+
+#: includes/Commercial/UpdateManager.php:184
+msgid "Cresco Canvas refused this update because the update manifest did not declare a SHA-256 checksum for the package."
+msgstr ""
+
+#: includes/Commercial/UpdateManager.php:198
+msgid "Cresco Canvas refused this update because the downloaded package did not match the checksum published for it. The download may be corrupt or tampered with."
+msgstr ""
+
+#: includes/Commercial/UpdateManager.php:75
+msgid "Update channel must be stable or beta."
+msgstr ""
+
+#: includes/Core/Command/CommandBus.php:146
+msgid "Grouping requires at least two nodes."
+msgstr ""
+
+#: includes/Core/Command/CommandBus.php:154
+msgid "Grouping requires sibling nodes with the same parent."
+msgstr ""
+
+#: includes/Core/Command/CommandBus.php:181
+msgid "Unsupported interaction state."
+msgstr ""
+
+#: includes/Core/Command/CommandBus.php:192
+msgid "Unsupported responsive breakpoint."
+msgstr ""
+
+#: includes/Core/Command/CommandBus.php:204
+msgid "component.apply requires a validated component node."
+msgstr ""
+
+#: includes/Core/Command/CommandBus.php:213
+msgid "component.create requires the resulting component instance node."
+msgstr ""
+
+#: includes/Core/Command/CommandBus.php:216
+msgid "The Cresco command could not be translated to a patch operation."
+msgstr ""
+
+#: includes/Core/Command/CommandBus.php:241
+msgid "ai.applyPatch requires a cresco-patch/v1 payload."
+msgstr ""
+
+#: includes/Core/Command/CommandBus.php:243
+msgid "The patch target does not match the active Cresco scope. Export fresh scoped context before applying it."
+msgstr ""
+
+#: includes/Core/Command/CommandBus.php:304
+msgid "The Cresco command references a node that does not exist."
+msgstr ""
+
+#: includes/Core/Command/CommandBus.php:67
+msgid "Expected a cresco-command/v1 object."
+msgstr ""
+
+#: includes/Core/Command/CommandBus.php:71
+msgid "Unsupported Cresco command."
+msgstr ""
+
+#: includes/Core/Command/TransactionManager.php:30
+msgid "Expected a cresco-transaction/v1 object."
+msgstr ""
+
+#: includes/Core/Command/TransactionManager.php:35
+msgid "A Cresco transaction requires between 1 and 200 commands."
+msgstr ""
+
+#: includes/Core/Command/TransactionManager.php:49
+msgid "Every Cresco transaction command must be an object."
+msgstr ""
+
+#: includes/Core/Diagnostics/DocumentDiagnostics.php:108
+msgid "Multiple H1 headings were detected. Verify that the page hierarchy is intentional."
+msgstr ""
+
+#: includes/Core/Diagnostics/DocumentDiagnostics.php:116
+msgid "Heading level skips over an intermediate level."
+msgstr ""
+
+#: includes/Core/Diagnostics/DocumentDiagnostics.php:133
+msgid "Responsive override matches its inherited value and can be reset."
+msgstr ""
+
+#: includes/Core/Diagnostics/DocumentDiagnostics.php:57
+msgid "This node is deeply nested. Consider simplifying the layout hierarchy."
+msgstr ""
+
+#: includes/Core/Diagnostics/DocumentDiagnostics.php:62
+msgid "This node has many local style overrides. Consider using shared design tokens or reusable styles."
+msgstr ""
+
+#: includes/Core/Diagnostics/DocumentDiagnostics.php:81
+msgid "Image alternative text is missing. Add useful alt text or mark the image as decorative."
+msgstr ""
+
+#: includes/Core/Diagnostics/DocumentDiagnostics.php:89
+msgid "Button has no accessible name."
+msgstr ""
+
+#: includes/Core/Diagnostics/DocumentDiagnostics.php:95
+msgid "This new-tab link will be rendered with rel=\"noopener noreferrer\" for safety."
+msgstr ""
+
+#: includes/Core/Document/Document.php:32
+msgid "Unsupported Cresco document type."
+msgstr ""
+
+#: includes/Core/Scope/ScopeEngine.php:28
+msgid "Unsupported Cresco scope."
+msgstr ""
+
+#: includes/Dynamic/AdvancedQuery.php:147
+msgid "Nested Advanced Loops are not supported."
+msgstr ""
+
+#: includes/Dynamic/AdvancedQuery.php:186
+msgid "Advanced Loop pagination"
+msgstr ""
+
+#: includes/Dynamic/DynamicData.php:236
+msgid "Nested Cresco Loops are not supported."
+msgstr ""
+
+#: includes/Dynamic/InteractiveQuery.php:119
+msgid "Nested or unsafe Filterable Loop templates are not supported."
+msgstr ""
+
+#: includes/Dynamic/InteractiveQuery.php:154
+#: runtime-src/build/dynamic-alpha5.js:60
+msgid "Load more"
+msgstr ""
+
+#: includes/Dynamic/InteractiveQuery.php:186
+msgid "The query request signature is invalid."
+msgstr ""
+
+#: includes/Dynamic/InteractiveQuery.php:191
+msgid "The query request payload is invalid."
+msgstr ""
+
+#: includes/Dynamic/InteractiveQuery.php:290
+#: src/editor/elements.ts:488
+#: runtime-src/build/dynamic-alpha4.js:117
+#: runtime-src/build/editor.js:148
+msgid "Search"
+msgstr ""
+
+#: includes/Dynamic/InteractiveQuery.php:300
+#: src/editor/components/ElementsLibrary.tsx:406
+#: runtime-src/build/editor.js:285
+msgid "All"
+msgstr ""
+
+#: includes/Dynamic/InteractiveQuery.php:306
+msgid "Apply filters"
+msgstr ""
+
+#: includes/Dynamic/InteractiveQuery.php:486
+msgid "Filterable Loop pagination"
+msgstr ""
+
+#: includes/Dynamic/InteractiveQuery.php:527
+msgid "Too many query requests. Please try again shortly."
+msgstr ""
+
+#: includes/Forms/FormAdministration.php:117
+#: includes/Forms/FormAdministration.php:122
+msgid "Cresco Canvas form submissions"
+msgstr ""
+
+#: includes/Forms/FormAdministration.php:137
+msgid "Form submissions"
+msgstr ""
+
+#: includes/Forms/FormAdministration.php:183
+msgid "<p>Cresco Canvas can store form submissions as private WordPress records when a form is configured to do so. A form may also store accepted uploads in private Cresco-owned storage outside the WordPress web root. Site administrators control retention, email delivery, and optional webhook delivery. Temporary webhook retry state expires automatically. WordPress personal-data export and erasure requests include Cresco form submissions matched by email.</p>"
+msgstr ""
+
+#: includes/Forms/FormAdministration.php:35
+msgid "Form"
+msgstr ""
+
+#: includes/Forms/FormAdministration.php:36
+msgid "Email"
+msgstr ""
+
+#: includes/Forms/FormAdministration.php:52
+msgid "You are not allowed to export submissions."
+msgstr ""
+
+#: includes/Forms/FormAdministration.php:78
+msgid "The export stream could not be opened."
+msgstr ""
+
+#: includes/Forms/FormBuilder.php:119
+msgid "Form field requires a name."
+msgstr ""
+
+#: includes/Forms/FormBuilder.php:132
+msgid "Select"
+msgstr ""
+
+#: includes/Forms/FormBuilder.php:169
+msgid "Form requires a Form ID and at least one valid field."
+msgstr ""
+
+#: includes/Forms/FormBuilder.php:195
+msgid "Too many submissions. Please try again later."
+msgstr ""
+
+#: includes/Forms/FormBuilder.php:201
+#: includes/Forms/FormEnhancements.php:68
+msgid "Invalid form signature."
+msgstr ""
+
+#: includes/Forms/FormBuilder.php:205
+#: includes/Forms/FormEnhancements.php:72
+msgid "Invalid form configuration."
+msgstr ""
+
+#: includes/Forms/FormBuilder.php:221
+#: includes/Forms/FormEnhancements.php:122
+msgid "The submission could not be stored."
+msgstr ""
+
+#: includes/Forms/FormBuilder.php:273
+msgid "This field is required."
+msgstr ""
+
+#: includes/Forms/FormBuilder.php:281
+msgid "Enter a valid email address."
+msgstr ""
+
+#: includes/Forms/FormBuilder.php:283
+msgid "Enter a valid URL."
+msgstr ""
+
+#: includes/Forms/FormBuilder.php:287
+msgid "Enter a valid number."
+msgstr ""
+
+#: includes/Forms/FormBuilder.php:289
+msgid "The number is below the allowed minimum."
+msgstr ""
+
+#: includes/Forms/FormBuilder.php:291
+msgid "The number exceeds the allowed maximum."
+msgstr ""
+
+#: includes/Forms/FormBuilder.php:298
+msgid "Invalid option."
+msgstr ""
+
+#: includes/Forms/FormBuilder.php:357
+#: includes/Forms/FormBuilder.php:367
+msgid "Invalid field value."
+msgstr ""
+
+#: includes/Forms/FormBuilder.php:358
+msgid "Too many values were submitted for this field."
+msgstr ""
+
+#: includes/Forms/FormBuilder.php:361
+#: includes/Forms/FormBuilder.php:369
+msgid "A form field is too large."
+msgstr ""
+
+#: includes/Forms/FormBuilder.php:40
+msgid "Form Submissions"
+msgstr ""
+
+#: includes/Forms/FormBuilder.php:40
+msgid "Form Submission"
+msgstr ""
+
+#: includes/Forms/FormCompletion.php:128
+msgid "Calculated field requires a name and a valid formula."
+msgstr ""
+
+#: includes/Forms/FormCompletion.php:138
+msgid "CAPTCHA requires a site key."
+msgstr ""
+
+#: includes/Forms/FormCompletion.php:140
+msgid "Spam protection is loading…"
+msgstr ""
+
+#: includes/Forms/FormCompletion.php:174
+msgid "Complete the spam-protection challenge."
+msgstr ""
+
+#: includes/Forms/FormCompletion.php:177
+msgid "Spam-protection token is too large."
+msgstr ""
+
+#: includes/Forms/FormCompletion.php:183
+msgid "Spam-protection verification failed."
+msgstr ""
+
+#: includes/Forms/FormCompletion.php:191
+msgid "Post not found."
+msgstr ""
+
+#: includes/Forms/FormCompletion.php:198
+msgid "Form structure exceeds the diagnostics limit."
+msgstr ""
+
+#: includes/Forms/FormCompletion.php:205
+msgid "A form field has no valid name."
+msgstr ""
+
+#: includes/Forms/FormCompletion.php:206
+msgid "Field name \"%s\" is duplicated."
+msgstr ""
+
+#: includes/Forms/FormCompletion.php:209
+msgid "A calculated field has an invalid formula."
+msgstr ""
+
+#: includes/Forms/FormCompletion.php:210
+msgid "A CAPTCHA block has no site key."
+msgstr ""
+
+#: includes/Forms/FormEnhancements.php:100
+msgid "This file is required."
+msgstr ""
+
+#: includes/Forms/FormEnhancements.php:83
+#: includes/Security/SecurityHardening.php:202
+msgid "Too many files were uploaded."
+msgstr ""
+
+#: includes/Infrastructure/WordPress/Storage/WordPressDocumentRepository.php:27
+msgid "Stored Cresco document JSON is invalid."
+msgstr ""
+
+#: includes/Infrastructure/WordPress/Storage/WordPressDocumentRepository.php:44
+msgid "You cannot save this Cresco document."
+msgstr ""
+
+#: includes/Infrastructure/WordPress/Storage/WordPressDocumentRepository.php:48
+msgid "The Cresco document could not be encoded."
+msgstr ""
+
+#: includes/Infrastructure/WordPress/Storage/WordPressDocumentRepository.php:61
+msgid "The Cresco document write could not be verified."
+msgstr ""
+
+#: includes/Interactions/InteractiveComponents.php:188
+msgid "Dialog"
+msgstr ""
+
+#: includes/Interactions/InteractiveComponents.php:196
+msgid "Previous slide"
+msgstr ""
+
+#: includes/Interactions/InteractiveComponents.php:196
+msgid "Next slide"
+msgstr ""
+
+#: includes/Lifecycle/Activator.php:27
+msgid "Cresco Canvas activation failed"
+msgstr ""
+
+#: includes/Migration/Migrator.php:44
+msgid "Cresco Canvas data was created by a newer plugin version. This older version is paused to avoid writing an incompatible format."
+msgstr ""
+
+#: includes/Migration/Migrator.php:53
+msgid "Another Cresco Canvas migration is already running. Try again shortly."
+msgstr ""
+
+#: includes/Migration/Migrator.php:76
+msgid "Cresco Canvas could not update its data safely. No page content was changed."
+msgstr ""
+
+#: includes/Migration/Migrator.php:88
+msgid "Cresco Canvas compatibility mode is active."
+msgstr ""
+
+#: includes/Migration/Migrator.php:89
+msgid "The database schema is newer than this plugin. Restore the compatible plugin version or a pre-upgrade backup before making Cresco changes."
+msgstr ""
+
+#: includes/Migration/Migrator.php:97
+msgid "Cresco Canvas migration is paused."
+msgstr ""
+
+#: includes/Migration/Migrator.php:98
+msgid "Page content was not modified. Resolve the migration error and retry; completed migration steps will not be repeated."
+msgstr ""
+
+#: includes/Migration/Migrator.php:99
+msgid "Reference: %s"
+msgstr ""
+
+#: includes/Page/PageSettings.php:64
+msgid "Cresco Canvas Page settings."
+msgstr ""
+
+#: includes/Requirements.php:26
+msgid "Cresco Canvas requires PHP %1$s or newer. This site is running PHP %2$s."
+msgstr ""
+
+#: includes/Requirements.php:37
+msgid "Cresco Canvas requires WordPress %1$s or newer. This site is running WordPress %2$s."
+msgstr ""
+
+#: includes/Requirements.php:69
+msgid "Cresco Canvas could not be activated"
+msgstr ""
+
+#: includes/Security/PublicRequestAtomicity.php:47
+msgid "Another matching request is already being processed. Please retry shortly."
+msgstr ""
+
+#: includes/Security/SecurityHardening.php:183
+msgid "The requested page exceeds the public query limit."
+msgstr ""
+
+#: includes/Security/SecurityHardening.php:188
+msgid "Too many taxonomy filters were requested."
+msgstr ""
+
+#: includes/Security/SecurityHardening.php:192
+msgid "Too many terms were requested for one filter."
+msgstr ""
+
+#: includes/Security/SecurityHardening.php:199
+msgid "Too many form fields were submitted."
+msgstr ""
+
+#: includes/Security/SecurityHardening.php:235
+msgid "Webhook URLs must use HTTPS."
+msgstr ""
+
+#: includes/Security/SecurityHardening.php:238
+msgid "Webhook URLs cannot contain credentials."
+msgstr ""
+
+#: includes/Security/SecurityHardening.php:244
+msgid "Webhook URLs use a port that is not allowed."
+msgstr ""
+
+#: includes/Security/SecurityHardening.php:249
+msgid "Webhook URLs cannot target local hosts."
+msgstr ""
+
+#: includes/Security/SecurityHardening.php:255
+msgid "The webhook host could not be resolved safely."
+msgstr ""
+
+#: includes/Security/SecurityHardening.php:259
+msgid "Webhook URLs cannot target private or reserved networks."
+msgstr ""
+
+#: includes/Security/SecurityHardening.php:63
+msgid "The request is too large."
+msgstr ""
+
+#: includes/Security/SecurityHardening.php:81
+msgid "Too many requests. Please wait and try again."
+msgstr ""
+
+#: includes/Security/SecurityHardening.php:89
+msgid "This submission was already received."
+msgstr ""
+
+#: includes/Security/UploadSecurity.php:103
+msgid "The detected file type is not allowed for this extension."
+msgstr ""
+
+#: includes/Security/UploadSecurity.php:132
+msgid "Private upload storage is not writable."
+msgstr ""
+
+#: includes/Security/UploadSecurity.php:139
+msgid "Private upload storage path is invalid."
+msgstr ""
+
+#: includes/Security/UploadSecurity.php:142
+msgid "The upload could not be moved into private storage."
+msgstr ""
+
+#: includes/Security/UploadSecurity.php:237
+msgid "Upload not found."
+msgstr ""
+
+#: includes/Security/UploadSecurity.php:242
+msgid "You are not allowed to download this file."
+msgstr ""
+
+#: includes/Security/UploadSecurity.php:247
+msgid "Upload file is unavailable."
+msgstr ""
+
+#: includes/Security/UploadSecurity.php:281
+msgid "Private upload storage must use an absolute filesystem path."
+msgstr ""
+
+#: includes/Security/UploadSecurity.php:292
+msgid "Private upload storage must be outside the web document root."
+msgstr ""
+
+#: includes/Security/UploadSecurity.php:313
+msgid "The image contents are invalid."
+msgstr ""
+
+#: includes/Security/UploadSecurity.php:34
+msgid "Cresco Uploads"
+msgstr ""
+
+#: includes/Security/UploadSecurity.php:340
+msgid "The uploaded file could not be inspected."
+msgstr ""
+
+#: includes/Security/UploadSecurity.php:343
+msgid "Executable content is not allowed in uploads."
+msgstr ""
+
+#: includes/Security/UploadSecurity.php:347
+msgid "Text uploads cannot contain binary control bytes."
+msgstr ""
+
+#: includes/Security/UploadSecurity.php:352
+msgid "The PDF structure is invalid."
+msgstr ""
+
+#: includes/Security/UploadSecurity.php:355
+msgid "Active or embedded PDF content is not allowed."
+msgstr ""
+
+#: includes/Security/UploadSecurity.php:359
+msgid "The image contains unexpected trailing data."
+msgstr ""
+
+#: includes/Security/UploadSecurity.php:70
+msgid "The uploaded file is not valid."
+msgstr ""
+
+#: includes/Security/UploadSecurity.php:73
+msgid "The file is empty or exceeds the 5 MB limit."
+msgstr ""
+
+#: includes/Security/UploadSecurity.php:76
+msgid "The file name contains a blocked executable extension."
+msgstr ""
+
+#: includes/Security/UploadSecurity.php:82
+msgid "This file extension is not allowed."
+msgstr ""
+
+#: includes/Security/UploadSecurity.php:87
+msgid "The file contents do not match an allowed file type."
+msgstr ""
+
+#: includes/Security/UploadSecurity.php:95
+msgid "The file extension does not match its contents."
+msgstr ""
+
+#: includes/Session/HistoryManager.php:132
+msgid "That Cresco revision could not be found."
+msgstr ""
+
+#: includes/Session/HistoryManager.php:136
+msgid "That Cresco revision is invalid."
+msgstr ""
+
+#: includes/Session/HistoryManager.php:138
+msgid "The Cresco revision could not be restored."
+msgstr ""
+
+#: includes/Session/HistoryManager.php:173
+#: runtime-src/build/standalone-history.js:290
+msgid "Unknown user"
+msgstr ""
+
+#: includes/Session/HistoryManager.php:180
+msgid "Current version"
+msgstr ""
+
+#: includes/Session/HistoryManager.php:180
+msgid "Saved revision"
+msgstr ""
+
+#: includes/Session/HistoryManager.php:39
+msgid "Cresco Revisions"
+msgstr ""
+
+#: includes/Session/SessionManager.php:182
+msgid "Cresco Session must be a JSON object."
+msgstr ""
+
+#: includes/Session/SessionManager.php:194
+msgid "Cresco Session nesting is too deep."
+msgstr ""
+
+#: includes/Session/SessionManager.php:195
+msgid "Cresco Session nodes must be an array."
+msgstr ""
+
+#: includes/Session/SessionManager.php:199
+msgid "Every Cresco Session node must be an object."
+msgstr ""
+
+#: includes/Session/SessionManager.php:200
+msgid "Cresco Session contains too many widgets."
+msgstr ""
+
+#: includes/Session/SessionManager.php:202
+msgid "Unknown Cresco widget type: %s"
+msgstr ""
+
+#: includes/Session/SessionManager.php:204
+msgid "Every Cresco widget requires a stable id."
+msgstr ""
+
+#: includes/Session/SessionManager.php:205
+msgid "Duplicate Cresco widget id: %s"
+msgstr ""
+
+#: includes/Session/SessionManager.php:48
+msgid "Authoritative Cresco Canvas session document."
+msgstr ""
+
+#: includes/Session/SessionManager.php:98
+msgid "The Cresco session could not be encoded."
+msgstr ""
+
+#: includes/Styles/GlobalConfigImporter.php:217
+msgid "No supported Global Design values were found in the import."
+msgstr ""
+
+#: includes/Styles/GlobalConfigImporter.php:32
+msgid "Paste CSS variables or a JSON Global Config first."
+msgstr ""
+
+#: includes/Styles/GlobalConfigImporter.php:35
+msgid "Global Config import is too large."
+msgstr ""
+
+#: includes/Styles/GlobalConfigImporter.php:38
+msgid "Global Config import contains a forbidden construct."
+msgstr ""
+
+#: includes/Styles/StyleCascade.php:29
+msgid "Style resolution requires a Cresco node."
+msgstr ""
+
+#: includes/Styles/StyleCascade.php:35
+msgid "Style resolution requires a property name."
+msgstr ""
+
+#: includes/Styles/StyleCascade.php:36
+msgid "Unsupported Cresco breakpoint."
+msgstr ""
+
+#: includes/Styles/StyleCascade.php:37
+msgid "Unsupported Cresco interaction state."
+msgstr ""
+
+#: includes/Styles/StyleCascade.php:99
+msgid "Fluid values require safe CSS lengths for minimum, preferred and maximum."
+msgstr ""
+
+#: includes/Templates/TemplateLibrary.php:159
+msgid "A component title and block content are required."
+msgstr ""
+
+#: includes/Templates/TemplateLibrary.php:164
+msgid "Components may contain only supported Core and Cresco blocks."
+msgstr ""
+
+#: includes/Templates/TemplateLibrary.php:191
+msgid "Cresco Site Kit"
+msgstr ""
+
+#: includes/Templates/TemplateLibrary.php:205
+msgid "The Site Kit JSON is invalid or uses an unsupported schema."
+msgstr ""
+
+#: includes/Templates/TemplateLibrary.php:213
+msgid "Imported Cresco Site Kit"
+msgstr ""
+
+#: includes/Templates/TemplateLibrary.php:225
+msgid "Cresco Pages"
+msgstr ""
+
+#: includes/Templates/TemplateLibrary.php:226
+msgid "Cresco Heroes"
+msgstr ""
+
+#: includes/Templates/TemplateLibrary.php:227
+msgid "Cresco Features"
+msgstr ""
+
+#: includes/Templates/TemplateLibrary.php:228
+msgid "Cresco Calls to Action"
+msgstr ""
+
+#: includes/Templates/TemplateLibrary.php:229
+msgid "Cresco Testimonials"
+msgstr ""
+
+#: includes/Templates/TemplateLibrary.php:230
+msgid "Cresco Pricing"
+msgstr ""
+
+#: includes/Templates/TemplateLibrary.php:231
+msgid "Cresco Contact"
+msgstr ""
+
+#: includes/Templates/TemplateLibrary.php:240
+msgid "Centered Hero"
+msgstr ""
+
+#: includes/Templates/TemplateLibrary.php:240
+msgid "A centered headline, supporting text, and primary action."
+msgstr ""
+
+#: includes/Templates/TemplateLibrary.php:241
+msgid "Three Feature Grid"
+msgstr ""
+
+#: includes/Templates/TemplateLibrary.php:241
+msgid "Three equal feature columns with headings and descriptions."
+msgstr ""
+
+#: includes/Templates/TemplateLibrary.php:242
+msgid "Call to Action Band"
+msgstr ""
+
+#: includes/Templates/TemplateLibrary.php:242
+msgid "A concise conversion section with two actions."
+msgstr ""
+
+#: includes/Templates/TemplateLibrary.php:243
+msgid "Testimonial Card"
+msgstr ""
+
+#: includes/Templates/TemplateLibrary.php:243
+msgid "A quote with attribution for social proof."
+msgstr ""
+
+#: includes/Templates/TemplateLibrary.php:244
+msgid "Three Pricing Cards"
+msgstr ""
+
+#: includes/Templates/TemplateLibrary.php:244
+msgid "A three-tier pricing comparison built from native columns."
+msgstr ""
+
+#: includes/Templates/TemplateLibrary.php:245
+msgid "Contact Split"
+msgstr ""
+
+#: includes/Templates/TemplateLibrary.php:245
+msgid "Contact details beside a form shortcode placeholder."
+msgstr ""
+
+#: includes/Templates/TemplateLibrary.php:246
+msgid "Landing Page Starter"
+msgstr ""
+
+#: includes/Templates/TemplateLibrary.php:246
+msgid "A complete starter page composed of hero, features, testimonial, and CTA sections."
+msgstr ""
+
+#: includes/Theme/ThemeBuilder.php:116
+msgid "Title, template type, and block content are required."
+msgstr ""
+
+#: includes/Theme/ThemeBuilder.php:120
+msgid "Theme templates may contain only supported Core and Cresco blocks."
+msgstr ""
+
+#: includes/Theme/ThemeBuilder.php:133
+msgid "Template could not be moved to Trash."
+msgstr ""
+
+#: includes/Theme/ThemeBuilder.php:39
+msgid "Cresco Theme Templates"
+msgstr ""
+
+#: includes/Theme/ThemeDiagnostics.php:100
+msgid "Template has an invalid or missing type."
+msgstr ""
+
+#: includes/Theme/ThemeDiagnostics.php:104
+msgid "Template has no block content."
+msgstr ""
+
+#: includes/Theme/ThemeDiagnostics.php:115
+msgid "Template contains only exclusions and therefore matches every other context."
+msgstr ""
+
+#: includes/Theme/ThemeDiagnostics.php:130
+msgid "Published templates share the same type, priority, and conditions. The selected template may depend on modification order."
+msgstr ""
+
+#: includes/Theme/ThemeDiagnostics.php:166
+#: runtime-src/build/theme-builder.js:20
+msgid "Template type"
+msgstr ""
+
+#: includes/Theme/ThemeDiagnostics.php:167
+#: runtime-src/build/theme-builder.js:21
+msgid "Priority"
+msgstr ""
+
+#: includes/Theme/ThemeDiagnostics.php:168
+#: runtime-src/build/theme-builder.js:23
+msgid "Display conditions"
+msgstr ""
+
+#: includes/Theme/ThemeDiagnostics.php:185
+msgid "Entire site"
+msgstr ""
+
+#: includes/Theme/ThemePageSettingsBridge.php:56
+msgid "Theme Page Settings could not be encoded."
+msgstr ""
+
+#: includes/Theme/ThemeSessionBridge.php:115
+msgid "Theme Template Session could not be encoded."
+msgstr ""
+
+#: includes/Theme/ThemeSessionBridge.php:255
+msgid "This Theme Template has no Cresco Session yet."
+msgstr ""
+
+#: includes/Theme/ThemeSessionBridge.php:53
+msgid "Cresco Theme Template"
+msgstr ""
+
+#: includes/Theme/ThemeSessionBridge.php:58
+msgid "You do not have permission to edit this Theme Template with Cresco Canvas."
+msgstr ""
+
+#: includes/Theme/ThemeSessionBridge.php:59
+msgid "Loading Theme Template Session…"
+msgstr ""
+
+#: runtime-src/build/design-system.js:100
+#: runtime-src/build/global-config-import.js:150
+#: runtime-src/build/standalone-visual-editor.js:509
+msgid "Colors"
+msgstr ""
+
+#: runtime-src/build/design-system.js:100
+#: runtime-src/build/dynamic-alpha4.js:129
+#: runtime-src/build/interactions-editor.js:53
+msgid "Type"
+msgstr ""
+
+#: runtime-src/build/design-system.js:100
+msgid "Spacing"
+msgstr ""
+
+#: runtime-src/build/design-system.js:100
+msgid "Controls"
+msgstr ""
+
+#: runtime-src/build/design-system.js:100
+msgid "Devices"
+msgstr ""
+
+#: runtime-src/build/design-system.js:101
+msgid "Global colors"
+msgstr ""
+
+#: runtime-src/build/design-system.js:101
+#: runtime-src/build/standalone-page-settings.js:363
+msgid "Primary"
+msgstr ""
+
+#: runtime-src/build/design-system.js:101
+msgid "Muted"
+msgstr ""
+
+#: runtime-src/build/design-system.js:101
+#: runtime-src/build/standalone-page-settings.js:40
+#: runtime-src/build/standalone-page-settings.js:302
+#: runtime-src/build/standalone-page-settings.js:540
+msgid "Background"
+msgstr ""
+
+#: runtime-src/build/design-system.js:102
+msgid "Font foundation"
+msgstr ""
+
+#: runtime-src/build/design-system.js:102
+msgid "Fluid typography"
+msgstr ""
+
+#: runtime-src/build/design-system.js:103
+msgid "Fluid spacing scale"
+msgstr ""
+
+#: runtime-src/build/design-system.js:104
+msgid "Container widths"
+msgstr ""
+
+#: runtime-src/build/design-system.js:104
+msgid "Container max (px)"
+msgstr ""
+
+#: runtime-src/build/design-system.js:104
+msgid "Content max (px)"
+msgstr ""
+
+#: runtime-src/build/design-system.js:104
+msgid "Responsive radii"
+msgstr ""
+
+#: runtime-src/build/design-system.js:104
+msgid "Legacy base radius (px)"
+msgstr ""
+
+#: runtime-src/build/design-system.js:105
+msgid "Buttons and fields"
+msgstr ""
+
+#: runtime-src/build/design-system.js:106
+msgid "Structural breakpoints"
+msgstr ""
+
+#: runtime-src/build/design-system.js:106
+msgid "Ranges: Mobile 0-767px, Tablet 768-1024px, Laptop 1025-1439px, Desktop 1440-1919px, Widescreen from 1920px. Typography and spacing remain fluid."
+msgstr ""
+
+#: runtime-src/build/design-system.js:108
+msgid "Blueprint JSON for ChatGPT"
+msgstr ""
+
+#: runtime-src/build/design-system.js:109
+msgid "This JSON contains the current page structure, every block attribute, native Gutenberg settings, Cresco settings and Global Design. It excludes temporary editor IDs."
+msgstr ""
+
+#: runtime-src/build/design-system.js:110
+msgid "Complete page blueprint"
+msgstr ""
+
+#: runtime-src/build/design-system.js:111
+msgid "Copy complete JSON"
+msgstr ""
+
+#: runtime-src/build/design-system.js:111
+msgid "Download JSON"
+msgstr ""
+
+#: runtime-src/build/design-system.js:113
+msgid "Global import and maintenance"
+msgstr ""
+
+#: runtime-src/build/design-system.js:113
+msgid "Global Design JSON only"
+msgstr ""
+
+#: runtime-src/build/design-system.js:113
+msgid "Import Global Design or a complete blueprint"
+msgstr ""
+
+#: runtime-src/build/design-system.js:113
+msgid "Apply global values"
+msgstr ""
+
+#: runtime-src/build/design-system.js:113
+msgid "Remove data on uninstall"
+msgstr ""
+
+#: runtime-src/build/design-system.js:114
+msgid "Reset defaults"
+msgstr ""
+
+#: runtime-src/build/design-system.js:118
+#: runtime-src/build/editor-app-shell.js:97
+#: runtime-src/build/editor.js:449
+#: runtime-src/build/standalone-visual-editor.js:546
+msgid "Global"
+msgstr ""
+
+#: runtime-src/build/design-system.js:70
+msgid "Global settings could not be loaded."
+msgstr ""
+
+#: runtime-src/build/design-system.js:72
+msgid "Global design saved. Reload the editor to refresh all previews."
+msgstr ""
+
+#: runtime-src/build/design-system.js:72
+msgid "Could not save."
+msgstr ""
+
+#: runtime-src/build/design-system.js:73
+msgid "Global defaults restored."
+msgstr ""
+
+#: runtime-src/build/design-system.js:74
+msgid "Imported global values are ready. Save to apply them."
+msgstr ""
+
+#: runtime-src/build/design-system.js:74
+msgid "Invalid JSON."
+msgstr ""
+
+#: runtime-src/build/design-system.js:76
+msgid "Fluid across devices with clamp()."
+msgstr ""
+
+#: runtime-src/build/design-system.js:91
+msgid "Complete page blueprint copied to the clipboard."
+msgstr ""
+
+#: runtime-src/build/design-system.js:91
+msgid "The browser blocked clipboard access. Select and copy the JSON manually."
+msgstr ""
+
+#: runtime-src/build/design-system.js:92
+msgid "Complete page blueprint downloaded."
+msgstr ""
+
+#: runtime-src/build/design-system.js:94
+msgid "You do not have permission to edit global design."
+msgstr ""
+
+#: runtime-src/build/design-system.js:96
+msgid "Global settings are unavailable."
+msgstr ""
+
+#: runtime-src/build/design-system.js:99
+msgid "Global responsive design"
+msgstr ""
+
+#: runtime-src/build/design-system.js:99
+msgid "Editable defaults for every Cresco page. Use clamp() for fluid values and breakpoints only for structural changes."
+msgstr ""
+
+#: runtime-src/build/dynamic-advanced.js:18
+msgid "Dynamic Gallery"
+msgstr ""
+
+#: runtime-src/build/dynamic-advanced.js:19
+msgid "Render an ACF Gallery or image-list custom field."
+msgstr ""
+
+#: runtime-src/build/dynamic-advanced.js:24
+msgid "Gallery source"
+msgstr ""
+
+#: runtime-src/build/dynamic-advanced.js:25
+#: runtime-src/build/dynamic-advanced.js:47
+#: runtime-src/build/dynamic-alpha4.js:63
+#: runtime-src/build/dynamic-alpha4.js:93
+#: runtime-src/build/dynamic.js:31
+#: runtime-src/build/dynamic.js:56
+msgid "Source"
+msgstr ""
+
+#: runtime-src/build/dynamic-advanced.js:25
+msgid "ACF Gallery"
+msgstr ""
+
+#: runtime-src/build/dynamic-advanced.js:25
+msgid "Post meta image list"
+msgstr ""
+
+#: runtime-src/build/dynamic-advanced.js:26
+#: runtime-src/build/dynamic-advanced.js:48
+#: runtime-src/build/dynamic-alpha4.js:37
+#: runtime-src/build/dynamic.js:33
+msgid "Field key"
+msgstr ""
+
+#: runtime-src/build/dynamic-advanced.js:28
+msgid "Image limit"
+msgstr ""
+
+#: runtime-src/build/dynamic-advanced.js:29
+#: runtime-src/build/dynamic.js:58
+msgid "Image size"
+msgstr ""
+
+#: runtime-src/build/dynamic-advanced.js:32
+msgid "Gallery images are resolved from the current post on the server."
+msgstr ""
+
+#: runtime-src/build/dynamic-advanced.js:33
+#: runtime-src/build/dynamic.js:40
+msgid "Choose a field key"
+msgstr ""
+
+#: runtime-src/build/dynamic-advanced.js:40
+msgid "Relationship Loop"
+msgstr ""
+
+#: runtime-src/build/dynamic-advanced.js:41
+msgid "Repeat native blocks for posts selected by an ACF Relationship or Post Object field."
+msgstr ""
+
+#: runtime-src/build/dynamic-advanced.js:46
+msgid "Relationship source"
+msgstr ""
+
+#: runtime-src/build/dynamic-advanced.js:47
+msgid "ACF Relationship / Post Object"
+msgstr ""
+
+#: runtime-src/build/dynamic-advanced.js:47
+msgid "Post meta IDs"
+msgstr ""
+
+#: runtime-src/build/dynamic-advanced.js:49
+msgid "Item limit"
+msgstr ""
+
+#: runtime-src/build/dynamic-advanced.js:51
+#: runtime-src/build/dynamic-alpha4.js:67
+#: runtime-src/build/dynamic-alpha4.js:96
+#: runtime-src/build/dynamic-alpha4.js:136
+#: runtime-src/build/dynamic-alpha5.js:67
+#: runtime-src/build/dynamic.js:90
+msgid "Empty message"
+msgstr ""
+
+#: runtime-src/build/dynamic-advanced.js:54
+msgid "Inner blocks are rendered once for each related published post."
+msgstr ""
+
+#: runtime-src/build/dynamic-alpha4.js:106
+msgid "Advanced Loop"
+msgstr ""
+
+#: runtime-src/build/dynamic-alpha4.js:107
+msgid "Run a bounded post, author, date, taxonomy, and meta query."
+msgstr ""
+
+#: runtime-src/build/dynamic-alpha4.js:112
+msgid "Content query"
+msgstr ""
+
+#: runtime-src/build/dynamic-alpha4.js:113
+#: runtime-src/build/dynamic-alpha5.js:40
+#: runtime-src/build/dynamic.js:80
+msgid "Post type slug"
+msgstr ""
+
+#: runtime-src/build/dynamic-alpha4.js:114
+#: runtime-src/build/dynamic-alpha5.js:41
+#: runtime-src/build/dynamic.js:81
+msgid "Items per page"
+msgstr ""
+
+#: runtime-src/build/dynamic-alpha4.js:115
+#: runtime-src/build/dynamic-alpha5.js:42
+#: runtime-src/build/dynamic.js:82
+msgid "Order by"
+msgstr ""
+
+#: runtime-src/build/dynamic-alpha4.js:116
+#: runtime-src/build/dynamic-alpha5.js:43
+#: runtime-src/build/dynamic.js:83
+msgid "Order"
+msgstr ""
+
+#: runtime-src/build/dynamic-alpha4.js:118
+#: runtime-src/build/dynamic-alpha5.js:46
+msgid "Author ID"
+msgstr ""
+
+#: runtime-src/build/dynamic-alpha4.js:119
+#: runtime-src/build/dynamic-alpha5.js:47
+msgid "Parent post ID"
+msgstr ""
+
+#: runtime-src/build/dynamic-alpha4.js:120
+#: runtime-src/build/dynamic-alpha5.js:50
+msgid "Include post IDs"
+msgstr ""
+
+#: runtime-src/build/dynamic-alpha4.js:120
+msgid "Comma separated, maximum 24."
+msgstr ""
+
+#: runtime-src/build/dynamic-alpha4.js:121
+#: runtime-src/build/dynamic-alpha5.js:51
+msgid "Exclude post IDs"
+msgstr ""
+
+#: runtime-src/build/dynamic-alpha4.js:122
+msgid "Date after"
+msgstr ""
+
+#: runtime-src/build/dynamic-alpha4.js:123
+msgid "Date before"
+msgstr ""
+
+#: runtime-src/build/dynamic-alpha4.js:125
+#: runtime-src/build/dynamic-alpha5.js:53
+msgid "Meta query"
+msgstr ""
+
+#: runtime-src/build/dynamic-alpha4.js:127
+#: runtime-src/build/dynamic-alpha5.js:55
+msgid "Meta value"
+msgstr ""
+
+#: runtime-src/build/dynamic-alpha4.js:128
+#: runtime-src/build/dynamic-alpha5.js:56
+msgid "Compare"
+msgstr ""
+
+#: runtime-src/build/dynamic-alpha4.js:131
+msgid "Taxonomy filters"
+msgstr ""
+
+#: runtime-src/build/dynamic-alpha4.js:131
+#: runtime-src/build/dynamic.js:86
+msgid "Taxonomy slug"
+msgstr ""
+
+#: runtime-src/build/dynamic-alpha4.js:131
+msgid "Term slugs"
+msgstr ""
+
+#: runtime-src/build/dynamic-alpha4.js:131
+msgid "Comma separated."
+msgstr ""
+
+#: runtime-src/build/dynamic-alpha4.js:131
+#: runtime-src/build/theme-builder.js:26
+msgid "Operator"
+msgstr ""
+
+#: runtime-src/build/dynamic-alpha4.js:132
+msgid "Layout and pagination"
+msgstr ""
+
+#: runtime-src/build/dynamic-alpha4.js:134
+#: runtime-src/build/dynamic.js:88
+msgid "Enable pagination"
+msgstr ""
+
+#: runtime-src/build/dynamic-alpha4.js:135
+msgid "Page parameter"
+msgstr ""
+
+#: runtime-src/build/dynamic-alpha4.js:139
+msgid "The advanced query is normalized and executed on the server."
+msgstr ""
+
+#: runtime-src/build/dynamic-alpha4.js:36
+msgid "Select a field"
+msgstr ""
+
+#: runtime-src/build/dynamic-alpha4.js:37
+#: runtime-src/build/dynamic.js:31
+msgid "ACF field"
+msgstr ""
+
+#: runtime-src/build/dynamic-alpha4.js:37
+msgid "ACF field catalog is unavailable; enter the field name manually."
+msgstr ""
+
+#: runtime-src/build/dynamic-alpha4.js:41
+msgid "ACF Sub Field"
+msgstr ""
+
+#: runtime-src/build/dynamic-alpha4.js:42
+msgid "Render a scalar value from the current Repeater or Flexible Content row."
+msgstr ""
+
+#: runtime-src/build/dynamic-alpha4.js:47
+msgid "Row field"
+msgstr ""
+
+#: runtime-src/build/dynamic-alpha4.js:48
+#: runtime-src/build/dynamic-completion.js:14
+msgid "Field path"
+msgstr ""
+
+#: runtime-src/build/dynamic-alpha4.js:48
+msgid "Use a dot path for nested arrays, up to four levels."
+msgstr ""
+
+#: runtime-src/build/dynamic-alpha4.js:49
+#: runtime-src/build/dynamic.js:34
+msgid "Fallback"
+msgstr ""
+
+#: runtime-src/build/dynamic-alpha4.js:50
+#: runtime-src/build/dynamic.js:35
+msgid "HTML tag"
+msgstr ""
+
+#: runtime-src/build/dynamic-alpha4.js:52
+msgid "Choose a row field"
+msgstr ""
+
+#: runtime-src/build/dynamic-alpha4.js:57
+msgid "ACF Repeater"
+msgstr ""
+
+#: runtime-src/build/dynamic-alpha4.js:58
+msgid "Repeat one native block template for each ACF Repeater row."
+msgstr ""
+
+#: runtime-src/build/dynamic-alpha4.js:62
+msgid "Repeater source"
+msgstr ""
+
+#: runtime-src/build/dynamic-alpha4.js:63
+#: runtime-src/build/dynamic-alpha4.js:93
+msgid "Post meta"
+msgstr ""
+
+#: runtime-src/build/dynamic-alpha4.js:64
+#: runtime-src/build/dynamic-alpha4.js:94
+#: runtime-src/build/dynamic-alpha4.js:126
+#: runtime-src/build/dynamic-alpha5.js:54
+msgid "Meta key"
+msgstr ""
+
+#: runtime-src/build/dynamic-alpha4.js:65
+msgid "Maximum rows"
+msgstr ""
+
+#: runtime-src/build/dynamic-alpha4.js:70
+msgid "The inner template is repeated for every row on the server."
+msgstr ""
+
+#: runtime-src/build/dynamic-alpha4.js:77
+msgid "ACF Layout Template"
+msgstr ""
+
+#: runtime-src/build/dynamic-alpha4.js:81
+msgid "Flexible layout"
+msgstr ""
+
+#: runtime-src/build/dynamic-alpha4.js:81
+msgid "Layout name"
+msgstr ""
+
+#: runtime-src/build/dynamic-alpha4.js:81
+msgid "Use the ACF layout name. Use fallback for unmatched layouts."
+msgstr ""
+
+#: runtime-src/build/dynamic-alpha4.js:82
+msgid "Unnamed layout"
+msgstr ""
+
+#: runtime-src/build/dynamic-alpha4.js:87
+msgid "ACF Flexible Content"
+msgstr ""
+
+#: runtime-src/build/dynamic-alpha4.js:88
+msgid "Map ACF Flexible Content layouts to native block templates."
+msgstr ""
+
+#: runtime-src/build/dynamic-alpha4.js:92
+msgid "Flexible source"
+msgstr ""
+
+#: runtime-src/build/dynamic-alpha4.js:95
+msgid "Maximum layouts"
+msgstr ""
+
+#: runtime-src/build/dynamic-alpha4.js:99
+msgid "Add one Layout Template block for each acf_fc_layout value."
+msgstr ""
+
+#: runtime-src/build/dynamic-alpha5.js:23
+#: runtime-src/build/dynamic-alpha5.js:73
+msgid "Filterable Loop"
+msgstr ""
+
+#: runtime-src/build/dynamic-alpha5.js:26
+msgid "Server-rendered Loop with signed AJAX filtering, facets, load-more, infinite scroll, URL sync, and WooCommerce presets."
+msgstr ""
+
+#: runtime-src/build/dynamic-alpha5.js:39
+msgid "Base query"
+msgstr ""
+
+#: runtime-src/build/dynamic-alpha5.js:45
+msgid "Static search"
+msgstr ""
+
+#: runtime-src/build/dynamic-alpha5.js:48
+msgid "Date after (YYYY-MM-DD)"
+msgstr ""
+
+#: runtime-src/build/dynamic-alpha5.js:49
+msgid "Date before (YYYY-MM-DD)"
+msgstr ""
+
+#: runtime-src/build/dynamic-alpha5.js:50
+#: runtime-src/build/dynamic-alpha5.js:51
+msgid "Comma-separated, maximum 24."
+msgstr ""
+
+#: runtime-src/build/dynamic-alpha5.js:57
+msgid "Data type"
+msgstr ""
+
+#: runtime-src/build/dynamic-alpha5.js:59
+msgid "Interactive filters"
+msgstr ""
+
+#: runtime-src/build/dynamic-alpha5.js:60
+msgid "Interaction mode"
+msgstr ""
+
+#: runtime-src/build/dynamic-alpha5.js:60
+msgid "AJAX pagination"
+msgstr ""
+
+#: runtime-src/build/dynamic-alpha5.js:60
+msgid "Infinite scroll"
+msgstr ""
+
+#: runtime-src/build/dynamic-alpha5.js:61
+msgid "Synchronize filters with URL"
+msgstr ""
+
+#: runtime-src/build/dynamic-alpha5.js:62
+#: runtime-src/build/interactions-editor.js:24
+#: runtime-src/build/interactions-editor.js:34
+#: runtime-src/build/interactions-editor.js:39
+msgid "Instance ID"
+msgstr ""
+
+#: runtime-src/build/dynamic-alpha5.js:62
+msgid "Use a unique value when multiple filterable loops share a page."
+msgstr ""
+
+#: runtime-src/build/dynamic-alpha5.js:63
+msgid "Show search filter"
+msgstr ""
+
+#: runtime-src/build/dynamic-alpha5.js:64
+msgid "Facet taxonomy slugs"
+msgstr ""
+
+#: runtime-src/build/dynamic-alpha5.js:64
+msgid "Comma-separated, maximum three."
+msgstr ""
+
+#: runtime-src/build/dynamic-alpha5.js:65
+msgid "WooCommerce preset"
+msgstr ""
+
+#: runtime-src/build/dynamic-alpha5.js:65
+#: runtime-src/build/dynamic.js:36
+#: runtime-src/build/dynamic.js:61
+msgid "None"
+msgstr ""
+
+#: runtime-src/build/dynamic-alpha5.js:65
+msgid "Newest products"
+msgstr ""
+
+#: runtime-src/build/dynamic-alpha5.js:65
+msgid "Featured products"
+msgstr ""
+
+#: runtime-src/build/dynamic-alpha5.js:65
+msgid "On-sale products"
+msgstr ""
+
+#: runtime-src/build/dynamic-alpha5.js:65
+msgid "In-stock products"
+msgstr ""
+
+#: runtime-src/build/dynamic-alpha5.js:65
+msgid "Best selling"
+msgstr ""
+
+#: runtime-src/build/dynamic-alpha5.js:65
+msgid "Top rated"
+msgstr ""
+
+#: runtime-src/build/dynamic-alpha5.js:66
+msgid "Load more label"
+msgstr ""
+
+#: runtime-src/build/dynamic-alpha5.js:71
+msgid "The server signs the saved query and progressively enhances this Loop on the frontend. JavaScript-disabled visitors keep normal GET filtering and pagination."
+msgstr ""
+
+#: runtime-src/build/dynamic-alpha5.js:74
+msgid "items"
+msgstr ""
+
+#: runtime-src/build/dynamic-alpha5.js:75
+msgid "Facets: "
+msgstr ""
+
+#: runtime-src/build/dynamic-completion.js:13
+msgid "Row binding"
+msgstr ""
+
+#: runtime-src/build/dynamic-completion.js:17
+msgid "ACF Row Image"
+msgstr ""
+
+#: runtime-src/build/dynamic-completion.js:19
+msgid "Alt field path"
+msgstr ""
+
+#: runtime-src/build/dynamic-completion.js:19
+msgid "Dynamic row image"
+msgstr ""
+
+#: runtime-src/build/dynamic-completion.js:22
+msgid "ACF Row Gallery"
+msgstr ""
+
+#: runtime-src/build/dynamic-completion.js:24
+msgid "Dynamic row gallery"
+msgstr ""
+
+#: runtime-src/build/dynamic-completion.js:27
+msgid "ACF Row Relationship"
+msgstr ""
+
+#: runtime-src/build/dynamic-completion.js:29
+msgid "Limit"
+msgstr ""
+
+#: runtime-src/build/dynamic.js:19
+#: runtime-src/build/dynamic.js:39
+msgid "Dynamic Field"
+msgstr ""
+
+#: runtime-src/build/dynamic.js:20
+msgid "Render post, meta, ACF, or site data on the server."
+msgstr ""
+
+#: runtime-src/build/dynamic.js:26
+msgid "Site title"
+msgstr ""
+
+#: runtime-src/build/dynamic.js:26
+msgid "Site description"
+msgstr ""
+
+#: runtime-src/build/dynamic.js:27
+#: runtime-src/build/forms-completion-editor.js:1
+msgid "Title"
+msgstr ""
+
+#: runtime-src/build/dynamic.js:27
+msgid "Excerpt"
+msgstr ""
+
+#: runtime-src/build/dynamic.js:27
+msgid "Content text"
+msgstr ""
+
+#: runtime-src/build/dynamic.js:27
+msgid "Date"
+msgstr ""
+
+#: runtime-src/build/dynamic.js:27
+msgid "Modified date"
+msgstr ""
+
+#: runtime-src/build/dynamic.js:27
+msgid "Author"
+msgstr ""
+
+#: runtime-src/build/dynamic.js:27
+msgid "Permalink"
+msgstr ""
+
+#: runtime-src/build/dynamic.js:27
+msgid "Featured image URL"
+msgstr ""
+
+#: runtime-src/build/dynamic.js:30
+msgid "Dynamic source"
+msgstr ""
+
+#: runtime-src/build/dynamic.js:31
+msgid "Post"
+msgstr ""
+
+#: runtime-src/build/dynamic.js:31
+#: runtime-src/build/dynamic.js:56
+msgid "Custom field / post meta"
+msgstr ""
+
+#: runtime-src/build/dynamic.js:31
+#: runtime-src/build/standalone-page-settings.js:859
+msgid "Site"
+msgstr ""
+
+#: runtime-src/build/dynamic.js:32
+msgid "Field"
+msgstr ""
+
+#: runtime-src/build/dynamic.js:36
+#: runtime-src/build/dynamic.js:61
+#: runtime-src/build/standalone-page-settings.js:389
+msgid "Link"
+msgstr ""
+
+#: runtime-src/build/dynamic.js:36
+#: runtime-src/build/dynamic.js:61
+msgid "Current post"
+msgstr ""
+
+#: runtime-src/build/dynamic.js:41
+msgid "Fallback: "
+msgstr ""
+
+#: runtime-src/build/dynamic.js:48
+#: runtime-src/build/dynamic.js:64
+msgid "Dynamic Image"
+msgstr ""
+
+#: runtime-src/build/dynamic.js:49
+msgid "Render a featured image, post-meta image, or ACF image safely."
+msgstr ""
+
+#: runtime-src/build/dynamic.js:55
+msgid "Dynamic image"
+msgstr ""
+
+#: runtime-src/build/dynamic.js:56
+msgid "ACF image field"
+msgstr ""
+
+#: runtime-src/build/dynamic.js:57
+msgid "Image field key"
+msgstr ""
+
+#: runtime-src/build/dynamic.js:59
+msgid "Fallback image URL"
+msgstr ""
+
+#: runtime-src/build/dynamic.js:60
+msgid "Fallback alt text"
+msgstr ""
+
+#: runtime-src/build/dynamic.js:64
+msgid "Choose an image field key"
+msgstr ""
+
+#: runtime-src/build/dynamic.js:71
+msgid "Cresco Loop"
+msgstr ""
+
+#: runtime-src/build/dynamic.js:72
+msgid "Repeat inner blocks for a bounded WordPress query."
+msgstr ""
+
+#: runtime-src/build/dynamic.js:78
+msgid "Query Builder"
+msgstr ""
+
+#: runtime-src/build/dynamic.js:79
+msgid "Query preset"
+msgstr ""
+
+#: runtime-src/build/dynamic.js:79
+#: runtime-src/build/preview.js:50
+msgid "Custom"
+msgstr ""
+
+#: runtime-src/build/dynamic.js:79
+msgid "Recent first"
+msgstr ""
+
+#: runtime-src/build/dynamic.js:79
+msgid "Oldest first"
+msgstr ""
+
+#: runtime-src/build/dynamic.js:79
+msgid "Alphabetical"
+msgstr ""
+
+#: runtime-src/build/dynamic.js:79
+msgid "Random"
+msgstr ""
+
+#: runtime-src/build/dynamic.js:84
+msgid "Base offset"
+msgstr ""
+
+#: runtime-src/build/dynamic.js:87
+msgid "Term slug"
+msgstr ""
+
+#: runtime-src/build/dynamic.js:89
+msgid "Pagination query parameter"
+msgstr ""
+
+#: runtime-src/build/dynamic.js:89
+msgid "Use a unique value when a page contains more than one loop."
+msgstr ""
+
+#: runtime-src/build/dynamic.js:93
+msgid "Inner blocks are rendered once per matching post. Nested Cresco Loops are blocked."
+msgstr ""
+
+#: runtime-src/build/editor-app-shell.js:104
+msgid "Open Cresco Canvas"
+msgstr ""
+
+#: runtime-src/build/editor-app-shell.js:109
+msgid "Cresco Canvas editor"
+msgstr ""
+
+#: runtime-src/build/editor-app-shell.js:115
+msgid "Visual website builder"
+msgstr ""
+
+#: runtime-src/build/editor-app-shell.js:118
+msgid "Close Cresco panel"
+msgstr ""
+
+#: runtime-src/build/editor-app-shell.js:120
+msgid "Cresco editor sections"
+msgstr ""
+
+#: runtime-src/build/editor-app-shell.js:137
+msgid "Select a widget on the canvas to edit it."
+msgstr ""
+
+#: runtime-src/build/editor-app-shell.js:137
+msgid "This Cresco workspace is loading."
+msgstr ""
+
+#: runtime-src/build/editor-app-shell.js:142
+#: runtime-src/build/visual-canvas.js:421
+msgid "Cresco canvas"
+msgstr ""
+
+#: runtime-src/build/editor-app-shell.js:142
+#: runtime-src/build/visual-canvas.js:421
+msgid "Native controls"
+msgstr ""
+
+#: runtime-src/build/editor-app-shell.js:95
+#: runtime-src/build/editor.js:448
+#: runtime-src/build/standalone-visual-editor.js:546
+msgid "Widgets"
+msgstr ""
+
+#: runtime-src/build/editor-app-shell.js:96
+#: runtime-src/build/standalone-visual-editor.js:546
+#: runtime-src/build/widget-inspector-persistent.js:358
+msgid "Edit"
+msgstr ""
+
+#: runtime-src/build/editor-foundation.js:275
+msgid "Widget added."
+msgstr ""
+
+#: runtime-src/build/editor-foundation.js:284
+msgid "Widget moved."
+msgstr ""
+
+#: runtime-src/build/editor-foundation.js:402
+msgid "Cresco Canvas encountered an editor error."
+msgstr ""
+
+#: runtime-src/build/editor.js:119
+msgid "Full-width page section."
+msgstr ""
+
+#: runtime-src/build/editor.js:122
+msgid "Three-column content grid."
+msgstr ""
+
+#: runtime-src/build/editor.js:136
+msgid "Native or Media Library video."
+msgstr ""
+
+#: runtime-src/build/editor.js:240
+msgid "%s cannot be inserted at the selected location."
+msgstr ""
+
+#: runtime-src/build/editor.js:240
+msgid "%s could not be added."
+msgstr ""
+
+#: runtime-src/build/editor.js:283
+msgid "Click an element to insert it, or drag it onto the canvas."
+msgstr ""
+
+#: runtime-src/build/editor.js:374
+msgid "Applies Cresco global colors, typography, and spacing tokens on this Page."
+msgstr ""
+
+#: runtime-src/build/editor.js:375
+msgid "This setting is saved with the normal WordPress Save or Update action."
+msgstr ""
+
+#: runtime-src/build/editor.js:441
+msgid "You do not have permission to change global design settings."
+msgstr ""
+
+#: runtime-src/build/forms-completion-editor.js:1
+msgid "Form Step"
+msgstr ""
+
+#: runtime-src/build/forms-completion-editor.js:1
+msgid "Step settings"
+msgstr ""
+
+#: runtime-src/build/forms-completion-editor.js:1
+msgid "Next label"
+msgstr ""
+
+#: runtime-src/build/forms-completion-editor.js:1
+msgid "Previous label"
+msgstr ""
+
+#: runtime-src/build/forms-completion-editor.js:1
+msgid "Calculated Field"
+msgstr ""
+
+#: runtime-src/build/forms-completion-editor.js:1
+msgid "Calculation"
+msgstr ""
+
+#: runtime-src/build/forms-completion-editor.js:1
+#: runtime-src/build/interactions-editor.js:53
+msgid "Field name"
+msgstr ""
+
+#: runtime-src/build/forms-completion-editor.js:1
+#: runtime-src/build/interactions-editor.js:19
+#: runtime-src/build/interactions-editor.js:29
+#: runtime-src/build/interactions-editor.js:48
+#: runtime-src/build/interactions-editor.js:53
+#: runtime-src/build/standalone-visual-editor.js:474
+msgid "Label"
+msgstr ""
+
+#: runtime-src/build/forms-completion-editor.js:1
+msgid "Formula"
+msgstr ""
+
+#: runtime-src/build/forms-completion-editor.js:1
+msgid "Use field names and + - * / operators. Example: quantity * price"
+msgstr ""
+
+#: runtime-src/build/forms-completion-editor.js:1
+msgid "Decimals"
+msgstr ""
+
+#: runtime-src/build/forms-completion-editor.js:1
+msgid "Prefix"
+msgstr ""
+
+#: runtime-src/build/forms-completion-editor.js:1
+msgid "Suffix"
+msgstr ""
+
+#: runtime-src/build/forms-completion-editor.js:1
+msgid "Form CAPTCHA"
+msgstr ""
+
+#: runtime-src/build/forms-completion-editor.js:1
+msgid "CAPTCHA"
+msgstr ""
+
+#: runtime-src/build/forms-completion-editor.js:1
+msgid "Provider"
+msgstr ""
+
+#: runtime-src/build/forms-completion-editor.js:1
+msgid "Site key"
+msgstr ""
+
+#: runtime-src/build/forms-completion-editor.js:1
+msgid "Action"
+msgstr ""
+
+#: runtime-src/build/forms-completion-editor.js:1
+msgid "Spam protection"
+msgstr ""
+
+#: runtime-src/build/forms-completion-editor.js:1
+msgid "Add a site key in the sidebar."
+msgstr ""
+
+#: runtime-src/build/global-config-import.js:134
+#: runtime-src/build/standalone-visual-editor.js:508
+msgid "Global Design"
+msgstr ""
+
+#: runtime-src/build/global-config-import.js:136
+#: runtime-src/build/global-config-import.js:244
+msgid "Import"
+msgstr ""
+
+#: runtime-src/build/global-config-import.js:137
+msgid "Export"
+msgstr ""
+
+#: runtime-src/build/global-config-import.js:144
+msgid "Your account cannot change site-wide Global Design settings."
+msgstr ""
+
+#: runtime-src/build/global-config-import.js:159
+#: runtime-src/build/standalone-page-settings.js:390
+msgid "Color"
+msgstr ""
+
+#: runtime-src/build/global-config-import.js:165
+#: runtime-src/build/standalone-page-settings.js:33
+#: runtime-src/build/standalone-page-settings.js:291
+#: runtime-src/build/standalone-page-settings.js:385
+#: runtime-src/build/standalone-page-settings.js:430
+msgid "Typography"
+msgstr ""
+
+#: runtime-src/build/global-config-import.js:168
+msgid "Font family"
+msgstr ""
+
+#: runtime-src/build/global-config-import.js:173
+msgid "Container max"
+msgstr ""
+
+#: runtime-src/build/global-config-import.js:173
+msgid "Content max"
+msgstr ""
+
+#: runtime-src/build/global-config-import.js:173
+msgid "Radius"
+msgstr ""
+
+#: runtime-src/build/global-config-import.js:181
+#: runtime-src/build/standalone-page-settings.js:573
+#: runtime-src/build/standalone-visual-editor.js:511
+msgid "Breakpoints"
+msgstr ""
+
+#: runtime-src/build/global-config-import.js:191
+msgid "Import Global Config"
+msgstr ""
+
+#: runtime-src/build/global-config-import.js:197
+msgid "Cancel"
+msgstr ""
+
+#: runtime-src/build/global-config-import.js:198
+msgid "Import Config"
+msgstr ""
+
+#: runtime-src/build/global-config-import.js:205
+#: runtime-src/build/standalone-page-settings.js:682
+msgid "Save Global"
+msgstr ""
+
+#: runtime-src/build/global-config-import.js:206
+msgid "Reload editor"
+msgstr ""
+
+#: runtime-src/build/global-config-import.js:219
+msgid "Global Design saved."
+msgstr ""
+
+#: runtime-src/build/global-config-import.js:223
+msgid "Global Design could not be saved."
+msgstr ""
+
+#: runtime-src/build/global-config-import.js:240
+msgid "Checking import…"
+msgstr ""
+
+#: runtime-src/build/global-config-import.js:244
+msgid "mapped values?"
+msgstr ""
+
+#: runtime-src/build/global-config-import.js:245
+msgid "unsupported values will be ignored."
+msgstr ""
+
+#: runtime-src/build/global-config-import.js:247
+msgid "Global Config imported."
+msgstr ""
+
+#: runtime-src/build/global-config-import.js:254
+msgid "Global Config could not be imported."
+msgstr ""
+
+#: runtime-src/build/global-config-import.js:259
+#: runtime-src/build/standalone-visual-editor.js:508
+msgid "Global Config copied."
+msgstr ""
+
+#: runtime-src/build/global-config-import.js:259
+#: runtime-src/build/standalone-visual-editor.js:390
+msgid "Clipboard access failed."
+msgstr ""
+
+#: runtime-src/build/global-config-import.js:82
+msgid "Custom color token name"
+msgstr ""
+
+#: runtime-src/build/global-config-import.js:86
+msgid "color value"
+msgstr ""
+
+#: runtime-src/build/global-config-import.js:93
+msgid "Remove custom color"
+msgstr ""
+
+#: runtime-src/build/interactions-editor.js:17
+msgid "Tab"
+msgstr ""
+
+#: runtime-src/build/interactions-editor.js:22
+msgid "Tabs"
+msgstr ""
+
+#: runtime-src/build/interactions-editor.js:24
+msgid "Orientation"
+msgstr ""
+
+#: runtime-src/build/interactions-editor.js:27
+msgid "Accordion Item"
+msgstr ""
+
+#: runtime-src/build/interactions-editor.js:29
+msgid "Open initially"
+msgstr ""
+
+#: runtime-src/build/interactions-editor.js:32
+msgid "Accordion"
+msgstr ""
+
+#: runtime-src/build/interactions-editor.js:34
+msgid "Allow multiple open items"
+msgstr ""
+
+#: runtime-src/build/interactions-editor.js:37
+msgid "Modal"
+msgstr ""
+
+#: runtime-src/build/interactions-editor.js:39
+msgid "Trigger label"
+msgstr ""
+
+#: runtime-src/build/interactions-editor.js:39
+msgid "Trigger"
+msgstr ""
+
+#: runtime-src/build/interactions-editor.js:39
+msgid "Delay seconds"
+msgstr ""
+
+#: runtime-src/build/interactions-editor.js:39
+msgid "Scroll depth %"
+msgstr ""
+
+#: runtime-src/build/interactions-editor.js:39
+msgid "Show once per visitor"
+msgstr ""
+
+#: runtime-src/build/interactions-editor.js:41
+msgid "Slide"
+msgstr ""
+
+#: runtime-src/build/interactions-editor.js:43
+msgid "Slider / Carousel"
+msgstr ""
+
+#: runtime-src/build/interactions-editor.js:45
+msgid "Autoplay"
+msgstr ""
+
+#: runtime-src/build/interactions-editor.js:45
+msgid "Interval (ms)"
+msgstr ""
+
+#: runtime-src/build/interactions-editor.js:45
+msgid "Loop"
+msgstr ""
+
+#: runtime-src/build/interactions-editor.js:45
+msgid "Arrows"
+msgstr ""
+
+#: runtime-src/build/interactions-editor.js:45
+msgid "Dots"
+msgstr ""
+
+#: runtime-src/build/interactions-editor.js:45
+msgid "Pause on hover"
+msgstr ""
+
+#: runtime-src/build/interactions-editor.js:48
+msgid "Condition"
+msgstr ""
+
+#: runtime-src/build/interactions-editor.js:48
+msgid "Condition value"
+msgstr ""
+
+#: runtime-src/build/interactions-editor.js:51
+msgid "Form Field"
+msgstr ""
+
+#: runtime-src/build/interactions-editor.js:53
+msgid "Required"
+msgstr ""
+
+#: runtime-src/build/interactions-editor.js:53
+msgid "Placeholder"
+msgstr ""
+
+#: runtime-src/build/interactions-editor.js:53
+msgid "Options, one per line"
+msgstr ""
+
+#: runtime-src/build/interactions-editor.js:53
+msgid "Show when field"
+msgstr ""
+
+#: runtime-src/build/interactions-editor.js:53
+msgid "Equals value"
+msgstr ""
+
+#: runtime-src/build/interactions-editor.js:53
+msgid "Allowed upload extensions"
+msgstr ""
+
+#: runtime-src/build/interactions-editor.js:56
+msgid "Cresco Form"
+msgstr ""
+
+#: runtime-src/build/interactions-editor.js:58
+msgid "Form ID"
+msgstr ""
+
+#: runtime-src/build/interactions-editor.js:58
+msgid "Submit label"
+msgstr ""
+
+#: runtime-src/build/interactions-editor.js:58
+msgid "Success message"
+msgstr ""
+
+#: runtime-src/build/interactions-editor.js:58
+msgid "Notification email"
+msgstr ""
+
+#: runtime-src/build/interactions-editor.js:58
+msgid "Reply-to field"
+msgstr ""
+
+#: runtime-src/build/interactions-editor.js:58
+msgid "Store submissions"
+msgstr ""
+
+#: runtime-src/build/interactions-editor.js:58
+msgid "Redirect URL"
+msgstr ""
+
+#: runtime-src/build/interactions-editor.js:58
+msgid "Webhook URL"
+msgstr ""
+
+#: runtime-src/build/interactions-editor.js:58
+msgid "Retention days"
+msgstr ""
+
+#: runtime-src/build/interactions-editor.js:9
+msgid "Cresco settings"
+msgstr ""
+
+#: runtime-src/build/preview.js:109
+msgid "Custom width"
+msgstr ""
+
+#: runtime-src/build/preview.js:309
+msgid "Cresco Canvas viewport"
+msgstr ""
+
+#: runtime-src/build/preview.js:314
+msgid "Viewport device"
+msgstr ""
+
+#: runtime-src/build/preview.js:328
+#: runtime-src/build/widget-inspector-persistent.js:279
+msgid "Width"
+msgstr ""
+
+#: runtime-src/build/preview.js:336
+msgid "Custom viewport width in pixels"
+msgstr ""
+
+#: runtime-src/build/preview.js:341
+#: runtime-src/build/standalone-visual-editor.js:550
+msgid "Zoom"
+msgstr ""
+
+#: runtime-src/build/preview.js:346
+#: runtime-src/build/standalone-visual-editor.js:550
+msgid "Fit"
+msgstr ""
+
+#: runtime-src/build/preview.js:387
+msgid "%1$s uses a %2$dpx logical viewport. Responsive range: %3$s."
+msgstr ""
+
+#: runtime-src/build/preview.js:45
+msgid "Widescreen"
+msgstr ""
+
+#: runtime-src/build/standalone-history.js:140
+#: runtime-src/build/standalone-history.js:158
+#: runtime-src/build/standalone-history.js:312
+msgid "History"
+msgstr ""
+
+#: runtime-src/build/standalone-history.js:148
+#: runtime-src/build/standalone-visual-editor.js:541
+#: runtime-src/build/standalone-visual-editor.js:546
+msgid "AI"
+msgstr ""
+
+#: runtime-src/build/standalone-history.js:167
+msgid "just now"
+msgstr ""
+
+#: runtime-src/build/standalone-history.js:169
+msgid "minute ago"
+msgstr ""
+
+#: runtime-src/build/standalone-history.js:169
+msgid "minutes ago"
+msgstr ""
+
+#: runtime-src/build/standalone-history.js:171
+msgid "hour ago"
+msgstr ""
+
+#: runtime-src/build/standalone-history.js:171
+msgid "hours ago"
+msgstr ""
+
+#: runtime-src/build/standalone-history.js:173
+msgid "day ago"
+msgstr ""
+
+#: runtime-src/build/standalone-history.js:173
+msgid "days ago"
+msgstr ""
+
+#: runtime-src/build/standalone-history.js:175
+msgid "month ago"
+msgstr ""
+
+#: runtime-src/build/standalone-history.js:175
+msgid "months ago"
+msgstr ""
+
+#: runtime-src/build/standalone-history.js:193
+msgid "Revision history could not be loaded."
+msgstr ""
+
+#: runtime-src/build/standalone-history.js:209
+msgid "Revision could not be applied."
+msgstr ""
+
+#: runtime-src/build/standalone-history.js:227
+msgid "No History Yet"
+msgstr ""
+
+#: runtime-src/build/standalone-history.js:228
+msgid "Once you start working, you’ll be able to redo / undo any action you make in the editor."
+msgstr ""
+
+#: runtime-src/build/standalone-history.js:229
+msgid "Switch to Revisions tab for older versions."
+msgstr ""
+
+#: runtime-src/build/standalone-history.js:252
+msgid "Discard"
+msgstr ""
+
+#: runtime-src/build/standalone-history.js:256
+msgid "Applying…"
+msgstr ""
+
+#: runtime-src/build/standalone-history.js:265
+msgid "Loading revisions…"
+msgstr ""
+
+#: runtime-src/build/standalone-history.js:273
+msgid "No saved revisions yet. Update the page to create one."
+msgstr ""
+
+#: runtime-src/build/standalone-history.js:287
+msgid "Current Version"
+msgstr ""
+
+#: runtime-src/build/standalone-history.js:287
+msgid "Revision"
+msgstr ""
+
+#: runtime-src/build/standalone-history.js:291
+#: runtime-src/build/standalone-visual-editor.js:519
+#: runtime-src/build/structure-navigator.js:377
+msgid "widgets"
+msgstr ""
+
+#: runtime-src/build/standalone-history.js:315
+msgid "Close History"
+msgstr ""
+
+#: runtime-src/build/standalone-history.js:321
+msgid "Actions"
+msgstr ""
+
+#: runtime-src/build/standalone-history.js:321
+msgid "Revisions"
+msgstr ""
+
+#: runtime-src/build/standalone-history.js:50
+msgid "Add %s"
+msgstr ""
+
+#: runtime-src/build/standalone-history.js:50
+#: runtime-src/build/structure-navigator.js:377
+msgid "widget"
+msgstr ""
+
+#: runtime-src/build/standalone-history.js:56
+#: runtime-src/build/standalone-history.js:98
+#: runtime-src/build/standalone-visual-editor.js:541
+msgid "Undo"
+msgstr ""
+
+#: runtime-src/build/standalone-history.js:56
+#: runtime-src/build/standalone-history.js:104
+#: runtime-src/build/standalone-visual-editor.js:541
+msgid "Redo"
+msgstr ""
+
+#: runtime-src/build/standalone-history.js:57
+#: runtime-src/build/structure-navigator.js:188
+#: runtime-src/build/visual-canvas.js:136
+#: runtime-src/build/widget-inspector-persistent.js:342
+msgid "Delete widget"
+msgstr ""
+
+#: runtime-src/build/standalone-history.js:58
+#: runtime-src/build/structure-navigator.js:187
+#: runtime-src/build/visual-canvas.js:135
+#: runtime-src/build/widget-inspector-persistent.js:341
+msgid "Duplicate widget"
+msgstr ""
+
+#: runtime-src/build/standalone-history.js:59
+msgid "Reset responsive overrides"
+msgstr ""
+
+#: runtime-src/build/standalone-history.js:60
+msgid "Apply imported session"
+msgstr ""
+
+#: runtime-src/build/standalone-history.js:61
+#: runtime-src/build/standalone-visual-editor.js:419
+msgid "Choose image"
+msgstr ""
+
+#: runtime-src/build/standalone-history.js:64
+msgid "Edit page title"
+msgstr ""
+
+#: runtime-src/build/standalone-history.js:68
+msgid "Change %s"
+msgstr ""
+
+#: runtime-src/build/standalone-history.js:68
+msgid "Edit widget settings"
+msgstr ""
+
+#: runtime-src/build/standalone-page-settings.js:141
+msgid "Unsaved changes"
+msgstr ""
+
+#: runtime-src/build/standalone-page-settings.js:269
+msgid "Your account can edit this Page, but cannot change site-wide design settings."
+msgstr ""
+
+#: runtime-src/build/standalone-page-settings.js:274
+msgid "Show global settings guide"
+msgstr ""
+
+#: runtime-src/build/standalone-page-settings.js:278
+msgid "Temporarily highlights the editor while you review global colors and typography."
+msgstr ""
+
+#: runtime-src/build/standalone-page-settings.js:283
+msgid "DESIGN SYSTEM"
+msgstr ""
+
+#: runtime-src/build/standalone-page-settings.js:289
+msgid "THEME STYLE"
+msgstr ""
+
+#: runtime-src/build/standalone-page-settings.js:295
+#: runtime-src/build/standalone-page-settings.js:457
+msgid "Page Header"
+msgstr ""
+
+#: runtime-src/build/standalone-page-settings.js:296
+#: runtime-src/build/standalone-page-settings.js:457
+msgid "Page Footer"
+msgstr ""
+
+#: runtime-src/build/standalone-page-settings.js:299
+msgid "SETTINGS"
+msgstr ""
+
+#: runtime-src/build/standalone-page-settings.js:30
+#: runtime-src/build/standalone-page-settings.js:857
+msgid "Site Settings"
+msgstr ""
+
+#: runtime-src/build/standalone-page-settings.js:31
+#: runtime-src/build/standalone-page-settings.js:285
+msgid "Global Colors"
+msgstr ""
+
+#: runtime-src/build/standalone-page-settings.js:316
+msgid "System Colors"
+msgstr ""
+
+#: runtime-src/build/standalone-page-settings.js:32
+#: runtime-src/build/standalone-page-settings.js:286
+msgid "Global Fonts"
+msgstr ""
+
+#: runtime-src/build/standalone-page-settings.js:325
+msgid "Custom Colors"
+msgstr ""
+
+#: runtime-src/build/standalone-page-settings.js:327
+msgid "No custom color tokens yet."
+msgstr ""
+
+#: runtime-src/build/standalone-page-settings.js:335
+msgid "Remove color"
+msgstr ""
+
+#: runtime-src/build/standalone-page-settings.js:34
+#: runtime-src/build/standalone-page-settings.js:292
+msgid "Buttons"
+msgstr ""
+
+#: runtime-src/build/standalone-page-settings.js:344
+msgid "Add Color"
+msgstr ""
+
+#: runtime-src/build/standalone-page-settings.js:35
+#: runtime-src/build/standalone-page-settings.js:293
+#: runtime-src/build/standalone-page-settings.js:417
+msgid "Images"
+msgstr ""
+
+#: runtime-src/build/standalone-page-settings.js:36
+#: runtime-src/build/standalone-page-settings.js:294
+#: runtime-src/build/standalone-page-settings.js:427
+msgid "Form Fields"
+msgstr ""
+
+#: runtime-src/build/standalone-page-settings.js:362
+msgid "System Fonts"
+msgstr ""
+
+#: runtime-src/build/standalone-page-settings.js:366
+msgid "Cresco currently uses one global font stack. Secondary, Text and Accent inherit this stack."
+msgstr ""
+
+#: runtime-src/build/standalone-page-settings.js:37
+#: runtime-src/build/standalone-page-settings.js:459
+msgid "Header"
+msgstr ""
+
+#: runtime-src/build/standalone-page-settings.js:370
+msgid "Inherits Primary"
+msgstr ""
+
+#: runtime-src/build/standalone-page-settings.js:374
+msgid "Custom Fonts"
+msgstr ""
+
+#: runtime-src/build/standalone-page-settings.js:375
+msgid "Custom font file loading is not part of the current Cresco runtime. You can enter any font stack already available on the site."
+msgstr ""
+
+#: runtime-src/build/standalone-page-settings.js:38
+#: runtime-src/build/standalone-page-settings.js:459
+msgid "Footer"
+msgstr ""
+
+#: runtime-src/build/standalone-page-settings.js:383
+msgid "Body"
+msgstr ""
+
+#: runtime-src/build/standalone-page-settings.js:384
+#: runtime-src/build/standalone-page-settings.js:428
+msgid "Text Color"
+msgstr ""
+
+#: runtime-src/build/standalone-page-settings.js:386
+msgid "Base Size"
+msgstr ""
+
+#: runtime-src/build/standalone-page-settings.js:386
+msgid "Accepts a safe CSS size such as 16px, 1rem or clamp(...)."
+msgstr ""
+
+#: runtime-src/build/standalone-page-settings.js:39
+#: runtime-src/build/standalone-page-settings.js:301
+msgid "Site Identity"
+msgstr ""
+
+#: runtime-src/build/standalone-page-settings.js:395
+msgid "Typography Size"
+msgstr ""
+
+#: runtime-src/build/standalone-page-settings.js:404
+msgid "Global Button Style"
+msgstr ""
+
+#: runtime-src/build/standalone-page-settings.js:405
+msgid "Background Color"
+msgstr ""
+
+#: runtime-src/build/standalone-page-settings.js:406
+#: runtime-src/build/standalone-page-settings.js:418
+msgid "Border Radius"
+msgstr ""
+
+#: runtime-src/build/standalone-page-settings.js:407
+#: runtime-src/build/standalone-page-settings.js:431
+msgid "Control Height"
+msgstr ""
+
+#: runtime-src/build/standalone-page-settings.js:408
+msgid "Horizontal Padding"
+msgstr ""
+
+#: runtime-src/build/standalone-page-settings.js:409
+msgid "These values are the same global tokens used by Cresco Button widgets, so existing pages update consistently after saving."
+msgstr ""
+
+#: runtime-src/build/standalone-page-settings.js:41
+msgid "Layout Settings"
+msgstr ""
+
+#: runtime-src/build/standalone-page-settings.js:419
+msgid "The global radius applies to Cresco image media. Opacity, shadow and CSS filters remain widget-level so individual image treatments stay portable with the Session."
+msgstr ""
+
+#: runtime-src/build/standalone-page-settings.js:42
+#: runtime-src/build/standalone-page-settings.js:304
+msgid "Lightbox"
+msgstr ""
+
+#: runtime-src/build/standalone-page-settings.js:429
+msgid "Accent Color"
+msgstr ""
+
+#: runtime-src/build/standalone-page-settings.js:43
+#: runtime-src/build/standalone-page-settings.js:305
+msgid "Page Transitions"
+msgstr ""
+
+#: runtime-src/build/standalone-page-settings.js:432
+msgid "Cresco form widgets use the global typography and accent tokens. Per-field borders and shadows stay in the widget Inspector."
+msgstr ""
+
+#: runtime-src/build/standalone-page-settings.js:44
+#: runtime-src/build/standalone-page-settings.js:306
+#: runtime-src/build/standalone-page-settings.js:597
+#: runtime-src/build/standalone-visual-editor.js:497
+msgid "Custom CSS"
+msgstr ""
+
+#: runtime-src/build/standalone-page-settings.js:45
+#: runtime-src/build/standalone-page-settings.js:307
+msgid "Additional Settings"
+msgstr ""
+
+#: runtime-src/build/standalone-page-settings.js:458
+msgid "The active WordPress theme still owns the header/footer design. Cresco controls whether the theme shell is inherited, shown or hidden for this Page."
+msgstr ""
+
+#: runtime-src/build/standalone-page-settings.js:460
+msgid "Inherit theme"
+msgstr ""
+
+#: runtime-src/build/standalone-page-settings.js:461
+#: runtime-src/build/standalone-page-settings.js:555
+msgid "Show"
+msgstr ""
+
+#: runtime-src/build/standalone-page-settings.js:462
+#: runtime-src/build/standalone-page-settings.js:555
+msgid "Hide"
+msgstr ""
+
+#: runtime-src/build/standalone-page-settings.js:482
+msgid "Replace"
+msgstr ""
+
+#: runtime-src/build/standalone-page-settings.js:482
+msgid "Choose Image"
+msgstr ""
+
+#: runtime-src/build/standalone-page-settings.js:486
+msgid "Remove"
+msgstr ""
+
+#: runtime-src/build/standalone-page-settings.js:500
+msgid "The WordPress media picker is not available."
+msgstr ""
+
+#: runtime-src/build/standalone-page-settings.js:504
+msgid "Choose Site Logo"
+msgstr ""
+
+#: runtime-src/build/standalone-page-settings.js:504
+msgid "Choose Site Favicon"
+msgstr ""
+
+#: runtime-src/build/standalone-page-settings.js:505
+msgid "Use this image"
+msgstr ""
+
+#: runtime-src/build/standalone-page-settings.js:524
+msgid "Site identity could not be loaded."
+msgstr ""
+
+#: runtime-src/build/standalone-page-settings.js:527
+msgid "Site identity changes affect WordPress after saving. Reload Preview to see theme-owned output update."
+msgstr ""
+
+#: runtime-src/build/standalone-page-settings.js:529
+msgid "Site Name"
+msgstr ""
+
+#: runtime-src/build/standalone-page-settings.js:530
+msgid "Site Description"
+msgstr ""
+
+#: runtime-src/build/standalone-page-settings.js:531
+msgid "Site Logo"
+msgstr ""
+
+#: runtime-src/build/standalone-page-settings.js:532
+msgid "Site Favicon"
+msgstr ""
+
+#: runtime-src/build/standalone-page-settings.js:541
+msgid "Page Background"
+msgstr ""
+
+#: runtime-src/build/standalone-page-settings.js:542
+msgid "This is the global Cresco canvas background token and updates the editor and frontend Cresco scope."
+msgstr ""
+
+#: runtime-src/build/standalone-page-settings.js:549
+msgid "Current Page"
+msgstr ""
+
+#: runtime-src/build/standalone-page-settings.js:550
+msgid "Page Layout"
+msgstr ""
+
+#: runtime-src/build/standalone-page-settings.js:551
+msgid "Theme Default"
+msgstr ""
+
+#: runtime-src/build/standalone-page-settings.js:552
+#: runtime-src/build/standalone-visual-editor.js:480
+msgid "Full Width"
+msgstr ""
+
+#: runtime-src/build/standalone-page-settings.js:553
+msgid "Canvas"
+msgstr ""
+
+#: runtime-src/build/standalone-page-settings.js:554
+msgid "Canvas removes the theme title, header and footer. Full Width keeps the theme shell and expands the Cresco root to the viewport."
+msgstr ""
+
+#: runtime-src/build/standalone-page-settings.js:555
+msgid "Page Title"
+msgstr ""
+
+#: runtime-src/build/standalone-page-settings.js:556
+msgid "Cresco Root"
+msgstr ""
+
+#: runtime-src/build/standalone-page-settings.js:556
+msgid "Theme Content Width"
+msgstr ""
+
+#: runtime-src/build/standalone-page-settings.js:556
+msgid "Full Viewport"
+msgstr ""
+
+#: runtime-src/build/standalone-page-settings.js:566
+msgid "Global Layout"
+msgstr ""
+
+#: runtime-src/build/standalone-page-settings.js:567
+msgid "Container Width"
+msgstr ""
+
+#: runtime-src/build/standalone-page-settings.js:568
+msgid "Content Width"
+msgstr ""
+
+#: runtime-src/build/standalone-page-settings.js:569
+msgid "Container Gutter"
+msgstr ""
+
+#: runtime-src/build/standalone-page-settings.js:570
+msgid "Grid Gap"
+msgstr ""
+
+#: runtime-src/build/standalone-page-settings.js:586
+msgid "A site-wide lightbox runtime is not part of Cresco Session v1 yet. Image widgets can still use links, while visual image controls remain scoped to each widget."
+msgstr ""
+
+#: runtime-src/build/standalone-page-settings.js:587
+msgid "Site-wide preloader and page-transition runtime is not part of the current release candidate. No placeholder setting is saved until the frontend runtime exists."
+msgstr ""
+
+#: runtime-src/build/standalone-page-settings.js:589
+msgid "The panel is included in the new Site Settings information architecture so this capability can be added without redesigning navigation later."
+msgstr ""
+
+#: runtime-src/build/standalone-page-settings.js:598
+msgid "Global Custom CSS is automatically scoped to the Cresco page root. @import, @media, external url(), script-like expressions and selectors that escape the page root are rejected by the server."
+msgstr ""
+
+#: runtime-src/build/standalone-page-settings.js:599
+msgid "CSS"
+msgstr ""
+
+#: runtime-src/build/standalone-page-settings.js:599
+msgid "Use ordinary selectors; Cresco prefixes them with the current page scope when rendering."
+msgstr ""
+
+#: runtime-src/build/standalone-page-settings.js:607
+msgid "Data & Maintenance"
+msgstr ""
+
+#: runtime-src/build/standalone-page-settings.js:609
+msgid "User-authored WordPress page content is never deleted. This controls Cresco-owned settings and metadata only."
+msgstr ""
+
+#: runtime-src/build/standalone-page-settings.js:640
+msgid "Back to Site Settings"
+msgstr ""
+
+#: runtime-src/build/standalone-page-settings.js:651
+#: runtime-src/build/standalone-page-settings.js:652
+msgid "Close Page Settings"
+msgstr ""
+
+#: runtime-src/build/standalone-page-settings.js:673
+msgid "Need Help?"
+msgstr ""
+
+#: runtime-src/build/standalone-page-settings.js:677
+msgid "Save Page Settings"
+msgstr ""
+
+#: runtime-src/build/standalone-page-settings.js:688
+msgid "Save Global Settings"
+msgstr ""
+
+#: runtime-src/build/standalone-page-settings.js:693
+msgid "Save Site Identity"
+msgstr ""
+
+#: runtime-src/build/standalone-page-settings.js:729
+msgid "Page Settings saved. Preview will use the new page shell."
+msgstr ""
+
+#: runtime-src/build/standalone-page-settings.js:732
+msgid "Page Settings could not be saved."
+msgstr ""
+
+#: runtime-src/build/standalone-page-settings.js:742
+msgid "Saving global settings…"
+msgstr ""
+
+#: runtime-src/build/standalone-page-settings.js:747
+msgid "Global settings saved."
+msgstr ""
+
+#: runtime-src/build/standalone-page-settings.js:750
+msgid "Global settings could not be saved."
+msgstr ""
+
+#: runtime-src/build/standalone-page-settings.js:760
+msgid "Saving site identity…"
+msgstr ""
+
+#: runtime-src/build/standalone-page-settings.js:774
+msgid "Site identity saved."
+msgstr ""
+
+#: runtime-src/build/standalone-page-settings.js:776
+msgid "Site identity could not be saved."
+msgstr ""
+
+#: runtime-src/build/standalone-page-settings.js:786
+msgid "Loading Site Settings…"
+msgstr ""
+
+#: runtime-src/build/standalone-page-settings.js:806
+msgid "Site Settings could not be loaded."
+msgstr ""
+
+#: runtime-src/build/standalone-page-settings.js:832
+#: runtime-src/build/standalone-page-settings.js:856
+#: runtime-src/build/standalone-ui-v3.js:9
+msgid "Page Settings"
+msgstr ""
+
+#: runtime-src/build/standalone-page-settings.js:861
+#: runtime-src/build/standalone-visual-editor.js:541
+msgid "Preview"
+msgstr ""
+
+#: runtime-src/build/standalone-ui-v3.js:6
+msgid "Settings"
+msgstr ""
+
+#: runtime-src/build/standalone-ui-v3.js:7
+msgid "Settings Center"
+msgstr ""
+
+#: runtime-src/build/standalone-ui-v3.js:8
+msgid "Back to Settings"
+msgstr ""
+
+#: runtime-src/build/standalone-visual-editor.js:246
+msgid "Cresco Session could not be loaded."
+msgstr ""
+
+#: runtime-src/build/standalone-visual-editor.js:366
+msgid "Cresco Session saved."
+msgstr ""
+
+#: runtime-src/build/standalone-visual-editor.js:368
+msgid "Cresco Session could not be saved."
+msgstr ""
+
+#: runtime-src/build/standalone-visual-editor.js:400
+msgid "Import JSON is invalid."
+msgstr ""
+
+#: runtime-src/build/standalone-visual-editor.js:404
+msgid "Session is valid. Review the summary before applying."
+msgstr ""
+
+#: runtime-src/build/standalone-visual-editor.js:405
+msgid "Session validation failed."
+msgstr ""
+
+#: runtime-src/build/standalone-visual-editor.js:414
+msgid "Imported into the current Cresco Editor session. Save when ready."
+msgstr ""
+
+#: runtime-src/build/standalone-visual-editor.js:419
+msgid "Use image"
+msgstr ""
+
+#: runtime-src/build/standalone-visual-editor.js:443
+msgid "Add your text."
+msgstr ""
+
+#: runtime-src/build/standalone-visual-editor.js:445
+msgid "Choose an image"
+msgstr ""
+
+#: runtime-src/build/standalone-visual-editor.js:450
+msgid "Drop widgets here"
+msgstr ""
+
+#: runtime-src/build/standalone-visual-editor.js:458
+#: runtime-src/build/structure-navigator.js:368
+msgid "Search widgets"
+msgstr ""
+
+#: runtime-src/build/standalone-visual-editor.js:472
+msgid "HTML heading"
+msgstr ""
+
+#: runtime-src/build/standalone-visual-editor.js:474
+msgid "URL"
+msgstr ""
+
+#: runtime-src/build/standalone-visual-editor.js:474
+msgid "Target"
+msgstr ""
+
+#: runtime-src/build/standalone-visual-editor.js:474
+msgid "Same tab"
+msgstr ""
+
+#: runtime-src/build/standalone-visual-editor.js:474
+msgid "New tab"
+msgstr ""
+
+#: runtime-src/build/standalone-visual-editor.js:475
+msgid "Image URL"
+msgstr ""
+
+#: runtime-src/build/standalone-visual-editor.js:475
+msgid "Choose from Media Library"
+msgstr ""
+
+#: runtime-src/build/standalone-visual-editor.js:475
+#: runtime-src/build/widget-inspector-persistent.js:231
+msgid "Alternative text"
+msgstr ""
+
+#: runtime-src/build/standalone-visual-editor.js:475
+#: runtime-src/build/widget-inspector-persistent.js:232
+msgid "Caption"
+msgstr ""
+
+#: runtime-src/build/standalone-visual-editor.js:476
+msgid "Items, one per line"
+msgstr ""
+
+#: runtime-src/build/standalone-visual-editor.js:477
+#: runtime-src/build/widget-inspector-persistent.js:266
+msgid "Height"
+msgstr ""
+
+#: runtime-src/build/standalone-visual-editor.js:480
+msgid "Content width"
+msgstr ""
+
+#: runtime-src/build/standalone-visual-editor.js:480
+msgid "Boxed"
+msgstr ""
+
+#: runtime-src/build/standalone-visual-editor.js:480
+msgid "Uses the Global container width and centers the container."
+msgstr ""
+
+#: runtime-src/build/standalone-visual-editor.js:480
+msgid "Stretches the container to the full available width."
+msgstr ""
+
+#: runtime-src/build/standalone-visual-editor.js:482
+#: runtime-src/build/widget-inspector-persistent.js:222
+msgid "Align items"
+msgstr ""
+
+#: runtime-src/build/standalone-visual-editor.js:482
+msgid "Justify"
+msgstr ""
+
+#: runtime-src/build/standalone-visual-editor.js:485
+msgid "This widget has no content fields."
+msgstr ""
+
+#: runtime-src/build/standalone-visual-editor.js:489
+msgid "Select a widget on the canvas or in Structure."
+msgstr ""
+
+#: runtime-src/build/standalone-visual-editor.js:493
+#: runtime-src/build/structure-navigator.js:187
+msgid "Duplicate"
+msgstr ""
+
+#: runtime-src/build/standalone-visual-editor.js:495
+#: runtime-src/build/widget-inspector-persistent.js:254
+#: runtime-src/build/widget-inspector-persistent.js:270
+#: runtime-src/build/widget-inspector-persistent.js:328
+msgid "Content"
+msgstr ""
+
+#: runtime-src/build/standalone-visual-editor.js:497
+msgid "Base"
+msgstr ""
+
+#: runtime-src/build/standalone-visual-editor.js:497
+msgid "Use & for this widget. Use data-cresco-part selectors for stable inner parts. @media and url() are intentionally blocked."
+msgstr ""
+
+#: runtime-src/build/standalone-visual-editor.js:508
+msgid "Copy Global Config"
+msgstr ""
+
+#: runtime-src/build/standalone-visual-editor.js:518
+msgid "Copy for ChatGPT"
+msgstr ""
+
+#: runtime-src/build/standalone-visual-editor.js:518
+msgid "The AI context contains Global Design, the allowed widget contract, CSS rules, and the current Cresco Session."
+msgstr ""
+
+#: runtime-src/build/standalone-visual-editor.js:518
+msgid "AI Context copied."
+msgstr ""
+
+#: runtime-src/build/standalone-visual-editor.js:518
+msgid "Copy AI Context"
+msgstr ""
+
+#: runtime-src/build/standalone-visual-editor.js:518
+msgid "Widget Catalog copied."
+msgstr ""
+
+#: runtime-src/build/standalone-visual-editor.js:518
+msgid "Copy Widgets"
+msgstr ""
+
+#: runtime-src/build/standalone-visual-editor.js:519
+msgid "Import AI Session"
+msgstr ""
+
+#: runtime-src/build/standalone-visual-editor.js:519
+msgid "Paste a cresco-session/v1 object. Cresco validates widget types, stable IDs, style values, responsive values, and scoped Custom CSS before it can be applied."
+msgstr ""
+
+#: runtime-src/build/standalone-visual-editor.js:519
+msgid "Ready to apply"
+msgstr ""
+
+#: runtime-src/build/standalone-visual-editor.js:519
+msgid "Nothing is saved until you click Update."
+msgstr ""
+
+#: runtime-src/build/standalone-visual-editor.js:525
+msgid "No widgets yet."
+msgstr ""
+
+#: runtime-src/build/standalone-visual-editor.js:539
+msgid "Back to Pages"
+msgstr ""
+
+#: runtime-src/build/standalone-visual-editor.js:540
+msgid "Page title"
+msgstr ""
+
+#: runtime-src/build/standalone-visual-editor.js:541
+msgid "Update"
+msgstr ""
+
+#: runtime-src/build/standalone-visual-editor.js:541
+msgid "Saved"
+msgstr ""
+
+#: runtime-src/build/standalone-visual-editor.js:546
+msgid "Cresco editor panels"
+msgstr ""
+
+#: runtime-src/build/standalone-visual-editor.js:552
+msgid "Start with a widget"
+msgstr ""
+
+#: runtime-src/build/standalone-visual-editor.js:552
+msgid "Drag a widget here, click one in the library, or import a Cresco Session from ChatGPT."
+msgstr ""
+
+#: runtime-src/build/standalone-visual-editor.js:555
+#: runtime-src/build/structure-navigator.js:351
+#: runtime-src/build/structure-navigator.js:359
+msgid "Structure"
+msgstr ""
+
+#: runtime-src/build/structure-navigator.js:178
+msgid "Collapse item"
+msgstr ""
+
+#: runtime-src/build/structure-navigator.js:178
+msgid "Expand item"
+msgstr ""
+
+#: runtime-src/build/structure-navigator.js:182
+msgid "Locked"
+msgstr ""
+
+#: runtime-src/build/structure-navigator.js:185
+msgid "Rename"
+msgstr ""
+
+#: runtime-src/build/structure-navigator.js:185
+msgid "Rename widget"
+msgstr ""
+
+#: runtime-src/build/structure-navigator.js:186
+msgid "Unlock"
+msgstr ""
+
+#: runtime-src/build/structure-navigator.js:186
+msgid "Lock"
+msgstr ""
+
+#: runtime-src/build/structure-navigator.js:186
+msgid "Unlock widget"
+msgstr ""
+
+#: runtime-src/build/structure-navigator.js:186
+msgid "Lock widget"
+msgstr ""
+
+#: runtime-src/build/structure-navigator.js:266
+msgid "Widget name"
+msgstr ""
+
+#: runtime-src/build/structure-navigator.js:351
+msgid "Open Structure navigator"
+msgstr ""
+
+#: runtime-src/build/structure-navigator.js:357
+msgid "Page structure"
+msgstr ""
+
+#: runtime-src/build/structure-navigator.js:361
+msgid "Dock right"
+msgstr ""
+
+#: runtime-src/build/structure-navigator.js:361
+msgid "Dock Structure to the right"
+msgstr ""
+
+#: runtime-src/build/structure-navigator.js:362
+msgid "Expand"
+msgstr ""
+
+#: runtime-src/build/structure-navigator.js:362
+msgid "Collapse"
+msgstr ""
+
+#: runtime-src/build/structure-navigator.js:362
+msgid "Expand Structure"
+msgstr ""
+
+#: runtime-src/build/structure-navigator.js:362
+msgid "Collapse Structure"
+msgstr ""
+
+#: runtime-src/build/structure-navigator.js:363
+msgid "Close"
+msgstr ""
+
+#: runtime-src/build/structure-navigator.js:363
+msgid "Close Structure"
+msgstr ""
+
+#: runtime-src/build/structure-navigator.js:368
+msgid "Search structure…"
+msgstr ""
+
+#: runtime-src/build/structure-navigator.js:370
+msgid "Expand all"
+msgstr ""
+
+#: runtime-src/build/structure-navigator.js:371
+msgid "Collapse all"
+msgstr ""
+
+#: runtime-src/build/structure-navigator.js:375
+msgid "Block hierarchy"
+msgstr ""
+
+#: runtime-src/build/structure-navigator.js:375
+msgid "This page has no widgets yet."
+msgstr ""
+
+#: runtime-src/build/structure-navigator.js:377
+msgid "Docked right"
+msgstr ""
+
+#: runtime-src/build/structure-navigator.js:377
+msgid "Floating"
+msgstr ""
+
+#: runtime-src/build/structure-navigator.js:378
+msgid "Resize Structure panel"
+msgstr ""
+
+#: runtime-src/build/structure-navigator.js:72
+#: runtime-src/build/structure-navigator.js:82
+#: runtime-src/build/visual-canvas.js:180
+#: runtime-src/build/visual-canvas.js:184
+#: runtime-src/build/widget-inspector-persistent.js:78
+#: runtime-src/build/widget-inspector-persistent.js:82
+msgid "Widget"
+msgstr ""
+
+#: runtime-src/build/templates.js:103
+msgid "Component creation failed."
+msgstr ""
+
+#: runtime-src/build/templates.js:110
+msgid "Synced component inserted."
+msgstr ""
+
+#: runtime-src/build/templates.js:112
+msgid "Component insertion failed."
+msgstr ""
+
+#: runtime-src/build/templates.js:119
+msgid "Site Kit exported."
+msgstr ""
+
+#: runtime-src/build/templates.js:121
+msgid "Site Kit export failed."
+msgstr ""
+
+#: runtime-src/build/templates.js:129
+msgid "Site Kit imported. Reload the editor to refresh global design values."
+msgstr ""
+
+#: runtime-src/build/templates.js:131
+msgid "Site Kit import failed."
+msgstr ""
+
+#: runtime-src/build/templates.js:134
+msgid "The Site Kit JSON is invalid."
+msgstr ""
+
+#: runtime-src/build/templates.js:138
+msgid "All categories"
+msgstr ""
+
+#: runtime-src/build/templates.js:146
+#: runtime-src/build/templates.js:147
+msgid "Cresco Templates"
+msgstr ""
+
+#: runtime-src/build/templates.js:150
+msgid "Template Library"
+msgstr ""
+
+#: runtime-src/build/templates.js:151
+msgid "Search templates"
+msgstr ""
+
+#: runtime-src/build/templates.js:152
+msgid "Category"
+msgstr ""
+
+#: runtime-src/build/templates.js:157
+#: runtime-src/build/templates.js:167
+msgid "Insert"
+msgstr ""
+
+#: runtime-src/build/templates.js:161
+msgid "Synced Components"
+msgstr ""
+
+#: runtime-src/build/templates.js:162
+msgid "Component title"
+msgstr ""
+
+#: runtime-src/build/templates.js:163
+msgid "Save selected block"
+msgstr ""
+
+#: runtime-src/build/templates.js:171
+msgid "Site Kits"
+msgstr ""
+
+#: runtime-src/build/templates.js:172
+msgid "Site Kits contain sanitized Cresco design settings and references to bundled templates. They never import PHP or JavaScript."
+msgstr ""
+
+#: runtime-src/build/templates.js:173
+msgid "Export Site Kit"
+msgstr ""
+
+#: runtime-src/build/templates.js:174
+msgid "Site Kit JSON"
+msgstr ""
+
+#: runtime-src/build/templates.js:175
+msgid "Import Site Kit"
+msgstr ""
+
+#: runtime-src/build/templates.js:51
+msgid "Template data could not be loaded."
+msgstr ""
+
+#: runtime-src/build/templates.js:74
+msgid "This template contains no insertable blocks."
+msgstr ""
+
+#: runtime-src/build/templates.js:77
+msgid "Template inserted."
+msgstr ""
+
+#: runtime-src/build/templates.js:79
+msgid "Template insertion failed."
+msgstr ""
+
+#: runtime-src/build/templates.js:86
+msgid "Select one block before saving a component."
+msgstr ""
+
+#: runtime-src/build/templates.js:91
+msgid "Enter a component title."
+msgstr ""
+
+#: runtime-src/build/templates.js:98
+msgid "Synced component created."
+msgstr ""
+
+#: runtime-src/build/theme-builder.js:19
+msgid "Cresco Theme Builder"
+msgstr ""
+
+#: runtime-src/build/theme-builder.js:20
+msgid "Select a type"
+msgstr ""
+
+#: runtime-src/build/theme-builder.js:21
+msgid "Higher priority wins when multiple templates match."
+msgstr ""
+
+#: runtime-src/build/theme-builder.js:24
+msgid "No conditions means the template applies everywhere for its type."
+msgstr ""
+
+#: runtime-src/build/theme-builder.js:26
+msgid "Include"
+msgstr ""
+
+#: runtime-src/build/theme-builder.js:26
+msgid "Exclude"
+msgstr ""
+
+#: runtime-src/build/theme-builder.js:27
+msgid "Rule"
+msgstr ""
+
+#: runtime-src/build/theme-builder.js:28
+msgid "Value"
+msgstr ""
+
+#: runtime-src/build/theme-builder.js:28
+msgid "Used by Post type, Post ID, and Taxonomy rules."
+msgstr ""
+
+#: runtime-src/build/theme-builder.js:29
+msgid "Remove condition"
+msgstr ""
+
+#: runtime-src/build/theme-builder.js:31
+msgid "Add condition"
+msgstr ""
+
+#: runtime-src/build/visual-canvas.js:130
+msgid "Drag widget to move it"
+msgstr ""
+
+#: runtime-src/build/visual-canvas.js:133
+msgid "Move widget up"
+msgstr ""
+
+#: runtime-src/build/visual-canvas.js:134
+msgid "Move widget down"
+msgstr ""
+
+#: runtime-src/build/visual-canvas.js:244
+msgid "Drop inside"
+msgstr ""
+
+#: runtime-src/build/visual-canvas.js:251
+msgid "Insert above"
+msgstr ""
+
+#: runtime-src/build/visual-canvas.js:251
+msgid "Insert below"
+msgstr ""
+
+#: runtime-src/build/visual-canvas.js:395
+msgid "Switch between Cresco canvas and native Gutenberg controls"
+msgstr ""
+
+#: runtime-src/build/visual-canvas.js:401
+msgid "Hold Alt for native controls"
+msgstr ""
+
+#: runtime-src/build/widget-inspector-persistent.js:175
+msgid "Select a widget"
+msgstr ""
+
+#: runtime-src/build/widget-inspector-persistent.js:176
+msgid "Click any widget on the canvas or in Structure to edit it here."
+msgstr ""
+
+#: runtime-src/build/widget-inspector-persistent.js:213
+#: runtime-src/build/widget-inspector-persistent.js:282
+#: runtime-src/build/widget-inspector-persistent.js:308
+#: runtime-src/build/widget-inspector-persistent.js:319
+msgid "Reset"
+msgstr ""
+
+#: runtime-src/build/widget-inspector-persistent.js:219
+msgid "Container layout"
+msgstr ""
+
+#: runtime-src/build/widget-inspector-persistent.js:221
+msgid "Justify content"
+msgstr ""
+
+#: runtime-src/build/widget-inspector-persistent.js:233
+msgid "Aspect ratio"
+msgstr ""
+
+#: runtime-src/build/widget-inspector-persistent.js:234
+msgid "Scale"
+msgstr ""
+
+#: runtime-src/build/widget-inspector-persistent.js:234
+msgid "Cover"
+msgstr ""
+
+#: runtime-src/build/widget-inspector-persistent.js:234
+msgid "Contain"
+msgstr ""
+
+#: runtime-src/build/widget-inspector-persistent.js:235
+#: runtime-src/build/widget-inspector-persistent.js:242
+msgid "Link to"
+msgstr ""
+
+#: runtime-src/build/widget-inspector-persistent.js:241
+msgid "Crop images"
+msgstr ""
+
+#: runtime-src/build/widget-inspector-persistent.js:255
+msgid "Inline formatting is preserved as HTML. Direct editing on the canvas remains recommended."
+msgstr ""
+
+#: runtime-src/build/widget-inspector-persistent.js:261
+msgid "Link URL"
+msgstr ""
+
+#: runtime-src/build/widget-inspector-persistent.js:262
+msgid "Open in a new tab"
+msgstr ""
+
+#: runtime-src/build/widget-inspector-persistent.js:263
+msgid "Link relationship"
+msgstr ""
+
+#: runtime-src/build/widget-inspector-persistent.js:264
+msgid "Heading level"
+msgstr ""
+
+#: runtime-src/build/widget-inspector-persistent.js:265
+msgid "Default"
+msgstr ""
+
+#: runtime-src/build/widget-inspector-persistent.js:265
+msgid "Full width"
+msgstr ""
+
+#: runtime-src/build/widget-inspector-persistent.js:265
+msgid "Left"
+msgstr ""
+
+#: runtime-src/build/widget-inspector-persistent.js:265
+msgid "Right"
+msgstr ""
+
+#: runtime-src/build/widget-inspector-persistent.js:271
+msgid "Edit this widget directly on the canvas. Style and advanced settings are available in the other tabs."
+msgstr ""
+
+#: runtime-src/build/widget-inspector-persistent.js:278
+msgid "Size"
+msgstr ""
+
+#: runtime-src/build/widget-inspector-persistent.js:281
+msgid "Minimum height"
+msgstr ""
+
+#: runtime-src/build/widget-inspector-persistent.js:283
+msgid "Margin"
+msgstr ""
+
+#: runtime-src/build/widget-inspector-persistent.js:284
+msgid "Padding"
+msgstr ""
+
+#: runtime-src/build/widget-inspector-persistent.js:285
+msgid "Appearance"
+msgstr ""
+
+#: runtime-src/build/widget-inspector-persistent.js:288
+msgid "Border radius"
+msgstr ""
+
+#: runtime-src/build/widget-inspector-persistent.js:289
+msgid "Font size"
+msgstr ""
+
+#: runtime-src/build/widget-inspector-persistent.js:290
+msgid "Line height"
+msgstr ""
+
+#: runtime-src/build/widget-inspector-persistent.js:291
+msgid "Native-first"
+msgstr ""
+
+#: runtime-src/build/widget-inspector-persistent.js:291
+msgid "Cresco style"
+msgstr ""
+
+#: runtime-src/build/widget-inspector-persistent.js:304
+msgid "Effects"
+msgstr ""
+
+#: runtime-src/build/widget-inspector-persistent.js:305
+msgid "Opacity"
+msgstr ""
+
+#: runtime-src/build/widget-inspector-persistent.js:306
+msgid "Transform"
+msgstr ""
+
+#: runtime-src/build/widget-inspector-persistent.js:307
+msgid "Box shadow"
+msgstr ""
+
+#: runtime-src/build/widget-inspector-persistent.js:309
+msgid "Responsive visibility"
+msgstr ""
+
+#: runtime-src/build/widget-inspector-persistent.js:310
+msgid "Hide on desktop and wider"
+msgstr ""
+
+#: runtime-src/build/widget-inspector-persistent.js:311
+msgid "Hide on tablet"
+msgstr ""
+
+#: runtime-src/build/widget-inspector-persistent.js:312
+msgid "Hide on mobile"
+msgstr ""
+
+#: runtime-src/build/widget-inspector-persistent.js:314
+#: runtime-src/build/widget-inspector-persistent.js:315
+msgid "Position"
+msgstr ""
+
+#: runtime-src/build/widget-inspector-persistent.js:317
+msgid "Z-index"
+msgstr ""
+
+#: runtime-src/build/widget-inspector-persistent.js:318
+msgid "Overflow"
+msgstr ""
+
+#: runtime-src/build/widget-inspector-persistent.js:320
+msgid "HTML"
+msgstr ""
+
+#: runtime-src/build/widget-inspector-persistent.js:321
+msgid "HTML anchor"
+msgstr ""
+
+#: runtime-src/build/widget-inspector-persistent.js:322
+msgid "Additional CSS classes"
+msgstr ""
+
+#: runtime-src/build/widget-inspector-persistent.js:330
+msgid "Advanced"
+msgstr ""
+
+#: runtime-src/build/widget-inspector-persistent.js:336
+msgid "Edit widget"
+msgstr ""
+
+#: runtime-src/build/widget-inspector-persistent.js:345
+msgid "Widget editing sections"
+msgstr ""
+
+#: runtime-src/build/widget-inspector-persistent.js:87
+#: runtime-src/build/widget-inspector-persistent.js:265
+msgid "Wide"
+msgstr ""
+
+#: runtime-src/build/widget-inspector-persistent.js:93
+msgid "Responsive device"
+msgstr ""
+
+#: src/blocks/container/Edit.tsx:116
+#: runtime-src/build/container.js:489
+msgid "Layout · %s"
+msgstr ""
+
+#: src/blocks/container/Edit.tsx:122
+#: runtime-src/build/container.js:337
+msgid "Desktop values are the base inherited by every smaller device."
+msgstr ""
+
+#: src/blocks/container/Edit.tsx:126
+#: runtime-src/build/container.js:341
+msgid "Only changed values are stored for this device; all other values inherit automatically."
+msgstr ""
+
+#: src/blocks/container/Edit.tsx:132
+#: runtime-src/build/container.js:348
+msgid "Layout mode"
+msgstr ""
+
+#: src/blocks/container/Edit.tsx:140
+#: runtime-src/build/container.js:353
+msgid "Flex"
+msgstr ""
+
+#: src/blocks/container/Edit.tsx:141
+#: src/editor/elements.ts:137
+#: runtime-src/build/container.js:354
+#: runtime-src/build/editor.js:122
+msgid "Grid"
+msgstr ""
+
+#: src/blocks/container/Edit.tsx:142
+#: runtime-src/build/container.js:355
+msgid "Block"
+msgstr ""
+
+#: src/blocks/container/Edit.tsx:149
+#: runtime-src/build/container.js:365
+#: runtime-src/build/standalone-visual-editor.js:482
+#: runtime-src/build/widget-inspector-persistent.js:220
+msgid "Direction"
+msgstr ""
+
+#: src/blocks/container/Edit.tsx:157
+#: runtime-src/build/container.js:370
+msgid "Column"
+msgstr ""
+
+#: src/blocks/container/Edit.tsx:158
+#: src/editor/elements.ts:121
+#: runtime-src/build/container.js:371
+#: runtime-src/build/editor.js:121
+msgid "Row"
+msgstr ""
+
+#: src/blocks/container/Edit.tsx:163
+#: runtime-src/build/container.js:377
+msgid "Wrapping"
+msgstr ""
+
+#: src/blocks/container/Edit.tsx:171
+#: runtime-src/build/container.js:382
+msgid "No wrap"
+msgstr ""
+
+#: src/blocks/container/Edit.tsx:172
+#: runtime-src/build/container.js:383
+msgid "Wrap"
+msgstr ""
+
+#: src/blocks/container/Edit.tsx:180
+#: src/editor/elements.ts:186
+#: runtime-src/build/container.js:393
+#: runtime-src/build/dynamic-advanced.js:27
+#: runtime-src/build/dynamic-advanced.js:50
+#: runtime-src/build/dynamic-alpha4.js:66
+#: runtime-src/build/dynamic-alpha4.js:133
+#: runtime-src/build/dynamic-alpha5.js:44
+#: runtime-src/build/dynamic-completion.js:24
+#: runtime-src/build/dynamic.js:85
+#: runtime-src/build/editor.js:124
+#: runtime-src/build/standalone-visual-editor.js:478
+msgid "Columns"
+msgstr ""
+
+#: src/blocks/container/Edit.tsx:192
+#: runtime-src/build/container.js:407
+msgid "Justification"
+msgstr ""
+
+#: src/blocks/container/Edit.tsx:200
+#: src/blocks/container/Edit.tsx:217
+#: runtime-src/build/container.js:412
+#: runtime-src/build/container.js:430
+msgid "Start"
+msgstr ""
+
+#: src/blocks/container/Edit.tsx:201
+#: src/blocks/container/Edit.tsx:218
+#: runtime-src/build/container.js:413
+#: runtime-src/build/container.js:431
+#: runtime-src/build/widget-inspector-persistent.js:265
+msgid "Center"
+msgstr ""
+
+#: src/blocks/container/Edit.tsx:202
+#: src/blocks/container/Edit.tsx:219
+#: runtime-src/build/container.js:414
+#: runtime-src/build/container.js:432
+msgid "End"
+msgstr ""
+
+#: src/blocks/container/Edit.tsx:203
+#: runtime-src/build/container.js:416
+msgid "Space between"
+msgstr ""
+
+#: src/blocks/container/Edit.tsx:208
+#: runtime-src/build/container.js:424
+#: runtime-src/build/widget-inspector-persistent.js:265
+msgid "Alignment"
+msgstr ""
+
+#: src/blocks/container/Edit.tsx:216
+#: runtime-src/build/container.js:429
+msgid "Stretch"
+msgstr ""
+
+#: src/blocks/container/Edit.tsx:224
+#: runtime-src/build/container.js:438
+#: runtime-src/build/widget-inspector-persistent.js:223
+msgid "Gap"
+msgstr ""
+
+#: src/blocks/container/Edit.tsx:235
+#: runtime-src/build/container.js:451
+#: runtime-src/build/widget-inspector-persistent.js:224
+#: runtime-src/build/widget-inspector-persistent.js:280
+msgid "Maximum width"
+msgstr ""
+
+#: src/blocks/container/Edit.tsx:249
+#: runtime-src/build/container.js:474
+#: runtime-src/build/standalone-visual-editor.js:498
+msgid "Reset device overrides"
+msgstr ""
+
+#: src/blocks/container/Edit.tsx:257
+#: runtime-src/build/container.js:497
+msgid "Spacing · %s"
+msgstr ""
+
+#: src/blocks/container/Edit.tsx:276
+#: runtime-src/build/container.js:516
+#: runtime-src/build/widget-inspector-persistent.js:329
+msgid "Style"
+msgstr ""
+
+#: src/blocks/container/Edit.tsx:278
+#: runtime-src/build/container.js:518
+#: runtime-src/build/widget-inspector-persistent.js:287
+msgid "Background color"
+msgstr ""
+
+#: src/blocks/container/Edit.tsx:36
+#: runtime-src/build/container.js:91
+msgid "Padding top"
+msgstr ""
+
+#: src/blocks/container/Edit.tsx:37
+#: runtime-src/build/container.js:92
+msgid "Padding right"
+msgstr ""
+
+#: src/blocks/container/Edit.tsx:38
+#: runtime-src/build/container.js:93
+msgid "Padding bottom"
+msgstr ""
+
+#: src/blocks/container/Edit.tsx:39
+#: runtime-src/build/container.js:94
+msgid "Padding left"
+msgstr ""
+
+#: src/blocks/container/Edit.tsx:43
+#: src/preview/index.tsx:31
+#: runtime-src/build/container.js:24
+msgid "4K"
+msgstr ""
+
+#: src/blocks/container/Edit.tsx:44
+#: src/preview/index.tsx:32
+#: runtime-src/build/container.js:25
+#: runtime-src/build/preview.js:46
+#: runtime-src/build/widget-inspector-persistent.js:88
+msgid "Desktop"
+msgstr ""
+
+#: src/blocks/container/Edit.tsx:45
+#: src/preview/index.tsx:33
+#: runtime-src/build/container.js:26
+#: runtime-src/build/preview.js:47
+#: runtime-src/build/widget-inspector-persistent.js:89
+msgid "Laptop"
+msgstr ""
+
+#: src/blocks/container/Edit.tsx:46
+#: src/preview/index.tsx:34
+#: runtime-src/build/container.js:27
+#: runtime-src/build/preview.js:48
+#: runtime-src/build/widget-inspector-persistent.js:90
+msgid "Tablet"
+msgstr ""
+
+#: src/blocks/container/Edit.tsx:47
+#: src/preview/index.tsx:35
+#: runtime-src/build/container.js:28
+#: runtime-src/build/preview.js:49
+#: runtime-src/build/widget-inspector-persistent.js:91
+msgid "Mobile"
+msgstr ""
+
+#: src/editor/components/ElementsLibrary.tsx:140
+#: runtime-src/build/editor.js:235
+msgid "%1$s cannot be added because these WordPress blocks are unavailable: %2$s."
+msgstr ""
+
+#: src/editor/components/ElementsLibrary.tsx:180
+msgid "%1$s cannot be inserted at the selected location. Restricted blocks: %2$s."
+msgstr ""
+
+#: src/editor/components/ElementsLibrary.tsx:216
+#: runtime-src/build/editor.js:248
+msgid "%s was added to the page."
+msgstr ""
+
+#: src/editor/components/ElementsLibrary.tsx:226
+#: runtime-src/build/editor.js:254
+msgid "%s could not be added. Reload the editor and try again."
+msgstr ""
+
+#: src/editor/components/ElementsLibrary.tsx:250
+msgid "This dragged element is no longer available."
+msgstr ""
+
+#: src/editor/components/ElementsLibrary.tsx:382
+#: runtime-src/build/editor.js:283
+msgid "Cresco Elements"
+msgstr ""
+
+#: src/editor/components/ElementsLibrary.tsx:384
+msgid "Click an element to insert it, or drag it onto the editor canvas."
+msgstr ""
+
+#: src/editor/components/ElementsLibrary.tsx:391
+#: runtime-src/build/editor.js:284
+msgid "Search elements"
+msgstr ""
+
+#: src/editor/components/ElementsLibrary.tsx:393
+#: runtime-src/build/editor.js:284
+msgid "Search elements…"
+msgstr ""
+
+#: src/editor/components/ElementsLibrary.tsx:397
+#: runtime-src/build/editor.js:285
+msgid "Element categories"
+msgstr ""
+
+#: src/editor/components/ElementsLibrary.tsx:413
+#: runtime-src/build/editor.js:285
+msgid "Favorites"
+msgstr ""
+
+#: src/editor/components/ElementsLibrary.tsx:420
+#: runtime-src/build/editor.js:285
+msgid "Recent"
+msgstr ""
+
+#: src/editor/components/ElementsLibrary.tsx:474
+#: runtime-src/build/editor.js:299
+msgid "Remove %s from favorites"
+msgstr ""
+
+#: src/editor/components/ElementsLibrary.tsx:479
+#: runtime-src/build/editor.js:299
+msgid "Add %s to favorites"
+msgstr ""
+
+#: src/editor/components/ElementsLibrary.tsx:495
+#: runtime-src/build/editor.js:302
+msgid "No matching elements were found."
+msgstr ""
+
+#: src/editor/components/GlobalSettingsPanel.tsx:130
+msgid "The JSON does not contain a complete Cresco schema 3 design settings object."
+msgstr ""
+
+#: src/editor/components/GlobalSettingsPanel.tsx:142
+msgid "The design settings JSON is invalid."
+msgstr ""
+
+#: src/editor/components/GlobalSettingsPanel.tsx:151
+msgid "Enter a valid custom color slug."
+msgstr ""
+
+#: src/editor/components/GlobalSettingsPanel.tsx:155
+msgid "A maximum of 24 custom colors is supported."
+msgstr ""
+
+#: src/editor/components/GlobalSettingsPanel.tsx:173
+msgid "Remove aliases that use this color before deleting it."
+msgstr ""
+
+#: src/editor/components/GlobalSettingsPanel.tsx:187
+msgid "Enter a valid alias slug."
+msgstr ""
+
+#: src/editor/components/GlobalSettingsPanel.tsx:191
+msgid "A maximum of 24 aliases is supported."
+msgstr ""
+
+#: src/editor/components/GlobalSettingsPanel.tsx:221
+#: runtime-src/build/editor.js:313
+msgid "Global design"
+msgstr ""
+
+#: src/editor/components/GlobalSettingsPanel.tsx:223
+#: runtime-src/build/editor.js:314
+msgid "Primary color"
+msgstr ""
+
+#: src/editor/components/GlobalSettingsPanel.tsx:224
+#: runtime-src/build/editor.js:315
+#: runtime-src/build/widget-inspector-persistent.js:286
+msgid "Text color"
+msgstr ""
+
+#: src/editor/components/GlobalSettingsPanel.tsx:225
+msgid "Muted text color"
+msgstr ""
+
+#: src/editor/components/GlobalSettingsPanel.tsx:226
+#: runtime-src/build/editor.js:316
+msgid "Page background"
+msgstr ""
+
+#: src/editor/components/GlobalSettingsPanel.tsx:227
+msgid "Container maximum width"
+msgstr ""
+
+#: src/editor/components/GlobalSettingsPanel.tsx:228
+msgid "Content maximum width"
+msgstr ""
+
+#: src/editor/components/GlobalSettingsPanel.tsx:229
+#: runtime-src/build/editor.js:317
+msgid "Global radius"
+msgstr ""
+
+#: src/editor/components/GlobalSettingsPanel.tsx:230
+#: runtime-src/build/design-system.js:102
+#: runtime-src/build/editor.js:318
+msgid "Font family stack"
+msgstr ""
+
+#: src/editor/components/GlobalSettingsPanel.tsx:232
+#: runtime-src/build/editor.js:319
+#: runtime-src/build/global-config-import.js:216
+#: runtime-src/build/standalone-page-settings.js:724
+#: runtime-src/build/standalone-visual-editor.js:541
+msgid "Saving…"
+msgstr ""
+
+#: src/editor/components/GlobalSettingsPanel.tsx:232
+#: runtime-src/build/design-system.js:114
+#: runtime-src/build/editor.js:319
+msgid "Save global design"
+msgstr ""
+
+#: src/editor/components/GlobalSettingsPanel.tsx:237
+msgid "Custom color tokens"
+msgstr ""
+
+#: src/editor/components/GlobalSettingsPanel.tsx:243
+#: src/editor/components/GlobalSettingsPanel.tsx:259
+#: runtime-src/build/standalone-visual-editor.js:493
+#: runtime-src/build/structure-navigator.js:188
+msgid "Delete"
+msgstr ""
+
+#: src/editor/components/GlobalSettingsPanel.tsx:246
+msgid "Token slug"
+msgstr ""
+
+#: src/editor/components/GlobalSettingsPanel.tsx:248
+msgid "Token color"
+msgstr ""
+
+#: src/editor/components/GlobalSettingsPanel.tsx:251
+msgid "Add custom color"
+msgstr ""
+
+#: src/editor/components/GlobalSettingsPanel.tsx:254
+msgid "Token aliases"
+msgstr ""
+
+#: src/editor/components/GlobalSettingsPanel.tsx:262
+msgid "Alias slug"
+msgstr ""
+
+#: src/editor/components/GlobalSettingsPanel.tsx:263
+msgid "Alias target"
+msgstr ""
+
+#: src/editor/components/GlobalSettingsPanel.tsx:264
+msgid "Add alias"
+msgstr ""
+
+#: src/editor/components/GlobalSettingsPanel.tsx:267
+msgid "Import, export, and reset"
+msgstr ""
+
+#: src/editor/components/GlobalSettingsPanel.tsx:268
+msgid "Copy this JSON to move the current design settings to another Cresco installation."
+msgstr ""
+
+#: src/editor/components/GlobalSettingsPanel.tsx:268
+msgid "Export design JSON"
+msgstr ""
+
+#: src/editor/components/GlobalSettingsPanel.tsx:270
+msgid "Imported values are previewed first. Use Save global design to persist them."
+msgstr ""
+
+#: src/editor/components/GlobalSettingsPanel.tsx:270
+msgid "Import design JSON"
+msgstr ""
+
+#: src/editor/components/GlobalSettingsPanel.tsx:271
+msgid "Apply imported design"
+msgstr ""
+
+#: src/editor/components/GlobalSettingsPanel.tsx:272
+msgid "Reset global design to defaults"
+msgstr ""
+
+#: src/editor/components/GlobalSettingsPanel.tsx:275
+#: runtime-src/build/editor.js:321
+msgid "Data and uninstall"
+msgstr ""
+
+#: src/editor/components/GlobalSettingsPanel.tsx:276
+#: runtime-src/build/editor.js:321
+msgid "Page content is never deleted. This removes only Cresco settings and metadata during uninstall."
+msgstr ""
+
+#: src/editor/components/GlobalSettingsPanel.tsx:276
+#: runtime-src/build/editor.js:321
+#: runtime-src/build/standalone-page-settings.js:608
+msgid "Remove plugin data on uninstall"
+msgstr ""
+
+#: src/editor/components/SettingsSidebar.tsx:161
+#: runtime-src/build/editor.js:428
+msgid "Global design saved."
+msgstr ""
+
+#: src/editor/components/SettingsSidebar.tsx:166
+#: runtime-src/build/editor.js:432
+msgid "Global design could not be saved."
+msgstr ""
+
+#: src/editor/components/SettingsSidebar.tsx:182
+msgid "Global design reset to defaults."
+msgstr ""
+
+#: src/editor/components/SettingsSidebar.tsx:187
+msgid "Global design could not be reset."
+msgstr ""
+
+#: src/editor/components/SettingsSidebar.tsx:210
+msgid "Elements"
+msgstr ""
+
+#: src/editor/components/SettingsSidebar.tsx:213
+#: runtime-src/build/editor.js:373
+msgid "Page styling"
+msgstr ""
+
+#: src/editor/components/SettingsSidebar.tsx:216
+msgid "Applies Cresco global colors, typography, and spacing tokens on this Page. Pages containing a Cresco block are detected automatically."
+msgstr ""
+
+#: src/editor/components/SettingsSidebar.tsx:217
+#: runtime-src/build/editor.js:374
+msgid "Enable Cresco page styles"
+msgstr ""
+
+#: src/editor/components/SettingsSidebar.tsx:225
+msgid "This setting is saved by the normal Gutenberg Save or Update button."
+msgstr ""
+
+#: src/editor/components/SettingsSidebar.tsx:229
+#: runtime-src/build/editor.js:442
+msgid "Loading global design"
+msgstr ""
+
+#: src/editor/components/SettingsSidebar.tsx:245
+#: runtime-src/build/editor.js:444
+msgid "Retry loading settings"
+msgstr ""
+
+#: src/editor/components/SettingsSidebar.tsx:92
+#: runtime-src/build/editor.js:404
+msgid "Global design settings could not be loaded."
+msgstr ""
+
+#: src/editor/elements.ts:112
+#: runtime-src/build/editor.js:120
+msgid "Container"
+msgstr ""
+
+#: src/editor/elements.ts:113
+#: runtime-src/build/editor.js:120
+msgid "Flexible nested content container."
+msgstr ""
+
+#: src/editor/elements.ts:122
+#: runtime-src/build/editor.js:121
+msgid "Horizontal flex layout."
+msgstr ""
+
+#: src/editor/elements.ts:138
+msgid "Three-column responsive content grid."
+msgstr ""
+
+#: src/editor/elements.ts:151
+#: runtime-src/build/editor.js:122
+msgid "Feature one"
+msgstr ""
+
+#: src/editor/elements.ts:152
+#: runtime-src/build/editor.js:122
+msgid "Describe the first feature."
+msgstr ""
+
+#: src/editor/elements.ts:155
+#: runtime-src/build/editor.js:122
+msgid "Feature two"
+msgstr ""
+
+#: src/editor/elements.ts:156
+#: runtime-src/build/editor.js:122
+msgid "Describe the second feature."
+msgstr ""
+
+#: src/editor/elements.ts:159
+#: runtime-src/build/editor.js:122
+msgid "Feature three"
+msgstr ""
+
+#: src/editor/elements.ts:160
+#: runtime-src/build/editor.js:122
+msgid "Describe the third feature."
+msgstr ""
+
+#: src/editor/elements.ts:168
+#: runtime-src/build/editor.js:123
+msgid "Stack"
+msgstr ""
+
+#: src/editor/elements.ts:169
+#: runtime-src/build/editor.js:123
+msgid "Vertical stack with consistent spacing."
+msgstr ""
+
+#: src/editor/elements.ts:180
+#: runtime-src/build/editor.js:123
+msgid "Stack title"
+msgstr ""
+
+#: src/editor/elements.ts:180
+#: runtime-src/build/editor.js:123
+msgid "Add stacked content here."
+msgstr ""
+
+#: src/editor/elements.ts:187
+#: runtime-src/build/editor.js:124
+msgid "Two editable content columns."
+msgstr ""
+
+#: src/editor/elements.ts:193
+#: runtime-src/build/editor.js:124
+msgid "First column"
+msgstr ""
+
+#: src/editor/elements.ts:194
+#: runtime-src/build/editor.js:124
+msgid "Second column"
+msgstr ""
+
+#: src/editor/elements.ts:200
+#: runtime-src/build/editor.js:125
+msgid "Spacer"
+msgstr ""
+
+#: src/editor/elements.ts:201
+#: runtime-src/build/editor.js:125
+msgid "Adjustable vertical space."
+msgstr ""
+
+#: src/editor/elements.ts:209
+#: runtime-src/build/editor.js:126
+msgid "Divider"
+msgstr ""
+
+#: src/editor/elements.ts:210
+#: runtime-src/build/editor.js:126
+msgid "Horizontal content separator."
+msgstr ""
+
+#: src/editor/elements.ts:218
+#: runtime-src/build/editor.js:127
+#: runtime-src/build/standalone-visual-editor.js:442
+msgid "Heading"
+msgstr ""
+
+#: src/editor/elements.ts:219
+#: runtime-src/build/editor.js:127
+msgid "Semantic editable heading."
+msgstr ""
+
+#: src/editor/elements.ts:223
+#: runtime-src/build/editor.js:127
+msgid "Add heading"
+msgstr ""
+
+#: src/editor/elements.ts:227
+#: runtime-src/build/design-system.js:101
+#: runtime-src/build/editor.js:128
+#: runtime-src/build/standalone-visual-editor.js:472
+#: runtime-src/build/standalone-visual-editor.js:473
+#: runtime-src/build/widget-inspector-persistent.js:260
+msgid "Text"
+msgstr ""
+
+#: src/editor/elements.ts:228
+#: runtime-src/build/editor.js:128
+msgid "Editable paragraph text."
+msgstr ""
+
+#: src/editor/elements.ts:232
+#: runtime-src/build/editor.js:128
+msgid "Add your text here."
+msgstr ""
+
+#: src/editor/elements.ts:236
+#: runtime-src/build/editor.js:129
+#: runtime-src/build/standalone-visual-editor.js:444
+msgid "Button"
+msgstr ""
+
+#: src/editor/elements.ts:237
+#: runtime-src/build/editor.js:129
+msgid "Accessible call-to-action button."
+msgstr ""
+
+#: src/editor/elements.ts:241
+#: src/editor/elements.ts:368
+#: runtime-src/build/editor.js:129
+#: runtime-src/build/editor.js:140
+msgid "Learn more"
+msgstr ""
+
+#: src/editor/elements.ts:245
+#: runtime-src/build/editor.js:130
+msgid "Button group"
+msgstr ""
+
+#: src/editor/elements.ts:246
+#: runtime-src/build/editor.js:130
+msgid "Primary and secondary actions."
+msgstr ""
+
+#: src/editor/elements.ts:25
+#: runtime-src/build/design-system.js:100
+#: runtime-src/build/editor.js:108
+#: runtime-src/build/global-config-import.js:172
+#: runtime-src/build/standalone-page-settings.js:303
+#: runtime-src/build/standalone-visual-editor.js:481
+#: runtime-src/build/standalone-visual-editor.js:510
+msgid "Layout"
+msgstr ""
+
+#: src/editor/elements.ts:252
+#: runtime-src/build/editor.js:130
+msgid "Primary action"
+msgstr ""
+
+#: src/editor/elements.ts:255
+#: runtime-src/build/editor.js:130
+msgid "Secondary action"
+msgstr ""
+
+#: src/editor/elements.ts:26
+#: runtime-src/build/editor.js:109
+msgid "Basic"
+msgstr ""
+
+#: src/editor/elements.ts:263
+#: runtime-src/build/editor.js:131
+msgid "List"
+msgstr ""
+
+#: src/editor/elements.ts:264
+#: runtime-src/build/editor.js:131
+msgid "Semantic bulleted list."
+msgstr ""
+
+#: src/editor/elements.ts:27
+#: runtime-src/build/editor.js:110
+msgid "Media"
+msgstr ""
+
+#: src/editor/elements.ts:270
+#: runtime-src/build/editor.js:131
+msgid "First item"
+msgstr ""
+
+#: src/editor/elements.ts:271
+#: runtime-src/build/editor.js:131
+msgid "Second item"
+msgstr ""
+
+#: src/editor/elements.ts:272
+#: runtime-src/build/editor.js:131
+msgid "Third item"
+msgstr ""
+
+#: src/editor/elements.ts:278
+#: runtime-src/build/editor.js:132
+msgid "Quote"
+msgstr ""
+
+#: src/editor/elements.ts:279
+#: runtime-src/build/editor.js:132
+msgid "Quotation with citation."
+msgstr ""
+
+#: src/editor/elements.ts:28
+#: runtime-src/build/editor.js:111
+msgid "Marketing"
+msgstr ""
+
+#: src/editor/elements.ts:284
+#: runtime-src/build/editor.js:132
+msgid "Author name"
+msgstr ""
+
+#: src/editor/elements.ts:285
+#: runtime-src/build/editor.js:132
+msgid "Add a memorable quotation."
+msgstr ""
+
+#: src/editor/elements.ts:291
+#: runtime-src/build/editor.js:133
+msgid "Table"
+msgstr ""
+
+#: src/editor/elements.ts:292
+#: runtime-src/build/editor.js:133
+msgid "Accessible data table."
+msgstr ""
+
+#: src/editor/elements.ts:30
+#: runtime-src/build/editor.js:113
+msgid "Blog & dynamic"
+msgstr ""
+
+#: src/editor/elements.ts:300
+#: runtime-src/build/editor.js:134
+#: runtime-src/build/widget-inspector-persistent.js:230
+msgid "Image"
+msgstr ""
+
+#: src/editor/elements.ts:301
+#: runtime-src/build/editor.js:134
+msgid "Responsive image from the Media Library."
+msgstr ""
+
+#: src/editor/elements.ts:309
+#: runtime-src/build/editor.js:135
+#: runtime-src/build/widget-inspector-persistent.js:239
+msgid "Gallery"
+msgstr ""
+
+#: src/editor/elements.ts:31
+#: runtime-src/build/editor.js:114
+msgid "Interactive"
+msgstr ""
+
+#: src/editor/elements.ts:310
+#: runtime-src/build/editor.js:135
+msgid "Responsive image gallery."
+msgstr ""
+
+#: src/editor/elements.ts:318
+#: runtime-src/build/editor.js:136
+msgid "Video"
+msgstr ""
+
+#: src/editor/elements.ts:319
+msgid "Native video or Media Library video."
+msgstr ""
+
+#: src/editor/elements.ts:32
+#: runtime-src/build/editor.js:115
+msgid "Utility"
+msgstr ""
+
+#: src/editor/elements.ts:327
+#: runtime-src/build/editor.js:137
+msgid "Audio"
+msgstr ""
+
+#: src/editor/elements.ts:328
+#: runtime-src/build/editor.js:137
+msgid "Native audio player."
+msgstr ""
+
+#: src/editor/elements.ts:336
+#: runtime-src/build/editor.js:138
+msgid "File download"
+msgstr ""
+
+#: src/editor/elements.ts:337
+#: runtime-src/build/editor.js:138
+msgid "Downloadable file with optional button."
+msgstr ""
+
+#: src/editor/elements.ts:345
+#: runtime-src/build/editor.js:139
+msgid "Embed"
+msgstr ""
+
+#: src/editor/elements.ts:346
+#: runtime-src/build/editor.js:139
+msgid "Embed content from a supported URL."
+msgstr ""
+
+#: src/editor/elements.ts:354
+#: runtime-src/build/editor.js:140
+msgid "Hero section"
+msgstr ""
+
+#: src/editor/elements.ts:355
+#: runtime-src/build/editor.js:140
+msgid "Headline, supporting copy, and actions."
+msgstr ""
+
+#: src/editor/elements.ts:362
+#: runtime-src/build/editor.js:140
+msgid "Build something remarkable"
+msgstr ""
+
+#: src/editor/elements.ts:363
+#: runtime-src/build/editor.js:140
+msgid "Use this space to explain your strongest value proposition."
+msgstr ""
+
+#: src/editor/elements.ts:365
+#: runtime-src/build/editor.js:140
+msgid "Get started"
+msgstr ""
+
+#: src/editor/elements.ts:385
+#: runtime-src/build/editor.js:141
+msgid "Feature grid"
+msgstr ""
+
+#: src/editor/elements.ts:386
+#: runtime-src/build/editor.js:141
+msgid "Three feature cards in a grid."
+msgstr ""
+
+#: src/editor/elements.ts:392
+#: runtime-src/build/editor.js:141
+msgid "Why choose us"
+msgstr ""
+
+#: src/editor/elements.ts:397
+#: runtime-src/build/editor.js:141
+msgid "Fast"
+msgstr ""
+
+#: src/editor/elements.ts:397
+#: runtime-src/build/editor.js:141
+msgid "Designed for excellent performance."
+msgstr ""
+
+#: src/editor/elements.ts:398
+#: runtime-src/build/editor.js:141
+msgid "Flexible"
+msgstr ""
+
+#: src/editor/elements.ts:398
+#: runtime-src/build/editor.js:141
+msgid "Compose native WordPress blocks."
+msgstr ""
+
+#: src/editor/elements.ts:399
+#: runtime-src/build/editor.js:141
+msgid "Accessible"
+msgstr ""
+
+#: src/editor/elements.ts:399
+#: runtime-src/build/editor.js:141
+msgid "Built with inclusive interactions."
+msgstr ""
+
+#: src/editor/elements.ts:407
+#: runtime-src/build/editor.js:142
+msgid "Call to action"
+msgstr ""
+
+#: src/editor/elements.ts:408
+#: runtime-src/build/editor.js:142
+msgid "Focused conversion section."
+msgstr ""
+
+#: src/editor/elements.ts:414
+#: runtime-src/build/editor.js:142
+msgid "Ready to begin?"
+msgstr ""
+
+#: src/editor/elements.ts:415
+#: runtime-src/build/editor.js:142
+msgid "Add a concise reason to take the next step."
+msgstr ""
+
+#: src/editor/elements.ts:416
+#: runtime-src/build/editor.js:142
+msgid "Start now"
+msgstr ""
+
+#: src/editor/elements.ts:422
+#: runtime-src/build/editor.js:143
+msgid "Testimonial"
+msgstr ""
+
+#: src/editor/elements.ts:423
+#: runtime-src/build/editor.js:143
+msgid "Customer quotation and attribution."
+msgstr ""
+
+#: src/editor/elements.ts:429
+#: runtime-src/build/editor.js:143
+msgid "Customer name"
+msgstr ""
+
+#: src/editor/elements.ts:430
+#: runtime-src/build/editor.js:143
+msgid "Share a specific customer outcome or experience."
+msgstr ""
+
+#: src/editor/elements.ts:437
+#: runtime-src/build/editor.js:144
+msgid "Pricing card"
+msgstr ""
+
+#: src/editor/elements.ts:438
+#: runtime-src/build/editor.js:144
+msgid "Plan name, price, features, and action."
+msgstr ""
+
+#: src/editor/elements.ts:444
+#: runtime-src/build/editor.js:144
+msgid "Professional"
+msgstr ""
+
+#: src/editor/elements.ts:445
+#: runtime-src/build/editor.js:144
+msgid "$49"
+msgstr ""
+
+#: src/editor/elements.ts:447
+#: runtime-src/build/editor.js:144
+msgid "First benefit"
+msgstr ""
+
+#: src/editor/elements.ts:448
+#: runtime-src/build/editor.js:144
+msgid "Second benefit"
+msgstr ""
+
+#: src/editor/elements.ts:449
+#: runtime-src/build/editor.js:144
+msgid "Third benefit"
+msgstr ""
+
+#: src/editor/elements.ts:451
+#: runtime-src/build/editor.js:144
+msgid "Choose plan"
+msgstr ""
+
+#: src/editor/elements.ts:457
+#: runtime-src/build/editor.js:145
+msgid "FAQ"
+msgstr ""
+
+#: src/editor/elements.ts:458
+#: runtime-src/build/editor.js:145
+msgid "Accessible expandable question."
+msgstr ""
+
+#: src/editor/elements.ts:463
+#: runtime-src/build/editor.js:145
+msgid "Frequently asked question"
+msgstr ""
+
+#: src/editor/elements.ts:464
+#: runtime-src/build/editor.js:145
+msgid "Add the answer here."
+msgstr ""
+
+#: src/editor/elements.ts:470
+#: runtime-src/build/editor.js:146
+msgid "Social links"
+msgstr ""
+
+#: src/editor/elements.ts:471
+#: runtime-src/build/editor.js:146
+msgid "Accessible social profile links."
+msgstr ""
+
+#: src/editor/elements.ts:480
+#: runtime-src/build/editor.js:147
+msgid "Native WordPress navigation menu."
+msgstr ""
+
+#: src/editor/elements.ts:489
+#: runtime-src/build/editor.js:148
+msgid "Accessible site search form."
+msgstr ""
+
+#: src/editor/elements.ts:497
+#: runtime-src/build/editor.js:149
+msgid "Site logo"
+msgstr ""
+
+#: src/editor/elements.ts:498
+#: runtime-src/build/editor.js:149
+msgid "Logo from WordPress site settings."
+msgstr ""
+
+#: src/editor/elements.ts:506
+#: runtime-src/build/editor.js:150
+msgid "Post title"
+msgstr ""
+
+#: src/editor/elements.ts:507
+#: runtime-src/build/editor.js:150
+msgid "Dynamic title for the current post."
+msgstr ""
+
+#: src/editor/elements.ts:515
+#: runtime-src/build/dynamic.js:56
+#: runtime-src/build/dynamic.js:64
+#: runtime-src/build/editor.js:151
+msgid "Featured image"
+msgstr ""
+
+#: src/editor/elements.ts:516
+#: runtime-src/build/editor.js:151
+msgid "Dynamic current-post featured image."
+msgstr ""
+
+#: src/editor/elements.ts:524
+#: runtime-src/build/editor.js:152
+msgid "Post excerpt"
+msgstr ""
+
+#: src/editor/elements.ts:525
+#: runtime-src/build/editor.js:152
+msgid "Dynamic current-post excerpt."
+msgstr ""
+
+#: src/editor/elements.ts:533
+#: runtime-src/build/editor.js:153
+msgid "Post date"
+msgstr ""
+
+#: src/editor/elements.ts:534
+#: runtime-src/build/editor.js:153
+msgid "Dynamic publication date."
+msgstr ""
+
+#: src/editor/elements.ts:542
+#: runtime-src/build/editor.js:154
+msgid "Latest posts"
+msgstr ""
+
+#: src/editor/elements.ts:543
+#: runtime-src/build/editor.js:154
+msgid "Native list of recent posts."
+msgstr ""
+
+#: src/editor/elements.ts:551
+#: runtime-src/build/editor.js:155
+msgid "Shortcode"
+msgstr ""
+
+#: src/editor/elements.ts:552
+#: runtime-src/build/editor.js:155
+msgid "Render a trusted WordPress shortcode."
+msgstr ""
+
+#: src/editor/elements.ts:560
+#: runtime-src/build/editor.js:156
+msgid "Custom HTML"
+msgstr ""
+
+#: src/editor/elements.ts:561
+#: runtime-src/build/editor.js:156
+msgid "Restricted native HTML block."
+msgstr ""
+
+#: src/editor/elements.ts:97
+#: runtime-src/build/editor.js:119
+msgid "Section"
+msgstr ""
+
+#: src/editor/elements.ts:98
+msgid "Full-width semantic page section."
+msgstr ""
+
+#: src/preview/index.tsx:134
+#: src/preview/index.tsx:140
+#: runtime-src/build/preview.js:363
+#: runtime-src/build/preview.js:368
+msgid "Cresco Preview"
+msgstr ""
+
+#: src/preview/index.tsx:144
+#: runtime-src/build/preview.js:370
+msgid "Responsive viewport"
+msgstr ""
+
+#: src/preview/index.tsx:147
+#: runtime-src/build/preview.js:372
+msgid "Preview device"
+msgstr ""
+
+#: src/preview/index.tsx:169
+msgid "%1$s uses a %2$dpx logical viewport."
+msgstr ""
+
+#: src/preview/index.tsx:177
+#: src/preview/index.tsx:217
+#: runtime-src/build/preview.js:394
+#: runtime-src/build/preview.js:407
+msgid "Live frontend preview"
+msgstr ""
+
+#: src/preview/index.tsx:182
+#: runtime-src/build/preview.js:396
+msgid "The iframe shows WordPress frontend output and refreshes after a save or autosave finishes."
+msgstr ""
+
+#: src/preview/index.tsx:192
+#: runtime-src/build/preview.js:398
+msgid "Open frontend preview"
+msgstr ""
+
+#: src/preview/index.tsx:199
+#: runtime-src/build/preview.js:399
+msgid "Open in new tab"
+msgstr ""
+
+#: src/preview/index.tsx:205
+#: runtime-src/build/preview.js:401
+msgid "A frontend preview URL is not available for this Page yet."
+msgstr ""
+
+#: src/preview/index.tsx:222
+#: runtime-src/build/preview.js:410
+msgid "Waiting for WordPress to finish saving…"
+msgstr ""
+
+#: src/preview/index.tsx:223
+#: runtime-src/build/preview.js:410
+msgid "Showing the latest saved preview."
+msgstr ""
+
+#: src/preview/index.tsx:229
+#: runtime-src/build/preview.js:411
+msgid "Refresh"
+msgstr ""
+
+#: src/preview/index.tsx:238
+#: runtime-src/build/preview.js:419
+msgid "Cresco frontend Page preview"
+msgstr ""
+
+#: src/standalone/standalone-ai-bridge.js:125
+#: runtime-src/build/standalone-ai-bridge.js:125
+msgid "Select an element before exporting this scope."
+msgstr ""
+
+#: src/standalone/standalone-ai-bridge.js:126
+#: runtime-src/build/standalone-ai-bridge.js:126
+msgid "Building AI context…"
+msgstr ""
+
+#: src/standalone/standalone-ai-bridge.js:134
+#: src/standalone/standalone-ai-bridge.js:288
+#: runtime-src/build/standalone-ai-bridge.js:134
+#: runtime-src/build/standalone-ai-bridge.js:288
+msgid "AI Context copied as JSON."
+msgstr ""
+
+#: src/standalone/standalone-ai-bridge.js:136
+#: runtime-src/build/standalone-ai-bridge.js:136
+msgid "AI context export failed."
+msgstr ""
+
+#: src/standalone/standalone-ai-bridge.js:152
+#: runtime-src/build/standalone-ai-bridge.js:152
+msgid "Validating through Cresco contracts…"
+msgstr ""
+
+#: src/standalone/standalone-ai-bridge.js:157
+#: runtime-src/build/standalone-ai-bridge.js:157
+msgid "Valid. Review the structured changes before applying."
+msgstr ""
+
+#: src/standalone/standalone-ai-bridge.js:160
+#: runtime-src/build/standalone-ai-bridge.js:160
+msgid "AI result validation failed."
+msgstr ""
+
+#: src/standalone/standalone-ai-bridge.js:169
+#: runtime-src/build/standalone-ai-bridge.js:169
+msgid "Rechecking the current Session before Apply…"
+msgstr ""
+
+#: src/standalone/standalone-ai-bridge.js:176
+#: runtime-src/build/standalone-ai-bridge.js:176
+msgid "AI result became stale before Apply."
+msgstr ""
+
+#: src/standalone/standalone-ai-bridge.js:186
+#: runtime-src/build/standalone-ai-bridge.js:186
+msgid "AI changes applied to the editor. Use Undo to restore the pre-AI checkpoint. Nothing is saved until Update."
+msgstr ""
+
+#: src/standalone/standalone-ai-bridge.js:202
+#: src/standalone/standalone-ai-bridge.js:218
+#: runtime-src/build/standalone-ai-bridge.js:202
+#: runtime-src/build/standalone-ai-bridge.js:218
+#: runtime-src/build/standalone-visual-editor.js:519
+msgid "Validate import"
+msgstr ""
+
+#: src/standalone/standalone-ai-bridge.js:203
+#: runtime-src/build/standalone-ai-bridge.js:203
+msgid "Editor apply bridge is unavailable."
+msgstr ""
+
+#: src/standalone/standalone-ai-bridge.js:208
+#: runtime-src/build/standalone-ai-bridge.js:208
+#: runtime-src/build/standalone-visual-editor.js:519
+msgid "Apply to Cresco Editor"
+msgstr ""
+
+#: src/standalone/standalone-ai-bridge.js:211
+#: runtime-src/build/standalone-ai-bridge.js:211
+msgid "AI changes applied. Use Undo to roll back. Nothing is saved until Update."
+msgstr ""
+
+#: src/standalone/standalone-ai-bridge.js:215
+#: runtime-src/build/standalone-ai-bridge.js:215
+msgid "The editor could not apply the validated Session."
+msgstr ""
+
+#: src/standalone/standalone-ai-bridge.js:219
+#: runtime-src/build/standalone-ai-bridge.js:219
+msgid "Editor validation bridge is unavailable."
+msgstr ""
+
+#: src/standalone/standalone-ai-bridge.js:229
+#: runtime-src/build/standalone-ai-bridge.js:229
+msgid "Review Changes"
+msgstr ""
+
+#: src/standalone/standalone-ai-bridge.js:244
+#: runtime-src/build/standalone-ai-bridge.js:244
+#: runtime-src/build/standalone-history.js:256
+msgid "Apply"
+msgstr ""
+
+#: src/standalone/standalone-ai-bridge.js:262
+#: runtime-src/build/standalone-ai-bridge.js:262
+msgid "Export for AI"
+msgstr ""
+
+#: src/standalone/standalone-ai-bridge.js:263
+#: runtime-src/build/standalone-ai-bridge.js:263
+msgid "Export the live editor Session with only the contracts and design dependencies the selected scope needs."
+msgstr ""
+
+#: src/standalone/standalone-ai-bridge.js:265
+#: runtime-src/build/standalone-ai-bridge.js:265
+msgid "Optimized Context"
+msgstr ""
+
+#: src/standalone/standalone-ai-bridge.js:265
+#: runtime-src/build/standalone-ai-bridge.js:265
+msgid "Full Context"
+msgstr ""
+
+#: src/standalone/standalone-ai-bridge.js:270
+#: runtime-src/build/standalone-ai-bridge.js:270
+msgid "Export Current Page"
+msgstr ""
+
+#: src/standalone/standalone-ai-bridge.js:271
+#: runtime-src/build/standalone-ai-bridge.js:271
+msgid "Export Selected Element"
+msgstr ""
+
+#: src/standalone/standalone-ai-bridge.js:272
+#: runtime-src/build/standalone-ai-bridge.js:272
+msgid "Export Selected Subtree"
+msgstr ""
+
+#: src/standalone/standalone-ai-bridge.js:273
+#: runtime-src/build/standalone-ai-bridge.js:273
+msgid "Export Selection"
+msgstr ""
+
+#: src/standalone/standalone-ai-bridge.js:276
+#: runtime-src/build/standalone-ai-bridge.js:276
+msgid "Copy Current Session"
+msgstr ""
+
+#: src/standalone/standalone-ai-bridge.js:277
+#: runtime-src/build/standalone-ai-bridge.js:277
+#: runtime-src/build/standalone-visual-editor.js:518
+msgid "Current Session copied."
+msgstr ""
+
+#: src/standalone/standalone-ai-bridge.js:277
+#: runtime-src/build/standalone-ai-bridge.js:277
+msgid "Current Session could not be copied."
+msgstr ""
+
+#: src/standalone/standalone-ai-bridge.js:279
+#: runtime-src/build/standalone-ai-bridge.js:279
+msgid "Copy Widget Contracts"
+msgstr ""
+
+#: src/standalone/standalone-ai-bridge.js:280
+#: runtime-src/build/standalone-ai-bridge.js:280
+msgid "Widget Contracts copied."
+msgstr ""
+
+#: src/standalone/standalone-ai-bridge.js:280
+#: runtime-src/build/standalone-ai-bridge.js:280
+msgid "Widget Contracts could not be copied."
+msgstr ""
+
+#: src/standalone/standalone-ai-bridge.js:288
+#: runtime-src/build/standalone-ai-bridge.js:288
+msgid "Copy JSON"
+msgstr ""
+
+#: src/standalone/standalone-ai-bridge.js:293
+#: runtime-src/build/standalone-ai-bridge.js:293
+msgid "Import AI Result"
+msgstr ""
+
+#: src/standalone/standalone-ai-bridge.js:294
+#: runtime-src/build/standalone-ai-bridge.js:294
+msgid "Paste cresco-patch/v1 for targeted edits or a complete cresco-session/v1 document. Cresco validates first; nothing is applied directly to DOM or WordPress data."
+msgstr ""
+
+#: src/standalone/standalone-ai-bridge.js:297
+#: src/standalone/standalone-ai-bridge.js:306
+#: runtime-src/build/standalone-ai-bridge.js:297
+#: runtime-src/build/standalone-ai-bridge.js:306
+msgid "Detected:"
+msgstr ""
+
+#: src/standalone/standalone-ai-bridge.js:298
+#: runtime-src/build/standalone-ai-bridge.js:298
+msgid "Validate"
+msgstr ""
+
+#: src/standalone/standalone-ai-bridge.js:63
+#: runtime-src/build/standalone-ai-bridge.js:63
+#: runtime-src/build/standalone-visual-editor.js:518
+msgid "Copy Session"
+msgstr ""
+
+#: src/studio/announcer.ts:117
+msgid "Editor ready."
+msgstr ""
+
+#: src/studio/index.tsx:102
+msgid "No styles set yet. Values you add here apply from this breakpoint down."
+msgstr ""
+
+#: src/studio/index.tsx:117
+msgid "Editing %s. Narrower breakpoints inherit from here."
+msgstr ""
+
+#: src/studio/index.tsx:133
+msgid "Set here (%d)"
+msgstr ""
+
+#: src/studio/index.tsx:162
+msgid "Inherited (%d)"
+msgstr ""
+
+#: src/studio/index.tsx:194
+msgid "Responsive inheritance"
+msgstr ""
+
+#: src/studio/visualExport.ts:106
+msgid "Export rendered HTML"
+msgstr ""
+
+#: src/studio/visualExport.ts:107
+msgid "Save a self-contained HTML file of this page for visual review"
+msgstr ""

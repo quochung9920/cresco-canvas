@@ -20,14 +20,36 @@ final class WebsiteRenderer {
 	public static function render_document( $session, $post_id = 0 ) {
 		$html = '';
 		foreach ( (array) ( $session['nodes'] ?? array() ) as $node ) $html .= self::render_node( $node, $post_id );
-		return '<div class="cresco-session-root cresco-website-builder-root" data-cresco-builder="website-core/v1" data-cresco-document="' . esc_attr( (string) ( $session['documentId'] ?? '' ) ) . '">' . $html . '</div>';
+		$html = '<div class="cresco-session-root cresco-website-builder-root" data-cresco-builder="website-core/v1" data-cresco-document="' . esc_attr( (string) ( $session['documentId'] ?? '' ) ) . '">' . $html . '</div>';
+
+		/**
+		 * Filter the rendered markup of a Website Builder document.
+		 *
+		 * Runs once per document, after every node is rendered. Integrations that
+		 * post-process public output belong here rather than in an output buffer.
+		 *
+		 * @param string $html    Rendered document markup.
+		 * @param array  $session Session that produced it.
+		 * @param int    $post_id Page being rendered, or 0.
+		 */
+		return (string) apply_filters( 'cresco_canvas_rendered_document', $html, $session, $post_id );
 	}
 
 	/** Compile structured styles, states, responsive overrides, and scoped Custom CSS. */
 	public static function compile_css( $session ) {
 		$css = '';
 		foreach ( (array) ( $session['nodes'] ?? array() ) as $node ) $css .= self::compile_node_css( $node );
-		return $css;
+
+		/**
+		 * Filter the compiled stylesheet for a document.
+		 *
+		 * Appending here keeps additions inside the scoped selector namespace the
+		 * compiler already established, which an enqueued stylesheet cannot rely on.
+		 *
+		 * @param string $css     Compiled CSS.
+		 * @param array  $session Session that produced it.
+		 */
+		return (string) apply_filters( 'cresco_canvas_compiled_css', $css, $session );
 	}
 
 	private static function compile_node_css( $node ) {

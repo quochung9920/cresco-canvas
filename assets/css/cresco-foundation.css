@@ -199,6 +199,25 @@
 @layer cresco.base {
 
 	/**
+	 * Visually hidden, still announced.
+	 *
+	 * Used by the Studio live regions. `clip-path` with a 1px box keeps the text
+	 * in the accessibility tree, which `display: none` and `visibility: hidden`
+	 * would not.
+	 */
+	.cc-sr-only {
+		position: absolute;
+		overflow: hidden;
+		width: 1px;
+		height: 1px;
+		margin: -1px;
+		padding: 0;
+		border: 0;
+		clip-path: inset(50%);
+		white-space: nowrap;
+	}
+
+	/**
 	 * Visible keyboard focus for editor controls.
 	 *
 	 * Scoped to :focus-visible so pointer interaction is unaffected, and placed
