@@ -63,7 +63,7 @@ report.git.branch = git( [ 'branch', '--show-current' ] );
 report.git.initialStatus = git( [ 'status', '--porcelain' ] );
 
 const checkScripts = Object.keys( packageJson.scripts || {} )
-	.filter( ( name ) => name.startsWith( 'check:' ) && name !== 'check:quality' )
+	.filter( ( name ) => name.startsWith( 'check:' ) && ! [ 'check:quality', 'check:commercial-readiness' ].includes( name ) )
 	.sort();
 
 for ( const name of checkScripts ) {
