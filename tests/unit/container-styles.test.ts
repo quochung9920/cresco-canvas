@@ -19,7 +19,7 @@ describe( 'styleFromAttributes', () => {
 	it( 'preserves the serialized 0.1.x container style contract', () => {
 		expect( styleFromAttributes( attributes ) ).toEqual( {
 			alignItems: 'stretch',
-			background: '#ffffff',
+			backgroundColor: '#ffffff',
 			display: 'flex',
 			flexDirection: 'column',
 			gap: '24px',
