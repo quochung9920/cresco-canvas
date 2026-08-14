@@ -97,6 +97,18 @@ final class WebsiteBuilderVisualParityTest extends TestCase {
 		self::assertStringContainsString( '@media (max-width:1024px){.cresco-website-builder-root [data-cresco-id="survey-card"]{width:100%;max-width:520px;}}', $css );
 	}
 
+	public function test_container_width_fallback_never_overrides_explicit_node_width(): void {
+		$root = dirname( __DIR__, 2 );
+		$css  = file_get_contents( $root . '/assets/css/container-width.css' );
+
+		self::assertIsString( $css );
+		self::assertStringContainsString( '[data-cresco-content-width="full"]', $css );
+		self::assertStringContainsString( 'min-width: 0;', $css );
+		self::assertStringNotContainsString( 'width: 100% !important', $css );
+		self::assertStringNotContainsString( 'max-width: none !important', $css );
+		self::assertStringNotContainsString( 'margin-left: 0 !important', $css );
+	}
+
 	public function test_frontend_compatibility_uses_the_same_canonical_compiler(): void {
 		$root   = dirname( __DIR__, 2 );
 		$source = file_get_contents( $root . '/includes/Builder/WebsiteBuilderCompatibility.php' );
@@ -113,8 +125,9 @@ final class WebsiteBuilderVisualParityTest extends TestCase {
 		self::assertIsString( $source );
 		self::assertStringContainsString( "add_action( 'wp_enqueue_scripts', array( \$this, 'enqueue_frontend_parity' ), 2000 )", $source );
 		self::assertStringContainsString( "add_filter( 'the_content', array( \$this, 'embed_frontend_parity' ), 110 )", $source );
-		self::assertStringContainsString( "STYLE_CONTRACT_VERSION = 'authoritative-v3'", $source );
-		self::assertStringContainsString( 'WebsiteBuilderCssCompiler::compile( $session ) . WidgetPartStyleCompiler::compile', $source );
+		self::assertStringContainsString( "STYLE_CONTRACT_VERSION = 'authoritative-v4'", $source );
+		self::assertStringContainsString( 'WebsiteBuilderCssCompiler::compile( $session )', $source );
+		self::assertStringContainsString( 'WidgetPartStyleCompiler::compile( $session', $source );
 		self::assertStringContainsString( 'data-cresco-style-contract=', $source );
 	}
 
@@ -129,22 +142,35 @@ final class WebsiteBuilderVisualParityTest extends TestCase {
 		self::assertStringNotContainsString( "\$breakpoints[ \$device ] ?? 0", $source );
 	}
 
-	public function test_editor_normalization_exposes_frontend_widget_semantics_without_replacing_react_dom(): void {
+	public function test_editor_visual_surface_uses_authoritative_render_engine_instead_of_mock_markup(): void {
 		$css    = WebsiteBuilderVisualParity::editor_css();
 		$script = WebsiteBuilderVisualParity::editor_script();
 
-		self::assertStringContainsString( '[data-cresco-widget="heading"]>h1', $css );
-		self::assertStringContainsString( '[data-cresco-widget="button"]>a', $css );
-		self::assertStringContainsString( '[data-cresco-field-type="textarea"] input', $css );
-		self::assertStringContainsString( '.is-cresco-decoration>.cc-studio-container-empty', $css );
-		self::assertStringContainsString( 'window.crescoDocumentStore', $script );
-		self::assertStringContainsString( 'applySemanticLayout', $script );
-		self::assertStringContainsString( "fallback('flex-direction'", $script );
-		self::assertStringContainsString( "el.setAttribute('data-cresco-widget'", $script );
-		self::assertStringContainsString( "label.setAttribute('data-cresco-field-type'", $script );
-		self::assertStringContainsString( "button.setAttribute('type','submit')", $script );
+		self::assertStringContainsString( '.cc-studio-canonical-preview', $css );
+		self::assertStringContainsString( '.is-cresco-canonical-preview>.cc-studio-canvas{display:none!important;}', $css );
+		self::assertStringContainsString( '/website-builder/render/', $script );
+		self::assertStringContainsString( 'data.currentSession=session', $script );
+		self::assertStringContainsString( 'website-builder-frontend.css', $script );
+		self::assertStringContainsString( 'forms.css', $script );
+		self::assertStringContainsString( 'render.html', $script );
+		self::assertStringContainsString( 'render.css', $script );
+		self::assertStringContainsString( 'data-cresco-id', $script );
+		self::assertStringContainsString( 'fake.dispatchEvent(new MouseEvent', $script );
 		self::assertStringContainsString( 'cresco:studio-session-change', $script );
-		self::assertStringContainsString( 'MutationObserver', $script );
+		self::assertStringContainsString( 'crescoCanonicalEditorPreview', $script );
+	}
+
+
+	public function test_render_engine_is_shared_v2_boundary_for_editor_and_frontend(): void {
+		$root   = dirname( __DIR__, 2 );
+		$source = file_get_contents( $root . '/includes/Rendering/RenderEngine.php' );
+
+		self::assertIsString( $source );
+		self::assertStringContainsString( 'WebsiteBuilderArchitectureV2::load_document', $source );
+		self::assertStringContainsString( 'WebsiteRendererV2::render_document', $source );
+		self::assertStringContainsString( 'WidgetPartStyleCompiler::compile', $source );
+		self::assertStringContainsString( 'WebsiteBuilderRendererParity::repair_document_html', $source );
+		self::assertStringNotContainsString( 'WebsiteRenderer::render_document', $source );
 	}
 
 	public function test_visual_parity_service_is_registered_by_plugin(): void {

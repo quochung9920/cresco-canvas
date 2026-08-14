@@ -2,18 +2,23 @@
 	container-type: inline-size;
 }
 
+/*
+ * contentWidth describes the container's content constraint, not a mandatory
+ * flex/grid item width. Full-width containers therefore must not force
+ * width/max-width/margins with !important: explicit structured node styles are
+ * authoritative and the CSS compiler supplies safe defaults.
+ */
 .cc-session-canvas [data-cresco-widget="container"][data-cresco-content-width="full"],
 .cresco-session-root [data-cresco-widget="container"][data-cresco-content-width="full"] {
-	width: 100% !important;
-	max-width: none !important;
-	margin-left: 0 !important;
-	margin-right: 0 !important;
+	min-width: 0;
 }
 
+/* Legacy/non-compiled fallback for boxed containers. No !important is used so
+ * an explicit node width/max-width can still win in both Studio and frontend. */
 .cc-session-canvas [data-cresco-widget="container"][data-cresco-content-width="boxed"],
 .cresco-session-root [data-cresco-widget="container"][data-cresco-content-width="boxed"] {
-	width: 100% !important;
-	max-width: var(--cc-container-max) !important;
-	margin-left: auto !important;
-	margin-right: auto !important;
+	width: 100%;
+	max-width: var(--cc-container-max);
+	margin-left: auto;
+	margin-right: auto;
 }
