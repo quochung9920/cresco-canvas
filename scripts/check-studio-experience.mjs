@@ -112,9 +112,12 @@ for ( const token of [
 ] ) expect( 'includes/Builder/WebsiteBuilderRuntimeOwner.php', token );
 for ( const token of [ 'wp_ajax_', 'serve_runtime', 'syntax-repair', "CRESCO_CANVAS_URL . 'build/website-builder-editor.js'" ] ) reject( 'includes/Builder/WebsiteBuilderRuntimeOwner.php', token );
 
+// Structure ownership is asserted through the inline style block. Inline styles
+// are unlayered, and unlayered rules outrank every cascade layer declared in
+// cresco-foundation.css, so the ownership guarantee no longer needs !important.
 for ( const token of [
-	'.cc-studio-meta-grid{display:none!important}',
-	'.cc-studio-tree-actions{display:none!important',
+	'.cc-studio-meta-grid{display:none}',
+	'.cc-studio-tree-actions{display:none',
 	"legacyStructureAdapter:false",
 	"inspectorManagementRemoved:false",
 ] ) expect( 'includes/Builder/WebsiteBuilderStudio.php', token );

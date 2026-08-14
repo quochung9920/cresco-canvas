@@ -17,6 +17,10 @@ module.exports = {
 			process.cwd(),
 			'src/standalone/standalone-ai-bridge.js'
 		),
+		'studio-responsive-inheritance': path.resolve(
+			process.cwd(),
+			'src/studio/index.tsx'
+		),
 	},
 	output: {
 		...defaultConfig.output,

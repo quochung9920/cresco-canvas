@@ -16,6 +16,11 @@ final class WebsiteBuilderStudio {
 	const SCRIPT            = 'build/website-builder-studio.js';
 	const RESPONSIVE_SCRIPT = 'build/website-builder-responsive-properties.js';
 	const UI_SCRIPT         = 'build/website-builder-ui-correction.js';
+	const FOUNDATION_STYLE  = 'assets/css/cresco-foundation.css';
+	const FOUNDATION_HANDLE = 'cresco-canvas-foundation';
+	const INHERITANCE_SCRIPT = 'build/studio-responsive-inheritance.js';
+	const INHERITANCE_STYLE  = 'assets/css/studio-responsive-inheritance.css';
+	const INHERITANCE_HANDLE = 'cresco-canvas-studio-responsive-inheritance';
 	const STYLE             = 'assets/css/website-builder-studio.css';
 	const UI_STYLE          = 'assets/css/website-builder-ui-correction.css';
 	const CONSISTENCY       = 'cresco-canvas-website-builder-consistency-guard';
@@ -112,10 +117,22 @@ final class WebsiteBuilderStudio {
 				true
 			);
 		}
+		// The foundation declares @layer order, and layer order is fixed by first
+		// appearance. It must resolve before any stylesheet that opens a layer.
+		if ( WebsiteBuilderAsset::readable( self::FOUNDATION_STYLE ) ) {
+			wp_enqueue_style(
+				self::FOUNDATION_HANDLE,
+				WebsiteBuilderAsset::url( self::FOUNDATION_STYLE ),
+				array(),
+				WebsiteBuilderAsset::version( self::FOUNDATION_STYLE )
+			);
+		}
+		$studio_deps = array( self::HANDLE, 'wp-components' );
+		if ( wp_style_is( self::FOUNDATION_HANDLE, 'enqueued' ) ) $studio_deps[] = self::FOUNDATION_HANDLE;
 		wp_enqueue_style(
 			'cresco-canvas-website-builder-studio',
 			WebsiteBuilderAsset::url( self::STYLE ),
-			array( self::HANDLE, 'wp-components' ),
+			$studio_deps,
 			WebsiteBuilderAsset::version( self::STYLE )
 		);
 		if ( WebsiteBuilderAsset::readable( self::UI_STYLE ) ) {
@@ -126,6 +143,42 @@ final class WebsiteBuilderStudio {
 				WebsiteBuilderAsset::version( self::UI_STYLE )
 			);
 		}
+		$this->enqueue_responsive_inheritance();
+	}
+
+	/**
+	 * Responsive inheritance section.
+	 *
+	 * Registers itself through window.CrescoStudioSDK, so it depends on the
+	 * Studio handle for load order only and never touches Studio's DOM. Absent
+	 * assets are skipped silently; the section is additive and the editor stays
+	 * usable without it.
+	 */
+	private function enqueue_responsive_inheritance() {
+		if ( ! WebsiteBuilderAsset::readable( self::INHERITANCE_SCRIPT ) ) return;
+
+		$asset_file = CRESCO_CANVAS_PATH . 'build/studio-responsive-inheritance.asset.php';
+		$asset      = is_readable( $asset_file ) ? require $asset_file : array();
+		$deps       = isset( $asset['dependencies'] ) ? (array) $asset['dependencies'] : array( 'wp-element', 'wp-i18n' );
+		$deps[]     = self::HANDLE;
+
+		wp_enqueue_script(
+			self::INHERITANCE_HANDLE,
+			WebsiteBuilderAsset::url( self::INHERITANCE_SCRIPT ),
+			$deps,
+			WebsiteBuilderAsset::version( self::INHERITANCE_SCRIPT ),
+			true
+		);
+		wp_set_script_translations( self::INHERITANCE_HANDLE, 'cresco-canvas' );
+
+		if ( WebsiteBuilderAsset::readable( self::INHERITANCE_STYLE ) ) {
+			wp_enqueue_style(
+				self::INHERITANCE_HANDLE,
+				WebsiteBuilderAsset::url( self::INHERITANCE_STYLE ),
+				array( 'cresco-canvas-website-builder-studio' ),
+				WebsiteBuilderAsset::version( self::INHERITANCE_STYLE )
+			);
+		}
 	}
 
 	/**
@@ -134,16 +187,19 @@ final class WebsiteBuilderStudio {
 	 * legacy runtime bridge is allowed to rewrite mounted Studio nodes.
 	 */
 	private function install_structure_ownership() {
+		// Inline styles are unlayered, and unlayered rules outrank every cascade
+		// layer declared in cresco-foundation.css. Ownership is expressed by that
+		// position alone, so these rules carry no !important.
 		$css = <<<'CSS'
-.cc-studio-meta-grid{display:none!important}
-.cc-studio-left .cc-studio-panel-head .cc-studio-panel-actions{display:none!important}
+.cc-studio-meta-grid{display:none}
+.cc-studio-left .cc-studio-panel-head .cc-studio-panel-actions{display:none}
 .cc-studio-tree-label{cursor:text}
 .cc-studio-tree-row{padding-right:4px}
-.cc-studio-tree-select{min-width:0!important;overflow:hidden}
-.cc-studio-tree-select>.dashicons-lock,.cc-studio-tree-select>.dashicons-hidden{display:inline-flex!important;flex:0 0 17px;opacity:.72}
-.cc-studio-tree-actions{display:none!important;align-items:center;gap:1px;position:absolute;right:3px;top:4px;z-index:8;margin-left:0!important;padding-right:0!important;border-radius:6px;background:var(--cc-panel-2);box-shadow:-10px 0 14px rgba(17,20,27,.92)}
-.cc-studio-tree-actions>button{display:inline-flex!important}
-.cc-studio-tree-row:hover .cc-studio-tree-actions,.cc-studio-tree-row:focus-within .cc-studio-tree-actions{display:flex!important}
+.cc-studio-tree-select{min-width:0;overflow:hidden}
+.cc-studio-tree-select>.dashicons-lock,.cc-studio-tree-select>.dashicons-hidden{display:inline-flex;flex:0 0 17px;opacity:.72}
+.cc-studio-tree-actions{display:none;align-items:center;gap:1px;position:absolute;right:3px;top:4px;z-index:8;margin-left:0;padding-right:0;border-radius:6px;background:var(--cc-color-surface-raised);box-shadow:var(--cc-shadow-popover)}
+.cc-studio-tree-actions>button{display:inline-flex}
+.cc-studio-tree-row:hover .cc-studio-tree-actions,.cc-studio-tree-row:focus-within .cc-studio-tree-actions{display:flex}
 .cc-studio-tree-row:hover .cc-studio-tree-select>.dashicons-lock,.cc-studio-tree-row:hover .cc-studio-tree-select>.dashicons-hidden,.cc-studio-tree-row:focus-within .cc-studio-tree-select>.dashicons-lock,.cc-studio-tree-row:focus-within .cc-studio-tree-select>.dashicons-hidden{opacity:0}
 CSS;
 		wp_add_inline_style( 'cresco-canvas-website-builder-studio', $css );

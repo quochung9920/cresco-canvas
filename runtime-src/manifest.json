@@ -77,6 +77,8 @@
     "preview.asset.php": "src/preview/index.tsx",
     "preview.js": "src/preview/index.tsx",
     "standalone-ai-bridge.js": "src/standalone/standalone-ai-bridge.js",
+    "studio-responsive-inheritance.asset.php": "src/studio/index.tsx",
+    "studio-responsive-inheritance.js": "src/studio/index.tsx",
     "website-builder-consistency-guard.js": "runtime-src/build/website-builder-consistency-guard.js",
     "website-builder-document-store.js": "runtime-src/build/website-builder-document-store.js",
     "website-builder-editor.js": "runtime-src/build/website-builder-editor.js",

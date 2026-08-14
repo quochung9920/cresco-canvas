@@ -1,0 +1,231 @@
+/**
+ * Cresco Canvas design foundation.
+ *
+ * Single source of truth for editor design tokens and cascade order.
+ *
+ * Why this file exists: the editor stylesheets grew nine parallel token
+ * families (--cc-ui-*, --cc-builder-*, --cc-structure-*, --cc-experience-*,
+ * --cc-global-*, --cc-inspector-v2-*, --cc-tree-*, --cc-ui-v3-*, and the bare
+ * --cc-* set) for the same handful of concepts. Two of them, --cc-ui-* and
+ * --cc-tree-*, were defined twice with conflicting values. Precedence between
+ * them was decided by enqueue order and settled with !important.
+ *
+ * The cascade order below replaces that contest. A stylesheet's precedence is
+ * now determined by the layer it declares, not by how late it loads or how
+ * many !important flags it carries.
+ *
+ * Migration: a stylesheet joins the system by wrapping its contents in the
+ * layer that matches its role, then deleting its local token definitions so
+ * the canonical values below apply. Unlayered rules still outrank every
+ * layer, so an un-migrated stylesheet keeps working exactly as before.
+ * Migrate one file at a time; nothing needs to move at once.
+ */
+
+@layer cresco.base, cresco.tokens, cresco.components, cresco.theme, cresco.overrides;
+
+/**
+ * cresco.tokens sits after cresco.base so canonical values take over from a
+ * legacy stylesheet the moment that stylesheet is wrapped in cresco.base.
+ * Once a file's local token definitions are deleted, this ordering no longer
+ * matters for it and the layer can be treated as a plain foundation.
+ *
+ * The legacy aliases in the second half map every historical token name onto a
+ * canonical value, so migrating a stylesheet never requires renaming its
+ * variables in the same change. Delete an alias once nothing references it.
+ */
+@layer cresco.tokens {
+
+	:root {
+
+		/* Surfaces */
+		--cc-color-canvas: #f5f7fb;
+		--cc-color-surface: #fff;
+		--cc-color-surface-raised: #fff;
+		--cc-color-surface-sunken: #f4f6fb;
+		--cc-color-surface-hover: #f8fafc;
+
+		/* Lines and text */
+		--cc-color-border: #e4e7ec;
+		--cc-color-border-strong: #cbd2dc;
+		--cc-color-text: #172033;
+		--cc-color-text-subtle: #344054;
+		--cc-color-text-muted: #667085;
+
+		/* Accent and status */
+		--cc-color-accent: #635bff;
+		--cc-color-accent-hover: #5148e5;
+		--cc-color-accent-soft: #7c6fff;
+		--cc-color-accent-wash: rgba(99, 91, 255, 0.08);
+		--cc-color-danger: #d92d20;
+		--cc-color-success: #079455;
+		--cc-color-warning: #dc6803;
+
+		/* Shape */
+		--cc-radius-sm: 6px;
+		--cc-radius-md: 10px;
+		--cc-radius-lg: 14px;
+
+		/* Elevation */
+		--cc-shadow-subtle: 0 1px 2px rgba(16, 24, 40, 0.03);
+		--cc-shadow-panel: 0 18px 55px rgba(16, 24, 40, 0.12);
+		--cc-shadow-popover: 0 12px 32px rgba(16, 24, 40, 0.16);
+
+		/* Focus. One visible ring for every interactive editor control. */
+		--cc-focus-ring-color: var(--cc-color-accent);
+		--cc-focus-ring-width: 2px;
+		--cc-focus-ring-offset: 2px;
+
+		/* Motion. Honours the reduced-motion block at the end of this file. */
+		--cc-motion-fast: 120ms;
+		--cc-motion-base: 200ms;
+		--cc-motion-ease: cubic-bezier(0.2, 0, 0.13, 1.5);
+
+		/* Alias: bare set, previously defined dark by website-builder-studio.css
+		   and redefined light by website-builder-ui-correction.css. */
+		--cc-bg: var(--cc-color-canvas);
+		--cc-panel: var(--cc-color-surface);
+		--cc-panel-2: var(--cc-color-surface-raised);
+		--cc-panel-3: var(--cc-color-surface-sunken);
+		--cc-line: var(--cc-color-border);
+		--cc-text: var(--cc-color-text);
+		--cc-muted: var(--cc-color-text-muted);
+		--cc-accent: var(--cc-color-accent);
+		--cc-accent-2: var(--cc-color-accent-soft);
+		--cc-danger: var(--cc-color-danger);
+		--cc-success: var(--cc-color-success);
+		--cc-warning: var(--cc-color-warning);
+		--cc-radius: var(--cc-radius-md);
+		--cc-shadow: var(--cc-shadow-panel);
+
+		/* Alias: standalone-visual-editor.css and
+		   website-builder-architecture.css defined this family twice with
+		   different values. */
+		--cc-ui-stage: var(--cc-color-canvas);
+		--cc-ui-surface: var(--cc-color-surface);
+		--cc-ui-surface-subtle: var(--cc-color-surface-sunken);
+		--cc-ui-soft: var(--cc-color-surface-sunken);
+		--cc-ui-border: var(--cc-color-border);
+		--cc-ui-border-soft: var(--cc-color-border);
+		--cc-ui-text: var(--cc-color-text);
+		--cc-ui-muted: var(--cc-color-text-muted);
+		--cc-ui-muted-soft: var(--cc-color-text-muted);
+		--cc-ui-accent: var(--cc-color-accent);
+		--cc-ui-accent-soft: var(--cc-color-accent-wash);
+		--cc-ui-accent-strong: var(--cc-color-accent-hover);
+		--cc-ui-danger: var(--cc-color-danger);
+		--cc-ui-radius: var(--cc-radius-md);
+		--cc-ui-shadow: var(--cc-shadow-panel);
+
+		/* Alias: native-preview-suppression.css */
+		--cc-builder-stage: var(--cc-color-canvas);
+		--cc-builder-surface: var(--cc-color-surface);
+		--cc-builder-border: var(--cc-color-border);
+		--cc-builder-muted: var(--cc-color-text-muted);
+		--cc-builder-accent: var(--cc-color-accent);
+		--cc-builder-accent-soft: var(--cc-color-accent-wash);
+
+		/* Alias: structure-navigator.css */
+		--cc-structure-bg: var(--cc-color-canvas);
+		--cc-structure-surface: var(--cc-color-surface);
+		--cc-structure-surface-hover: var(--cc-color-surface-hover);
+		--cc-structure-border: var(--cc-color-border);
+		--cc-structure-text: var(--cc-color-text);
+		--cc-structure-muted: var(--cc-color-text-muted);
+		--cc-structure-accent: var(--cc-color-accent);
+		--cc-structure-selected: var(--cc-color-accent-wash);
+
+		/* Alias: editor-experience-v2.css */
+		--cc-experience-panel: var(--cc-color-surface);
+		--cc-experience-border: var(--cc-color-border);
+		--cc-experience-muted: var(--cc-color-text-muted);
+		--cc-experience-accent: var(--cc-color-accent);
+
+		/* Alias: design-system.css */
+		--cc-global-border: var(--cc-color-border);
+		--cc-global-muted: var(--cc-color-text-muted);
+		--cc-global-accent: var(--cc-color-accent);
+
+		/* Alias: standalone-inspector-v2.css */
+		--cc-inspector-v2-border: var(--cc-color-border);
+		--cc-inspector-v2-muted: var(--cc-color-text-muted);
+		--cc-inspector-v2-soft: var(--cc-color-surface-sunken);
+		--cc-inspector-v2-active: var(--cc-color-accent);
+
+		/* Alias: website-builder-structure-v3.css and
+		   website-builder-ui-correction.css defined this family twice. Sizing
+		   tokens keep their own values because they are structural rather than
+		   thematic. */
+		--cc-tree-guide: var(--cc-color-border);
+		--cc-tree-hover: var(--cc-color-surface-hover);
+		--cc-tree-selected: var(--cc-color-accent-wash);
+
+		/* Alias: standalone-ui-v3.css */
+		--cc-ui-v3-focus: var(--cc-focus-ring-color);
+		--cc-ui-v3-panel-shadow: var(--cc-shadow-panel);
+	}
+
+	/**
+	 * Opt-in dark editor surface. Applied only when the attribute is present,
+	 * so no existing installation changes appearance without asking. These are
+	 * the values website-builder-studio.css originally shipped, preserved here
+	 * so the dark surface survives that file's migration into cresco.base.
+	 */
+	:root[data-cc-theme="dark"] {
+		--cc-color-canvas: #0b0d12;
+		--cc-color-surface: #11141b;
+		--cc-color-surface-raised: #171b24;
+		--cc-color-surface-sunken: #1d2230;
+		--cc-color-surface-hover: #222838;
+		--cc-color-border: #2a3140;
+		--cc-color-border-strong: #3a4356;
+		--cc-color-text: #f5f7fb;
+		--cc-color-text-subtle: #d6dae2;
+		--cc-color-text-muted: #98a2b3;
+		--cc-color-accent: #8b5cf6;
+		--cc-color-accent-hover: #7c4dee;
+		--cc-color-accent-soft: #a78bfa;
+		--cc-color-accent-wash: rgba(139, 92, 246, 0.16);
+		--cc-color-danger: #f97066;
+		--cc-color-success: #32d583;
+		--cc-color-warning: #fdb022;
+		--cc-shadow-subtle: 0 1px 2px rgba(0, 0, 0, 0.24);
+		--cc-shadow-panel: 0 18px 60px rgba(0, 0, 0, 0.32);
+		--cc-shadow-popover: 0 12px 32px rgba(0, 0, 0, 0.4);
+
+		color-scheme: dark;
+	}
+}
+
+@layer cresco.base {
+
+	/**
+	 * Visible keyboard focus for editor controls.
+	 *
+	 * Scoped to :focus-visible so pointer interaction is unaffected, and placed
+	 * in cresco.base so any component layer can still override it. The editor
+	 * previously relied on browser defaults, several of which were removed by
+	 * the outline resets in the panel stylesheets.
+	 */
+	.cc-studio-app :is(button, a[href], input, select, textarea, [tabindex]):focus-visible {
+		border-radius: var(--cc-radius-sm);
+		outline: var(--cc-focus-ring-width) solid var(--cc-focus-ring-color);
+		outline-offset: var(--cc-focus-ring-offset);
+	}
+}
+
+/**
+ * Reduced motion. Deliberately unlayered so it wins against any component
+ * transition without needing !important. Accessibility guarantees are the one
+ * case where outranking the whole system is the correct behaviour.
+ */
+@media (prefers-reduced-motion: reduce) {
+
+	.cc-studio-app *,
+	.cc-studio-app *::before,
+	.cc-studio-app *::after {
+		animation-duration: 0.01ms;
+		animation-iteration-count: 1;
+		scroll-behavior: auto;
+		transition-duration: 0.01ms;
+	}
+}

@@ -1,5 +1,14 @@
 # Roadmap and Feature-Completeness Matrix
 
+> **Stale as of 2026-08-14. Do not use the statuses or the readiness percentage below for release
+> decisions.** Verification against the booting code found that many rows marked `MISSING` or
+> `NOT APPLICABLE` describe features that are implemented, registered in `Plugin::boot()`, and
+> rendered — including the 0.5 through 0.9 milestones, Accordion, Tabs, Loop Grid, the dynamic post
+> widgets, native Forms, and the WooCommerce widgets. This file appears to have been frozen around
+> the 0.3/0.4 milestone while development continued. See [AUDIT_2026-08.md](AUDIT_2026-08.md) for
+> the verified position; where the two disagree, the audit is authoritative. The rows below are
+> retained as history pending a full rewrite.
+
 Status vocabulary is fixed to `COMPLETE`, `PARTIAL`, `MISSING`, `BROKEN`, and `NOT APPLICABLE`. A row may group tightly coupled capabilities; its status applies to every named capability in that row. Evidence describes implemented repository behavior, not planned intent.
 
 ## Milestone order
