@@ -17,6 +17,7 @@ use PHPUnit\Framework\TestCase;
 final class RestPermissionsTest extends TestCase {
 	protected function setUp(): void {
 		$GLOBALS['cresco_test_capabilities'] = array();
+		$GLOBALS['cresco_test_routes'] = array();
 		$GLOBALS['cresco_test_posts'][42] = (object) array(
 			'ID' => 42,
 			'post_type' => 'page',
@@ -44,5 +45,31 @@ final class RestPermissionsTest extends TestCase {
 		self::assertFalse( ( new AIInterchange() )->can_edit_post( $request ) );
 		self::assertFalse( ( new HistoryManager() )->can_edit_post( $request ) );
 		self::assertFalse( ( new PageSettings() )->can_edit_post( $request ) );
+	}
+
+	public function test_every_history_route_uses_the_edit_post_permission_boundary(): void {
+		$manager = new HistoryManager();
+		$manager->register_routes();
+
+		$routes = array(
+			'cresco-canvas/v1/history/(?P<postId>\d+)',
+			'cresco-canvas/v1/history/(?P<postId>\d+)/(?P<revisionId>\d+)/restore',
+			'cresco-canvas/v1/website-builder/theme-history/(?P<postId>\d+)',
+			'cresco-canvas/v1/website-builder/theme-history/(?P<postId>\d+)/(?P<revisionId>\d+)/restore',
+		);
+
+		foreach ( $routes as $route ) {
+			self::assertArrayHasKey( $route, $GLOBALS['cresco_test_routes'] );
+			$args = $GLOBALS['cresco_test_routes'][ $route ];
+			self::assertArrayHasKey( 'permission_callback', $args );
+			self::assertSame( array( $manager, 'can_edit_post' ), $args['permission_callback'] );
+		}
+
+		$GLOBALS['cresco_test_capabilities']['edit_post'] = false;
+		$request = new WP_REST_Request( array( 'postId' => 42 ) );
+		foreach ( $routes as $route ) {
+			$callback = $GLOBALS['cresco_test_routes'][ $route ]['permission_callback'];
+			self::assertFalse( call_user_func( $callback, $request ) );
+		}
 	}
 }
