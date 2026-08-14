@@ -26,6 +26,7 @@
 		"test:critical": "playwright test tests/e2e/release-critical.spec.ts --project=chromium",
 		"test:accessibility": "playwright test tests/e2e/accessibility-release.spec.ts --project=chromium",
 		"test:performance": "playwright test --config=playwright.performance.config.ts",
+		"test:visual-breakpoints": "node scripts/capture-visual-breakpoints.mjs",
 		"test:zip-install": "node scripts/release-zip-smoke.mjs",
 		"test:upgrade": "node scripts/upgrade-smoke.mjs",
 		"check:hygiene": "node scripts/check-repository-hygiene.mjs",
