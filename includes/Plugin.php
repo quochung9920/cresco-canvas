@@ -17,6 +17,7 @@ use CrescoCanvas\Blocks\Blocks;
 use CrescoCanvas\Builder\WebsiteBuilder;
 use CrescoCanvas\Builder\WebsiteBuilderArchitectureV2;
 use CrescoCanvas\Builder\WebsiteBuilderBootstrapResilience;
+use CrescoCanvas\Builder\WebsiteBuilderCanonicalPreviewOwner;
 use CrescoCanvas\Builder\WebsiteBuilderCompatibility;
 use CrescoCanvas\Builder\WebsiteBuilderComponentSync;
 use CrescoCanvas\Builder\WebsiteBuilderComprehensiveV3;
@@ -130,6 +131,7 @@ final class Plugin {
 		}
 		if ( FeatureFlags::is_enabled( 'builderPresentationLayers' ) ) {
 			( new WebsiteBuilderVisualParity() )->register();
+			( new WebsiteBuilderCanonicalPreviewOwner() )->register();
 			( new WebsiteBuilderProfessionalUx() )->register();
 		}
 		( new WebsiteBuilderInterchange() )->register();
@@ -194,7 +196,7 @@ final class Plugin {
 	}
 
 	public function load_textdomain() {
-		load_plugin_textdomain( 'cresco-canvas', false, dirname( plugin_basename( CRESCO_CANVAS_FILE ) ) . '/languages' );
+		load_plugin_textdomain( 'cresco-canvas', false, dirname( plugin_basename( CRESCO_CANVAS_FILE ) ) );
 	}
 
 	private function __construct() {}
