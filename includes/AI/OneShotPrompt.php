@@ -92,12 +92,10 @@ final class OneShotPrompt {
 			__( 'Use only props, structured style properties, responsive devices, states and selector parts those contracts declare.', 'cresco-canvas' ),
 			__( 'Prefer native props and structured styles. Use scoped Custom CSS only where native controls cannot express the result.', 'cresco-canvas' ),
 			__( 'Design tokens available for authoring are in scopePackage.designSystem.available. Preserve token references such as {colors.primary} where they already express intent.', 'cresco-canvas' ),
-			// The responsive model is the single most common source of invalid
-			// output, so it is stated in prose as well as in capabilities.
 			__( 'Base styles go in node.style. Only the devices in capabilities.responsiveDevices may appear under node.responsive; a narrower device inherits every wider one.', 'cresco-canvas' ),
 			sprintf( /* translators: %s: human description of the editable scope. */ __( 'Stay strictly inside %s. Operations outside it are rejected.', 'cresco-canvas' ), $where ),
 			sprintf( /* translators: %s: schema identifier. */ __( 'Return ONLY one %s object, matching returnContract.template with operations filled in.', 'cresco-canvas' ), (string) ( $contract['preferred'] ?? 'cresco-patch/v1' ) ),
-			__( 'Keep baseChecksum and target exactly as given.', 'cresco-canvas' ),
+			__( 'Keep target exactly as given.', 'cresco-canvas' ),
 			__( 'Do not wrap the answer in Markdown fences. Do not explain the answer.', 'cresco-canvas' ),
 		);
 	}
