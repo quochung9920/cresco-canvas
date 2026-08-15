@@ -5,17 +5,12 @@
   "description": "One-Shot authoring package. Additive to v1: v1 describes what exists, v2 also describes what may be built. additionalProperties stays true throughout so optional visual or diagnostic metadata can be added later without a breaking change.",
   "type": "object",
   "additionalProperties": true,
-  "required": ["schema", "version", "purpose", "mode", "baseChecksum", "scopePackage", "returnContract"],
+  "required": ["schema", "version", "purpose", "mode", "scopePackage", "returnContract"],
   "properties": {
     "schema": { "const": "cresco-ai-context/v2" },
     "version": { "const": 2 },
     "purpose": { "enum": ["edit", "redesign", "create", "content", "style", "import"] },
     "mode": { "enum": ["optimized", "full"] },
-    "baseChecksum": {
-      "type": "string",
-      "minLength": 32,
-      "description": "Checksum of the canonical sanitized Session. A patch carrying a different value is stale and is rejected."
-    },
     "scopePackage": { "$ref": "#/$defs/scopePackage" },
     "authoringPolicy": { "$ref": "#/$defs/authoringPolicy" },
     "returnContract": { "$ref": "#/$defs/returnContract" },
@@ -196,11 +191,10 @@
         "template": {
           "type": "object",
           "additionalProperties": true,
-          "required": ["schema", "baseChecksum", "target", "operations"],
-          "description": "Pre-filled with the real checksum and target. The model fills in operations and changes nothing else.",
+          "required": ["schema", "target", "operations"],
+          "description": "Pre-filled with the resolved target. The model fills in operations and changes nothing else.",
           "properties": {
             "schema": { "const": "cresco-patch/v1" },
-            "baseChecksum": { "type": "string", "minLength": 32 },
             "target": { "type": "object" },
             "operations": { "type": "array" }
           }
