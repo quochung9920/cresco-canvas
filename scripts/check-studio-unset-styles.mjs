@@ -56,7 +56,7 @@ for ( const token of [
 // Reset is intentionally different from empty: CSS `initial` is persisted and
 // compiled so it blocks wider breakpoint/state overrides without hard-coded
 // values such as flex, 176px, or 44px.
-expect( 'includes/Builder/WebsiteBuilder.php', "return preg_match( \"/^[#a-zA-Z0-9.,:%+\\-*\\/() _\\\"']+$/\", $value ) ? $value : '';" );
+expect( 'includes/Builder/WebsiteBuilder.php', 'public static function sanitize_css_value' );
 expect( 'includes/Builder/WebsiteBuilderCssCompiler.php', "if ( '' === $value ) continue;" );
 expect( 'docs/STYLE_UNSET_SEMANTICS.md', 'Reset writes the CSS-wide keyword `initial`' );
 
@@ -82,6 +82,8 @@ for ( const token of [
 	"wp_enqueue_script( 'cresco-canvas-standalone-visual-editor'",
 	"class=\"cc-standalone-loading\"",
 ] ) reject( 'includes/Admin/VisualEditor.php', token );
+expect( 'includes/Admin/EditorExperience.php', 'single runtime' );
+reject( 'includes/Admin/EditorExperience.php', "add_action( 'admin_enqueue_scripts'" );
 for ( const token of [
 	'wp_deregister_script( $handle )',
 	'wp_deregister_style( $handle )',
