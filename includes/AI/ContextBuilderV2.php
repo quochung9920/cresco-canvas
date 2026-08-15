@@ -8,7 +8,6 @@
 namespace CrescoCanvas\AI;
 
 use CrescoCanvas\Builder\WebsiteBuilderSessionSanitizer;
-use CrescoCanvas\Core\Document\Document;
 use CrescoCanvas\Page\PageSettings;
 use CrescoCanvas\Session\SessionManager;
 use CrescoCanvas\Styles\DesignTokens;
@@ -34,10 +33,10 @@ if ( ! defined( 'ABSPATH' ) ) {
  *   with and invents widget names that fail validation.
  * - `designSystem.available` carries the whole token catalogue alongside the
  *   dependency-optimized `used` set, for the same reason.
- * - `returnContract.template` is pre-filled with the real checksum and target, so
- *   the model fills in `operations` and nothing else.
+ * - `returnContract.template` is pre-filled with the resolved target, so the model
+ *   fills in `operations` and nothing else.
  *
- * v1 is untouched and still produces v1 output. This class is additive.
+ * v1 remains available as a compatibility profile. This class is additive.
  */
 final class ContextBuilderV2 {
 	const SCHEMA   = 'cresco-ai-context/v2';
@@ -86,10 +85,6 @@ final class ContextBuilderV2 {
 		$scope_data = ScopeResolver::resolve( $session, $scope, $target );
 		if ( is_wp_error( $scope_data ) ) return $scope_data;
 
-		// Checksum must come from the canonical sanitized Session, never from the
-		// caller's copy, or a patch validated against it would be rejected as stale.
-		$checksum = Document::checksum( $session );
-
 		$design_system  = isset( $resources['designSystem'] ) ? (array) $resources['designSystem'] : DesignTokens::catalog( GlobalStyles::get_settings() );
 		$page_settings  = isset( $resources['pageSettings'] ) ? (array) $resources['pageSettings'] : PageSettings::get( $post_id );
 		$page_effective = isset( $resources['pageSettingsEffective'] ) ? (array) $resources['pageSettingsEffective'] : PageSettings::effective( $page_settings );
@@ -107,7 +102,6 @@ final class ContextBuilderV2 {
 				'postTitle'     => $post_title,
 			),
 			'content'     => $scope_data['content'],
-			// Authoring needs the whole palette even when the scope uses none of it.
 			'designSystem' => array(
 				'available' => $design_system,
 				'used'      => DependencyResolver::optimized_design_system( $design_system, $dependencies ),
@@ -133,10 +127,9 @@ final class ContextBuilderV2 {
 			'version'         => self::VERSION,
 			'purpose'         => $purpose,
 			'mode'            => $mode,
-			'baseChecksum'    => $checksum,
 			'scopePackage'    => $scope_package,
 			'authoringPolicy' => self::authoring_policy(),
-			'returnContract'  => self::return_contract( $checksum, $scope_data['target'], $purpose ),
+			'returnContract'  => self::return_contract( $scope_data['target'], $purpose ),
 		);
 
 		$payload['packageMetrics'] = self::metrics( $payload );
@@ -144,20 +137,10 @@ final class ContextBuilderV2 {
 		return ContextSanitizer::sanitize( $payload );
 	}
 
-	/**
-	 * Capability declarations, read from the registries that enforce them.
-	 *
-	 * Every list here is sourced rather than written out, so the package cannot
-	 * claim something the validator or compiler will then refuse.
-	 *
-	 * @return array
-	 */
+	/** Capability declarations, read from the registries that enforce them. */
 	public static function capabilities() {
 		return array(
 			'patchOperations'   => array_values( PatchValidator::OPERATIONS ),
-			// `wide` is deliberately absent: it is the base bag written to
-			// node.style, not an override bucket. A model told otherwise would
-			// emit responsive.wide, which no validator accepts.
 			'responsiveDevices' => array_values( ContractRegistry::RESPONSIVE_DEVICES ),
 			'responsiveModel'   => array(
 				'baseBucket'   => 'style',
@@ -179,30 +162,22 @@ final class ContextBuilderV2 {
 		);
 	}
 
-	/**
-	 * Machine-readable authoring policy.
-	 *
-	 * This exists so the user's natural-language request never has to carry Cresco
-	 * implementation rules. The capability halves are read from the registries for
-	 * the same anti-drift reason as capabilities().
-	 *
-	 * @return array
-	 */
+	/** Machine-readable authoring policy. */
 	public static function authoring_policy() {
 		return array(
 			'decisionOrder' => array( 'widgetProps', 'structuredStyle', 'responsiveStyle', 'states', 'customCSS' ),
 			'rules'         => array(
-				'preferNativeControls'                => true,
-				'preserveSemanticTokens'              => true,
-				'inventWidgetTypes'                   => false,
-				'inventProps'                         => false,
-				'inventStructuredStyles'              => false,
-				'respectReferenceImage'               => true,
+				'preferNativeControls'                     => true,
+				'preserveSemanticTokens'                   => true,
+				'inventWidgetTypes'                        => false,
+				'inventProps'                              => false,
+				'inventStructuredStyles'                   => false,
+				'respectReferenceImage'                    => true,
 				'makeReasonableDecisionsWithoutQuestions' => true,
 			),
 			'customCSS'     => array(
-				'useAsFallback'        => true,
-				'scopeSelector'        => '&',
+				'useAsFallback'         => true,
+				'scopeSelector'         => '&',
 				'localKeyframesAllowed' => ! empty( ScopedCss::KEYFRAME_AT_RULES ),
 			),
 			'referenceImages' => array(
@@ -220,12 +195,11 @@ final class ContextBuilderV2 {
 	/**
 	 * The exact object Cresco expects back, pre-filled so nothing has to be inferred.
 	 *
-	 * @param string $checksum Base checksum of the exported Session.
-	 * @param array  $target   Resolved scope target.
-	 * @param string $purpose  Requested purpose.
+	 * @param array  $target  Resolved scope target.
+	 * @param string $purpose Requested purpose.
 	 * @return array
 	 */
-	public static function return_contract( $checksum, $target, $purpose = 'redesign' ) {
+	public static function return_contract( $target, $purpose = 'redesign' ) {
 		$redesigning = in_array( $purpose, array( 'redesign', 'create' ), true );
 		$scoped      = in_array( (string) ( $target['scope'] ?? '' ), array( 'subtree', 'widget' ), true );
 
@@ -243,24 +217,14 @@ final class ContextBuilderV2 {
 				: 'Prefer the smallest operations that express the change: setProps, setStyle, setResponsive, setCustomCSS.',
 			'allowedOperations'      => array_values( PatchValidator::OPERATIONS ),
 			'template'               => array(
-				'schema'       => PatchValidator::SCHEMA,
-				'baseChecksum' => $checksum,
-				'target'       => $target,
-				'operations'   => array(),
+				'schema'     => PatchValidator::SCHEMA,
+				'target'     => $target,
+				'operations' => array(),
 			),
 		);
 	}
 
-	/**
-	 * Payload diagnostics.
-	 *
-	 * Advisory only, and never a required schema field. One-Shot packages are
-	 * larger by design; this makes the cost visible so it can be measured before
-	 * anyone optimizes it away.
-	 *
-	 * @param array $payload Package built so far.
-	 * @return array
-	 */
+	/** Payload diagnostics. */
 	private static function metrics( $payload ) {
 		$size = static function ( $value ) {
 			$encoded = wp_json_encode( $value );
