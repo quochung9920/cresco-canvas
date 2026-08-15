@@ -1,14 +1,16 @@
 <?php
 /**
- * Standalone Cresco visual editor screen backed by Cresco Session v1.
+ * Standalone Cresco Studio screen shell.
+ *
+ * The historical standalone editor runtime has been retired. This class owns
+ * only WordPress routing and the initial Studio loading/fatal shell; the
+ * canonical browser application is owned by WebsiteBuilderRuntimeOwner and
+ * WebsiteBuilderStudio.
  *
  * @package CrescoCanvas
  */
 
 namespace CrescoCanvas\Admin;
-
-use CrescoCanvas\Session\SessionManager;
-use CrescoCanvas\Styles\GlobalStyles;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -17,21 +19,14 @@ if ( ! defined( 'ABSPATH' ) ) {
 final class VisualEditor {
 	const PAGE_SLUG = 'cresco-canvas-editor';
 
-	/** @var string */
-	private $hook_suffix = '';
-
-	/** @var string */
-	private $asset_error = '';
-
 	public function register() {
 		add_action( 'admin_menu', array( $this, 'register_screen' ) );
-		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_assets' ) );
 		add_filter( 'page_row_actions', array( $this, 'add_page_row_action' ), 20, 2 );
 		add_action( 'admin_bar_menu', array( $this, 'add_admin_bar_action' ), 90 );
 	}
 
 	public function register_screen() {
-		$this->hook_suffix = (string) add_submenu_page( null, __( 'Cresco Canvas', 'cresco-canvas' ), __( 'Cresco Canvas', 'cresco-canvas' ), 'edit_pages', self::PAGE_SLUG, array( $this, 'render_screen' ) );
+		add_submenu_page( null, __( 'Cresco Canvas', 'cresco-canvas' ), __( 'Cresco Canvas', 'cresco-canvas' ), 'edit_pages', self::PAGE_SLUG, array( $this, 'render_screen' ) );
 	}
 
 	public function add_page_row_action( $actions, $post ) {
@@ -47,107 +42,38 @@ final class VisualEditor {
 		$admin_bar->add_node( array( 'id' => 'cresco-canvas-edit', 'title' => __( 'Edit with Cresco Canvas', 'cresco-canvas' ), 'href' => $this->editor_url( $post_id ) ) );
 	}
 
+	/** Render one canonical Studio shell; no legacy React application is mounted. */
 	public function render_screen() {
 		$post_id = $this->requested_post_id();
-		if ( ! $post_id || 'page' !== get_post_type( $post_id ) || ! current_user_can( 'edit_post', $post_id ) ) wp_die( esc_html__( 'You do not have permission to edit this Page with Cresco Canvas.', 'cresco-canvas' ) );
+		if ( ! $post_id || 'page' !== get_post_type( $post_id ) || ! current_user_can( 'edit_post', $post_id ) ) {
+			wp_die( esc_html__( 'You do not have permission to edit this Page with Cresco Canvas.', 'cresco-canvas' ) );
+		}
+
+		$required = array(
+			'build/website-builder-studio.js',
+			'assets/css/website-builder-studio.css',
+		);
+		$missing = array_values(
+			array_filter(
+				$required,
+				static function ( $relative ) {
+					return ! is_readable( CRESCO_CANVAS_PATH . $relative );
+				}
+			)
+		);
 
 		echo '<div id="cresco-canvas-standalone-editor" class="cresco-canvas-standalone-editor" aria-live="polite">';
-		if ( $this->asset_error ) {
-			echo '<div class="cc-standalone-loading" role="alert"><strong>' . esc_html__( 'Cresco Canvas could not start.', 'cresco-canvas' ) . '</strong><span>' . esc_html( $this->asset_error ) . '</span></div>';
+		if ( $missing ) {
+			echo '<div class="cc-studio-fatal" role="alert"><h2>' . esc_html__( 'Cresco Studio could not start', 'cresco-canvas' ) . '</h2><p>' . esc_html( sprintf( __( 'Required Studio assets are missing: %s. Run npm run build and reload the editor.', 'cresco-canvas' ), implode( ', ', $missing ) ) ) . '</p></div>';
 		} else {
-			echo '<div class="cc-standalone-loading"><span class="spinner is-active" aria-hidden="true"></span><span>' . esc_html__( 'Loading Cresco Session…', 'cresco-canvas' ) . '</span></div>';
+			// The premium Studio stylesheet owns the single spinner via ::before.
+			echo '<div class="cc-studio-loading"><strong>' . esc_html__( 'Loading Cresco Studio…', 'cresco-canvas' ) . '</strong></div>';
 		}
 		echo '</div>';
 	}
 
-	public function enqueue_assets( $hook_suffix ) {
-		if ( ! $this->is_editor_screen( $hook_suffix ) ) return;
-		$post_id = $this->requested_post_id();
-		$post = get_post( $post_id );
-		if ( ! $post instanceof \WP_Post || 'page' !== $post->post_type || ! current_user_can( 'edit_post', $post_id ) ) return;
-
-		$required = array(
-			'build/standalone-visual-editor.asset.php' => CRESCO_CANVAS_PATH . 'build/standalone-visual-editor.asset.php',
-			'build/standalone-visual-editor.js' => CRESCO_CANVAS_PATH . 'build/standalone-visual-editor.js',
-			'build/standalone-inspector-v2.js' => CRESCO_CANVAS_PATH . 'build/standalone-inspector-v2.js',
-			'build/widget-control-enhancements.js' => CRESCO_CANVAS_PATH . 'build/widget-control-enhancements.js',
-			'build/standalone-ui-v3.js' => CRESCO_CANVAS_PATH . 'build/standalone-ui-v3.js',
-			'build/standalone-page-settings.js' => CRESCO_CANVAS_PATH . 'build/standalone-page-settings.js',
-			'build/standalone-history.js' => CRESCO_CANVAS_PATH . 'build/standalone-history.js',
-			'build/global-config-import.js' => CRESCO_CANVAS_PATH . 'build/global-config-import.js',
-			'build/viewport-shell.js' => CRESCO_CANVAS_PATH . 'build/viewport-shell.js',
-			'assets/css/standalone-visual-editor.css' => CRESCO_CANVAS_PATH . 'assets/css/standalone-visual-editor.css',
-			'assets/css/standalone-inspector-v2.css' => CRESCO_CANVAS_PATH . 'assets/css/standalone-inspector-v2.css',
-			'assets/css/widget-control-enhancements.css' => CRESCO_CANVAS_PATH . 'assets/css/widget-control-enhancements.css',
-			'assets/css/standalone-ui-v3.css' => CRESCO_CANVAS_PATH . 'assets/css/standalone-ui-v3.css',
-			'assets/css/standalone-page-settings.css' => CRESCO_CANVAS_PATH . 'assets/css/standalone-page-settings.css',
-			'assets/css/standalone-history.css' => CRESCO_CANVAS_PATH . 'assets/css/standalone-history.css',
-			'assets/css/global-config-import.css' => CRESCO_CANVAS_PATH . 'assets/css/global-config-import.css',
-			'assets/css/viewport-shell.css' => CRESCO_CANVAS_PATH . 'assets/css/viewport-shell.css',
-		);
-		$missing = array();
-		foreach ( $required as $relative => $absolute ) if ( ! is_readable( $absolute ) ) $missing[] = $relative;
-		if ( $missing ) {
-			$this->asset_error = sprintf( __( 'Required runtime assets are missing: %s. Run npm run build and reload the editor.', 'cresco-canvas' ), implode( ', ', $missing ) );
-			return;
-		}
-
-		$asset = require $required['build/standalone-visual-editor.asset.php'];
-		$editor_ux_version = CRESCO_CANVAS_VERSION . '-editor-core.2';
-		$editor_settings = array(
-			'postId' => $post_id,
-			'postType' => 'page',
-			'sessionPath' => '/cresco-canvas/v1/session/' . $post_id,
-			'validatePath' => '/cresco-canvas/v1/session/validate',
-			'aiContextPath' => '/cresco-canvas/v1/ai-context/' . $post_id,
-			'historyPath' => '/cresco-canvas/v1/history/' . $post_id,
-			'pageSettingsPath' => '/cresco-canvas/v1/page-settings/' . $post_id,
-			'settingsPath' => '/cresco-canvas/v1/settings',
-			'settingsImportPreviewPath' => '/cresco-canvas/v1/settings/import-preview',
-			'canManageGlobal' => current_user_can( 'edit_theme_options' ),
-			'previewUrl' => get_preview_post_link( $post_id ),
-			'adminPagesUrl' => admin_url( 'edit.php?post_type=page' ),
-			'initialTitle' => (string) $post->post_title,
-			'version' => CRESCO_CANVAS_VERSION,
-			'previewWidths' => array( 'wide' => 1920, 'desktop' => 1440, 'laptop' => 1366, 'tablet' => 768, 'mobile' => 390 ),
-			'widgetCatalog' => SessionManager::widget_catalog(),
-		);
-
-		wp_enqueue_media( array( 'post' => $post_id ) );
-		wp_enqueue_style( 'wp-components' );
-		wp_enqueue_style( 'cresco-canvas-standalone-visual-editor', CRESCO_CANVAS_URL . 'assets/css/standalone-visual-editor.css', array( 'wp-components' ), (string) ( $asset['version'] ?? CRESCO_CANVAS_VERSION ) );
-		wp_enqueue_style( 'cresco-canvas-standalone-inspector-v2', CRESCO_CANVAS_URL . 'assets/css/standalone-inspector-v2.css', array( 'cresco-canvas-standalone-visual-editor' ), $editor_ux_version );
-		wp_enqueue_style( 'cresco-canvas-widget-control-enhancements', CRESCO_CANVAS_URL . 'assets/css/widget-control-enhancements.css', array( 'cresco-canvas-standalone-inspector-v2' ), CRESCO_CANVAS_VERSION );
-		wp_enqueue_style( 'cresco-canvas-global-config-import', CRESCO_CANVAS_URL . 'assets/css/global-config-import.css', array( 'cresco-canvas-standalone-visual-editor' ), CRESCO_CANVAS_VERSION );
-		wp_enqueue_style( 'cresco-canvas-viewport-shell', CRESCO_CANVAS_URL . 'assets/css/viewport-shell.css', array( 'cresco-canvas-standalone-visual-editor' ), CRESCO_CANVAS_VERSION );
-		wp_enqueue_style( 'cresco-canvas-standalone-ui-v3', CRESCO_CANVAS_URL . 'assets/css/standalone-ui-v3.css', array( 'cresco-canvas-widget-control-enhancements', 'cresco-canvas-global-config-import', 'cresco-canvas-viewport-shell' ), $editor_ux_version );
-		wp_enqueue_style( 'cresco-canvas-standalone-page-settings', CRESCO_CANVAS_URL . 'assets/css/standalone-page-settings.css', array( 'cresco-canvas-standalone-ui-v3' ), CRESCO_CANVAS_VERSION );
-		wp_enqueue_style( 'cresco-canvas-standalone-history', CRESCO_CANVAS_URL . 'assets/css/standalone-history.css', array( 'cresco-canvas-standalone-ui-v3' ), CRESCO_CANVAS_VERSION );
-		wp_add_inline_style( 'cresco-canvas-standalone-visual-editor', 'html.wp-toolbar{padding-top:0!important}body.admin_page_cresco-canvas-editor,body.toplevel_page_cresco-canvas-editor{margin:0!important}' . GlobalStyles::css( '.cc-session-canvas' ) . GlobalStyles::visual_css( '.cc-session-canvas' ) );
-
-		wp_enqueue_script( 'cresco-canvas-standalone-visual-editor', CRESCO_CANVAS_URL . 'build/standalone-visual-editor.js', (array) ( $asset['dependencies'] ?? array() ), (string) ( $asset['version'] ?? CRESCO_CANVAS_VERSION ), true );
-		wp_add_inline_script( 'cresco-canvas-standalone-visual-editor', 'window.crescoCanvasStandaloneSettings = ' . wp_json_encode( $editor_settings ) . ';', 'before' );
-		wp_set_script_translations( 'cresco-canvas-standalone-visual-editor', 'cresco-canvas' );
-
-		wp_enqueue_script( 'cresco-canvas-standalone-inspector-v2', CRESCO_CANVAS_URL . 'build/standalone-inspector-v2.js', array( 'cresco-canvas-standalone-visual-editor' ), $editor_ux_version, true );
-		wp_enqueue_script( 'cresco-canvas-widget-control-enhancements', CRESCO_CANVAS_URL . 'build/widget-control-enhancements.js', array( 'cresco-canvas-standalone-inspector-v2' ), CRESCO_CANVAS_VERSION, true );
-		wp_enqueue_script( 'cresco-canvas-viewport-shell', CRESCO_CANVAS_URL . 'build/viewport-shell.js', array( 'cresco-canvas-standalone-visual-editor' ), CRESCO_CANVAS_VERSION, true );
-		wp_enqueue_script( 'cresco-canvas-global-config-import', CRESCO_CANVAS_URL . 'build/global-config-import.js', array( 'cresco-canvas-standalone-visual-editor', 'wp-api-fetch', 'wp-i18n' ), CRESCO_CANVAS_VERSION, true );
-		wp_set_script_translations( 'cresco-canvas-global-config-import', 'cresco-canvas' );
-		wp_enqueue_script( 'cresco-canvas-standalone-ui-v3', CRESCO_CANVAS_URL . 'build/standalone-ui-v3.js', array( 'cresco-canvas-widget-control-enhancements', 'cresco-canvas-viewport-shell', 'cresco-canvas-global-config-import' ), $editor_ux_version, true );
-		wp_enqueue_script( 'cresco-canvas-standalone-page-settings', CRESCO_CANVAS_URL . 'build/standalone-page-settings.js', array( 'cresco-canvas-standalone-ui-v3', 'wp-api-fetch', 'wp-i18n' ), CRESCO_CANVAS_VERSION, true );
-		wp_set_script_translations( 'cresco-canvas-standalone-page-settings', 'cresco-canvas' );
-		wp_enqueue_script( 'cresco-canvas-standalone-history', CRESCO_CANVAS_URL . 'build/standalone-history.js', array( 'cresco-canvas-standalone-ui-v3', 'wp-api-fetch', 'wp-i18n' ), CRESCO_CANVAS_VERSION, true );
-		wp_set_script_translations( 'cresco-canvas-standalone-history', 'cresco-canvas' );
-	}
-
 	public function editor_url( $post_id ) {
 		return add_query_arg( array( 'page' => self::PAGE_SLUG, 'post' => absint( $post_id ) ), admin_url( 'admin.php' ) );
-	}
-
-	private function is_editor_screen( $hook_suffix ) {
-		if ( $this->hook_suffix && $hook_suffix === $this->hook_suffix ) return true;
-		return isset( $_GET['page'] ) && self::PAGE_SLUG === sanitize_key( wp_unslash( $_GET['page'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only screen routing.
 	}
 
 	private function requested_post_id() {

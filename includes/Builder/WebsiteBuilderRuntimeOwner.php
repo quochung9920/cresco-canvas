@@ -42,11 +42,13 @@ final class WebsiteBuilderRuntimeOwner {
 		$this->register_studio_runtime();
 	}
 
-	/** Keep frontend compatibility, but remove retired admin bootstrap paths. */
+	/** Keep frontend compatibility, but make the legacy admin presentation impossible to print. */
 	public function retire_legacy_admin_runtime() {
 		if ( ! $this->is_editor_request() ) return;
 		$this->remove_object_method( 'admin_enqueue_scripts', WebsiteBuilderCompatibility::class, 'remove_legacy_editor_assets' );
 		$this->remove_object_method( 'admin_footer', WebsiteBuilderCompatibility::class, 'render_editor_bootstrap_watchdog' );
+		$this->retire_historical_editor_enqueue_callbacks();
+		$this->dequeue_retired_presentation();
 	}
 
 	/** Optional modules use their own observers; never monkey-patch the browser global. */
@@ -66,10 +68,11 @@ final class WebsiteBuilderRuntimeOwner {
 	}
 
 	/**
-	 * VisualEditor and older experience services enqueue before priority 119.
-	 * Remove their already-queued browser assets so no second React application,
-	 * inspector observer, history adapter, or viewport shell can mount beside
-	 * Cresco Studio.
+	 * Remove and deregister every retired admin presentation handle. Dequeue alone
+	 * is insufficient because a later compatibility callback or dependency walk
+	 * can enqueue a registered legacy handle again and briefly mount the old React
+	 * application before Studio. Deregistration makes Studio the only executable
+	 * editor presentation for this request.
 	 */
 	private function dequeue_retired_presentation() {
 		$scripts = array(
@@ -100,8 +103,14 @@ final class WebsiteBuilderRuntimeOwner {
 			'cresco-canvas-viewport-shell',
 			'cresco-canvas-standalone-visual-editor',
 		);
-		foreach ( $scripts as $handle ) wp_dequeue_script( $handle );
-		foreach ( $styles as $handle ) wp_dequeue_style( $handle );
+		foreach ( $scripts as $handle ) {
+			wp_dequeue_script( $handle );
+			wp_deregister_script( $handle );
+		}
+		foreach ( $styles as $handle ) {
+			wp_dequeue_style( $handle );
+			wp_deregister_style( $handle );
+		}
 	}
 
 	private function remove_object_method( $hook_name, $class_name, $method_name ) {
@@ -140,7 +149,12 @@ final class WebsiteBuilderRuntimeOwner {
 			$registered->ver  = WebsiteBuilderAsset::version( self::STYLE );
 		}
 		wp_enqueue_style( self::HANDLE );
-		wp_add_inline_style( self::HANDLE, GlobalStyles::css( '.cc-builder-canvas' ) . GlobalStyles::visual_css( '.cc-builder-canvas' ) );
+		wp_add_inline_style(
+			self::HANDLE,
+			GlobalStyles::css( '.cc-builder-canvas' )
+			. GlobalStyles::visual_css( '.cc-builder-canvas' )
+			. '#cresco-canvas-standalone-editor>.cc-studio-loading>.spinner{display:none}'
+		);
 
 		if ( $context->is_theme_editor() ) {
 			$screen = sanitize_html_class( ThemeSessionBridge::PAGE_SLUG );
@@ -175,6 +189,8 @@ final class WebsiteBuilderRuntimeOwner {
 	public function verify_core_extensions() {
 		$context = WebsiteBuilderRuntimeContext::from_request();
 		if ( ! $context || ! WebsiteBuilderModuleRegistry::is_enabled( 'core', $context ) ) return;
+		// Last gate before WordPress prints footer assets: no legacy handle survives.
+		$this->dequeue_retired_presentation();
 		$this->register_studio_runtime();
 		$module = WebsiteBuilderModuleRegistry::get( 'pointer-drag' );
 		if ( is_array( $module ) && WebsiteBuilderModuleRegistry::is_enabled( 'pointer-drag', $context ) ) {
@@ -205,6 +221,7 @@ final class WebsiteBuilderRuntimeOwner {
 			'legacyWatchdog' => false,
 			'legacyEditorEnqueue' => false,
 			'retiredPresentation' => true,
+			'legacyHandlesRegistered' => false,
 			'observerMonkeypatch' => false,
 		);
 		wp_add_inline_script( self::HANDLE, 'window.crescoCanonicalRuntimeOwner=' . wp_json_encode( $payload ) . ';window.crescoExpectedWebsiteBuilderRuntime="studio";', 'before' );
