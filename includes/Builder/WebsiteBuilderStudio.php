@@ -16,6 +16,7 @@ final class WebsiteBuilderStudio {
 	const SCRIPT            = 'build/website-builder-studio.js';
 	const RESPONSIVE_SCRIPT = 'build/website-builder-responsive-properties.js';
 	const UI_SCRIPT         = 'build/website-builder-ui-correction.js';
+	const UNSET_STYLE_SCRIPT = 'build/website-builder-unset-styles.js';
 	const FOUNDATION_STYLE  = 'assets/css/cresco-foundation.css';
 	const FOUNDATION_HANDLE = 'cresco-canvas-foundation';
 	const INHERITANCE_SCRIPT = 'build/studio-responsive-inheritance.js';
@@ -110,12 +111,23 @@ final class WebsiteBuilderStudio {
 				true
 			);
 		}
+		$style_semantics_handle = $responsive_handle;
 		if ( WebsiteBuilderAsset::readable( self::UI_SCRIPT ) ) {
+			$style_semantics_handle = 'cresco-canvas-website-builder-ui-correction';
 			wp_enqueue_script(
-				'cresco-canvas-website-builder-ui-correction',
+				$style_semantics_handle,
 				WebsiteBuilderAsset::url( self::UI_SCRIPT ),
 				array( $responsive_handle ),
 				WebsiteBuilderAsset::version( self::UI_SCRIPT ),
+				true
+			);
+		}
+		if ( WebsiteBuilderAsset::readable( self::UNSET_STYLE_SCRIPT ) ) {
+			wp_enqueue_script(
+				'cresco-canvas-website-builder-unset-styles',
+				WebsiteBuilderAsset::url( self::UNSET_STYLE_SCRIPT ),
+				array( $style_semantics_handle ),
+				WebsiteBuilderAsset::version( self::UNSET_STYLE_SCRIPT ),
 				true
 			);
 		}
