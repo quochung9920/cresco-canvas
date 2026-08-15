@@ -8,6 +8,7 @@
 namespace CrescoCanvas\AI;
 
 use CrescoCanvas\Builder\WebsiteBuilder;
+use CrescoCanvas\Styles\ScopedCss;
 use CrescoCanvas\Builder\WidgetCatalog;
 use WP_Error;
 
@@ -157,7 +158,7 @@ final class ContractRegistry {
 				return self::error( 'cresco_ai_custom_css_bucket', 'AI result contains an unsupported Custom CSS bucket.', $path . '.' . $bucket, array( 'bucket' => $bucket ) );
 			}
 			if ( ! is_string( $css ) ) return self::error( 'cresco_ai_custom_css_invalid', 'Custom CSS values must be strings.', $path . '.' . $bucket );
-			$sanitized = WebsiteBuilder::sanitize_custom_css( $css );
+			$sanitized = ScopedCss::sanitize( $css, WebsiteBuilder::MAX_CUSTOM_CSS );
 			if ( is_wp_error( $sanitized ) ) return $sanitized;
 		}
 		return true;
@@ -220,7 +221,14 @@ final class ContractRegistry {
 			$parts['caption'] = '& [data-cresco-part="caption"]';
 		}
 		if ( 'list' === $type ) $parts['item'] = '& [data-cresco-part="item"]';
-		return array( 'allowed' => true, 'selector' => '&', 'parts' => $parts );
+		return array(
+			'allowed'      => true,
+			'selector'     => '&',
+			'parts'        => $parts,
+			'declarations' => 'arbitrary-safe-css',
+			'atRules'      => array( 'keyframes', '-webkit-keyframes', 'media', 'supports', 'container', 'layer' ),
+			'keyframes'    => 'widget-namespaced',
+		);
 	}
 
 	private static function error( $code, $message, $path, $extra = array() ) {
