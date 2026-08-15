@@ -26,6 +26,7 @@ export const releaseDocs = [
 	'docs/RELEASE_ENGINEERING.md',
 	'docs/SECURITY.md',
 	'docs/STUDIO_EDITOR_EXPERIENCE_2.md',
+	'docs/STUDIO_PREMIUM_POLISH.md',
 	'docs/UPGRADE_ROLLBACK.md',
 	'docs/WEBSITE_BUILDER_CORE.md',
 	'docs/WEBSITE_BUILDER_V3.md',
@@ -82,6 +83,7 @@ export const assetFiles = [
 	'assets/css/website-builder-professional-ux.css',
 	'assets/css/website-builder-studio.css',
 	'assets/css/website-builder-ui-correction.css',
+	'assets/css/website-builder-premium-polish.css',
 	'assets/css/widget-control-enhancements.css',
 	'assets/css/widget-inspector-persistent.css',
 ];
