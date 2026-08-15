@@ -27,6 +27,7 @@ final class WebsiteBuilderModuleRegistry {
 					array( 'handle' => 'cresco-canvas-website-builder', 'file' => 'build/website-builder-studio.js' ),
 					array( 'handle' => 'cresco-canvas-website-builder-responsive-properties', 'file' => 'build/website-builder-responsive-properties.js' ),
 					array( 'handle' => 'cresco-canvas-website-builder-ui-correction', 'file' => 'build/website-builder-ui-correction.js' ),
+					array( 'handle' => 'cresco-canvas-website-builder-unset-styles', 'file' => 'build/website-builder-unset-styles.js' ),
 				),
 				'styles' => array(
 					array( 'handle' => 'cresco-canvas-website-builder', 'file' => 'assets/css/website-builder.css' ),

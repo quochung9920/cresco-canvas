@@ -86,6 +86,7 @@
     "website-builder-responsive-properties.js": "runtime-src/build/website-builder-responsive-properties.js",
     "website-builder-studio.js": "runtime-src/build/website-builder-studio.js",
     "website-builder-ui-correction.js": "runtime-src/build/website-builder-ui-correction.js",
+    "website-builder-unset-styles.js": "runtime-src/build/website-builder-unset-styles.js",
     "widget-control-enhancements.js": "runtime-src/build/widget-control-enhancements.js"
   }
 }
