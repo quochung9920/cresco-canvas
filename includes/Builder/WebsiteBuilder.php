@@ -12,6 +12,7 @@ use CrescoCanvas\Admin\VisualEditor;
 use CrescoCanvas\Session\SessionManager;
 use CrescoCanvas\Styles\DesignTokens;
 use CrescoCanvas\Styles\GlobalStyles;
+use CrescoCanvas\Styles\ScopedCss;
 use WP_Error;
 use WP_REST_Request;
 use WP_REST_Response;
@@ -595,32 +596,12 @@ final class WebsiteBuilder {
 	}
 
 	private static function sanitize_custom_css_map( $input ) {
-		$input = is_array( $input ) ? $input : array();
-		$output = array();
-		foreach ( array( 'base', 'desktop', 'laptop', 'tablet', 'mobile' ) as $device ) {
-			if ( empty( $input[ $device ] ) ) continue;
-			$css = self::sanitize_custom_css( $input[ $device ] );
-			if ( is_wp_error( $css ) ) return $css;
-			if ( '' !== $css ) $output[ $device ] = $css;
-		}
-		return $output;
+		return WebsiteBuilderSessionSanitizer::sanitize_custom_css_map( $input );
 	}
 
+	/** Backward-compatible Custom CSS API backed by the canonical scoped parser. */
 	public static function sanitize_custom_css( $value ) {
-		$css = trim( (string) $value );
-		if ( '' === $css ) return '';
-		if ( strlen( $css ) > self::MAX_CUSTOM_CSS ) return new WP_Error( 'cresco_builder_css_size', __( 'Widget Custom CSS is too large.', 'cresco-canvas' ), array( 'status' => 400 ) );
-		if ( preg_match( '/(?:@import|@charset|@namespace|@media|@supports|@layer|url\s*\(|expression\s*\(|javascript:|behavior\s*:|-moz-binding|<\/?style|<!--|-->)/i', $css ) ) return new WP_Error( 'cresco_builder_css_forbidden', __( 'Widget Custom CSS contains a forbidden construct.', 'cresco-canvas' ), array( 'status' => 400 ) );
-		if ( substr_count( $css, '{' ) !== substr_count( $css, '}' ) ) return new WP_Error( 'cresco_builder_css_braces', __( 'Widget Custom CSS has unbalanced braces.', 'cresco-canvas' ), array( 'status' => 400 ) );
-		$cursor = 0;
-		while ( false !== ( $open = strpos( $css, '{', $cursor ) ) ) {
-			$selector = trim( substr( $css, $cursor, $open - $cursor ) );
-			$close = strpos( $css, '}', $open + 1 );
-			if ( false === $close || '' === $selector || false === strpos( $selector, '&' ) ) return new WP_Error( 'cresco_builder_css_scope', __( 'Every Widget Custom CSS selector must include &.', 'cresco-canvas' ), array( 'status' => 400 ) );
-			if ( preg_match( '/(?:^|,)\s*(?:html|body|:root|#wpwrap|#wpcontent)\b/i', $selector ) || preg_match( '/[<>]/', substr( $css, $open + 1, $close - $open - 1 ) ) ) return new WP_Error( 'cresco_builder_css_global', __( 'Widget Custom CSS cannot escape its widget scope.', 'cresco-canvas' ), array( 'status' => 400 ) );
-			$cursor = $close + 1;
-		}
-		return $css;
+		return ScopedCss::sanitize( $value, self::MAX_CUSTOM_CSS );
 	}
 
 	public static function count_nodes( $nodes ) {
