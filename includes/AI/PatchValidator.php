@@ -8,7 +8,6 @@
 namespace CrescoCanvas\AI;
 
 use CrescoCanvas\Builder\WebsiteBuilderSessionSanitizer;
-use CrescoCanvas\Core\Document\Document;
 use WP_Error;
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -24,12 +23,6 @@ final class PatchValidator {
 		$current = WebsiteBuilderSessionSanitizer::sanitize_session( $current_session );
 		if ( is_wp_error( $current ) ) return $current;
 		if ( ! is_array( $patch ) || self::SCHEMA !== ( $patch['schema'] ?? '' ) ) return self::error( 'cresco_ai_patch_schema', 'Expected a cresco-patch/v1 object.' );
-
-		$base_checksum    = (string) ( $patch['baseChecksum'] ?? '' );
-		$current_checksum = Document::checksum( $current );
-		if ( '' === $base_checksum || ! hash_equals( $current_checksum, $base_checksum ) ) {
-			return new WP_Error( 'cresco_ai_patch_stale', __( 'This AI patch was created from a different Cresco Session. Export fresh context before applying it.', 'cresco-canvas' ), array( 'status' => 409, 'stale' => true, 'expectedChecksum' => $current_checksum, 'receivedChecksum' => $base_checksum ) );
-		}
 
 		$target = self::validate_target( $current, (array) ( $patch['target'] ?? array() ) );
 		if ( is_wp_error( $target ) ) return $target;
@@ -53,16 +46,13 @@ final class PatchValidator {
 		if ( is_wp_error( $candidate ) ) return $candidate;
 
 		return array(
-			'valid'        => true,
-			'resultType'   => 'patch',
-			'schema'       => self::SCHEMA,
-			'baseChecksum' => $base_checksum,
-			'checksum'     => Document::checksum( $candidate ),
-			'stale'        => false,
-			'target'       => $target,
-			'idMap'        => $id_map,
-			'session'      => $candidate,
-			'diff'         => DiffEngine::compare( $current, $candidate ),
+			'valid'      => true,
+			'resultType' => 'patch',
+			'schema'     => self::SCHEMA,
+			'target'     => $target,
+			'idMap'      => $id_map,
+			'session'    => $candidate,
+			'diff'       => DiffEngine::compare( $current, $candidate ),
 		);
 	}
 
@@ -87,14 +77,14 @@ final class PatchValidator {
 		$op = (string) ( $operation['op'] ?? '' );
 		if ( ! in_array( $op, self::OPERATIONS, true ) ) return self::operation_error( 'Unsupported Cresco Patch operation.', $index, array( 'operation' => $op ) );
 		$allowed_fields = array(
-			'setProps'        => array( 'op', 'nodeId', 'props' ),
-			'setStyle'        => array( 'op', 'nodeId', 'style' ),
-			'setResponsive'   => array( 'op', 'nodeId', 'responsive' ),
-			'setCustomCSS'    => array( 'op', 'nodeId', 'customCSS' ),
-			'insertNode'      => array( 'op', 'parentId', 'index', 'node' ),
-			'removeNode'      => array( 'op', 'nodeId' ),
-			'moveNode'        => array( 'op', 'nodeId', 'parentId', 'index' ),
-			'replaceSubtree'  => array( 'op', 'nodeId', 'node' ),
+			'setProps'       => array( 'op', 'nodeId', 'props' ),
+			'setStyle'       => array( 'op', 'nodeId', 'style' ),
+			'setResponsive'  => array( 'op', 'nodeId', 'responsive' ),
+			'setCustomCSS'   => array( 'op', 'nodeId', 'customCSS' ),
+			'insertNode'     => array( 'op', 'parentId', 'index', 'node' ),
+			'removeNode'     => array( 'op', 'nodeId' ),
+			'moveNode'       => array( 'op', 'nodeId', 'parentId', 'index' ),
+			'replaceSubtree' => array( 'op', 'nodeId', 'node' ),
 		);
 		foreach ( array_keys( $operation ) as $field ) if ( ! in_array( $field, $allowed_fields[ $op ], true ) ) return self::operation_error( 'Cresco Patch operation contains an unsupported field.', $index, array( 'field' => $field ) );
 
