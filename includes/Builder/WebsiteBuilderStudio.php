@@ -23,6 +23,7 @@ final class WebsiteBuilderStudio {
 	const INHERITANCE_HANDLE = 'cresco-canvas-studio-responsive-inheritance';
 	const STYLE             = 'assets/css/website-builder-studio.css';
 	const UI_STYLE          = 'assets/css/website-builder-ui-correction.css';
+	const PREMIUM_STYLE     = 'assets/css/website-builder-premium-polish.css';
 	const CONSISTENCY       = 'cresco-canvas-website-builder-consistency-guard';
 
 	public function register() {
@@ -142,6 +143,16 @@ final class WebsiteBuilderStudio {
 				WebsiteBuilderAsset::url( self::UI_STYLE ),
 				array( 'cresco-canvas-website-builder-studio' ),
 				WebsiteBuilderAsset::version( self::UI_STYLE )
+			);
+		}
+		if ( WebsiteBuilderAsset::readable( self::PREMIUM_STYLE ) ) {
+			$premium_deps = array( 'cresco-canvas-website-builder-studio' );
+			if ( wp_style_is( 'cresco-canvas-website-builder-ui-correction', 'enqueued' ) ) $premium_deps[] = 'cresco-canvas-website-builder-ui-correction';
+			wp_enqueue_style(
+				'cresco-canvas-website-builder-premium-polish',
+				WebsiteBuilderAsset::url( self::PREMIUM_STYLE ),
+				$premium_deps,
+				WebsiteBuilderAsset::version( self::PREMIUM_STYLE )
 			);
 		}
 		$this->enqueue_responsive_inheritance();
