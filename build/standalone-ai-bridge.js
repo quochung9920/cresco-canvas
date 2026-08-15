@@ -173,7 +173,7 @@
 			state.validation = freshValidation;
 			applyCandidate( freshValidation.session );
 		} ).catch( function ( error ) {
-			setMessage( error && error.message ? error.message : __( 'AI result became stale before Apply.', 'cresco-canvas' ), true );
+			setMessage( error && error.message ? error.message : __( 'AI result validation failed before Apply.', 'cresco-canvas' ), true );
 		} ).finally( function () { state.busy = false; renderSoon(); } );
 	}
 
@@ -292,7 +292,7 @@
 		var importCard = el( 'section', 'cc-ai-bridge-card' );
 		importCard.appendChild( el( 'h3', '', __( 'Import AI Result', 'cresco-canvas' ) ) );
 		importCard.appendChild( el( 'p', '', __( 'Paste cresco-patch/v1 for targeted edits or a complete cresco-session/v1 document. Cresco validates first; nothing is applied directly to DOM or WordPress data.', 'cresco-canvas' ) ) );
-		var textarea = el( 'textarea', 'cc-ai-bridge-textarea' ); textarea.rows = 14; textarea.value = state.importText; textarea.placeholder = '{\n  "schema": "cresco-patch/v1",\n  "baseChecksum": "…",\n  "target": { "scope": "subtree", "nodeId": "hero" },\n  "operations": []\n}';
+		var textarea = el( 'textarea', 'cc-ai-bridge-textarea' ); textarea.rows = 14; textarea.value = state.importText; textarea.placeholder = '{\n  "schema": "cresco-patch/v1",\n  "target": { "scope": "subtree", "nodeId": "hero" },\n  "operations": []\n}';
 		textarea.addEventListener( 'input', function () { state.importText = textarea.value; state.validation = null; updateDetected( root ); } ); importCard.appendChild( textarea );
 		var detected = el( 'div', 'cc-ai-bridge-detected' ); detected.dataset.aiDetected = 'true'; detected.textContent = __( 'Detected:', 'cresco-canvas' ) + ' ' + ( detectSchema() || '—' ); importCard.appendChild( detected );
 		var importActions = el( 'div', 'cc-ai-bridge-actions' ); var validate = button( __( 'Validate', 'cresco-canvas' ), 'is-secondary', validateImport ); validate.disabled = !state.importText.trim() || state.busy; importActions.appendChild( validate ); importCard.appendChild( importActions ); root.appendChild( importCard );
