@@ -1,5 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import vm from 'node:vm';
 
 const root = process.cwd();
 const errors = [];
@@ -44,7 +45,7 @@ const scriptMatch = owner.match( /return <<<'JS'\n([\s\S]*?)\nJS;/ );
 if ( ! scriptMatch ) errors.push( `${ ownerPath } canonical runtime heredoc is missing.` );
 else {
 	try {
-		new Function( scriptMatch[ 1 ] );
+		new vm.Script( scriptMatch[ 1 ], { filename: 'canonical-preview-owner.js' } );
 	} catch ( error ) {
 		errors.push( `${ ownerPath } canonical runtime JS syntax failed: ${ error.message }` );
 	}
