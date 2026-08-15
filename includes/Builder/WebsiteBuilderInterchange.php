@@ -27,7 +27,7 @@ final class WebsiteBuilderInterchange {
 	const DESTINATIONS = array( 'replace-page', 'replace', 'before', 'after', 'inside' );
 
 	public function register() {
-		add_action( 'rest_api_init', array( $this, 'register_routes' ), 31 );
+		add_action( 'rest_api_init', array( $this, 'register_routes' ) );
 	}
 
 	public function register_routes() {
@@ -89,7 +89,6 @@ final class WebsiteBuilderInterchange {
 				'sessionSchema' => SessionManager::SCHEMA,
 				'postId'        => $post_id,
 				'postTitle'     => get_the_title( $post_id ),
-				'checksum'      => ContextBuilder::checksum( $session ),
 				'exportedAt'    => gmdate( 'c' ),
 			),
 			'content'      => $content,
@@ -134,10 +133,9 @@ final class WebsiteBuilderInterchange {
 		$operations = $this->import_operations( $current, $nodes, $destination, $target_id );
 		if ( is_wp_error( $operations ) ) return $operations;
 		$patch = array(
-			'schema'       => PatchValidator::SCHEMA,
-			'baseChecksum' => ContextBuilder::checksum( $current ),
-			'target'       => array( 'scope' => 'page' ),
-			'operations'   => $operations,
+			'schema'     => PatchValidator::SCHEMA,
+			'target'     => array( 'scope' => 'page' ),
+			'operations' => $operations,
 		);
 		$validated = PatchValidator::validate( $current, $patch );
 		if ( is_wp_error( $validated ) ) return $validated;
@@ -213,16 +211,13 @@ final class WebsiteBuilderInterchange {
 
 	private function preview_response( $current, $candidate, $id_map, $package ) {
 		return array(
-			'valid'        => true,
-			'resultType'   => 'interchange',
-			'schema'       => self::SCHEMA,
-			'baseChecksum' => ContextBuilder::checksum( $current ),
-			'checksum'     => ContextBuilder::checksum( $candidate ),
-			'stale'        => false,
-			'idMap'        => $id_map,
-			'session'      => $candidate,
-			'diff'         => DiffEngine::compare( $current, $candidate ),
-			'warnings'     => $this->dependency_warnings( $package ),
+			'valid'      => true,
+			'resultType' => 'interchange',
+			'schema'     => self::SCHEMA,
+			'idMap'      => $id_map,
+			'session'    => $candidate,
+			'diff'       => DiffEngine::compare( $current, $candidate ),
+			'warnings'   => $this->dependency_warnings( $package ),
 		);
 	}
 
