@@ -8,6 +8,7 @@
 namespace CrescoCanvas\AI;
 
 use CrescoCanvas\Builder\WebsiteBuilder;
+use CrescoCanvas\Builder\WebsiteBuilderSessionSanitizer;
 use CrescoCanvas\Core\Document\Document;
 use CrescoCanvas\Page\PageSettings;
 use CrescoCanvas\Session\SessionManager;
@@ -38,7 +39,7 @@ final class ContextBuilder {
 	 *                               how the design looks rather than what it means.
 	 */
 	public static function build( $post_id, $session, $scope = 'page', $target = array(), $mode = 'optimized', $resources = array(), $include_visual = false ) {
-		$session = WebsiteBuilder::sanitize_session( $session );
+		$session = WebsiteBuilderSessionSanitizer::sanitize_session( $session );
 		if ( is_wp_error( $session ) ) return $session;
 		$mode = sanitize_key( (string) $mode );
 		if ( ! in_array( $mode, self::MODES, true ) ) {
@@ -97,7 +98,7 @@ final class ContextBuilder {
 			'Use only widget types, props, structured style properties, responsive devices, states, and stable selector parts declared in contracts.',
 			'Preserve semantic token references such as {colors.primary}, {spacing.xl}, and {radius.md} when they already express design intent.',
 			'Container props.contentWidth="full" means 100% of its parent. It does not mean viewport width. Do not use 100vw to break a Container out of a boxed parent.',
-			'Use structured style before customCSS. Custom CSS must remain widget-scoped with &, and must not contain @media, @import, url(), JavaScript, or global selectors.',
+			'Use structured style before customCSS. Custom CSS supports arbitrary safe CSS declarations plus local @keyframes/@-webkit-keyframes and safe nested @media/@supports/@container/@layer rules. Ordinary selectors must remain widget-scoped with &; local keyframe names are automatically namespaced. Do not use @import, @charset, @namespace, external url(), JavaScript/expression constructs, or global selectors.',
 			'Never return JavaScript, DOM commands, PHP, credentials, nonces, cookies, authorization headers, API keys, license keys, webhook secrets, or form submission data.',
 			'Patch operations must remain inside the exported target scope: ' . (string) ( $target['scope'] ?? 'page' ) . '.',
 			'Image attachment IDs are site-local. Treat media dependencies as descriptors and do not assume IDs are portable between sites.',
