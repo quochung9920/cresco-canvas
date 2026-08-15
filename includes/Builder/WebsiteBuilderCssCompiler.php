@@ -10,6 +10,7 @@ namespace CrescoCanvas\Builder;
 use CrescoCanvas\Core\Responsive\ResponsiveResolver;
 use CrescoCanvas\Styles\DesignTokens;
 use CrescoCanvas\Styles\GlobalStyles;
+use CrescoCanvas\Styles\ScopedCss;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -42,10 +43,10 @@ final class WebsiteBuilderCssCompiler {
 		}
 
 		$custom = (array) ( $node['customCSS'] ?? array() );
-		if ( ! empty( $custom['base'] ) ) $css .= self::scope_custom_css( $selector, $custom['base'] );
+		if ( ! empty( $custom['base'] ) ) $css .= self::scope_custom_css( $selector, $custom['base'], $id );
 		foreach ( ResponsiveResolver::OVERRIDE_DEVICES as $device ) {
 			if ( empty( $custom[ $device ] ) ) continue;
-			$scoped = self::scope_custom_css( $selector, $custom[ $device ] );
+			$scoped = self::scope_custom_css( $selector, $custom[ $device ], $id );
 			if ( '' !== $scoped ) $css .= ResponsiveResolver::wrap( $device, $scoped );
 		}
 
@@ -116,21 +117,9 @@ final class WebsiteBuilderCssCompiler {
 		return is_scalar( $current ) ? WebsiteBuilder::sanitize_css_value( (string) $current ) : '';
 	}
 
-	private static function scope_custom_css( $selector, $css ) {
-		$clean = WebsiteBuilder::sanitize_custom_css( $css );
-		if ( is_wp_error( $clean ) || '' === $clean ) return '';
-		$output = '';
-		$cursor = 0;
-		while ( false !== ( $open = strpos( $clean, '{', $cursor ) ) ) {
-			$raw_selector = trim( substr( $clean, $cursor, $open - $cursor ) );
-			$close = strpos( $clean, '}', $open + 1 );
-			if ( false === $close ) break;
-			$scoped = array();
-			foreach ( explode( ',', $raw_selector ) as $part ) $scoped[] = str_replace( '&', $selector, trim( $part ) );
-			$output .= implode( ',', $scoped ) . '{' . substr( $clean, $open + 1, $close - $open - 1 ) . '}';
-			$cursor = $close + 1;
-		}
-		return $output;
+	private static function scope_custom_css( $selector, $css, $scope_id = '' ) {
+		$compiled = ScopedCss::compile( $css, $selector, $scope_id, WebsiteBuilder::MAX_CUSTOM_CSS );
+		return is_wp_error( $compiled ) ? '' : $compiled;
 	}
 
 	private function __construct() {}
