@@ -28,6 +28,7 @@ for ( const token of [
 	"WebsiteBuilderVisualParity::class, 'enqueue_editor_parity'",
 	'window.crescoCanonicalBootstrap=',
 	'RenderEngine::render( $session, $context->post_id(), $context->document_type() )',
+	"'session'         => is_array( $session ) ? $session : null",
 	"'responsive'      => ResponsiveResolver::manifest()",
 	"'tokens'          => DesignTokens::catalog( GlobalStyles::get_settings() )",
 	'.cc-studio-frame>.cc-studio-canvas{display:none!important;visibility:hidden!important;pointer-events:none!important;}',
@@ -36,10 +37,18 @@ for ( const token of [
 	'function compileLiveCSS(session)',
 	'function applyServerRender(render,session)',
 	'function scheduleReconcile(session,force)',
+	"WIDGET_MIME='application/x-cresco-studio-widget'",
+	'function canonicalDropDescriptor(event)',
+	'function showDropIndicator(desc)',
+	'function createWidgetInParent(type,parentId)',
+	'function moveStructureNode(sourceId,targetId,zone)',
+	'function insertWidgetAtDescriptor(type,desc)',
+	'function handleCanonicalDrag(event,type)',
 	"mode:'canonical-realtime'",
 	'legacyVisualFallback:false',
 	'realtime:true',
 	'iframeReloadOnEdit:false',
+	'canonicalWidgetDrop:true',
 	"window.crescoCanonicalEditorPreview=window.crescoCanonicalVisualOwner",
 ] ) expect( owner, token, ownerPath );
 
@@ -47,7 +56,7 @@ for ( const token of [
 	'function showLegacy',
 	"classList.add('is-cresco-canonical-drag')",
 	'legacyVisualFallback:true',
-	"setState('loading','Rendering preview…')",
+	"setState('loading','Rendering preview')",
 ] ) reject( owner, token, ownerPath );
 
 for ( const token of [
@@ -74,4 +83,4 @@ if ( errors.length ) {
 	process.exit( 1 );
 }
 
-process.stdout.write( '[canonical-preview-owner] Studio prehydrates one canonical iframe, applies Session CSS/props locally in realtime, reconciles RenderEngine in the background, and never reloads or exposes the legacy visual during edits.\n' );
+process.stdout.write( '[canonical-preview-owner] Studio prehydrates one canonical iframe, applies Session edits locally, accepts positioned widget drops with a visible indicator, reconciles RenderEngine in the background, and never exposes the legacy visual.\n' );
