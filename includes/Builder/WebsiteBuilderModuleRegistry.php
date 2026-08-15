@@ -93,7 +93,7 @@ final class WebsiteBuilderModuleRegistry {
 
 		if ( 'core' === $mode ) return $required;
 		if ( 'controls' === $mode ) return array_values( array_unique( array_merge( $required, array( 'controls' ) ) ) );
-		if ( 'professional-ux' === $mode ) return array_values( array_unique( array_merge( $required, array( 'controls', 'professional-ux' ) ) );
+		if ( 'professional-ux' === $mode ) return array_values( array_unique( array_merge( $required, array( 'controls', 'professional-ux' ) ) ) );
 		if ( 'architecture' === $mode ) return array_values( array_unique( array_merge( $required, array( 'architecture' ) ) ) );
 		if ( 'all' === $mode ) return array_keys( $all );
 
