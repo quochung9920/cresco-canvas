@@ -43,10 +43,9 @@ final class AIOneShotRoundTripTest extends TestCase {
 	/** A response built only from what the package declared. */
 	private function patch( array $package ): array {
 		return array(
-			'schema'       => 'cresco-patch/v1',
-			'baseChecksum' => $package['baseChecksum'],
-			'target'       => $package['scopePackage']['target'],
-			'operations'   => array(
+			'schema'     => 'cresco-patch/v1',
+			'target'     => $package['scopePackage']['target'],
+			'operations' => array(
 				array(
 					'op'     => 'replaceSubtree',
 					'nodeId' => 'one-shot-root',
@@ -78,9 +77,9 @@ final class AIOneShotRoundTripTest extends TestCase {
 		$session = $this->session();
 		$package = $this->package();
 
-		// Arrives from the editor the way a model actually returns it.
 		$normalized = AIResultNormalizer::normalize( "```json\n" . wp_json_encode( $this->patch( $package ) ) . "\n```" );
 		self::assertIsArray( $normalized );
+		self::assertArrayNotHasKey( 'baseChecksum', $normalized );
 
 		$validated = PatchValidator::validate( $session, $normalized );
 		self::assertFalse( is_wp_error( $validated ), is_wp_error( $validated ) ? $validated->get_error_message() : '' );
@@ -101,17 +100,20 @@ final class AIOneShotRoundTripTest extends TestCase {
 		self::assertNotSame( '', WebsiteRenderer::compile_css( $sanitized ) );
 	}
 
-	public function test_a_stale_checksum_is_still_rejected(): void {
+	public function test_legacy_checksum_field_is_ignored(): void {
 		$patch                 = $this->patch( $this->package() );
 		$patch['baseChecksum'] = str_repeat( '0', 64 );
 
-		self::assertTrue( is_wp_error( PatchValidator::validate( $this->session(), $patch ) ) );
+		$validated = PatchValidator::validate( $this->session(), $patch );
+		self::assertFalse( is_wp_error( $validated ) );
+		self::assertArrayNotHasKey( 'baseChecksum', $validated );
+		self::assertArrayNotHasKey( 'stale', $validated );
 	}
 
 	/**
-	 * Phase 19: what the package promises about Custom CSS must be what the
-	 * compiler actually does. Drift here is invisible until a user's animation
-	 * silently stops working.
+	 * What the package promises about Custom CSS must be what the compiler
+	 * actually does. Drift here is invisible until a user's animation silently
+	 * stops working.
 	 */
 	public function test_declared_keyframe_capability_matches_compiler_behaviour(): void {
 		$capabilities = $this->package()['scopePackage']['capabilities']['customCss'];
@@ -121,7 +123,6 @@ final class AIOneShotRoundTripTest extends TestCase {
 		$compiled = ScopedCss::compile( self::MARQUEE, '.x', 'scope1' );
 		self::assertIsString( $compiled );
 
-		// The bare author-supplied name must not survive into global CSS.
 		self::assertStringNotContainsString( '@keyframes marquee{', $compiled );
 
 		self::assertSame( 1, preg_match( '/@(?:-webkit-)?keyframes\s+([A-Za-z0-9_-]+)/', $compiled, $matches ) );
