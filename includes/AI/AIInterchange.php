@@ -8,6 +8,7 @@
 namespace CrescoCanvas\AI;
 
 use CrescoCanvas\Admin\VisualEditor;
+use CrescoCanvas\Builder\WebsiteBuilder;
 use CrescoCanvas\Session\SessionManager;
 use WP_Error;
 use WP_REST_Request;
@@ -141,7 +142,7 @@ final class AIInterchange {
 		$post_id = absint( $request['postId'] );
 		$payload = (array) $request->get_json_params();
 		$current = isset( $payload['currentSession'] ) && is_array( $payload['currentSession'] ) ? $payload['currentSession'] : $this->saved_session( $post_id );
-		$current = SessionManager::sanitize_session( $current );
+		$current = WebsiteBuilder::sanitize_session( $current );
 		if ( is_wp_error( $current ) ) return $current;
 
 		$result = $payload['result'] ?? null;
@@ -157,7 +158,7 @@ final class AIInterchange {
 			return is_wp_error( $validated ) ? $validated : new WP_REST_Response( $validated );
 		}
 		if ( SessionManager::SCHEMA === ( $result['schema'] ?? SessionManager::SCHEMA ) ) {
-			$candidate = SessionManager::sanitize_session( $result );
+			$candidate = WebsiteBuilder::sanitize_session( $result );
 			if ( is_wp_error( $candidate ) ) return $candidate;
 			return new WP_REST_Response(
 				array(
@@ -180,6 +181,6 @@ final class AIInterchange {
 		$raw     = (string) get_post_meta( $post_id, SessionManager::META_KEY, true );
 		$decoded = '' !== $raw ? json_decode( $raw, true ) : array();
 		if ( ! is_array( $decoded ) ) $decoded = array();
-		return SessionManager::sanitize_session( $decoded );
+		return WebsiteBuilder::sanitize_session( $decoded );
 	}
 }
