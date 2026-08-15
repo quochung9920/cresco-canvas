@@ -59,7 +59,7 @@ final class AIInterchangeTest extends TestCase {
 		self::assertSame( 'cresco-session/v1', $context['content']['session']['schema'] );
 		self::assertCount( 9, $context['contracts'] );
 		self::assertArrayNotHasKey( 'privateApiKey', $context['pageSettings']['settings'] );
-		self::assertSame( ContextBuilder::checksum( $this->session() ), $context['baseChecksum'] );
+		self::assertArrayNotHasKey( 'baseChecksum', $context );
 	}
 
 	public function test_widget_export_contains_only_selected_widget_content(): void {
@@ -92,7 +92,7 @@ final class AIInterchangeTest extends TestCase {
 		$context = ContextBuilder::build( 10, $this->session(), 'widget', array( 'nodeId' => 'hero-gap' ), 'optimized', $this->resources() );
 		self::assertFalse( is_wp_error( $context ) );
 		self::assertArrayHasKey( 'spacer', $context['contracts'] );
-		self::assertArrayHasKey( 'container', $context['contracts'] ); // parent context.
+		self::assertArrayHasKey( 'container', $context['contracts'] );
 		self::assertArrayNotHasKey( 'button', $context['contracts'] );
 		self::assertArrayNotHasKey( 'colors', $context['designSystem'] );
 	}
@@ -117,7 +117,6 @@ final class AIInterchangeTest extends TestCase {
 		$base = $this->session();
 		$patch = array(
 			'schema' => 'cresco-patch/v1',
-			'baseChecksum' => ContextBuilder::checksum( $base ),
 			'target' => array( 'scope' => 'subtree', 'nodeId' => 'hero' ),
 			'operations' => array(
 				array( 'op' => 'setStyle', 'nodeId' => 'hero', 'style' => array( 'paddingTop' => '112px' ) ),
@@ -135,7 +134,7 @@ final class AIInterchangeTest extends TestCase {
 	public function test_unsupported_widget_is_rejected(): void {
 		$base = $this->session();
 		$result = PatchValidator::validate( $base, array(
-			'schema' => 'cresco-patch/v1', 'baseChecksum' => ContextBuilder::checksum( $base ),
+			'schema' => 'cresco-patch/v1',
 			'target' => array( 'scope' => 'subtree', 'nodeId' => 'hero' ),
 			'operations' => array( array( 'op' => 'insertNode', 'parentId' => 'hero', 'node' => array( 'id' => 'bad', 'type' => 'script-widget' ) ) ),
 		) );
@@ -146,7 +145,7 @@ final class AIInterchangeTest extends TestCase {
 	public function test_unsupported_property_is_rejected_instead_of_silently_dropped(): void {
 		$base = $this->session();
 		$result = PatchValidator::validate( $base, array(
-			'schema' => 'cresco-patch/v1', 'baseChecksum' => ContextBuilder::checksum( $base ),
+			'schema' => 'cresco-patch/v1',
 			'target' => array( 'scope' => 'subtree', 'nodeId' => 'hero' ),
 			'operations' => array( array( 'op' => 'setProps', 'nodeId' => 'hero', 'props' => array( 'inventedProperty' => 'nope' ) ) ),
 		) );
@@ -157,7 +156,7 @@ final class AIInterchangeTest extends TestCase {
 	public function test_unsupported_structured_style_property_is_rejected(): void {
 		$base = $this->session();
 		$result = PatchValidator::validate( $base, array(
-			'schema' => 'cresco-patch/v1', 'baseChecksum' => ContextBuilder::checksum( $base ),
+			'schema' => 'cresco-patch/v1',
 			'target' => array( 'scope' => 'subtree', 'nodeId' => 'hero' ),
 			'operations' => array( array( 'op' => 'setStyle', 'nodeId' => 'hero', 'style' => array( 'backdropFilter' => 'blur(5px)' ) ) ),
 		) );
@@ -168,7 +167,7 @@ final class AIInterchangeTest extends TestCase {
 	public function test_duplicate_insert_id_is_remapped_and_followup_reference_is_rewritten(): void {
 		$base = $this->session();
 		$result = PatchValidator::validate( $base, array(
-			'schema' => 'cresco-patch/v1', 'baseChecksum' => ContextBuilder::checksum( $base ),
+			'schema' => 'cresco-patch/v1',
 			'target' => array( 'scope' => 'subtree', 'nodeId' => 'hero' ),
 			'operations' => array(
 				array( 'op' => 'insertNode', 'parentId' => 'hero', 'node' => array( 'id' => 'hero', 'type' => 'spacer', 'props' => array( 'height' => '20px' ) ) ),
@@ -188,7 +187,6 @@ final class AIInterchangeTest extends TestCase {
 		$base = $this->session();
 		$result = PatchValidator::validate( $base, array(
 			'schema' => 'cresco-patch/v1',
-			'baseChecksum' => ContextBuilder::checksum( $base ),
 			'target' => array( 'scope' => 'page' ),
 			'operations' => array(
 				array( 'op' => 'moveNode', 'nodeId' => 'hero-rule', 'parentId' => 'hero', 'index' => 0 ),
@@ -204,21 +202,23 @@ final class AIInterchangeTest extends TestCase {
 		self::assertSame( '44px', $result['session']['nodes'][1]['props']['height'] );
 	}
 
-	public function test_stale_base_checksum_is_detected(): void {
+	public function test_legacy_checksum_field_is_ignored(): void {
 		$base = $this->session();
 		$result = PatchValidator::validate( $base, array(
-			'schema' => 'cresco-patch/v1', 'baseChecksum' => str_repeat( '0', 64 ),
-			'target' => array( 'scope' => 'page' ), 'operations' => array(),
+			'schema' => 'cresco-patch/v1',
+			'baseChecksum' => str_repeat( '0', 64 ),
+			'target' => array( 'scope' => 'page' ),
+			'operations' => array(),
 		) );
-		self::assertTrue( is_wp_error( $result ) );
-		self::assertSame( 'cresco_ai_patch_stale', $result->get_error_code() );
-		self::assertTrue( $result->get_error_data()['stale'] );
+		self::assertFalse( is_wp_error( $result ) );
+		self::assertArrayNotHasKey( 'baseChecksum', $result );
+		self::assertArrayNotHasKey( 'stale', $result );
 	}
 
 	public function test_patch_cannot_escape_subtree_target(): void {
 		$base = $this->session();
 		$result = PatchValidator::validate( $base, array(
-			'schema' => 'cresco-patch/v1', 'baseChecksum' => ContextBuilder::checksum( $base ),
+			'schema' => 'cresco-patch/v1',
 			'target' => array( 'scope' => 'subtree', 'nodeId' => 'hero' ),
 			'operations' => array( array( 'op' => 'setStyle', 'nodeId' => 'outside', 'style' => array( 'opacity' => '.5' ) ) ),
 		) );
@@ -229,14 +229,14 @@ final class AIInterchangeTest extends TestCase {
 	public function test_custom_css_still_uses_session_sanitizer(): void {
 		$base = $this->session();
 		$valid = PatchValidator::validate( $base, array(
-			'schema' => 'cresco-patch/v1', 'baseChecksum' => ContextBuilder::checksum( $base ),
+			'schema' => 'cresco-patch/v1',
 			'target' => array( 'scope' => 'subtree', 'nodeId' => 'hero' ),
 			'operations' => array( array( 'op' => 'setCustomCSS', 'nodeId' => 'hero', 'customCSS' => array( 'base' => '&:hover { opacity: .9; }' ) ) ),
 		) );
 		self::assertFalse( is_wp_error( $valid ) );
 
 		$invalid = PatchValidator::validate( $base, array(
-			'schema' => 'cresco-patch/v1', 'baseChecksum' => ContextBuilder::checksum( $base ),
+			'schema' => 'cresco-patch/v1',
 			'target' => array( 'scope' => 'subtree', 'nodeId' => 'hero' ),
 			'operations' => array( array( 'op' => 'setCustomCSS', 'nodeId' => 'hero', 'customCSS' => array( 'base' => 'body { display:none; }' ) ) ),
 		) );
@@ -254,6 +254,9 @@ final class AIInterchangeTest extends TestCase {
 		$data = $response->get_data();
 		self::assertSame( 'session', $data['resultType'] );
 		self::assertSame( 'cresco-session/v1', $data['session']['schema'] );
+		self::assertArrayNotHasKey( 'baseChecksum', $data );
+		self::assertArrayNotHasKey( 'checksum', $data );
+		self::assertArrayNotHasKey( 'stale', $data );
 		self::assertSame( 3, $data['diff']['summary']['total'] > 0 ? count( $data['session']['nodes'] ) : 0 );
 	}
 }
