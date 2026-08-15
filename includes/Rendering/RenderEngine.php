@@ -34,13 +34,15 @@ final class RenderEngine {
 			: WidgetArchitectureV2::empty_document();
 		$html = WebsiteRendererV2::render_document( $session, absint( $post_id ), $architecture );
 		$html = WebsiteBuilderRendererParity::repair_document_html( $html, $session );
-		$css = self::compile_css( $session, $architecture );
+		$css_parts = self::compile_css_parts( $session, $architecture );
 
 		return array(
 			'document'     => $document,
 			'architecture' => $architecture,
 			'html'         => $html,
-			'css'          => $css,
+			'css'          => $css_parts['css'],
+			'rootCss'      => $css_parts['rootCss'],
+			'stableCss'    => $css_parts['stableCss'],
 			'runtime'      => array( 'website-builder-frontend' ),
 			'renderOwner'  => 'RenderEngine/v2',
 		);
@@ -58,14 +60,18 @@ final class RenderEngine {
 		$architecture = absint( $post_id )
 			? WebsiteBuilderArchitectureV2::load_document( absint( $post_id ), $session )
 			: WidgetArchitectureV2::empty_document();
-		return self::compile_css( $session, $architecture );
+		return self::compile_css_parts( $session, $architecture )['css'];
 	}
 
-	private static function compile_css( $session, $architecture ) {
-		return self::surface_css()
-			. WebsiteBuilderCssCompiler::compile( $session )
-			. WidgetPartStyleCompiler::compile( $session, $architecture )
+	private static function compile_css_parts( $session, $architecture ) {
+		$root_css   = WebsiteBuilderCssCompiler::compile( $session );
+		$stable_css = WidgetPartStyleCompiler::compile( $session, $architecture )
 			. ComponentStyleCompiler::compile( $architecture );
+		return array(
+			'rootCss'   => $root_css,
+			'stableCss' => $stable_css,
+			'css'       => self::surface_css() . $root_css . $stable_css,
+		);
 	}
 
 	/** Theme-independent geometry shared by Studio iframe and frontend. */

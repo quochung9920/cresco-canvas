@@ -13,22 +13,33 @@ const reject = ( source, token, label ) => {
 };
 
 const ownerPath = 'includes/Builder/WebsiteBuilderCanonicalPreviewOwner.php';
+const renderPath = 'includes/Rendering/RenderEngine.php';
 const pluginPath = 'includes/Plugin.php';
-if ( ! fs.existsSync( path.join( root, ownerPath ) ) ) errors.push( `Missing ${ ownerPath }` );
-if ( ! fs.existsSync( path.join( root, pluginPath ) ) ) errors.push( `Missing ${ pluginPath }` );
+for ( const file of [ ownerPath, renderPath, pluginPath ] ) {
+	if ( ! fs.existsSync( path.join( root, file ) ) ) errors.push( `Missing ${ file }` );
+}
 
 const owner = errors.length ? '' : read( ownerPath );
+const render = errors.length ? '' : read( renderPath );
 const plugin = errors.length ? '' : read( pluginPath );
 
 for ( const token of [
 	"add_action( 'admin_enqueue_scripts', array( $this, 'claim_visual_ownership' ), 1490 )",
 	"WebsiteBuilderVisualParity::class, 'enqueue_editor_parity'",
+	'window.crescoCanonicalBootstrap=',
+	'RenderEngine::render( $session, $context->post_id(), $context->document_type() )',
+	"'responsive'      => ResponsiveResolver::manifest()",
+	"'tokens'          => DesignTokens::catalog( GlobalStyles::get_settings() )",
 	'.cc-studio-frame>.cc-studio-canvas{display:none!important;visibility:hidden!important;pointer-events:none!important;}',
-	'.cc-studio-frame.is-cresco-canonical-ready>.cc-studio-canonical-preview{opacity:1;pointer-events:auto;}',
-	"setState('loading','Rendering preview…')",
-	"setState('error','Renderer unavailable. Retry to continue editing.')",
-	"mode:'canonical-only'",
+	'.cc-studio-frame>.cc-studio-canonical-preview{display:block!important;width:100%;min-height:720px;border:0;background:#fff;opacity:1;pointer-events:auto;}',
+	'function applyLiveSession(session)',
+	'function compileLiveCSS(session)',
+	'function applyServerRender(render,session)',
+	'function scheduleReconcile(session,force)',
+	"mode:'canonical-realtime'",
 	'legacyVisualFallback:false',
+	'realtime:true',
+	'iframeReloadOnEdit:false',
 	"window.crescoCanonicalEditorPreview=window.crescoCanonicalVisualOwner",
 ] ) expect( owner, token, ownerPath );
 
@@ -36,7 +47,14 @@ for ( const token of [
 	'function showLegacy',
 	"classList.add('is-cresco-canonical-drag')",
 	'legacyVisualFallback:true',
+	"setState('loading','Rendering preview…')",
 ] ) reject( owner, token, ownerPath );
+
+for ( const token of [
+	"'rootCss'      => $css_parts['rootCss']",
+	"'stableCss'    => $css_parts['stableCss']",
+	'private static function compile_css_parts',
+] ) expect( render, token, renderPath );
 
 expect( plugin, 'use CrescoCanvas\\Builder\\WebsiteBuilderCanonicalPreviewOwner;', pluginPath );
 expect( plugin, '( new WebsiteBuilderVisualParity() )->register();\n\t\t\t( new WebsiteBuilderCanonicalPreviewOwner() )->register();', pluginPath );
@@ -56,4 +74,4 @@ if ( errors.length ) {
 	process.exit( 1 );
 }
 
-process.stdout.write( '[canonical-preview-owner] Studio has one canonical visual renderer, no legacy visual fallback, loading/error stay on the canonical surface, and the runtime JS parses successfully.\n' );
+process.stdout.write( '[canonical-preview-owner] Studio prehydrates one canonical iframe, applies Session CSS/props locally in realtime, reconciles RenderEngine in the background, and never reloads or exposes the legacy visual during edits.\n' );
