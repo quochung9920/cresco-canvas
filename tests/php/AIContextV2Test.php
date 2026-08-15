@@ -10,7 +10,6 @@ use CrescoCanvas\AI\ContextBuilderV2;
 use CrescoCanvas\AI\ContractRegistry;
 use CrescoCanvas\AI\PatchValidator;
 use CrescoCanvas\Builder\WebsiteBuilderSessionSanitizer;
-use CrescoCanvas\Core\Document\Document;
 use PHPUnit\Framework\TestCase;
 
 final class AIContextV2Test extends TestCase {
@@ -62,9 +61,10 @@ final class AIContextV2Test extends TestCase {
 		self::assertSame( 'optimized', $package['mode'] );
 	}
 
-	public function test_base_checksum_matches_the_canonical_session(): void {
+	public function test_package_does_not_export_a_checksum(): void {
 		$package = $this->build();
-		self::assertSame( Document::checksum( $this->session() ), $package['baseChecksum'] );
+		self::assertArrayNotHasKey( 'baseChecksum', $package );
+		self::assertArrayNotHasKey( 'baseChecksum', $package['returnContract']['template'] );
 	}
 
 	public function test_unsupported_purpose_and_mode_are_rejected(): void {
@@ -97,11 +97,8 @@ final class AIContextV2Test extends TestCase {
 		$package   = $this->build();
 		$contracts = $package['scopePackage']['contracts'];
 
-		// The scope itself only knows about a container.
 		self::assertArrayHasKey( 'container', $contracts['current'] );
 
-		// The catalog must offer everything the registry allows, so the model has
-		// something to build with inside an empty section.
 		$expected = array_keys( ContractRegistry::all() );
 		self::assertSame( $expected, array_keys( $contracts['creationCatalog'] ) );
 		self::assertGreaterThan( count( $contracts['current'] ), count( $contracts['creationCatalog'] ) );
@@ -143,7 +140,7 @@ final class AIContextV2Test extends TestCase {
 
 		$template = $contract['template'];
 		self::assertSame( 'cresco-patch/v1', $template['schema'] );
-		self::assertSame( $package['baseChecksum'], $template['baseChecksum'] );
+		self::assertArrayNotHasKey( 'baseChecksum', $template );
 		self::assertSame( $package['scopePackage']['target'], $template['target'] );
 		self::assertSame( array(), $template['operations'] );
 	}
@@ -170,8 +167,6 @@ final class AIContextV2Test extends TestCase {
 	}
 
 	public function test_wide_is_described_as_the_base_not_a_responsive_bucket(): void {
-		// Emitting responsive.wide fails validation, so the package must not imply
-		// that `wide` is an override device.
 		$capabilities = $this->build()['scopePackage']['capabilities'];
 
 		self::assertNotContains( 'wide', $capabilities['responsiveDevices'] );
@@ -197,16 +192,15 @@ final class AIContextV2Test extends TestCase {
 		}
 	}
 
-	// H. Backward compatibility
+	// H. Backward-compatible profile
 
-	public function test_v1_is_unchanged(): void {
+	public function test_v1_remains_available_without_checksum_locking(): void {
 		$session = $this->session();
 		$v1      = ContextBuilder::build( 0, $session, 'subtree', array( 'nodeId' => 'one-shot-root' ) );
 
 		self::assertSame( 'cresco-ai-context/v1', $v1['schema'] );
 		self::assertSame( 1, $v1['version'] );
-		// v1 stays flat and optimized: no scopePackage, no creation catalog, and
-		// no visual unless explicitly requested.
+		self::assertArrayNotHasKey( 'baseChecksum', $v1 );
 		self::assertArrayNotHasKey( 'scopePackage', $v1 );
 		self::assertArrayNotHasKey( 'visual', $v1 );
 		self::assertSame( array( 'container' ), array_keys( $v1['contracts'] ) );
