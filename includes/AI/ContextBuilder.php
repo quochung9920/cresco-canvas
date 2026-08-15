@@ -9,7 +9,6 @@ namespace CrescoCanvas\AI;
 
 use CrescoCanvas\Builder\WebsiteBuilder;
 use CrescoCanvas\Builder\WebsiteBuilderSessionSanitizer;
-use CrescoCanvas\Core\Document\Document;
 use CrescoCanvas\Page\PageSettings;
 use CrescoCanvas\Session\SessionManager;
 use CrescoCanvas\Styles\DesignTokens;
@@ -63,7 +62,6 @@ final class ContextBuilder {
 			'version'      => 1,
 			'scope'        => $scope_data['target']['scope'],
 			'mode'         => $mode,
-			'baseChecksum' => Document::checksum( $session ),
 			'target'       => $scope_data['target'],
 			'environment'  => array(
 				'crescoVersion' => defined( 'CRESCO_CANVAS_VERSION' ) ? CRESCO_CANVAS_VERSION : 'development',
@@ -85,11 +83,6 @@ final class ContextBuilder {
 		}
 
 		return ContextSanitizer::sanitize( $payload );
-	}
-
-	/** Backward-compatible checksum API, delegated to the canonical Document boundary. */
-	public static function checksum( $session ) {
-		return Document::checksum( $session );
 	}
 
 	private static function instructions( $target ) {
