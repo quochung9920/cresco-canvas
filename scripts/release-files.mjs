@@ -170,6 +170,7 @@ export const buildFiles = [
 	'build/website-builder-responsive-properties.js',
 	'build/website-builder-studio.js',
 	'build/website-builder-ui-correction.js',
+	'build/website-builder-unset-styles.js',
 	'build/widget-control-enhancements.js',
 	'build/widget-inspector-persistent.asset.php',
 	'build/widget-inspector-persistent.js',
