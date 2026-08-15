@@ -1,6 +1,6 @@
 <?php
 /**
- * REST boundary for Cresco AI Interchange v1.
+ * REST boundary for Cresco AI Interchange v1/v2.
  *
  * @package CrescoCanvas
  */
@@ -71,13 +71,6 @@ final class AIInterchange {
 		$style  = CRESCO_CANVAS_PATH . 'assets/css/standalone-ai-bridge.css';
 		if ( ! is_readable( $script ) || ! is_readable( $style ) ) return;
 
-		// The bridge used to depend on `cresco-canvas-standalone-visual-editor`.
-		// That runtime was retired: nothing registers the handle any more, and
-		// WebsiteBuilder actively dequeues it. WordPress drops an unregistered
-		// dependency silently, so the bridge kept loading with no ordering
-		// guarantee at all — it could run before the Studio runtime it reads
-		// `window.crescoCanvasStandaloneSettings` alongside. Depend on the handle
-		// that actually owns the screen instead.
 		wp_enqueue_style( 'cresco-canvas-standalone-ai-bridge', CRESCO_CANVAS_URL . 'assets/css/standalone-ai-bridge.css', array( 'cresco-canvas-website-builder-studio' ), CRESCO_CANVAS_VERSION );
 		wp_enqueue_script( 'cresco-canvas-standalone-ai-bridge', CRESCO_CANVAS_URL . 'build/standalone-ai-bridge.js', array( 'cresco-canvas-website-builder', 'wp-api-fetch', 'wp-i18n' ), CRESCO_CANVAS_VERSION, true );
 		wp_add_inline_script(
@@ -93,14 +86,7 @@ final class AIInterchange {
 		return $post_id > 0 && 'page' === get_post_type( $post_id ) && current_user_can( 'edit_post', $post_id );
 	}
 
-	/**
-	 * Export an AI context package.
-	 *
-	 * One endpoint serves both profiles. A request that names neither `version`
-	 * nor `profile` gets exactly the v1 behaviour it got before v2 existed; asking
-	 * for version 2 or the `one-shot` profile gets the authoring package. Adding a
-	 * second route would have split a contract that only differs by payload shape.
-	 */
+	/** Export an AI context package. */
 	public function rest_export_context( WP_REST_Request $request ) {
 		$post_id = absint( $request['postId'] );
 		$payload = (array) $request->get_json_params();
@@ -118,8 +104,6 @@ final class AIInterchange {
 			return is_wp_error( $result ) ? $result : new WP_REST_Response( $result );
 		}
 
-		// A One-Shot request is about how something should look, so the rendered
-		// appearance travels unless the caller explicitly declines it.
 		$include_visual = array_key_exists( 'includeVisual', $payload ) ? (bool) $payload['includeVisual'] : true;
 
 		$package = ContextBuilderV2::build(
@@ -134,9 +118,6 @@ final class AIInterchange {
 		);
 		if ( is_wp_error( $package ) ) return $package;
 
-		// The prompt is assembled server-side so its normative rules stay next to
-		// the validator that enforces them. The package remains independently
-		// usable, which is what keeps it testable on its own.
 		$response = array( 'package' => $package );
 		if ( 'one-shot' === $profile ) {
 			$response['prompt'] = OneShotPrompt::build( $package, (string) ( $payload['request'] ?? '' ) );
@@ -145,14 +126,7 @@ final class AIInterchange {
 		return new WP_REST_Response( 'one-shot' === $profile ? $response : $package );
 	}
 
-	/**
-	 * Standalone HTML rendering of a scope.
-	 *
-	 * Returns a document that opens in any browser without WordPress, so the
-	 * exported design can be inspected visually or handed to a reader that looks
-	 * at pages rather than reading JSON. Nothing leaves the site on its own; the
-	 * editor saves the response to a file the operator carries.
-	 */
+	/** Standalone HTML rendering of a scope. */
 	public function rest_export_visual( WP_REST_Request $request ) {
 		$post_id = absint( $request['postId'] );
 		$payload = (array) $request->get_json_params();
@@ -193,9 +167,6 @@ final class AIInterchange {
 		$current = WebsiteBuilderSessionSanitizer::sanitize_session( $current );
 		if ( is_wp_error( $current ) ) return $current;
 
-		// The server owns normalization. The editor may guess at a schema to label
-		// the paste box, but that guess must never decide whether input is valid:
-		// only this path, and the validator behind it, do.
 		$result = AIResultNormalizer::normalize( $payload['result'] ?? null );
 		if ( is_wp_error( $result ) ) return $result;
 
@@ -208,15 +179,12 @@ final class AIInterchange {
 			if ( is_wp_error( $candidate ) ) return $candidate;
 			return new WP_REST_Response(
 				array(
-					'valid'        => true,
-					'resultType'   => 'session',
-					'schema'       => SessionManager::SCHEMA,
-					'baseChecksum' => ContextBuilder::checksum( $current ),
-					'checksum'     => ContextBuilder::checksum( $candidate ),
-					'stale'        => false,
-					'session'      => $candidate,
-					'diff'         => DiffEngine::compare( $current, $candidate ),
-					'idMap'        => array(),
+					'valid'      => true,
+					'resultType' => 'session',
+					'schema'     => SessionManager::SCHEMA,
+					'session'    => $candidate,
+					'diff'       => DiffEngine::compare( $current, $candidate ),
+					'idMap'      => array(),
 				)
 			);
 		}
