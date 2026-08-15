@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Cresco Canvas\n"
 "Report-Msgid-Bugs-To: https://github.com/quochung9920/cresco-canvas\n"
-"POT-Creation-Date: 2026-08-15 07:49:05+0000\n"
+"POT-Creation-Date: 2026-08-15 08:54:04+0000\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -49,28 +49,109 @@ msgstr ""
 msgid "Loading Cresco Studio…"
 msgstr ""
 
-#: includes/AI/AIInterchange.php:136
+#: includes/AI/AIInterchange.php:171
 msgid "The exported scope renders no content."
 msgstr ""
 
-#: includes/AI/AIInterchange.php:164
-#: src/standalone/standalone-ai-bridge.js:151
-#: src/standalone/standalone-ai-bridge.js:167
-#: runtime-src/build/standalone-ai-bridge.js:151
-#: runtime-src/build/standalone-ai-bridge.js:167
-msgid "AI result is not valid JSON."
-msgstr ""
-
-#: includes/AI/AIInterchange.php:167
-msgid "AI result must be a Cresco Session or Cresco Patch object."
-msgstr ""
-
-#: includes/AI/AIInterchange.php:190
+#: includes/AI/AIInterchange.php:223
 msgid "AI result schema is not supported."
 msgstr ""
 
+#: includes/AI/AIResultNormalizer.php:101
+msgid "AI result mixes prose and code blocks. Paste only the JSON object."
+msgstr ""
+
+#: includes/AI/AIResultNormalizer.php:108
+msgid "AI result contains more than one code block. Paste only the block holding the Cresco patch."
+msgstr ""
+
+#: includes/AI/AIResultNormalizer.php:113
+msgid "AI result has an unterminated code block."
+msgstr ""
+
+#: includes/AI/AIResultNormalizer.php:44
+msgid "AI result must be a JSON object."
+msgstr ""
+
+#: includes/AI/AIResultNormalizer.php:50
+msgid "AI result is empty."
+msgstr ""
+
+#: includes/AI/AIResultNormalizer.php:59
+msgid "AI result must be a single JSON object. Remove any explanation before or after the JSON, then paste again."
+msgstr ""
+
+#: includes/AI/AIResultNormalizer.php:68
+msgid "AI result is not valid JSON: %s"
+msgstr ""
+
 #: includes/AI/ContextBuilder.php:46
+#: includes/AI/ContextBuilderV2.php:83
 msgid "Unsupported AI context mode."
+msgstr ""
+
+#: includes/AI/ContextBuilderV2.php:78
+msgid "Unsupported AI context purpose."
+msgstr ""
+
+#: includes/AI/OneShotPrompt.php:100
+msgid "Keep baseChecksum and target exactly as given."
+msgstr ""
+
+#: includes/AI/OneShotPrompt.php:101
+msgid "Do not wrap the answer in Markdown fences. Do not explain the answer."
+msgstr ""
+
+#: includes/AI/OneShotPrompt.php:36
+msgid "Improve this design. Keep the existing copy."
+msgstr ""
+
+#: includes/AI/OneShotPrompt.php:84
+msgid "the whole page"
+msgstr ""
+
+#: includes/AI/OneShotPrompt.php:85
+msgid "the %1$s \"%2$s\""
+msgstr ""
+
+#: includes/AI/OneShotPrompt.php:88
+msgid "Treat the Cresco package below as authoritative."
+msgstr ""
+
+#: includes/AI/OneShotPrompt.php:89
+msgid "If reference images are attached to this message, use them as the intended visual direction."
+msgstr ""
+
+#: includes/AI/OneShotPrompt.php:90
+msgid "Make reasonable design decisions. Do not ask follow-up questions."
+msgstr ""
+
+#: includes/AI/OneShotPrompt.php:91
+msgid "Use only widget types listed in scopePackage.contracts.creationCatalog."
+msgstr ""
+
+#: includes/AI/OneShotPrompt.php:92
+msgid "Use only props, structured style properties, responsive devices, states and selector parts those contracts declare."
+msgstr ""
+
+#: includes/AI/OneShotPrompt.php:93
+msgid "Prefer native props and structured styles. Use scoped Custom CSS only where native controls cannot express the result."
+msgstr ""
+
+#: includes/AI/OneShotPrompt.php:94
+msgid "Design tokens available for authoring are in scopePackage.designSystem.available. Preserve token references such as {colors.primary} where they already express intent."
+msgstr ""
+
+#: includes/AI/OneShotPrompt.php:97
+msgid "Base styles go in node.style. Only the devices in capabilities.responsiveDevices may appear under node.responsive; a narrower device inherits every wider one."
+msgstr ""
+
+#: includes/AI/OneShotPrompt.php:98
+msgid "Stay strictly inside %s. Operations outside it are rejected."
+msgstr ""
+
+#: includes/AI/OneShotPrompt.php:99
+msgid "Return ONLY one %s object, matching returnContract.template with operations filled in."
 msgstr ""
 
 #: includes/AI/PatchApplier.php:127
@@ -5391,6 +5472,13 @@ msgstr ""
 #: src/standalone/standalone-ai-bridge.js:136
 #: runtime-src/build/standalone-ai-bridge.js:136
 msgid "AI context export failed."
+msgstr ""
+
+#: src/standalone/standalone-ai-bridge.js:151
+#: src/standalone/standalone-ai-bridge.js:167
+#: runtime-src/build/standalone-ai-bridge.js:151
+#: runtime-src/build/standalone-ai-bridge.js:167
+msgid "AI result is not valid JSON."
 msgstr ""
 
 #: src/standalone/standalone-ai-bridge.js:152

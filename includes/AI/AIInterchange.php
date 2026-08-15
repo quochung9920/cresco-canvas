@@ -93,21 +93,56 @@ final class AIInterchange {
 		return $post_id > 0 && 'page' === get_post_type( $post_id ) && current_user_can( 'edit_post', $post_id );
 	}
 
+	/**
+	 * Export an AI context package.
+	 *
+	 * One endpoint serves both profiles. A request that names neither `version`
+	 * nor `profile` gets exactly the v1 behaviour it got before v2 existed; asking
+	 * for version 2 or the `one-shot` profile gets the authoring package. Adding a
+	 * second route would have split a contract that only differs by payload shape.
+	 */
 	public function rest_export_context( WP_REST_Request $request ) {
 		$post_id = absint( $request['postId'] );
 		$payload = (array) $request->get_json_params();
 		$session = isset( $payload['session'] ) && is_array( $payload['session'] ) ? $payload['session'] : $this->saved_session( $post_id );
 		if ( is_wp_error( $session ) ) return $session;
-		$result = ContextBuilder::build(
+
+		$scope   = $payload['scope'] ?? 'page';
+		$target  = isset( $payload['target'] ) && is_array( $payload['target'] ) ? $payload['target'] : array();
+		$mode    = $payload['mode'] ?? 'optimized';
+		$profile = sanitize_key( (string) ( $payload['profile'] ?? '' ) );
+		$version = absint( $payload['version'] ?? 0 );
+
+		if ( 2 !== $version && 'one-shot' !== $profile ) {
+			$result = ContextBuilder::build( $post_id, $session, $scope, $target, $mode, array(), ! empty( $payload['includeVisual'] ) );
+			return is_wp_error( $result ) ? $result : new WP_REST_Response( $result );
+		}
+
+		// A One-Shot request is about how something should look, so the rendered
+		// appearance travels unless the caller explicitly declines it.
+		$include_visual = array_key_exists( 'includeVisual', $payload ) ? (bool) $payload['includeVisual'] : true;
+
+		$package = ContextBuilderV2::build(
 			$post_id,
 			$session,
-			$payload['scope'] ?? 'page',
-			isset( $payload['target'] ) && is_array( $payload['target'] ) ? $payload['target'] : array(),
-			$payload['mode'] ?? 'optimized',
+			$scope,
+			$target,
+			$payload['purpose'] ?? 'redesign',
+			$mode,
 			array(),
-			! empty( $payload['includeVisual'] )
+			$include_visual
 		);
-		return is_wp_error( $result ) ? $result : new WP_REST_Response( $result );
+		if ( is_wp_error( $package ) ) return $package;
+
+		// The prompt is assembled server-side so its normative rules stay next to
+		// the validator that enforces them. The package remains independently
+		// usable, which is what keeps it testable on its own.
+		$response = array( 'package' => $package );
+		if ( 'one-shot' === $profile ) {
+			$response['prompt'] = OneShotPrompt::build( $package, (string) ( $payload['request'] ?? '' ) );
+		}
+
+		return new WP_REST_Response( 'one-shot' === $profile ? $response : $package );
 	}
 
 	/**
@@ -158,13 +193,11 @@ final class AIInterchange {
 		$current = WebsiteBuilderSessionSanitizer::sanitize_session( $current );
 		if ( is_wp_error( $current ) ) return $current;
 
-		$result = $payload['result'] ?? null;
-		if ( is_string( $result ) ) {
-			$result = json_decode( $result, true );
-			if ( ! is_array( $result ) ) return new WP_Error( 'cresco_ai_result_json', __( 'AI result is not valid JSON.', 'cresco-canvas' ), array( 'status' => 400 ) );
-		}
-		if ( is_array( $result ) && isset( $result['session'] ) && is_array( $result['session'] ) && empty( $result['schema'] ) ) $result = $result['session'];
-		if ( ! is_array( $result ) ) return new WP_Error( 'cresco_ai_result', __( 'AI result must be a Cresco Session or Cresco Patch object.', 'cresco-canvas' ), array( 'status' => 400 ) );
+		// The server owns normalization. The editor may guess at a schema to label
+		// the paste box, but that guess must never decide whether input is valid:
+		// only this path, and the validator behind it, do.
+		$result = AIResultNormalizer::normalize( $payload['result'] ?? null );
+		if ( is_wp_error( $result ) ) return $result;
 
 		if ( PatchValidator::SCHEMA === ( $result['schema'] ?? '' ) ) {
 			$validated = PatchValidator::validate( $current, $result );

@@ -1,5 +1,10 @@
 # Cresco AI Context v1
 
+> v1 remains fully supported and unchanged. New One-Shot authoring uses
+> [Cresco AI Context v2](CRESCO_AI_CONTEXT_V2.md), which is additive: same endpoint,
+> same `cresco-patch/v1` return schema, same security boundary. A request that names
+> neither `version` nor `profile` still gets exactly the v1 output described below.
+
 `cresco-ai-context/v1` is Cresco Canvas's portable, design-only interchange envelope for external AI systems. It describes what an AI may understand and edit without giving the AI direct access to the DOM, WordPress credentials, or arbitrary application state.
 
 ## Envelope

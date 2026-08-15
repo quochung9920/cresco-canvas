@@ -2,6 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://cresco.local/contracts/ai-context/v2.schema.json",
   "title": "Cresco AI Context v2",
+  "description": "One-Shot authoring package. Additive to v1: v1 describes what exists, v2 also describes what may be built. additionalProperties stays true throughout so optional visual or diagnostic metadata can be added later without a breaking change.",
   "type": "object",
   "additionalProperties": true,
   "required": ["schema", "version", "purpose", "mode", "baseChecksum", "scopePackage", "returnContract"],
@@ -10,15 +11,200 @@
     "version": { "const": 2 },
     "purpose": { "enum": ["edit", "redesign", "create", "content", "style", "import"] },
     "mode": { "enum": ["optimized", "full"] },
-    "baseChecksum": { "type": "string", "minLength": 32 },
-    "scopePackage": { "type": "object" },
+    "baseChecksum": {
+      "type": "string",
+      "minLength": 32,
+      "description": "Checksum of the canonical sanitized Session. A patch carrying a different value is stale and is rejected."
+    },
+    "scopePackage": { "$ref": "#/$defs/scopePackage" },
+    "authoringPolicy": { "$ref": "#/$defs/authoringPolicy" },
+    "returnContract": { "$ref": "#/$defs/returnContract" },
+    "packageMetrics": {
+      "type": "object",
+      "description": "Advisory payload diagnostics. Never required; do not gate behaviour on it.",
+      "additionalProperties": true,
+      "properties": {
+        "bytes": { "type": "integer", "minimum": 0 },
+        "contentBytes": { "type": "integer", "minimum": 0 },
+        "contractBytes": { "type": "integer", "minimum": 0 },
+        "visualBytes": { "type": "integer", "minimum": 0 }
+      }
+    }
+  },
+  "$defs": {
+    "scopePackage": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["target", "environment", "content", "designSystem", "contracts", "capabilities"],
+      "properties": {
+        "target": {
+          "type": "object",
+          "additionalProperties": true,
+          "required": ["scope"],
+          "description": "Resolved by ScopeResolver. The model must never infer the editable scope itself.",
+          "properties": {
+            "scope": { "enum": ["page", "subtree", "widget", "selection", "selection-subtrees"] },
+            "nodeId": { "type": ["string", "null"] },
+            "nodeIds": { "type": "array", "items": { "type": "string" } },
+            "type": { "type": "string" }
+          }
+        },
+        "environment": {
+          "type": "object",
+          "additionalProperties": false,
+          "description": "Design and runtime identity only. Never credentials, nonces, cookies or tokens.",
+          "properties": {
+            "crescoVersion": { "type": "string" },
+            "sessionSchema": { "type": "string" },
+            "postId": { "type": "integer", "minimum": 0 },
+            "postTitle": { "type": "string" }
+          }
+        },
+        "content": {
+          "type": "object",
+          "additionalProperties": true,
+          "description": "ScopeResolver content. Shape varies by scope: `session` for page, `nodes` + `ancestry` for subtree/selection, `node` + `parentContext` + `ancestry` for widget."
+        },
+        "designSystem": {
+          "type": "object",
+          "additionalProperties": true,
+          "required": ["available", "used"],
+          "properties": {
+            "available": {
+              "type": "object",
+              "description": "The full token catalogue. Present even when the scope uses no tokens, because creation inside an empty Container needs the whole palette."
+            },
+            "used": {
+              "type": "object",
+              "description": "Dependency-optimized subset actually referenced by the scope."
+            }
+          }
+        },
+        "pageSettings": { "type": "object", "additionalProperties": true },
+        "contracts": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["current", "creationCatalog"],
+          "properties": {
+            "current": {
+              "type": "object",
+              "description": "Contracts for the widget types present in the scope."
+            },
+            "creationCatalog": {
+              "type": "object",
+              "description": "Every widget type the model may create. Generated from WidgetCatalog through ContractRegistry; never a second hand-maintained list."
+            }
+          }
+        },
+        "dependencies": { "type": "object", "additionalProperties": true },
+        "capabilities": { "$ref": "#/$defs/capabilities" },
+        "visual": { "$ref": "#/$defs/visual" }
+      }
+    },
+    "capabilities": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["patchOperations", "responsiveDevices", "states", "customCssBuckets"],
+      "properties": {
+        "patchOperations": {
+          "type": "array",
+          "items": { "enum": ["setProps", "setStyle", "setResponsive", "setCustomCSS", "insertNode", "removeNode", "moveNode", "replaceSubtree"] }
+        },
+        "responsiveDevices": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Override buckets only. `wide` is deliberately absent: it is the base written to node.style, and responsive.wide fails validation."
+        },
+        "responsiveModel": {
+          "type": "object",
+          "additionalProperties": true,
+          "properties": {
+            "baseBucket": { "type": "string" },
+            "baseDevice": { "type": "string" },
+            "overrideBags": { "type": "string" },
+            "cascade": { "type": "string" }
+          }
+        },
+        "states": { "type": "array", "items": { "type": "string" } },
+        "customCssBuckets": { "type": "array", "items": { "type": "string" } },
+        "customCss": {
+          "type": "object",
+          "additionalProperties": true,
+          "description": "Derived from ScopedCss so package claims cannot drift from compiler behaviour.",
+          "properties": {
+            "scopeSelector": { "const": "&" },
+            "localKeyframes": { "type": "array", "items": { "type": "string" } },
+            "nestedAtRules": { "type": "array", "items": { "type": "string" } },
+            "keyframeNamesScoped": { "type": "boolean" },
+            "forbidden": { "type": "array", "items": { "type": "string" } }
+          }
+        },
+        "nodeFields": { "type": "array", "items": { "type": "string" } },
+        "metaFields": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "visual": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "Rendered appearance from the same WebsiteRenderer that produces the public page. Optional, but attached by default for One-Shot.",
+      "properties": {
+        "html": { "type": "string" },
+        "css": { "type": "string" },
+        "htmlTruncated": { "type": "boolean" },
+        "cssTruncated": { "type": "boolean" },
+        "breakpoints": { "type": "object", "additionalProperties": true },
+        "maxWidths": { "type": "object", "additionalProperties": true },
+        "notes": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "authoringPolicy": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "Removes Cresco implementation decisions from the user's natural-language request.",
+      "properties": {
+        "decisionOrder": {
+          "type": "array",
+          "items": { "enum": ["widgetProps", "structuredStyle", "responsiveStyle", "states", "customCSS"] }
+        },
+        "rules": { "type": "object", "additionalProperties": true },
+        "customCSS": { "type": "object", "additionalProperties": true },
+        "referenceImages": {
+          "type": "object",
+          "additionalProperties": true,
+          "properties": {
+            "priority": { "type": "array", "items": { "type": "string" } },
+            "note": { "type": "string" }
+          }
+        }
+      }
+    },
     "returnContract": {
       "type": "object",
-      "required": ["preferred", "scopeEnforced"],
+      "additionalProperties": true,
+      "required": ["preferred", "scopeEnforced", "template"],
       "properties": {
         "preferred": { "const": "cresco-patch/v1" },
         "fallback": { "const": "cresco-session/v1" },
-        "scopeEnforced": { "const": true }
+        "scopeEnforced": { "const": true },
+        "jsonOnly": { "const": true },
+        "markdownFences": { "const": false },
+        "commentary": { "const": false },
+        "preserveTargetRootId": { "type": "boolean" },
+        "preferredOperationForRedesign": { "type": "string" },
+        "operationGuidance": { "type": "string" },
+        "allowedOperations": { "type": "array", "items": { "type": "string" } },
+        "template": {
+          "type": "object",
+          "additionalProperties": true,
+          "required": ["schema", "baseChecksum", "target", "operations"],
+          "description": "Pre-filled with the real checksum and target. The model fills in operations and changes nothing else.",
+          "properties": {
+            "schema": { "const": "cresco-patch/v1" },
+            "baseChecksum": { "type": "string", "minLength": 32 },
+            "target": { "type": "object" },
+            "operations": { "type": "array" }
+          }
+        }
       }
     }
   }
