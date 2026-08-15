@@ -1,0 +1,126 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cresco.local/contracts/ai-context/v3.schema.json",
+  "title": "Cresco AI Context v3",
+  "description": "High-fidelity One-Shot authoring package. v3 keeps the strict Cresco authoring boundary while adding task intent, a read-only scene/context ring, focused contracts, semantic visual facts and patch examples.",
+  "type": "object",
+  "additionalProperties": true,
+  "required": ["schema", "version", "purpose", "mode", "task", "scopePackage", "returnContract"],
+  "properties": {
+    "schema": { "const": "cresco-ai-context/v3" },
+    "version": { "const": 3 },
+    "purpose": { "enum": ["edit", "redesign", "create", "content", "style", "import"] },
+    "mode": { "enum": ["optimized", "full"] },
+    "task": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["request", "editableTarget"],
+      "properties": {
+        "request": { "type": "string" },
+        "editableTarget": { "$ref": "#/$defs/target" },
+        "preserveExistingContent": { "type": "boolean" },
+        "referenceImagePolicy": { "type": "string" }
+      }
+    },
+    "scopePackage": { "$ref": "#/$defs/scopePackage" },
+    "authoringPolicy": { "type": "object", "additionalProperties": true },
+    "returnContract": { "$ref": "#/$defs/returnContract" },
+    "packageMetrics": { "type": "object", "additionalProperties": true }
+  },
+  "$defs": {
+    "target": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["scope"],
+      "properties": {
+        "scope": { "enum": ["page", "subtree", "widget", "selection", "selection-subtrees"] },
+        "nodeId": { "type": ["string", "null"] },
+        "nodeIds": { "type": "array", "items": { "type": "string" } },
+        "type": { "type": "string" }
+      }
+    },
+    "scopePackage": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["target", "environment", "content", "designSystem", "contracts", "capabilities", "scene", "visualFacts"],
+      "properties": {
+        "target": { "$ref": "#/$defs/target" },
+        "environment": { "type": "object", "additionalProperties": true },
+        "content": { "type": "object", "additionalProperties": true },
+        "designSystem": {
+          "type": "object",
+          "additionalProperties": true,
+          "required": ["available", "used"]
+        },
+        "pageSettings": { "type": "object", "additionalProperties": true },
+        "contracts": {
+          "type": "object",
+          "additionalProperties": true,
+          "required": ["current", "recommended", "catalogIndex"],
+          "properties": {
+            "current": { "type": "object" },
+            "recommended": { "type": "object" },
+            "catalogIndex": { "type": "object" },
+            "creationCatalog": {
+              "type": "object",
+              "description": "Present in full mode. Optimized mode intentionally sends a focused recommended contract set plus discovery index."
+            }
+          }
+        },
+        "dependencies": { "type": "object", "additionalProperties": true },
+        "capabilities": { "type": "object", "additionalProperties": true },
+        "scene": {
+          "type": "object",
+          "additionalProperties": true,
+          "required": ["editable", "ancestry", "siblings"],
+          "description": "Read-only surrounding document context. It never widens patch scope."
+        },
+        "visualFacts": {
+          "type": "object",
+          "additionalProperties": true,
+          "required": ["source", "measuredGeometry", "summary"],
+          "properties": {
+            "source": { "type": "string" },
+            "measuredGeometry": { "type": "boolean" },
+            "summary": { "type": "object", "additionalProperties": true }
+          }
+        },
+        "visual": {
+          "type": "object",
+          "additionalProperties": true,
+          "description": "Rendered HTML/CSS from WebsiteRenderer. For narrow targets it may include the containing top-level branch as read-only visual context.",
+          "properties": {
+            "html": { "type": "string" },
+            "css": { "type": "string" },
+            "contextMode": { "type": "string" },
+            "contextRootIds": { "type": "array", "items": { "type": "string" } },
+            "editableTarget": { "$ref": "#/$defs/target" }
+          }
+        }
+      }
+    },
+    "returnContract": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["preferred", "scopeEnforced", "template"],
+      "properties": {
+        "preferred": { "const": "cresco-patch/v1" },
+        "fallback": { "const": "cresco-session/v1" },
+        "scopeEnforced": { "const": true },
+        "jsonOnly": { "const": true },
+        "template": {
+          "type": "object",
+          "additionalProperties": true,
+          "required": ["schema", "target", "operations"],
+          "properties": {
+            "schema": { "const": "cresco-patch/v1" },
+            "target": { "$ref": "#/$defs/target" },
+            "operations": { "type": "array" }
+          }
+        },
+        "examples": { "type": "array", "items": { "type": "object" } },
+        "contractRule": { "type": "string" }
+      }
+    }
+  }
+}
