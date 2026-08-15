@@ -7,7 +7,7 @@
 
 namespace CrescoCanvas\AI;
 
-use CrescoCanvas\Builder\WebsiteBuilder;
+use CrescoCanvas\Builder\WebsiteBuilderSessionSanitizer;
 use CrescoCanvas\Core\Document\Document;
 use WP_Error;
 
@@ -21,7 +21,7 @@ final class PatchValidator {
 	const OPERATIONS     = array( 'setProps', 'setStyle', 'setResponsive', 'setCustomCSS', 'insertNode', 'removeNode', 'moveNode', 'replaceSubtree' );
 
 	public static function validate( $current_session, $patch ) {
-		$current = WebsiteBuilder::sanitize_session( $current_session );
+		$current = WebsiteBuilderSessionSanitizer::sanitize_session( $current_session );
 		if ( is_wp_error( $current ) ) return $current;
 		if ( ! is_array( $patch ) || self::SCHEMA !== ( $patch['schema'] ?? '' ) ) return self::error( 'cresco_ai_patch_schema', 'Expected a cresco-patch/v1 object.' );
 
@@ -49,7 +49,7 @@ final class PatchValidator {
 			if ( ! empty( $applied['idMap'] ) ) $id_map = array_merge( $id_map, $applied['idMap'] );
 		}
 
-		$candidate = WebsiteBuilder::sanitize_session( $working );
+		$candidate = WebsiteBuilderSessionSanitizer::sanitize_session( $working );
 		if ( is_wp_error( $candidate ) ) return $candidate;
 
 		return array(
@@ -139,10 +139,6 @@ final class PatchValidator {
 		if ( 'setCustomCSS' === $op ) {
 			$valid = ContractRegistry::validate_custom_css_map( $operation['customCSS'] ?? null, 'operations.' . $index . '.customCSS' );
 			if ( is_wp_error( $valid ) ) return $valid;
-			foreach ( (array) $operation['customCSS'] as $css ) {
-				$sanitized = WebsiteBuilder::sanitize_custom_css( $css );
-				if ( is_wp_error( $sanitized ) ) return $sanitized;
-			}
 		}
 		if ( 'insertNode' === $op ) {
 			$parent_id = isset( $operation['parentId'] ) && null !== $operation['parentId'] ? (string) $operation['parentId'] : null;
