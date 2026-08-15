@@ -20,7 +20,9 @@ async function openStudio( page: Page ) {
 	await expect( page.locator( '.cc-studio-app' ) ).toBeVisible();
 }
 
-function blocking( results: { violations: Array< { impact: string | null } > } ) {
+// axe reports `impact` as `ImpactValue | undefined`, not `string | null`, so the
+// parameter has to admit undefined or every call site fails to type.
+function blocking( results: { violations: Array< { impact?: string | null } > } ) {
 	return results.violations.filter( ( violation ) => [ 'critical', 'serious' ].includes( violation.impact || '' ) );
 }
 

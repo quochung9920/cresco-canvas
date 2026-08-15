@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Cresco Canvas\n"
 "Report-Msgid-Bugs-To: https://github.com/quochung9920/cresco-canvas\n"
-"POT-Creation-Date: 2026-08-14 09:16:42+0000\n"
+"POT-Creation-Date: 2026-08-15 07:49:05+0000\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -19,7 +19,7 @@ msgstr ""
 msgid "Cresco Canvas Page styles"
 msgstr ""
 
-#: includes/Admin/VisualEditor.php:34
+#: includes/Admin/VisualEditor.php:29
 #: includes/Blocks/Blocks.php:40
 #: includes/Commercial/CommercialManager.php:72
 #: src/editor/components/SettingsSidebar.tsx:197
@@ -28,34 +28,32 @@ msgstr ""
 msgid "Cresco Canvas"
 msgstr ""
 
-#: includes/Admin/VisualEditor.php:39
-#: includes/Admin/VisualEditor.php:47
+#: includes/Admin/VisualEditor.php:34
+#: includes/Admin/VisualEditor.php:42
 msgid "Edit with Cresco Canvas"
 msgstr ""
 
-#: includes/Admin/VisualEditor.php:52
+#: includes/Admin/VisualEditor.php:49
 msgid "You do not have permission to edit this Page with Cresco Canvas."
 msgstr ""
 
-#: includes/Admin/VisualEditor.php:56
-#: runtime-src/build/standalone-visual-editor.js:530
-msgid "Cresco Canvas could not start."
+#: includes/Admin/VisualEditor.php:67
+msgid "Cresco Studio could not start"
 msgstr ""
 
-#: includes/Admin/VisualEditor.php:58
-#: runtime-src/build/standalone-visual-editor.js:529
-msgid "Loading Cresco Session…"
+#: includes/Admin/VisualEditor.php:67
+msgid "Required Studio assets are missing: %s. Run npm run build and reload the editor."
 msgstr ""
 
-#: includes/Admin/VisualEditor.php:91
-msgid "Required runtime assets are missing: %s. Run npm run build and reload the editor."
+#: includes/Admin/VisualEditor.php:70
+msgid "Loading Cresco Studio…"
 msgstr ""
 
-#: includes/AI/AIInterchange.php:122
+#: includes/AI/AIInterchange.php:136
 msgid "The exported scope renders no content."
 msgstr ""
 
-#: includes/AI/AIInterchange.php:150
+#: includes/AI/AIInterchange.php:164
 #: src/standalone/standalone-ai-bridge.js:151
 #: src/standalone/standalone-ai-bridge.js:167
 #: runtime-src/build/standalone-ai-bridge.js:151
@@ -63,15 +61,15 @@ msgstr ""
 msgid "AI result is not valid JSON."
 msgstr ""
 
-#: includes/AI/AIInterchange.php:153
+#: includes/AI/AIInterchange.php:167
 msgid "AI result must be a Cresco Session or Cresco Patch object."
 msgstr ""
 
-#: includes/AI/AIInterchange.php:176
+#: includes/AI/AIInterchange.php:190
 msgid "AI result schema is not supported."
 msgstr ""
 
-#: includes/AI/ContextBuilder.php:45
+#: includes/AI/ContextBuilder.php:46
 msgid "Unsupported AI context mode."
 msgstr ""
 
@@ -87,7 +85,7 @@ msgstr ""
 msgid "A node cannot be moved inside itself or one of its descendants."
 msgstr ""
 
-#: includes/AI/PatchValidator.php:201
+#: includes/AI/PatchValidator.php:197
 msgid "Cresco Patch references a node that does not exist."
 msgstr ""
 
@@ -423,6 +421,18 @@ msgstr ""
 msgid "This document is owned by Cresco Studio. Save it through the Website Builder Session endpoint."
 msgstr ""
 
+#: includes/Builder/WebsiteBuilderSessionSanitizer.php:45
+msgid "Widget Custom CSS must be an object keyed by device."
+msgstr ""
+
+#: includes/Builder/WebsiteBuilderSessionSanitizer.php:48
+msgid "Widget Custom CSS contains an unsupported device bucket."
+msgstr ""
+
+#: includes/Builder/WebsiteBuilderSessionSanitizer.php:49
+msgid "Widget Custom CSS values must be strings."
+msgstr ""
+
 #: includes/Builder/WebsiteBuilderStabilization.php:64
 msgid "A valid Cresco document is required."
 msgstr ""
@@ -449,8 +459,8 @@ msgstr ""
 
 #: includes/Builder/WebsiteRenderer.php:391
 #: includes/Builder/WebsiteRenderer.php:393
-#: src/editor/elements.ts:29
-#: src/editor/elements.ts:479
+#: src/editor/elements.ts:34
+#: src/editor/elements.ts:484
 #: runtime-src/build/editor.js:112
 #: runtime-src/build/editor.js:147
 msgid "Navigation"
@@ -678,7 +688,7 @@ msgid "The query request payload is invalid."
 msgstr ""
 
 #: includes/Dynamic/InteractiveQuery.php:290
-#: src/editor/elements.ts:488
+#: src/editor/elements.ts:493
 #: runtime-src/build/dynamic-alpha4.js:117
 #: runtime-src/build/editor.js:148
 msgid "Search"
@@ -869,19 +879,19 @@ msgstr ""
 msgid "Too many files were uploaded."
 msgstr ""
 
-#: includes/Infrastructure/WordPress/Storage/WordPressDocumentRepository.php:27
+#: includes/Infrastructure/WordPress/Storage/WordPressDocumentRepository.php:28
 msgid "Stored Cresco document JSON is invalid."
 msgstr ""
 
-#: includes/Infrastructure/WordPress/Storage/WordPressDocumentRepository.php:44
+#: includes/Infrastructure/WordPress/Storage/WordPressDocumentRepository.php:45
 msgid "You cannot save this Cresco document."
 msgstr ""
 
-#: includes/Infrastructure/WordPress/Storage/WordPressDocumentRepository.php:48
+#: includes/Infrastructure/WordPress/Storage/WordPressDocumentRepository.php:49
 msgid "The Cresco document could not be encoded."
 msgstr ""
 
-#: includes/Infrastructure/WordPress/Storage/WordPressDocumentRepository.php:61
+#: includes/Infrastructure/WordPress/Storage/WordPressDocumentRepository.php:62
 msgid "The Cresco document write could not be verified."
 msgstr ""
 
@@ -3592,6 +3602,14 @@ msgstr ""
 msgid "No widgets yet."
 msgstr ""
 
+#: runtime-src/build/standalone-visual-editor.js:529
+msgid "Loading Cresco Session…"
+msgstr ""
+
+#: runtime-src/build/standalone-visual-editor.js:530
+msgid "Cresco Canvas could not start."
+msgstr ""
+
 #: runtime-src/build/standalone-visual-editor.js:539
 msgid "Back to Pages"
 msgstr ""
@@ -4173,7 +4191,7 @@ msgid "Flex"
 msgstr ""
 
 #: src/blocks/container/Edit.tsx:141
-#: src/editor/elements.ts:137
+#: src/editor/elements.ts:142
 #: runtime-src/build/container.js:354
 #: runtime-src/build/editor.js:122
 msgid "Grid"
@@ -4197,7 +4215,7 @@ msgid "Column"
 msgstr ""
 
 #: src/blocks/container/Edit.tsx:158
-#: src/editor/elements.ts:121
+#: src/editor/elements.ts:126
 #: runtime-src/build/container.js:371
 #: runtime-src/build/editor.js:121
 msgid "Row"
@@ -4219,7 +4237,7 @@ msgid "Wrap"
 msgstr ""
 
 #: src/blocks/container/Edit.tsx:180
-#: src/editor/elements.ts:186
+#: src/editor/elements.ts:191
 #: runtime-src/build/container.js:393
 #: runtime-src/build/dynamic-advanced.js:27
 #: runtime-src/build/dynamic-advanced.js:50
@@ -4571,41 +4589,41 @@ msgstr ""
 msgid "Import, export, and reset"
 msgstr ""
 
-#: src/editor/components/GlobalSettingsPanel.tsx:268
+#: src/editor/components/GlobalSettingsPanel.tsx:270
 msgid "Copy this JSON to move the current design settings to another Cresco installation."
 msgstr ""
 
-#: src/editor/components/GlobalSettingsPanel.tsx:268
+#: src/editor/components/GlobalSettingsPanel.tsx:270
 msgid "Export design JSON"
 msgstr ""
 
-#: src/editor/components/GlobalSettingsPanel.tsx:270
+#: src/editor/components/GlobalSettingsPanel.tsx:272
 msgid "Imported values are previewed first. Use Save global design to persist them."
 msgstr ""
 
-#: src/editor/components/GlobalSettingsPanel.tsx:270
+#: src/editor/components/GlobalSettingsPanel.tsx:272
 msgid "Import design JSON"
 msgstr ""
 
-#: src/editor/components/GlobalSettingsPanel.tsx:271
+#: src/editor/components/GlobalSettingsPanel.tsx:273
 msgid "Apply imported design"
 msgstr ""
 
-#: src/editor/components/GlobalSettingsPanel.tsx:272
+#: src/editor/components/GlobalSettingsPanel.tsx:274
 msgid "Reset global design to defaults"
 msgstr ""
 
-#: src/editor/components/GlobalSettingsPanel.tsx:275
+#: src/editor/components/GlobalSettingsPanel.tsx:277
 #: runtime-src/build/editor.js:321
 msgid "Data and uninstall"
 msgstr ""
 
-#: src/editor/components/GlobalSettingsPanel.tsx:276
+#: src/editor/components/GlobalSettingsPanel.tsx:278
 #: runtime-src/build/editor.js:321
 msgid "Page content is never deleted. This removes only Cresco settings and metadata during uninstall."
 msgstr ""
 
-#: src/editor/components/GlobalSettingsPanel.tsx:276
+#: src/editor/components/GlobalSettingsPanel.tsx:278
 #: runtime-src/build/editor.js:321
 #: runtime-src/build/standalone-page-settings.js:608
 msgid "Remove plugin data on uninstall"
@@ -4666,127 +4684,136 @@ msgstr ""
 msgid "Global design settings could not be loaded."
 msgstr ""
 
-#: src/editor/elements.ts:112
+#: src/editor/elements.ts:102
+#: runtime-src/build/editor.js:119
+msgid "Section"
+msgstr ""
+
+#: src/editor/elements.ts:103
+msgid "Full-width semantic page section."
+msgstr ""
+
+#: src/editor/elements.ts:117
 #: runtime-src/build/editor.js:120
 msgid "Container"
 msgstr ""
 
-#: src/editor/elements.ts:113
+#: src/editor/elements.ts:118
 #: runtime-src/build/editor.js:120
 msgid "Flexible nested content container."
 msgstr ""
 
-#: src/editor/elements.ts:122
+#: src/editor/elements.ts:127
 #: runtime-src/build/editor.js:121
 msgid "Horizontal flex layout."
 msgstr ""
 
-#: src/editor/elements.ts:138
+#: src/editor/elements.ts:143
 msgid "Three-column responsive content grid."
-msgstr ""
-
-#: src/editor/elements.ts:151
-#: runtime-src/build/editor.js:122
-msgid "Feature one"
-msgstr ""
-
-#: src/editor/elements.ts:152
-#: runtime-src/build/editor.js:122
-msgid "Describe the first feature."
-msgstr ""
-
-#: src/editor/elements.ts:155
-#: runtime-src/build/editor.js:122
-msgid "Feature two"
 msgstr ""
 
 #: src/editor/elements.ts:156
 #: runtime-src/build/editor.js:122
-msgid "Describe the second feature."
+msgid "Feature one"
 msgstr ""
 
-#: src/editor/elements.ts:159
+#: src/editor/elements.ts:157
 #: runtime-src/build/editor.js:122
-msgid "Feature three"
+msgid "Describe the first feature."
 msgstr ""
 
 #: src/editor/elements.ts:160
 #: runtime-src/build/editor.js:122
+msgid "Feature two"
+msgstr ""
+
+#: src/editor/elements.ts:161
+#: runtime-src/build/editor.js:122
+msgid "Describe the second feature."
+msgstr ""
+
+#: src/editor/elements.ts:164
+#: runtime-src/build/editor.js:122
+msgid "Feature three"
+msgstr ""
+
+#: src/editor/elements.ts:165
+#: runtime-src/build/editor.js:122
 msgid "Describe the third feature."
 msgstr ""
 
-#: src/editor/elements.ts:168
+#: src/editor/elements.ts:173
 #: runtime-src/build/editor.js:123
 msgid "Stack"
 msgstr ""
 
-#: src/editor/elements.ts:169
+#: src/editor/elements.ts:174
 #: runtime-src/build/editor.js:123
 msgid "Vertical stack with consistent spacing."
 msgstr ""
 
-#: src/editor/elements.ts:180
+#: src/editor/elements.ts:185
 #: runtime-src/build/editor.js:123
 msgid "Stack title"
 msgstr ""
 
-#: src/editor/elements.ts:180
+#: src/editor/elements.ts:185
 #: runtime-src/build/editor.js:123
 msgid "Add stacked content here."
 msgstr ""
 
-#: src/editor/elements.ts:187
+#: src/editor/elements.ts:192
 #: runtime-src/build/editor.js:124
 msgid "Two editable content columns."
 msgstr ""
 
-#: src/editor/elements.ts:193
+#: src/editor/elements.ts:198
 #: runtime-src/build/editor.js:124
 msgid "First column"
 msgstr ""
 
-#: src/editor/elements.ts:194
+#: src/editor/elements.ts:199
 #: runtime-src/build/editor.js:124
 msgid "Second column"
 msgstr ""
 
-#: src/editor/elements.ts:200
+#: src/editor/elements.ts:205
 #: runtime-src/build/editor.js:125
 msgid "Spacer"
 msgstr ""
 
-#: src/editor/elements.ts:201
+#: src/editor/elements.ts:206
 #: runtime-src/build/editor.js:125
 msgid "Adjustable vertical space."
 msgstr ""
 
-#: src/editor/elements.ts:209
+#: src/editor/elements.ts:214
 #: runtime-src/build/editor.js:126
 msgid "Divider"
 msgstr ""
 
-#: src/editor/elements.ts:210
+#: src/editor/elements.ts:215
 #: runtime-src/build/editor.js:126
 msgid "Horizontal content separator."
 msgstr ""
 
-#: src/editor/elements.ts:218
+#: src/editor/elements.ts:223
 #: runtime-src/build/editor.js:127
 #: runtime-src/build/standalone-visual-editor.js:442
 msgid "Heading"
 msgstr ""
 
-#: src/editor/elements.ts:219
+#: src/editor/elements.ts:224
 #: runtime-src/build/editor.js:127
 msgid "Semantic editable heading."
 msgstr ""
 
-#: src/editor/elements.ts:223
+#: src/editor/elements.ts:228
 #: runtime-src/build/editor.js:127
 msgid "Add heading"
 msgstr ""
 
-#: src/editor/elements.ts:227
+#: src/editor/elements.ts:232
 #: runtime-src/build/design-system.js:101
 #: runtime-src/build/editor.js:128
 #: runtime-src/build/standalone-visual-editor.js:472
@@ -4795,45 +4822,110 @@ msgstr ""
 msgid "Text"
 msgstr ""
 
-#: src/editor/elements.ts:228
+#: src/editor/elements.ts:233
 #: runtime-src/build/editor.js:128
 msgid "Editable paragraph text."
 msgstr ""
 
-#: src/editor/elements.ts:232
+#: src/editor/elements.ts:237
 #: runtime-src/build/editor.js:128
 msgid "Add your text here."
 msgstr ""
 
-#: src/editor/elements.ts:236
+#: src/editor/elements.ts:241
 #: runtime-src/build/editor.js:129
 #: runtime-src/build/standalone-visual-editor.js:444
 msgid "Button"
 msgstr ""
 
-#: src/editor/elements.ts:237
+#: src/editor/elements.ts:242
 #: runtime-src/build/editor.js:129
 msgid "Accessible call-to-action button."
 msgstr ""
 
-#: src/editor/elements.ts:241
-#: src/editor/elements.ts:368
+#: src/editor/elements.ts:246
+#: src/editor/elements.ts:373
 #: runtime-src/build/editor.js:129
 #: runtime-src/build/editor.js:140
 msgid "Learn more"
 msgstr ""
 
-#: src/editor/elements.ts:245
+#: src/editor/elements.ts:250
 #: runtime-src/build/editor.js:130
 msgid "Button group"
 msgstr ""
 
-#: src/editor/elements.ts:246
+#: src/editor/elements.ts:251
 #: runtime-src/build/editor.js:130
 msgid "Primary and secondary actions."
 msgstr ""
 
-#: src/editor/elements.ts:25
+#: src/editor/elements.ts:257
+#: runtime-src/build/editor.js:130
+msgid "Primary action"
+msgstr ""
+
+#: src/editor/elements.ts:260
+#: runtime-src/build/editor.js:130
+msgid "Secondary action"
+msgstr ""
+
+#: src/editor/elements.ts:268
+#: runtime-src/build/editor.js:131
+msgid "List"
+msgstr ""
+
+#: src/editor/elements.ts:269
+#: runtime-src/build/editor.js:131
+msgid "Semantic bulleted list."
+msgstr ""
+
+#: src/editor/elements.ts:275
+#: runtime-src/build/editor.js:131
+msgid "First item"
+msgstr ""
+
+#: src/editor/elements.ts:276
+#: runtime-src/build/editor.js:131
+msgid "Second item"
+msgstr ""
+
+#: src/editor/elements.ts:277
+#: runtime-src/build/editor.js:131
+msgid "Third item"
+msgstr ""
+
+#: src/editor/elements.ts:283
+#: runtime-src/build/editor.js:132
+msgid "Quote"
+msgstr ""
+
+#: src/editor/elements.ts:284
+#: runtime-src/build/editor.js:132
+msgid "Quotation with citation."
+msgstr ""
+
+#: src/editor/elements.ts:289
+#: runtime-src/build/editor.js:132
+msgid "Author name"
+msgstr ""
+
+#: src/editor/elements.ts:290
+#: runtime-src/build/editor.js:132
+msgid "Add a memorable quotation."
+msgstr ""
+
+#: src/editor/elements.ts:296
+#: runtime-src/build/editor.js:133
+msgid "Table"
+msgstr ""
+
+#: src/editor/elements.ts:297
+#: runtime-src/build/editor.js:133
+msgid "Accessible data table."
+msgstr ""
+
+#: src/editor/elements.ts:30
 #: runtime-src/build/design-system.js:100
 #: runtime-src/build/editor.js:108
 #: runtime-src/build/global-config-import.js:172
@@ -4843,446 +4935,372 @@ msgstr ""
 msgid "Layout"
 msgstr ""
 
-#: src/editor/elements.ts:252
-#: runtime-src/build/editor.js:130
-msgid "Primary action"
-msgstr ""
-
-#: src/editor/elements.ts:255
-#: runtime-src/build/editor.js:130
-msgid "Secondary action"
-msgstr ""
-
-#: src/editor/elements.ts:26
-#: runtime-src/build/editor.js:109
-msgid "Basic"
-msgstr ""
-
-#: src/editor/elements.ts:263
-#: runtime-src/build/editor.js:131
-msgid "List"
-msgstr ""
-
-#: src/editor/elements.ts:264
-#: runtime-src/build/editor.js:131
-msgid "Semantic bulleted list."
-msgstr ""
-
-#: src/editor/elements.ts:27
-#: runtime-src/build/editor.js:110
-msgid "Media"
-msgstr ""
-
-#: src/editor/elements.ts:270
-#: runtime-src/build/editor.js:131
-msgid "First item"
-msgstr ""
-
-#: src/editor/elements.ts:271
-#: runtime-src/build/editor.js:131
-msgid "Second item"
-msgstr ""
-
-#: src/editor/elements.ts:272
-#: runtime-src/build/editor.js:131
-msgid "Third item"
-msgstr ""
-
-#: src/editor/elements.ts:278
-#: runtime-src/build/editor.js:132
-msgid "Quote"
-msgstr ""
-
-#: src/editor/elements.ts:279
-#: runtime-src/build/editor.js:132
-msgid "Quotation with citation."
-msgstr ""
-
-#: src/editor/elements.ts:28
-#: runtime-src/build/editor.js:111
-msgid "Marketing"
-msgstr ""
-
-#: src/editor/elements.ts:284
-#: runtime-src/build/editor.js:132
-msgid "Author name"
-msgstr ""
-
-#: src/editor/elements.ts:285
-#: runtime-src/build/editor.js:132
-msgid "Add a memorable quotation."
-msgstr ""
-
-#: src/editor/elements.ts:291
-#: runtime-src/build/editor.js:133
-msgid "Table"
-msgstr ""
-
-#: src/editor/elements.ts:292
-#: runtime-src/build/editor.js:133
-msgid "Accessible data table."
-msgstr ""
-
-#: src/editor/elements.ts:30
-#: runtime-src/build/editor.js:113
-msgid "Blog & dynamic"
-msgstr ""
-
-#: src/editor/elements.ts:300
+#: src/editor/elements.ts:305
 #: runtime-src/build/editor.js:134
 #: runtime-src/build/widget-inspector-persistent.js:230
 msgid "Image"
 msgstr ""
 
-#: src/editor/elements.ts:301
+#: src/editor/elements.ts:306
 #: runtime-src/build/editor.js:134
 msgid "Responsive image from the Media Library."
 msgstr ""
 
-#: src/editor/elements.ts:309
+#: src/editor/elements.ts:31
+#: runtime-src/build/editor.js:109
+msgid "Basic"
+msgstr ""
+
+#: src/editor/elements.ts:314
 #: runtime-src/build/editor.js:135
 #: runtime-src/build/widget-inspector-persistent.js:239
 msgid "Gallery"
 msgstr ""
 
-#: src/editor/elements.ts:31
-#: runtime-src/build/editor.js:114
-msgid "Interactive"
-msgstr ""
-
-#: src/editor/elements.ts:310
+#: src/editor/elements.ts:315
 #: runtime-src/build/editor.js:135
 msgid "Responsive image gallery."
 msgstr ""
 
-#: src/editor/elements.ts:318
+#: src/editor/elements.ts:32
+#: runtime-src/build/editor.js:110
+msgid "Media"
+msgstr ""
+
+#: src/editor/elements.ts:323
 #: runtime-src/build/editor.js:136
 msgid "Video"
 msgstr ""
 
-#: src/editor/elements.ts:319
+#: src/editor/elements.ts:324
 msgid "Native video or Media Library video."
 msgstr ""
 
-#: src/editor/elements.ts:32
-#: runtime-src/build/editor.js:115
-msgid "Utility"
+#: src/editor/elements.ts:33
+#: runtime-src/build/editor.js:111
+msgid "Marketing"
 msgstr ""
 
-#: src/editor/elements.ts:327
+#: src/editor/elements.ts:332
 #: runtime-src/build/editor.js:137
 msgid "Audio"
 msgstr ""
 
-#: src/editor/elements.ts:328
+#: src/editor/elements.ts:333
 #: runtime-src/build/editor.js:137
 msgid "Native audio player."
 msgstr ""
 
-#: src/editor/elements.ts:336
+#: src/editor/elements.ts:341
 #: runtime-src/build/editor.js:138
 msgid "File download"
 msgstr ""
 
-#: src/editor/elements.ts:337
+#: src/editor/elements.ts:342
 #: runtime-src/build/editor.js:138
 msgid "Downloadable file with optional button."
 msgstr ""
 
-#: src/editor/elements.ts:345
+#: src/editor/elements.ts:35
+#: runtime-src/build/editor.js:113
+msgid "Blog & dynamic"
+msgstr ""
+
+#: src/editor/elements.ts:350
 #: runtime-src/build/editor.js:139
 msgid "Embed"
 msgstr ""
 
-#: src/editor/elements.ts:346
+#: src/editor/elements.ts:351
 #: runtime-src/build/editor.js:139
 msgid "Embed content from a supported URL."
 msgstr ""
 
-#: src/editor/elements.ts:354
+#: src/editor/elements.ts:359
 #: runtime-src/build/editor.js:140
 msgid "Hero section"
 msgstr ""
 
-#: src/editor/elements.ts:355
+#: src/editor/elements.ts:36
+#: runtime-src/build/editor.js:114
+msgid "Interactive"
+msgstr ""
+
+#: src/editor/elements.ts:360
 #: runtime-src/build/editor.js:140
 msgid "Headline, supporting copy, and actions."
 msgstr ""
 
-#: src/editor/elements.ts:362
+#: src/editor/elements.ts:367
 #: runtime-src/build/editor.js:140
 msgid "Build something remarkable"
 msgstr ""
 
-#: src/editor/elements.ts:363
+#: src/editor/elements.ts:368
 #: runtime-src/build/editor.js:140
 msgid "Use this space to explain your strongest value proposition."
 msgstr ""
 
-#: src/editor/elements.ts:365
+#: src/editor/elements.ts:37
+#: runtime-src/build/editor.js:115
+msgid "Utility"
+msgstr ""
+
+#: src/editor/elements.ts:370
 #: runtime-src/build/editor.js:140
 msgid "Get started"
 msgstr ""
 
-#: src/editor/elements.ts:385
+#: src/editor/elements.ts:390
 #: runtime-src/build/editor.js:141
 msgid "Feature grid"
 msgstr ""
 
-#: src/editor/elements.ts:386
+#: src/editor/elements.ts:391
 #: runtime-src/build/editor.js:141
 msgid "Three feature cards in a grid."
 msgstr ""
 
-#: src/editor/elements.ts:392
+#: src/editor/elements.ts:397
 #: runtime-src/build/editor.js:141
 msgid "Why choose us"
 msgstr ""
 
-#: src/editor/elements.ts:397
+#: src/editor/elements.ts:402
 #: runtime-src/build/editor.js:141
 msgid "Fast"
 msgstr ""
 
-#: src/editor/elements.ts:397
+#: src/editor/elements.ts:402
 #: runtime-src/build/editor.js:141
 msgid "Designed for excellent performance."
 msgstr ""
 
-#: src/editor/elements.ts:398
+#: src/editor/elements.ts:403
 #: runtime-src/build/editor.js:141
 msgid "Flexible"
 msgstr ""
 
-#: src/editor/elements.ts:398
+#: src/editor/elements.ts:403
 #: runtime-src/build/editor.js:141
 msgid "Compose native WordPress blocks."
 msgstr ""
 
-#: src/editor/elements.ts:399
+#: src/editor/elements.ts:404
 #: runtime-src/build/editor.js:141
 msgid "Accessible"
 msgstr ""
 
-#: src/editor/elements.ts:399
+#: src/editor/elements.ts:404
 #: runtime-src/build/editor.js:141
 msgid "Built with inclusive interactions."
 msgstr ""
 
-#: src/editor/elements.ts:407
+#: src/editor/elements.ts:412
 #: runtime-src/build/editor.js:142
 msgid "Call to action"
 msgstr ""
 
-#: src/editor/elements.ts:408
+#: src/editor/elements.ts:413
 #: runtime-src/build/editor.js:142
 msgid "Focused conversion section."
 msgstr ""
 
-#: src/editor/elements.ts:414
+#: src/editor/elements.ts:419
 #: runtime-src/build/editor.js:142
 msgid "Ready to begin?"
 msgstr ""
 
-#: src/editor/elements.ts:415
+#: src/editor/elements.ts:420
 #: runtime-src/build/editor.js:142
 msgid "Add a concise reason to take the next step."
 msgstr ""
 
-#: src/editor/elements.ts:416
+#: src/editor/elements.ts:421
 #: runtime-src/build/editor.js:142
 msgid "Start now"
 msgstr ""
 
-#: src/editor/elements.ts:422
+#: src/editor/elements.ts:427
 #: runtime-src/build/editor.js:143
 msgid "Testimonial"
 msgstr ""
 
-#: src/editor/elements.ts:423
+#: src/editor/elements.ts:428
 #: runtime-src/build/editor.js:143
 msgid "Customer quotation and attribution."
 msgstr ""
 
-#: src/editor/elements.ts:429
+#: src/editor/elements.ts:434
 #: runtime-src/build/editor.js:143
 msgid "Customer name"
 msgstr ""
 
-#: src/editor/elements.ts:430
+#: src/editor/elements.ts:435
 #: runtime-src/build/editor.js:143
 msgid "Share a specific customer outcome or experience."
 msgstr ""
 
-#: src/editor/elements.ts:437
+#: src/editor/elements.ts:442
 #: runtime-src/build/editor.js:144
 msgid "Pricing card"
 msgstr ""
 
-#: src/editor/elements.ts:438
+#: src/editor/elements.ts:443
 #: runtime-src/build/editor.js:144
 msgid "Plan name, price, features, and action."
 msgstr ""
 
-#: src/editor/elements.ts:444
+#: src/editor/elements.ts:449
 #: runtime-src/build/editor.js:144
 msgid "Professional"
 msgstr ""
 
-#: src/editor/elements.ts:445
+#: src/editor/elements.ts:450
 #: runtime-src/build/editor.js:144
 msgid "$49"
 msgstr ""
 
-#: src/editor/elements.ts:447
+#: src/editor/elements.ts:452
 #: runtime-src/build/editor.js:144
 msgid "First benefit"
 msgstr ""
 
-#: src/editor/elements.ts:448
+#: src/editor/elements.ts:453
 #: runtime-src/build/editor.js:144
 msgid "Second benefit"
 msgstr ""
 
-#: src/editor/elements.ts:449
+#: src/editor/elements.ts:454
 #: runtime-src/build/editor.js:144
 msgid "Third benefit"
 msgstr ""
 
-#: src/editor/elements.ts:451
+#: src/editor/elements.ts:456
 #: runtime-src/build/editor.js:144
 msgid "Choose plan"
 msgstr ""
 
-#: src/editor/elements.ts:457
+#: src/editor/elements.ts:462
 #: runtime-src/build/editor.js:145
 msgid "FAQ"
 msgstr ""
 
-#: src/editor/elements.ts:458
+#: src/editor/elements.ts:463
 #: runtime-src/build/editor.js:145
 msgid "Accessible expandable question."
 msgstr ""
 
-#: src/editor/elements.ts:463
+#: src/editor/elements.ts:468
 #: runtime-src/build/editor.js:145
 msgid "Frequently asked question"
 msgstr ""
 
-#: src/editor/elements.ts:464
+#: src/editor/elements.ts:469
 #: runtime-src/build/editor.js:145
 msgid "Add the answer here."
 msgstr ""
 
-#: src/editor/elements.ts:470
+#: src/editor/elements.ts:475
 #: runtime-src/build/editor.js:146
 msgid "Social links"
 msgstr ""
 
-#: src/editor/elements.ts:471
+#: src/editor/elements.ts:476
 #: runtime-src/build/editor.js:146
 msgid "Accessible social profile links."
 msgstr ""
 
-#: src/editor/elements.ts:480
+#: src/editor/elements.ts:485
 #: runtime-src/build/editor.js:147
 msgid "Native WordPress navigation menu."
 msgstr ""
 
-#: src/editor/elements.ts:489
+#: src/editor/elements.ts:494
 #: runtime-src/build/editor.js:148
 msgid "Accessible site search form."
 msgstr ""
 
-#: src/editor/elements.ts:497
+#: src/editor/elements.ts:502
 #: runtime-src/build/editor.js:149
 msgid "Site logo"
 msgstr ""
 
-#: src/editor/elements.ts:498
+#: src/editor/elements.ts:503
 #: runtime-src/build/editor.js:149
 msgid "Logo from WordPress site settings."
 msgstr ""
 
-#: src/editor/elements.ts:506
+#: src/editor/elements.ts:511
 #: runtime-src/build/editor.js:150
 msgid "Post title"
 msgstr ""
 
-#: src/editor/elements.ts:507
+#: src/editor/elements.ts:512
 #: runtime-src/build/editor.js:150
 msgid "Dynamic title for the current post."
 msgstr ""
 
-#: src/editor/elements.ts:515
+#: src/editor/elements.ts:520
 #: runtime-src/build/dynamic.js:56
 #: runtime-src/build/dynamic.js:64
 #: runtime-src/build/editor.js:151
 msgid "Featured image"
 msgstr ""
 
-#: src/editor/elements.ts:516
+#: src/editor/elements.ts:521
 #: runtime-src/build/editor.js:151
 msgid "Dynamic current-post featured image."
 msgstr ""
 
-#: src/editor/elements.ts:524
+#: src/editor/elements.ts:529
 #: runtime-src/build/editor.js:152
 msgid "Post excerpt"
 msgstr ""
 
-#: src/editor/elements.ts:525
+#: src/editor/elements.ts:530
 #: runtime-src/build/editor.js:152
 msgid "Dynamic current-post excerpt."
 msgstr ""
 
-#: src/editor/elements.ts:533
+#: src/editor/elements.ts:538
 #: runtime-src/build/editor.js:153
 msgid "Post date"
 msgstr ""
 
-#: src/editor/elements.ts:534
+#: src/editor/elements.ts:539
 #: runtime-src/build/editor.js:153
 msgid "Dynamic publication date."
 msgstr ""
 
-#: src/editor/elements.ts:542
+#: src/editor/elements.ts:547
 #: runtime-src/build/editor.js:154
 msgid "Latest posts"
 msgstr ""
 
-#: src/editor/elements.ts:543
+#: src/editor/elements.ts:548
 #: runtime-src/build/editor.js:154
 msgid "Native list of recent posts."
 msgstr ""
 
-#: src/editor/elements.ts:551
+#: src/editor/elements.ts:556
 #: runtime-src/build/editor.js:155
 msgid "Shortcode"
 msgstr ""
 
-#: src/editor/elements.ts:552
+#: src/editor/elements.ts:557
 #: runtime-src/build/editor.js:155
 msgid "Render a trusted WordPress shortcode."
 msgstr ""
 
-#: src/editor/elements.ts:560
+#: src/editor/elements.ts:565
 #: runtime-src/build/editor.js:156
 msgid "Custom HTML"
 msgstr ""
 
-#: src/editor/elements.ts:561
+#: src/editor/elements.ts:566
 #: runtime-src/build/editor.js:156
 msgid "Restricted native HTML block."
-msgstr ""
-
-#: src/editor/elements.ts:97
-#: runtime-src/build/editor.js:119
-msgid "Section"
-msgstr ""
-
-#: src/editor/elements.ts:98
-msgid "Full-width semantic page section."
 msgstr ""
 
 #: src/preview/index.tsx:134

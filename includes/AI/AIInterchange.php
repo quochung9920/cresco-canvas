@@ -71,8 +71,15 @@ final class AIInterchange {
 		$style  = CRESCO_CANVAS_PATH . 'assets/css/standalone-ai-bridge.css';
 		if ( ! is_readable( $script ) || ! is_readable( $style ) ) return;
 
-		wp_enqueue_style( 'cresco-canvas-standalone-ai-bridge', CRESCO_CANVAS_URL . 'assets/css/standalone-ai-bridge.css', array( 'cresco-canvas-standalone-visual-editor' ), CRESCO_CANVAS_VERSION );
-		wp_enqueue_script( 'cresco-canvas-standalone-ai-bridge', CRESCO_CANVAS_URL . 'build/standalone-ai-bridge.js', array( 'cresco-canvas-standalone-visual-editor', 'wp-api-fetch', 'wp-i18n' ), CRESCO_CANVAS_VERSION, true );
+		// The bridge used to depend on `cresco-canvas-standalone-visual-editor`.
+		// That runtime was retired: nothing registers the handle any more, and
+		// WebsiteBuilder actively dequeues it. WordPress drops an unregistered
+		// dependency silently, so the bridge kept loading with no ordering
+		// guarantee at all — it could run before the Studio runtime it reads
+		// `window.crescoCanvasStandaloneSettings` alongside. Depend on the handle
+		// that actually owns the screen instead.
+		wp_enqueue_style( 'cresco-canvas-standalone-ai-bridge', CRESCO_CANVAS_URL . 'assets/css/standalone-ai-bridge.css', array( 'cresco-canvas-website-builder-studio' ), CRESCO_CANVAS_VERSION );
+		wp_enqueue_script( 'cresco-canvas-standalone-ai-bridge', CRESCO_CANVAS_URL . 'build/standalone-ai-bridge.js', array( 'cresco-canvas-website-builder', 'wp-api-fetch', 'wp-i18n' ), CRESCO_CANVAS_VERSION, true );
 		wp_add_inline_script(
 			'cresco-canvas-standalone-ai-bridge',
 			'window.crescoCanvasStandaloneSettings=window.crescoCanvasStandaloneSettings||{};window.crescoCanvasStandaloneSettings.aiInterchangeContextPath=' . wp_json_encode( '/cresco-canvas/v1/ai-interchange/' . $post_id . '/context' ) . ';window.crescoCanvasStandaloneSettings.aiInterchangeValidatePath=' . wp_json_encode( '/cresco-canvas/v1/ai-interchange/' . $post_id . '/validate' ) . ';',

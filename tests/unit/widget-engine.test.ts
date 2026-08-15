@@ -23,13 +23,15 @@ describe( 'Cresco widget engine registry', () => {
 	} );
 
 	it( 'publishes stable inner-part selectors for complex widgets', () => {
-		expect( getWidgetContract( 'button' )?.parts.text.selector ).toBe(
+		// `parts` is a Record, and noUncheckedIndexedAccess makes each lookup
+		// possibly undefined; the assertion still fails if a part goes missing.
+		expect( getWidgetContract( 'button' )?.parts.text?.selector ).toBe(
 			'& [data-cresco-part="text"]'
 		);
-		expect( getWidgetContract( 'image' )?.parts.media.selector ).toBe(
+		expect( getWidgetContract( 'image' )?.parts.media?.selector ).toBe(
 			'& [data-cresco-part="media"]'
 		);
-		expect( getWidgetContract( 'image' )?.parts.caption.selector ).toBe(
+		expect( getWidgetContract( 'image' )?.parts.caption?.selector ).toBe(
 			'& [data-cresco-part="caption"]'
 		);
 	} );

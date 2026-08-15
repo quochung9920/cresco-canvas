@@ -265,7 +265,9 @@ export function GlobalSettingsPanel( {
 			</PanelBody>
 
 			<PanelBody initialOpen={ false } title={ __( 'Import, export, and reset', 'cresco-canvas' ) }>
-				<TextareaControl readOnly help={ __( 'Copy this JSON to move the current design settings to another Cresco installation.', 'cresco-canvas' ) } label={ __( 'Export design JSON', 'cresco-canvas' ) } rows={ 8 } value={ exported } />
+				{ /* Read-only export field. React warns about a controlled input with no
+				     onChange, so the handler is present and deliberately does nothing. */ }
+				<TextareaControl readOnly help={ __( 'Copy this JSON to move the current design settings to another Cresco installation.', 'cresco-canvas' ) } label={ __( 'Export design JSON', 'cresco-canvas' ) } onChange={ () => undefined } rows={ 8 } value={ exported } />
 				{ importError && <Notice isDismissible onRemove={ () => setImportError( '' ) } status="error">{ importError }</Notice> }
 				<TextareaControl help={ __( 'Imported values are previewed first. Use Save global design to persist them.', 'cresco-canvas' ) } label={ __( 'Import design JSON', 'cresco-canvas' ) } onChange={ setImportValue } rows={ 8 } value={ importValue } />
 				<Button disabled={ ! importValue.trim() } onClick={ importSettings } variant="secondary">{ __( 'Apply imported design', 'cresco-canvas' ) }</Button>

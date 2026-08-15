@@ -47,18 +47,27 @@ const NAMES = Object.keys( FUNCTIONS )
 	.sort( ( a, b ) => b.length - a.length )
 	.join( '|' );
 
-/** Recursively collect files with the given extensions. */
+/**
+ * Recursively collect files with the given extensions.
+ * @param dir
+ * @param extensions
+ * @param out
+ */
 const walk = async ( dir, extensions, out = [] ) => {
 	let entries;
 	try {
-		entries = await readdir( path.join( root, dir ), { withFileTypes: true } );
+		entries = await readdir( path.join( root, dir ), {
+			withFileTypes: true,
+		} );
 	} catch {
 		return out;
 	}
 	for ( const entry of entries ) {
 		const relative = path.posix.join( dir, entry.name );
 		if ( entry.isDirectory() ) {
-			if ( entry.name === 'node_modules' || entry.name === 'vendor' ) continue;
+			if ( entry.name === 'node_modules' || entry.name === 'vendor' ) {
+				continue;
+			}
 			await walk( relative, extensions, out );
 		} else if ( extensions.some( ( ext ) => entry.name.endsWith( ext ) ) ) {
 			out.push( relative );
@@ -73,12 +82,18 @@ const walk = async ( dir, extensions, out = [] ) => {
  * Returns null when the argument is not a literal — a variable, a concatenation,
  * or a function call — which is exactly the case an extractor must skip rather
  * than guess at.
+ * @param source
+ * @param from
  */
 const readLiteral = ( source, from ) => {
 	let i = from;
-	while ( i < source.length && /\s/.test( source[ i ] ) ) i++;
+	while ( i < source.length && /\s/.test( source[ i ] ) ) {
+		i++;
+	}
 	const quote = source[ i ];
-	if ( quote !== "'" && quote !== '"' ) return null;
+	if ( quote !== "'" && quote !== '"' ) {
+		return null;
+	}
 
 	let value = '';
 	i++;
@@ -86,20 +101,30 @@ const readLiteral = ( source, from ) => {
 		const char = source[ i ];
 		if ( char === '\\' ) {
 			const next = source[ i + 1 ];
-			if ( next === 'n' ) value += '\n';
-			else if ( next === 't' ) value += '\t';
-			else value += next;
+			if ( next === 'n' ) {
+				value += '\n';
+			} else if ( next === 't' ) {
+				value += '\t';
+			} else {
+				value += next;
+			}
 			i += 2;
 			continue;
 		}
-		if ( char === quote ) return { value, end: i + 1 };
+		if ( char === quote ) {
+			return { value, end: i + 1 };
+		}
 		value += char;
 		i++;
 	}
 	return null;
 };
 
-/** Read the comma-separated literal arguments of a call. */
+/**
+ * Read the comma-separated literal arguments of a call.
+ * @param source
+ * @param from
+ */
 const readArguments = ( source, from ) => {
 	const args = [];
 	let i = from;
@@ -111,23 +136,40 @@ const readArguments = ( source, from ) => {
 			let depth = 0;
 			while ( i < source.length ) {
 				const char = source[ i ];
-				if ( char === '(' ) depth++;
-				else if ( char === ')' ) { if ( depth === 0 ) return args; depth--; }
-				else if ( char === ',' && depth === 0 ) { i++; break; }
+				if ( char === '(' ) {
+					depth++;
+				} else if ( char === ')' ) {
+					if ( depth === 0 ) {
+						return args;
+					}
+					depth--;
+				} else if ( char === ',' && depth === 0 ) {
+					i++;
+					break;
+				}
 				i++;
 			}
 			continue;
 		}
 		args.push( literal.value );
 		i = literal.end;
-		while ( i < source.length && /\s/.test( source[ i ] ) ) i++;
-		if ( source[ i ] === ',' ) { i++; continue; }
+		while ( i < source.length && /\s/.test( source[ i ] ) ) {
+			i++;
+		}
+		if ( source[ i ] === ',' ) {
+			i++;
+			continue;
+		}
 		return args;
 	}
 	return args;
 };
 
-/** Extract entries from one file. */
+/**
+ * Extract entries from one file.
+ * @param source
+ * @param file
+ */
 const extract = ( source, file ) => {
 	const found = [];
 	const pattern = new RegExp( `(?<![\\w$])(${ NAMES })\\s*\\(`, 'g' );
@@ -138,22 +180,31 @@ const extract = ( source, file ) => {
 		const args = readArguments( source, match.index + match[ 0 ].length );
 
 		const text = args[ 0 ];
-		if ( typeof text !== 'string' || text === '' ) continue;
+		if ( typeof text !== 'string' || text === '' ) {
+			continue;
+		}
 		// Only collect strings belonging to this plugin's domain.
-		if ( args[ spec.domain ] !== TEXT_DOMAIN ) continue;
+		if ( args[ spec.domain ] !== TEXT_DOMAIN ) {
+			continue;
+		}
 
 		const line = source.slice( 0, match.index ).split( '\n' ).length;
 		found.push( {
 			msgid: text,
-			msgctxt: spec.context !== undefined ? args[ spec.context ] : undefined,
-			msgidPlural: spec.plural !== undefined ? args[ spec.plural ] : undefined,
+			msgctxt:
+				spec.context !== undefined ? args[ spec.context ] : undefined,
+			msgidPlural:
+				spec.plural !== undefined ? args[ spec.plural ] : undefined,
 			reference: `${ file }:${ line }`,
 		} );
 	}
 	return found;
 };
 
-/** Escape a string for a PO literal. */
+/**
+ * Escape a string for a PO literal.
+ * @param value
+ */
 const poEscape = ( value ) =>
 	String( value )
 		.replace( /\\/g, '\\\\' )
@@ -163,12 +214,17 @@ const poEscape = ( value ) =>
 
 const phpFiles = [];
 for ( const entry of PHP_ROOTS ) {
-	if ( entry.endsWith( '.php' ) ) phpFiles.push( entry );
-	else phpFiles.push( ...( await walk( entry, [ '.php' ] ) ) );
+	if ( entry.endsWith( '.php' ) ) {
+		phpFiles.push( entry );
+	} else {
+		phpFiles.push( ...( await walk( entry, [ '.php' ] ) ) );
+	}
 }
 const jsFiles = [];
 for ( const entry of JS_ROOTS ) {
-	jsFiles.push( ...( await walk( entry, [ '.js', '.ts', '.tsx', '.jsx' ] ) ) );
+	jsFiles.push(
+		...( await walk( entry, [ '.js', '.ts', '.tsx', '.jsx' ] ) )
+	);
 }
 
 const entries = new Map();
@@ -201,7 +257,10 @@ const sorted = [ ...entries.values() ].sort( ( a, b ) =>
 	a.references[ 0 ].localeCompare( b.references[ 0 ] )
 );
 
-const now = new Date().toISOString().replace( /\.\d+Z$/, '+0000' ).replace( 'T', ' ' );
+const now = new Date()
+	.toISOString()
+	.replace( /\.\d+Z$/, '+0000' )
+	.replace( 'T', ' ' );
 const lines = [
 	'# Copyright (C) Crescospec',
 	'# This file is distributed under the GPL-2.0-or-later license.',
@@ -222,7 +281,9 @@ for ( const entry of sorted ) {
 	for ( const reference of entry.references.slice( 0, 12 ) ) {
 		lines.push( `#: ${ reference }` );
 	}
-	if ( entry.msgctxt ) lines.push( `msgctxt "${ poEscape( entry.msgctxt ) }"` );
+	if ( entry.msgctxt ) {
+		lines.push( `msgctxt "${ poEscape( entry.msgctxt ) }"` );
+	}
 	lines.push( `msgid "${ poEscape( entry.msgid ) }"` );
 	if ( entry.msgidPlural ) {
 		lines.push( `msgid_plural "${ poEscape( entry.msgidPlural ) }"` );

@@ -1,4 +1,4 @@
-import { getBlockType, type BlockInstance } from '@wordpress/blocks';
+import { getBlockType, type Block as BlockInstance } from '@wordpress/blocks';
 import { Button, Notice, SearchControl } from '@wordpress/components';
 import { useDispatch, useSelect } from '@wordpress/data';
 import {

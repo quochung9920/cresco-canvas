@@ -31,10 +31,15 @@ final class EditorHub {
 			is_readable( CRESCO_CANVAS_PATH . 'assets/css/editor-app-shell-elements.css' )
 		) {
 			$app_asset = require $app_asset_file;
+			// `cresco-canvas-editor` was listed here but is never registered as a
+			// style handle anywhere in the plugin, so WordPress silently dropped it
+			// and the intended ordering never applied. Depending on a handle that
+			// does not exist is worse than not depending on it: it reads as a
+			// guarantee while providing none.
 			wp_enqueue_style(
 				'cresco-canvas-editor-app-shell',
 				CRESCO_CANVAS_URL . 'assets/css/editor-app-shell.css',
-				array( 'cresco-canvas-editor', 'wp-components', 'dashicons' ),
+				array( 'wp-components', 'dashicons' ),
 				(string) ( $app_asset['version'] ?? CRESCO_CANVAS_VERSION )
 			);
 			wp_enqueue_style(

@@ -1,4 +1,4 @@
-import type { BlockInstance } from '@wordpress/blocks';
+import type { Block as BlockInstance } from '@wordpress/blocks';
 
 import type { CrescoElementDefinition } from './elements';
 

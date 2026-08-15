@@ -6,10 +6,18 @@ import {
 } from '../../src/editor/previewTokens';
 import type { GlobalSettings } from '../../src/editor/types';
 
+// GlobalSettings gained aliases, breakpoints, customColors, customCss, and
+// fluidTokens after this fixture was written. They are empty here because
+// cssVariablesFromSettings does not project them; see the assertion below.
 const settings: GlobalSettings = {
+	aliases: {},
 	background: '#ffffff',
+	breakpoints: {},
 	containerMax: 1440,
 	contentMax: 1200,
+	customColors: {},
+	customCss: '',
+	fluidTokens: {},
 	fontFamily: 'system-ui, sans-serif',
 	muted: '#6b7280',
 	primary: '#635bff',

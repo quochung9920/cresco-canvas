@@ -1,4 +1,5 @@
-import { createBlock, type BlockInstance } from '@wordpress/blocks';
+import { createBlock, type Block as BlockInstance } from '@wordpress/blocks';
+import type { IconType } from '@wordpress/components';
 import { __ } from '@wordpress/i18n';
 
 export type ElementCategory =
@@ -17,7 +18,11 @@ export interface CrescoElementDefinition {
 	description: string;
 	category: ElementCategory;
 	keywords: string[];
-	icon: string;
+	/**
+	 * Dashicon slug. Typed as IconType rather than string so a misspelled slug
+	 * fails to compile instead of silently rendering no icon.
+	 */
+	icon: IconType;
 	create: () => BlockInstance[];
 }
 
