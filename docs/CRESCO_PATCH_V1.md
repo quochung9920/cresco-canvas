@@ -7,7 +7,6 @@
 ```json
 {
   "schema": "cresco-patch/v1",
-  "baseChecksum": "sha256…",
   "target": {
     "scope": "subtree",
     "nodeId": "hero"
@@ -16,7 +15,9 @@
 }
 ```
 
-Supported target scopes are `page`, `subtree`, `widget`, and `selection`.
+Supported target scopes are `page`, `subtree`, `widget`, `selection`, and `selection-subtrees` where supported by the scope resolver.
+
+Cresco Patch v1 no longer binds a patch to an exported Session revision. There is no required checksum field and no stale-checksum rejection. A legacy `baseChecksum` field may still be present in older AI output, but the validator ignores it.
 
 ## Validation pipeline
 
@@ -24,18 +25,17 @@ Every patch follows this pipeline:
 
 1. parse JSON;
 2. verify `cresco-patch/v1` schema;
-3. compare `baseChecksum` with the current complete Session;
-4. validate target existence and scope;
-5. validate node IDs and structural destinations;
-6. validate widget contracts and operation permissions;
-7. apply operations to an in-memory Session clone;
-8. run the standard `SessionManager::sanitize_session()` validator, including scoped Custom CSS validation;
-9. generate a structured Diff;
-10. return the validated candidate for user review;
-11. only after explicit **Apply** does the editor replace its local Session;
-12. the user can **Undo** to the pre-AI checkpoint; persistence still requires **Update**.
+3. validate target existence and scope against the **current** Session;
+4. validate node IDs and structural destinations;
+5. validate widget contracts and operation permissions;
+6. apply operations to an in-memory Session clone;
+7. run the canonical Website Builder Session sanitizer, including scoped Custom CSS validation;
+8. generate a structured Diff;
+9. return the validated candidate for user review;
+10. only after explicit **Apply** does the editor replace its local Session;
+11. the user can **Undo** to the pre-AI checkpoint; persistence still requires **Update**.
 
-A checksum mismatch returns `cresco_ai_patch_stale` with HTTP status `409`. Cresco never silently applies a stale patch.
+Removing revision checks does not remove scope or contract safety. If the target no longer exists, the patch is rejected. If an operation escapes the target scope, uses an unsupported widget/property, or produces an invalid Session, it is rejected.
 
 ## Operations
 
@@ -90,7 +90,7 @@ Devices are limited to `desktop`, `laptop`, `tablet`, and `mobile`. Widescreen/b
 }
 ```
 
-Buckets are limited to `base`, `desktop`, `laptop`, `tablet`, and `mobile`. Every value still passes the existing Cresco Session Custom CSS sanitizer. `@media`, `@import`, `url()`, JavaScript, global selectors, and unscoped CSS remain forbidden.
+Buckets are limited to `base`, `desktop`, `laptop`, `tablet`, and `mobile`. Custom CSS is parsed by the canonical scoped CSS engine. Ordinary selectors must contain `&`. Local `@keyframes` / `@-webkit-keyframes` and scoped nested `@media`, `@supports`, `@container`, and `@layer` blocks are supported. Document-global/resource-loading constructs such as `@import`, `@charset`, `@namespace`, external `url()`, JavaScript/expression constructs, and global selectors remain forbidden.
 
 ### `insertNode`
 
@@ -180,7 +180,7 @@ The review UI displays these changes before Apply.
 
 ## Full Session compatibility
 
-The validation endpoint also accepts a complete `cresco-session/v1`. A full Session goes through the standard Session validator and structured Diff before Apply. Existing Session import remains supported.
+The validation endpoint also accepts a complete `cresco-session/v1`. A full Session goes through the canonical Session validator and structured Diff before Apply. Existing Session import remains supported.
 
 ## API
 
@@ -189,7 +189,7 @@ The validation endpoint also accepts a complete `cresco-session/v1`. A full Sess
 ```json
 {
   "currentSession": { "schema": "cresco-session/v1", "version": 1, "documentId": "home", "nodes": [] },
-  "result": { "schema": "cresco-patch/v1", "baseChecksum": "…", "target": { "scope": "page" }, "operations": [] }
+  "result": { "schema": "cresco-patch/v1", "target": { "scope": "page" }, "operations": [] }
 }
 ```
 
