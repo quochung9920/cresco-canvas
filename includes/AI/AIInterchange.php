@@ -8,7 +8,7 @@
 namespace CrescoCanvas\AI;
 
 use CrescoCanvas\Admin\VisualEditor;
-use CrescoCanvas\Builder\WebsiteBuilder;
+use CrescoCanvas\Builder\WebsiteBuilderSessionSanitizer;
 use CrescoCanvas\Session\SessionManager;
 use WP_Error;
 use WP_REST_Request;
@@ -55,12 +55,18 @@ final class AIInterchange {
 		);
 	}
 
-	/** Load the isolated AI bridge only on the standalone Cresco editor screen. */
+	/** Load the isolated AI bridge and advanced scoped-CSS preview on the standalone editor. */
 	public function enqueue_editor_assets( $hook_suffix ) {
 		unset( $hook_suffix );
 		$page = isset( $_GET['page'] ) ? sanitize_key( wp_unslash( $_GET['page'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only screen routing.
 		$post_id = isset( $_GET['post'] ) ? absint( wp_unslash( $_GET['post'] ) ) : 0; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only screen routing.
 		if ( VisualEditor::PAGE_SLUG !== $page || ! $post_id || 'page' !== get_post_type( $post_id ) || ! current_user_can( 'edit_post', $post_id ) ) return;
+
+		$scoped_css_preview = CRESCO_CANVAS_PATH . 'build/website-builder-scoped-css-preview.js';
+		if ( is_readable( $scoped_css_preview ) ) {
+			wp_enqueue_script( 'cresco-canvas-website-builder-scoped-css-preview', CRESCO_CANVAS_URL . 'build/website-builder-scoped-css-preview.js', array( 'cresco-canvas-website-builder' ), CRESCO_CANVAS_VERSION, true );
+		}
+
 		$script = CRESCO_CANVAS_PATH . 'build/standalone-ai-bridge.js';
 		$style  = CRESCO_CANVAS_PATH . 'assets/css/standalone-ai-bridge.css';
 		if ( ! is_readable( $script ) || ! is_readable( $style ) ) return;
@@ -142,7 +148,7 @@ final class AIInterchange {
 		$post_id = absint( $request['postId'] );
 		$payload = (array) $request->get_json_params();
 		$current = isset( $payload['currentSession'] ) && is_array( $payload['currentSession'] ) ? $payload['currentSession'] : $this->saved_session( $post_id );
-		$current = WebsiteBuilder::sanitize_session( $current );
+		$current = WebsiteBuilderSessionSanitizer::sanitize_session( $current );
 		if ( is_wp_error( $current ) ) return $current;
 
 		$result = $payload['result'] ?? null;
@@ -158,7 +164,7 @@ final class AIInterchange {
 			return is_wp_error( $validated ) ? $validated : new WP_REST_Response( $validated );
 		}
 		if ( SessionManager::SCHEMA === ( $result['schema'] ?? SessionManager::SCHEMA ) ) {
-			$candidate = WebsiteBuilder::sanitize_session( $result );
+			$candidate = WebsiteBuilderSessionSanitizer::sanitize_session( $result );
 			if ( is_wp_error( $candidate ) ) return $candidate;
 			return new WP_REST_Response(
 				array(
@@ -181,6 +187,6 @@ final class AIInterchange {
 		$raw     = (string) get_post_meta( $post_id, SessionManager::META_KEY, true );
 		$decoded = '' !== $raw ? json_decode( $raw, true ) : array();
 		if ( ! is_array( $decoded ) ) $decoded = array();
-		return WebsiteBuilder::sanitize_session( $decoded );
+		return WebsiteBuilderSessionSanitizer::sanitize_session( $decoded );
 	}
 }
