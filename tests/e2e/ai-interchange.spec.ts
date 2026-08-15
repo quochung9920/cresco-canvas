@@ -20,7 +20,7 @@ async function openStandaloneEditor( page: Page ) {
 }
 
 test.describe( 'Cresco AI Interchange v1', () => {
-	test( 'exports a selected subtree, reviews a patch, applies it, and Undo restores the prior Session', async ( { page } ) => {
+	test( 'exports a selected subtree, reviews a checksum-free patch, applies it, and Undo restores the prior Session', async ( { page } ) => {
 		await page.setViewportSize( { width: 1440, height: 900 } );
 		await login( page );
 		await openStandaloneEditor( page );
@@ -45,10 +45,10 @@ test.describe( 'Cresco AI Interchange v1', () => {
 		expect( context.schema ).toBe( 'cresco-ai-context/v1' );
 		expect( context.scope ).toBe( 'subtree' );
 		expect( context.target.nodeId ).toBe( nodeId );
+		expect( context.baseChecksum ).toBeUndefined();
 
 		const patch = {
 			schema: 'cresco-patch/v1',
-			baseChecksum: context.baseChecksum,
 			target: { scope: 'subtree', nodeId },
 			operations: [ { op: 'setStyle', nodeId, style: { opacity: '0.77' } } ],
 		};
