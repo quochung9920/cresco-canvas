@@ -38,6 +38,7 @@ final class ContractRegistry {
 				'structuredStyle'   => array_values( (array) ( $contract['style'] ?? WidgetCatalog::style_properties() ) ),
 				'responsive'        => array( 'allowed' => ! empty( $contract['responsive'] ), 'devices' => self::RESPONSIVE_DEVICES ),
 				'states'            => array_values( (array) ( $contract['states'] ?? self::STATES ) ),
+				'blueprint'         => (array) ( $contract['blueprint'] ?? array() ),
 				'tokens'            => array( 'allowed' => true, 'syntax' => '{path}' ),
 				'customCSS'         => self::custom_css_contract( $type ),
 				'stableSelectorKey' => 'data-cresco-id',

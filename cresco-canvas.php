@@ -48,5 +48,6 @@ add_action(
 			return;
 		}
 		CrescoCanvas\Plugin::instance()->boot();
+		( new CrescoCanvas\Builder\ProfessionalWidgets() )->register();
 	}
 );
