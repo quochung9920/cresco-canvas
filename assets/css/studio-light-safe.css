@@ -1,0 +1,286 @@
+/**
+ * Cresco Studio light-first safe theme.
+ *
+ * IMPORTANT: This stylesheet owns editor chrome only. It intentionally avoids
+ * styling .cc-studio-canvas, .cresco-session-root, .cresco-website-builder-root,
+ * or generic descendants of .cc-studio-app so document preview styles cannot
+ * be overwritten by the Studio theme.
+ */
+@layer cresco.overrides {
+	html[data-cc-theme="light"] #cresco-canvas-standalone-editor .cc-studio-app {
+		color-scheme: light;
+		--cc-color-canvas: #f4f6f8;
+		--cc-color-surface: #ffffff;
+		--cc-color-surface-raised: #ffffff;
+		--cc-color-surface-sunken: #f7f8fa;
+		--cc-color-surface-hover: #f7f8fa;
+		--cc-color-border: #e2e7ee;
+		--cc-color-border-strong: #c5ced8;
+		--cc-color-text: #172033;
+		--cc-color-text-subtle: #475467;
+		--cc-color-text-muted: #98a2b3;
+		--cc-color-accent: #5b5cf6;
+		--cc-color-accent-hover: #4b4bd8;
+		--cc-color-accent-soft: #5b5cf6;
+		--cc-color-accent-wash: #f0efff;
+		--cc-color-danger: #d64545;
+		--cc-color-success: #168a5b;
+		--cc-color-warning: #b7791f;
+		--cc-bg: #f4f6f8;
+		--cc-panel: #ffffff;
+		--cc-panel-2: #ffffff;
+		--cc-panel-3: #f7f8fa;
+		--cc-line: #e2e7ee;
+		--cc-text: #172033;
+		--cc-muted: #98a2b3;
+		--cc-accent: #5b5cf6;
+		--cc-accent-2: #7a72ff;
+		--cc-danger: #d64545;
+		--cc-success: #168a5b;
+		--cc-warning: #b7791f;
+		--cc-shadow-subtle: 0 1px 2px rgba(16,24,40,.045);
+		--cc-shadow-panel: 0 14px 34px rgba(16,24,40,.08);
+		--cc-shadow-popover: 0 18px 42px rgba(16,24,40,.12);
+	}
+
+	html[data-cc-theme="light"] body.admin_page_cresco-canvas-editor,
+	html[data-cc-theme="light"] body.toplevel_page_cresco-canvas-editor {
+		background: #f4f6f8 !important;
+	}
+
+	/* Editor shell surfaces only. */
+	html[data-cc-theme="light"] #cresco-canvas-standalone-editor .cc-studio-topbar,
+	html[data-cc-theme="light"] #cresco-canvas-standalone-editor .cc-studio-left,
+	html[data-cc-theme="light"] #cresco-canvas-standalone-editor .cc-studio-structure,
+	html[data-cc-theme="light"] #cresco-canvas-standalone-editor .cc-studio-panel,
+	html[data-cc-theme="light"] #cresco-canvas-standalone-editor .cc-studio-viewport-toolbar,
+	html[data-cc-theme="light"] #cresco-canvas-standalone-editor .cc-studio-context-row,
+	html[data-cc-theme="light"] #cresco-canvas-standalone-editor .cc-studio-structure > header {
+		background: #ffffff;
+		color: #172033;
+		border-color: #e2e7ee;
+	}
+
+	html[data-cc-theme="light"] #cresco-canvas-standalone-editor .cc-studio-topbar {
+		box-shadow: 0 1px 0 rgba(16,24,40,.04), 0 8px 20px rgba(16,24,40,.035);
+	}
+
+	html[data-cc-theme="light"] #cresco-canvas-standalone-editor .cc-studio-rail {
+		background: #ffffff;
+		border-color: #e2e7ee;
+	}
+	html[data-cc-theme="light"] #cresco-canvas-standalone-editor .cc-studio-rail button {
+		color: #667085;
+	}
+	html[data-cc-theme="light"] #cresco-canvas-standalone-editor .cc-studio-rail button:hover {
+		background: #f7f8fa;
+		color: #344054;
+	}
+	html[data-cc-theme="light"] #cresco-canvas-standalone-editor .cc-studio-rail button.is-active {
+		background: #f0efff;
+		border-color: #dcd9ff;
+		color: #5b5cf6;
+		box-shadow: inset 2px 0 0 #5b5cf6;
+	}
+
+	/* Form controls are scoped to known editor chrome containers. */
+	html[data-cc-theme="light"] #cresco-canvas-standalone-editor :is(
+		.cc-studio-topbar,
+		.cc-studio-left,
+		.cc-studio-structure,
+		.cc-studio-viewport-toolbar,
+		.cc-studio-command-dialog,
+		.cc-studio-context-menu,
+		.cc-studio-notice
+	) :is(input, select, textarea) {
+		background: #ffffff;
+		border-color: #d7dde5;
+		color: #172033;
+		box-shadow: none;
+	}
+	html[data-cc-theme="light"] #cresco-canvas-standalone-editor :is(
+		.cc-studio-topbar,
+		.cc-studio-left,
+		.cc-studio-structure,
+		.cc-studio-viewport-toolbar,
+		.cc-studio-command-dialog,
+		.cc-studio-context-menu,
+		.cc-studio-notice
+	) :is(input, select, textarea):focus {
+		border-color: #6c63ff;
+		box-shadow: 0 0 0 3px #f0efff;
+	}
+
+	/* Buttons are also limited to editor chrome. */
+	html[data-cc-theme="light"] #cresco-canvas-standalone-editor :is(
+		.cc-studio-topbar,
+		.cc-studio-left,
+		.cc-studio-structure,
+		.cc-studio-rail,
+		.cc-studio-viewport-toolbar,
+		.cc-studio-command-dialog,
+		.cc-studio-context-menu,
+		.cc-studio-notice,
+		.cc-studio-canvas-toolbar
+	) button,
+	html[data-cc-theme="light"] #cresco-canvas-standalone-editor .cc-studio-button {
+		background: #ffffff;
+		border-color: #e2e7ee;
+		color: #475467;
+	}
+	html[data-cc-theme="light"] #cresco-canvas-standalone-editor :is(
+		.cc-studio-topbar,
+		.cc-studio-left,
+		.cc-studio-structure,
+		.cc-studio-rail,
+		.cc-studio-viewport-toolbar,
+		.cc-studio-command-dialog,
+		.cc-studio-context-menu,
+		.cc-studio-notice,
+		.cc-studio-canvas-toolbar
+	) button:hover,
+	html[data-cc-theme="light"] #cresco-canvas-standalone-editor .cc-studio-button:hover {
+		background: #f7f8fa;
+		border-color: #c5ced8;
+		color: #172033;
+	}
+
+	html[data-cc-theme="light"] #cresco-canvas-standalone-editor :is(
+		.cc-studio-topbar,
+		.cc-studio-left,
+		.cc-studio-structure,
+		.cc-studio-rail,
+		.cc-studio-viewport-toolbar,
+		.cc-studio-command-dialog,
+		.cc-studio-context-menu,
+		.cc-studio-notice,
+		.cc-studio-canvas-toolbar
+	) button.is-primary,
+	html[data-cc-theme="light"] #cresco-canvas-standalone-editor .cc-studio-save.is-dirty {
+		background: #5b5cf6;
+		border-color: #5b5cf6;
+		color: #ffffff;
+		box-shadow: 0 5px 14px rgba(91,92,246,.16);
+	}
+
+	html[data-cc-theme="light"] #cresco-canvas-standalone-editor .cc-studio-topbar kbd,
+	html[data-cc-theme="light"] #cresco-canvas-standalone-editor .cc-studio-command-search kbd {
+		background: #f4f6f8;
+		border-color: #e2e7ee;
+		color: #667085;
+	}
+
+	/* Tabs, inspector widgets and tree chrome. */
+	html[data-cc-theme="light"] #cresco-canvas-standalone-editor .cc-studio-device-tabs .is-active,
+	html[data-cc-theme="light"] #cresco-canvas-standalone-editor .cc-studio-state-tabs .is-active,
+	html[data-cc-theme="light"] #cresco-canvas-standalone-editor .cc-studio-property-device.is-active,
+	html[data-cc-theme="light"] #cresco-canvas-standalone-editor .cc-studio-inspector-tabs button.is-active,
+	html[data-cc-theme="light"] #cresco-canvas-standalone-editor .cc-studio-ux-filter.is-active,
+	html[data-cc-theme="light"] #cresco-canvas-standalone-editor .cc-studio-ux-segment.is-active {
+		background: #f0efff;
+		border-color: #dcd9ff;
+		color: #4b4bd8;
+	}
+
+	html[data-cc-theme="light"] #cresco-canvas-standalone-editor .cc-studio-widget-grid button,
+	html[data-cc-theme="light"] #cresco-canvas-standalone-editor .cc-studio-card,
+	html[data-cc-theme="light"] #cresco-canvas-standalone-editor .cc-studio-ux-card {
+		background: #ffffff;
+		border-color: #e2e7ee;
+		box-shadow: 0 1px 2px rgba(16,24,40,.035);
+	}
+	html[data-cc-theme="light"] #cresco-canvas-standalone-editor .cc-studio-widget-grid button:hover,
+	html[data-cc-theme="light"] #cresco-canvas-standalone-editor .cc-studio-card:hover,
+	html[data-cc-theme="light"] #cresco-canvas-standalone-editor .cc-studio-ux-card:hover {
+		background: #fbfcfd;
+		border-color: #cfd7e2;
+		box-shadow: 0 4px 12px rgba(16,24,40,.055);
+	}
+	html[data-cc-theme="light"] #cresco-canvas-standalone-editor .cc-studio-widget-grid button .dashicons,
+	html[data-cc-theme="light"] #cresco-canvas-standalone-editor .cc-studio-ux-kicker {
+		color: #5b5cf6;
+	}
+
+	html[data-cc-theme="light"] #cresco-canvas-standalone-editor .cc-studio-tree-row:hover {
+		background: #f7f8fa;
+	}
+	html[data-cc-theme="light"] #cresco-canvas-standalone-editor .cc-studio-tree-row.is-selected {
+		background: #f0efff;
+		border-color: #dcd9ff;
+	}
+	html[data-cc-theme="light"] #cresco-canvas-standalone-editor .cc-studio-tree-row.is-selected .cc-studio-tree-label {
+		color: #34316a;
+	}
+
+	/* Canvas workspace chrome only; document content remains untouched. */
+	html[data-cc-theme="light"] #cresco-canvas-standalone-editor .cc-studio-center,
+	html[data-cc-theme="light"] #cresco-canvas-standalone-editor .cc-studio-stage {
+		background-color: #eef1f5;
+	}
+	html[data-cc-theme="light"] #cresco-canvas-standalone-editor .cc-studio-stage {
+		background-image:
+			linear-gradient(rgba(23,32,51,.025) 1px, transparent 1px),
+			linear-gradient(90deg, rgba(23,32,51,.025) 1px, transparent 1px);
+		background-size: 22px 22px;
+	}
+	html[data-cc-theme="light"] #cresco-canvas-standalone-editor .cc-studio-frame {
+		background: #ffffff;
+		border: 1px solid #dde3ea;
+		box-shadow: 0 16px 50px rgba(16,24,40,.12);
+	}
+	html[data-cc-theme="light"] #cresco-canvas-standalone-editor .cc-studio-canvas-toolbar {
+		background: #ffffff;
+		border-color: #e2e7ee;
+		box-shadow: 0 12px 30px rgba(16,24,40,.12);
+	}
+
+	html[data-cc-theme="light"] #cresco-canvas-standalone-editor .cc-studio-spacing,
+	html[data-cc-theme="light"] #cresco-canvas-standalone-editor .cc-studio-extension-section,
+	html[data-cc-theme="light"] #cresco-canvas-standalone-editor .cc-studio-ux-summary,
+	html[data-cc-theme="light"] #cresco-canvas-standalone-editor .cc-studio-ux-diagnostic {
+		background: #f7f8fa;
+		border-color: #e2e7ee;
+	}
+	html[data-cc-theme="light"] #cresco-canvas-standalone-editor .cc-studio-responsive-layout-note {
+		background: #f0efff;
+		border-color: #dcd9ff;
+	}
+
+	html[data-cc-theme="light"] #cresco-canvas-standalone-editor .cc-studio-panel-head strong,
+	html[data-cc-theme="light"] #cresco-canvas-standalone-editor .cc-studio-structure > header strong,
+	html[data-cc-theme="light"] #cresco-canvas-standalone-editor .cc-studio-ux-card strong {
+		color: #172033;
+	}
+	html[data-cc-theme="light"] #cresco-canvas-standalone-editor .cc-studio-panel-head small,
+	html[data-cc-theme="light"] #cresco-canvas-standalone-editor .cc-studio-help,
+	html[data-cc-theme="light"] #cresco-canvas-standalone-editor .cc-studio-field__label,
+	html[data-cc-theme="light"] #cresco-canvas-standalone-editor .cc-studio-style-field__label,
+	html[data-cc-theme="light"] #cresco-canvas-standalone-editor .cc-studio-widget-grid button small,
+	html[data-cc-theme="light"] #cresco-canvas-standalone-editor .cc-studio-width,
+	html[data-cc-theme="light"] #cresco-canvas-standalone-editor .cc-studio-state-label {
+		color: #667085;
+	}
+
+	html[data-cc-theme="light"] #cresco-canvas-standalone-editor :is(
+		.cc-studio-topbar,
+		.cc-studio-left,
+		.cc-studio-structure,
+		.cc-studio-rail,
+		.cc-studio-viewport-toolbar,
+		.cc-studio-command-dialog,
+		.cc-studio-context-menu,
+		.cc-studio-notice,
+		.cc-studio-canvas-toolbar
+	) :is(button, a, input, select, textarea):focus-visible {
+		outline-color: #7a72ff;
+	}
+
+	html[data-cc-theme="light"] #cresco-canvas-standalone-editor :is(
+		.cc-studio-left,
+		.cc-studio-structure,
+		.cc-studio-rail,
+		.cc-studio-stage
+	) {
+		scrollbar-color: #c5ced8 #f7f8fa;
+	}
+}
