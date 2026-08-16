@@ -42,14 +42,20 @@ final class PatchApplier {
 
 	private static function apply_operation( $session, $operation, $index ) {
 		$op = (string) ( $operation['op'] ?? '' );
-		if ( in_array( $op, array( 'setProps', 'setStyle', 'setResponsive', 'setCustomCSS' ), true ) ) {
+		if ( in_array( $op, array( 'setProps', 'setStyle', 'setResponsive', 'setStates', 'setCustomCSS' ), true ) ) {
 			$node_id = (string) ( $operation['nodeId'] ?? '' );
-			$key     = array( 'setProps' => 'props', 'setStyle' => 'style', 'setResponsive' => 'responsive', 'setCustomCSS' => 'customCSS' )[ $op ];
+			$key     = array(
+				'setProps'      => 'props',
+				'setStyle'      => 'style',
+				'setResponsive' => 'responsive',
+				'setStates'     => 'states',
+				'setCustomCSS'  => 'customCSS',
+			)[ $op ];
 			$value   = isset( $operation[ $key ] ) && is_array( $operation[ $key ] ) ? $operation[ $key ] : array();
 			$found   = false;
 			$session['nodes'] = self::map_nodes( $session['nodes'] ?? array(), $node_id, static function ( $node ) use ( $op, $key, $value, &$found ) {
 				$found = true;
-				$node[ $key ] = 'setResponsive' === $op
+				$node[ $key ] = in_array( $op, array( 'setResponsive', 'setStates' ), true )
 					? array_replace_recursive( (array) ( $node[ $key ] ?? array() ), $value )
 					: array_replace( (array) ( $node[ $key ] ?? array() ), $value );
 				return $node;
