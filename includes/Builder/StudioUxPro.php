@@ -21,6 +21,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 final class StudioUxPro {
 	const HANDLE      = 'cresco-canvas-studio-ux-pro';
 	const SCRIPT      = 'build/studio-ux-pro.js';
+	const GUARD_SCRIPT = 'build/studio-ux-pro-guard.js';
 	const STYLE       = 'assets/css/studio-ux-pro.css';
 	const OPTION_KEY  = 'cresco_canvas_project_brief';
 	const META_KEY    = '_cresco_canvas_project_brief';
@@ -38,7 +39,7 @@ final class StudioUxPro {
 	public function enqueue() {
 		$context = WebsiteBuilderRuntimeContext::from_request();
 		if ( ! $context || ! WebsiteBuilderModuleRegistry::is_enabled( 'core', $context ) ) return;
-		if ( ! WebsiteBuilderAsset::readable( self::SCRIPT ) || ! WebsiteBuilderAsset::readable( self::STYLE ) ) return;
+		if ( ! WebsiteBuilderAsset::readable( self::SCRIPT ) || ! WebsiteBuilderAsset::readable( self::GUARD_SCRIPT ) || ! WebsiteBuilderAsset::readable( self::STYLE ) ) return;
 
 		$style_deps = array( 'cresco-canvas-website-builder-studio' );
 		if ( wp_style_is( 'cresco-canvas-website-builder-premium-polish', 'enqueued' ) ) {
@@ -56,6 +57,13 @@ final class StudioUxPro {
 			WebsiteBuilderAsset::url( self::SCRIPT ),
 			array( WebsiteBuilderStudio::HANDLE, 'wp-element', 'wp-api-fetch' ),
 			WebsiteBuilderAsset::version( self::SCRIPT ),
+			true
+		);
+		wp_enqueue_script(
+			self::HANDLE . '-guard',
+			WebsiteBuilderAsset::url( self::GUARD_SCRIPT ),
+			array( self::HANDLE ),
+			WebsiteBuilderAsset::version( self::GUARD_SCRIPT ),
 			true
 		);
 
