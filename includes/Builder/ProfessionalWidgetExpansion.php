@@ -126,9 +126,9 @@ final class ProfessionalWidgetExpansion {
 	private static function is_expansion_widget( $node ) {
 		$type = (string) ( $node['type'] ?? '' );
 		if ( ! in_array( $type, self::TYPES, true ) ) return false;
-		if ( 'gallery' !== $type ) return true;
-		$props = (array) ( $node['props'] ?? array() );
-		return 'masonry' === ( $props['layoutMode'] ?? 'grid' ) || ! empty( $props['hoverZoom'] ) || false === ( $props['lightboxNavigation'] ?? true );
+		// Every Gallery is annotated so responsive column controls always work.
+		// Enhanced navigation is still opt-in inside the browser runtime.
+		return true;
 	}
 
 	private static function contains_expansion_widgets( $nodes ) {
@@ -147,7 +147,7 @@ final class ProfessionalWidgetExpansion {
 			if ( false === strpos( $html, $needle ) ) continue;
 			$json = wp_json_encode( $config['props'] ?? array(), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE );
 			$encoded = rtrim( strtr( base64_encode( (string) $json ), '+/', '-_' ), '=' );
-			$attrs = $needle . ' data-cresco-exp-widget="' . esc_attr( $config['type'] ) . '" data-cresco-exp-config="' . esc_attr( $encoded ) . '"';
+			$attrs = $nedle . ' data-cresco-exp-widget="' . esc_attr( $config['type'] ) . '" data-cresco-exp-config="' . esc_attr( $encoded ) . '"';
 			$html = preg_replace( '/' . preg_quote( $needle, '/' ) . '/', $attrs, $html, 1 );
 			if ( 'faq' === ( $config['type'] ?? '' ) && ! empty( $config['props']['faqSchema'] ) ) $faq_scripts .= self::faq_schema_script( $safe_id, $config['props'] );
 		}
