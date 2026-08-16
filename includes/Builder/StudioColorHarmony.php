@@ -30,7 +30,7 @@ final class StudioColorHarmony {
 		if ( ! $context || ! WebsiteBuilderModuleRegistry::is_enabled( 'core', $context ) ) return;
 		if ( ! WebsiteBuilderAsset::readable( self::STYLE ) ) return;
 
-		$deps = array( WebsiteBuilderStudio::HANDLE );
+		$deps = array( 'cresco-canvas-website-builder-studio' );
 		if ( wp_style_is( StudioUxPro::HANDLE, 'enqueued' ) ) {
 			$deps[] = StudioUxPro::HANDLE;
 		}
