@@ -48,6 +48,7 @@ add_action(
 			return;
 		}
 		CrescoCanvas\Plugin::instance()->boot();
+		( new CrescoCanvas\AI\DesignIntelligenceRestApi() )->register();
 		( new CrescoCanvas\Builder\ProfessionalWidgets() )->register();
 		( new CrescoCanvas\Builder\ProfessionalWidgetExpansion() )->register();
 		( new CrescoCanvas\Builder\StudioDimensionControls() )->register();
