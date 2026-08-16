@@ -55,5 +55,6 @@ add_action(
 		( new CrescoCanvas\Builder\StudioDimensionControls() )->register();
 		( new CrescoCanvas\Builder\StudioStructureLayout() )->register();
 		( new CrescoCanvas\Builder\StudioUxPro() )->register();
+		( new CrescoCanvas\Builder\StudioColorHarmony() )->register();
 	}
 );
