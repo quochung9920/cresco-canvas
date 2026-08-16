@@ -26,10 +26,12 @@ final class DesignQualityGate {
 			'images' => 0,
 			'buttons' => 0,
 			'headings' => 0,
+			'interactiveWidgets' => 0,
 			'customCssWidgets' => 0,
 			'responsiveWidgets' => 0,
 		);
-		self::walk( $nodes, $items, $heading_levels, $stats );
+		$hygiene = array( 'rawColors' => array(), 'tokenColors' => array(), 'spacingValues' => array() );
+		self::walk( $nodes, $items, $heading_levels, $stats, $hygiene );
 
 		$previous = null;
 		foreach ( $heading_levels as $heading ) {
@@ -43,6 +45,25 @@ final class DesignQualityGate {
 				);
 			}
 			$previous = $level;
+		}
+
+		$stats['rawColorValues'] = count( $hygiene['rawColors'] );
+		$stats['tokenColorValues'] = count( $hygiene['tokenColors'] );
+		$stats['uniqueSpacingValues'] = count( $hygiene['spacingValues'] );
+
+		if ( $stats['nodes'] >= 12 && 0 === $stats['responsiveWidgets'] ) {
+			$items[] = self::item( 'responsive-overrides-none', 'info', '', 'No explicit responsive overrides are present in this scope. Fluid layouts may still be valid; review narrow breakpoints before delivery.' );
+		}
+		if ( $stats['rawColorValues'] >= 8 ) {
+			$items[] = self::item( 'raw-color-fragmentation', 'warning', '', 'This scope uses ' . $stats['rawColorValues'] . ' distinct literal color values. Consolidate recurring colors into design tokens where possible.' );
+		} elseif ( $stats['rawColorValues'] >= 5 && 0 === $stats['tokenColorValues'] ) {
+			$items[] = self::item( 'design-tokens-unused-for-colors', 'info', '', 'Several literal colors are used without semantic color tokens. Consider tokenizing the reusable palette.' );
+		}
+		if ( $stats['uniqueSpacingValues'] >= 12 ) {
+			$items[] = self::item( 'spacing-scale-fragmented', 'info', '', 'This scope uses many distinct spacing values. Review whether a smaller spacing scale would improve consistency.' );
+		}
+		if ( $stats['customCssWidgets'] >= 3 && $stats['nodes'] > 0 && ( $stats['customCssWidgets'] / $stats['nodes'] ) >= 0.15 ) {
+			$items[] = self::item( 'custom-css-overuse', 'warning', '', 'Custom CSS is used on a significant share of widgets. Prefer native controls, structured styles and shared tokens when they can express the same design.' );
 		}
 
 		$warnings = count( array_filter( $items, static function ( $item ) { return 'warning' === $item['severity']; } ) );
@@ -66,7 +87,7 @@ final class DesignQualityGate {
 		);
 	}
 
-	private static function walk( $nodes, &$items, &$heading_levels, &$stats ) {
+	private static function walk( $nodes, &$items, &$heading_levels, &$stats, &$hygiene ) {
 		foreach ( (array) $nodes as $node ) {
 			if ( ! is_array( $node ) ) continue;
 			$stats['nodes']++;
@@ -76,6 +97,11 @@ final class DesignQualityGate {
 
 			if ( ! empty( $node['customCSS'] ) ) $stats['customCssWidgets']++;
 			if ( ! empty( $node['responsive'] ) ) $stats['responsiveWidgets']++;
+			if ( in_array( $type, array( 'button', 'form', 'accordion', 'tabs', 'nested-tabs', 'nested-accordion', 'clickable-container', 'video-popup', 'mega-menu', 'filterable-grid' ), true ) ) $stats['interactiveWidgets']++;
+
+			self::inspect_style_bag( (array) ( $node['style'] ?? array() ), $hygiene );
+			foreach ( (array) ( $node['responsive'] ?? array() ) as $style ) self::inspect_style_bag( (array) $style, $hygiene );
+			foreach ( (array) ( $node['states'] ?? array() ) as $style ) self::inspect_style_bag( (array) $style, $hygiene );
 
 			if ( 'heading' === $type ) {
 				$stats['headings']++;
@@ -103,7 +129,22 @@ final class DesignQualityGate {
 				}
 			}
 
-			self::walk( (array) ( $node['children'] ?? array() ), $items, $heading_levels, $stats );
+			self::walk( (array) ( $node['children'] ?? array() ), $items, $heading_levels, $stats, $hygiene );
+		}
+	}
+
+	private static function inspect_style_bag( $style, &$hygiene ) {
+		foreach ( (array) $style as $key => $value ) {
+			if ( ! is_scalar( $value ) ) continue;
+			$value = trim( (string) $value );
+			if ( '' === $value ) continue;
+			if ( false !== stripos( (string) $key, 'color' ) ) {
+				if ( preg_match( '/^\{[a-zA-Z0-9._-]+\}$/', $value ) ) $hygiene['tokenColors'][ $value ] = true;
+				elseif ( preg_match( '/^(?:#[0-9a-f]{3,8}|rgba?\(|hsla?\()/i', $value ) ) $hygiene['rawColors'][ strtolower( $value ) ] = true;
+			}
+			if ( preg_match( '/^(?:margin|padding|gap|rowGap|columnGap)/i', (string) $key ) && preg_match( '/^-?[0-9.]+(?:px|rem|em|%|vw|vh|vmin|vmax|ch)$/i', $value ) ) {
+				$hygiene['spacingValues'][ strtolower( $value ) ] = true;
+			}
 		}
 	}
 
