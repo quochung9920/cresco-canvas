@@ -147,7 +147,7 @@ final class ProfessionalWidgetExpansion {
 			if ( false === strpos( $html, $needle ) ) continue;
 			$json = wp_json_encode( $config['props'] ?? array(), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE );
 			$encoded = rtrim( strtr( base64_encode( (string) $json ), '+/', '-_' ), '=' );
-			$attrs = $nedle . ' data-cresco-exp-widget="' . esc_attr( $config['type'] ) . '" data-cresco-exp-config="' . esc_attr( $encoded ) . '"';
+			$attrs = $needle . ' data-cresco-exp-widget="' . esc_attr( $config['type'] ) . '" data-cresco-exp-config="' . esc_attr( $encoded ) . '"';
 			$html = preg_replace( '/' . preg_quote( $needle, '/' ) . '/', $attrs, $html, 1 );
 			if ( 'faq' === ( $config['type'] ?? '' ) && ! empty( $config['props']['faqSchema'] ) ) $faq_scripts .= self::faq_schema_script( $safe_id, $config['props'] );
 		}
