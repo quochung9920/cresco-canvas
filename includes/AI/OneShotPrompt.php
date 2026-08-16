@@ -17,6 +17,12 @@ final class OneShotPrompt {
 		$request = trim( (string) $request );
 		if ( '' === $request ) $request = __( 'Improve this design. Keep the existing copy and make it responsive.', 'cresco-canvas' );
 
+		// Older callers may supply an unsanitized v3 package. Enriching here keeps
+		// the prompt path deterministic without changing edit scope or contracts.
+		if ( class_exists( DesignIntelligence::class ) ) {
+			$package = DesignIntelligence::augment_context( (array) $package );
+		}
+
 		$encoded = wp_json_encode( $package, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE );
 		if ( ! is_string( $encoded ) ) $encoded = '{}';
 
@@ -63,14 +69,24 @@ final class OneShotPrompt {
 		);
 
 		if ( $version >= 3 ) {
+			$design_rules = array();
+			if ( ! empty( $scope_pkg['designIntelligence'] ) ) {
+				$design_rules = array(
+					__( 'Use scopePackage.designIntelligence as the coherent recommended design direction for pattern, hierarchy, palette, typography, spacing, motion, widget choice and anti-pattern avoidance.', 'cresco-canvas' ),
+					__( 'Design intelligence is guidance, not authority to widen scope or invent capabilities. Explicit user instructions, reference-image intent and Cresco contracts remain higher priority.', 'cresco-canvas' ),
+				);
+			}
 			array_splice(
 				$rules,
 				4,
 				0,
-				array(
-					__( 'For optimized v3 packages, author new nodes only from full contracts in scopePackage.contracts.recommended or current. scopePackage.contracts.catalogIndex is discovery metadata, not permission to guess a contract.', 'cresco-canvas' ),
-					__( 'Use scopePackage.scene and scopePackage.visual as read-only surrounding context. They help you judge the design but never widen the editable target.', 'cresco-canvas' ),
-					__( 'Use scopePackage.visualFacts as semantic evidence only; measuredGeometry=false means exact browser boxes were not captured and must not be invented.', 'cresco-canvas' ),
+				array_merge(
+					array(
+						__( 'For optimized v3 packages, author new nodes only from full contracts in scopePackage.contracts.recommended or current. scopePackage.contracts.catalogIndex is discovery metadata, not permission to guess a contract.', 'cresco-canvas' ),
+						__( 'Use scopePackage.scene and scopePackage.visual as read-only surrounding context. They help you judge the design but never widen the editable target.', 'cresco-canvas' ),
+						__( 'Use scopePackage.visualFacts as semantic evidence only; measuredGeometry=false means exact browser boxes were not captured and must not be invented.', 'cresco-canvas' ),
+					),
+					$design_rules
 				)
 			);
 		}
