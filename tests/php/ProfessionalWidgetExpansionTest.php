@@ -35,6 +35,11 @@ final class ProfessionalWidgetExpansionTest extends TestCase {
 		}
 	}
 
+	public function test_icon_list_uses_a_sanitizer_safe_item_shape(): void {
+		$catalog = WidgetCatalog::all();
+		self::assertSame( 'string_list', $catalog['icon-list']['props']['items']['type'] );
+	}
+
 	public function test_transform_preserves_nested_children_and_reuses_core_primitives(): void {
 		$session = array(
 			'nodes' => array(

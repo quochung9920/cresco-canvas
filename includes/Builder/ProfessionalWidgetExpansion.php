@@ -196,5 +196,12 @@ final class ProfessionalWidgetExpansion {
 			WebsiteBuilderAsset::version( 'assets/js/professional-widget-expansion.js' ),
 			true
 		);
+		wp_enqueue_script(
+			'cresco-canvas-professional-widget-icon-list',
+			CRESCO_CANVAS_URL . 'assets/js/professional-widget-icon-list.js',
+			array( 'cresco-canvas-professional-widget-expansion' ),
+			WebsiteBuilderAsset::version( 'assets/js/professional-widget-icon-list.js' ),
+			true
+		);
 	}
 }
