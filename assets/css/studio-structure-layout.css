@@ -1,0 +1,47 @@
+/* Cresco Studio Structure layout hardening.
+ *
+ * Intentionally unlayered: WebsiteBuilderStudio installs a small unlayered
+ * ownership stylesheet, so Structure geometry that must win the cascade lives
+ * at the same level and is loaded afterwards.
+ */
+
+.cc-studio-tree-select {
+	display: flex;
+	align-items: center;
+	justify-content: flex-start;
+	gap: 8px;
+	min-width: 0;
+	overflow: hidden;
+}
+
+.cc-studio-tree-select > .dashicons:first-child {
+	position: static;
+	inset: auto;
+	flex: 0 0 24px;
+	width: 24px;
+	min-width: 24px;
+	max-width: 24px;
+	height: 24px;
+	margin: 0;
+	box-sizing: border-box;
+}
+
+.cc-studio-tree-label {
+	position: relative;
+	flex: 1 1 auto;
+	min-width: 0;
+	margin: 0;
+	padding: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.cc-studio-tree-select > .dashicons:not(:first-child) {
+	position: static;
+	flex: 0 0 15px;
+	width: 15px;
+	min-width: 15px;
+	height: 15px;
+	margin: 0;
+}
