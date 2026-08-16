@@ -198,6 +198,7 @@ final class WidgetCatalog {
 		);
 
 		$widgets = array_merge( $widgets, self::professional_widgets( $base, $layout_styles, $text_styles, $card_styles, $media_styles ) );
+		$widgets = ProfessionalWidgetCatalog::extend( $widgets );
 
 		$widgets['woo-products'] = self::widget( $base, 'Woo Products', 'woocommerce', 'products', false, array(
 			'limit'    => self::integer( 1, 24, 8, 'Products', array( 'group' => 'Query' ) ),
