@@ -54,5 +54,6 @@ add_action(
 		( new CrescoCanvas\Builder\ProfessionalWidgetExpansion() )->register();
 		( new CrescoCanvas\Builder\StudioDimensionControls() )->register();
 		( new CrescoCanvas\Builder\StudioStructureLayout() )->register();
+		( new CrescoCanvas\Builder\StudioUxPro() )->register();
 	}
 );
