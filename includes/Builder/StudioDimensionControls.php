@@ -12,9 +12,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 final class StudioDimensionControls {
-	const SCRIPT = 'build/studio-dimension-controls.js';
-	const STYLE  = 'assets/css/studio-dimension-controls.css';
-	const HANDLE = 'cresco-canvas-studio-dimension-controls';
+	const SCRIPT      = 'build/studio-dimension-controls.js';
+	const SYNC_SCRIPT = 'build/studio-dimension-controls-sync.js';
+	const STYLE       = 'assets/css/studio-dimension-controls.css';
+	const HANDLE      = 'cresco-canvas-studio-dimension-controls';
+	const SYNC_HANDLE = 'cresco-canvas-studio-dimension-controls-sync';
 
 	public function register() {
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue' ), 1420 );
@@ -38,6 +40,16 @@ final class StudioDimensionControls {
 			WebsiteBuilderAsset::version( self::SCRIPT ),
 			true
 		);
+
+		if ( WebsiteBuilderAsset::readable( self::SYNC_SCRIPT ) ) {
+			wp_enqueue_script(
+				self::SYNC_HANDLE,
+				WebsiteBuilderAsset::url( self::SYNC_SCRIPT ),
+				array( self::HANDLE ),
+				WebsiteBuilderAsset::version( self::SYNC_SCRIPT ),
+				true
+			);
+		}
 
 		if ( WebsiteBuilderAsset::readable( self::STYLE ) ) {
 			$style_dependencies = array();
