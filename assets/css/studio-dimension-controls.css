@@ -3,6 +3,9 @@
 .cc-studio-dimension-control>input,.cc-studio-dimension-control>select,.cc-studio-spacing-proxy,.cc-studio-dimension-unit,.cc-studio-dimension-breakpoint,.cc-studio-border-editor input,.cc-studio-border-editor select{box-sizing:border-box;min-width:0;height:34px;border:1px solid var(--cc-color-border,#d0d5dd);border-radius:7px;background:var(--cc-color-surface,#fff);color:var(--cc-color-text,#101828);font:inherit}
 .cc-studio-dimension-control>input,.cc-studio-spacing-proxy,.cc-studio-border-editor input{padding:6px 9px}
 .cc-studio-dimension-control>select,.cc-studio-dimension-unit,.cc-studio-dimension-breakpoint,.cc-studio-border-editor select{padding:5px 24px 5px 8px}
+.cc-studio-dimension-unit,.cc-studio-dimension-breakpoint,.cc-studio-border-editor select{-webkit-appearance:none;-moz-appearance:none;appearance:none;background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath fill='none' stroke='%23667085' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round' d='M1 1l4 4 4-4'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center;background-size:10px 6px;cursor:pointer}
+.cc-studio-dimension-unit:focus-visible,.cc-studio-dimension-breakpoint:focus-visible,.cc-studio-border-editor select:focus-visible{outline:2px solid var(--cc-color-accent,#635bff);outline-offset:1px}
+
 .cc-studio-dimension-control input:focus-visible,.cc-studio-dimension-control select:focus-visible,.cc-studio-spacing-proxy:focus-visible,.cc-studio-border-editor input:focus-visible,.cc-studio-border-editor select:focus-visible,.cc-studio-dimension-link:focus-visible{outline:2px solid var(--cc-color-primary,#5b5bd6);outline-offset:1px}
 .cc-studio-spacing{position:relative}
 .cc-studio-spacing-tools{display:flex;align-items:center;justify-content:flex-end;gap:6px;margin:6px 0 8px}
