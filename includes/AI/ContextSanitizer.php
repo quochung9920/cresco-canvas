@@ -12,13 +12,21 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 final class ContextSanitizer {
-	/** Remove secret-bearing keys recursively. */
+	/** Remove secret-bearing keys recursively, then enrich supported top-level contexts. */
 	public static function sanitize( $value ) {
+		$output = self::sanitize_recursive( $value );
+		if ( is_array( $output ) && class_exists( DesignIntelligence::class ) ) {
+			$output = DesignIntelligence::augment_context( $output );
+		}
+		return $output;
+	}
+
+	private static function sanitize_recursive( $value ) {
 		if ( ! is_array( $value ) ) return $value;
 		$output = array();
 		foreach ( $value as $key => $child ) {
 			if ( self::is_sensitive_key( $key ) ) continue;
-			$output[ $key ] = is_array( $child ) ? self::sanitize( $child ) : $child;
+			$output[ $key ] = is_array( $child ) ? self::sanitize_recursive( $child ) : $child;
 		}
 		return $output;
 	}
