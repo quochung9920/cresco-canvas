@@ -17,7 +17,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 final class PatchValidator {
 	const SCHEMA         = 'cresco-patch/v1';
 	const MAX_OPERATIONS = 200;
-	const OPERATIONS     = array( 'setProps', 'setStyle', 'setResponsive', 'setCustomCSS', 'insertNode', 'removeNode', 'moveNode', 'replaceSubtree' );
+	const OPERATIONS     = array( 'setProps', 'setStyle', 'setResponsive', 'setStates', 'setCustomCSS', 'insertNode', 'removeNode', 'moveNode', 'replaceSubtree' );
 
 	public static function validate( $current_session, $patch ) {
 		$current = WebsiteBuilderSessionSanitizer::sanitize_session( $current_session );
@@ -60,11 +60,10 @@ final class PatchValidator {
 		$scope = sanitize_key( (string) ( $target['scope'] ?? '' ) );
 		if ( ! in_array( $scope, ScopeResolver::SCOPES, true ) ) return self::error( 'cresco_ai_patch_target', 'Cresco Patch target has an unsupported scope.' );
 		if ( 'page' === $scope ) return array( 'scope' => 'page', 'nodeId' => null, 'type' => 'page' );
-		if ( 'selection' === $scope ) {
-			$ids = array_values( array_unique( array_filter( array_map( 'strval', (array) ( $target['nodeIds'] ?? array() ) ) ) ) );
-			if ( ! $ids ) return self::error( 'cresco_ai_patch_target', 'Selection patch target requires nodeIds.' );
-			foreach ( $ids as $id ) if ( ! ScopeResolver::find_node( $session['nodes'] ?? array(), $id ) ) return self::target_not_found( $id );
-			return array( 'scope' => 'selection', 'nodeIds' => $ids, 'type' => 'selection' );
+		if ( in_array( $scope, array( 'selection', 'selection-subtrees' ), true ) ) {
+			$resolved = ScopeResolver::resolve( $session, $scope, array( 'nodeIds' => (array) ( $target['nodeIds'] ?? array() ) ) );
+			if ( is_wp_error( $resolved ) ) return $resolved;
+			return (array) $resolved['target'];
 		}
 		$node_id = (string) ( $target['nodeId'] ?? '' );
 		$node    = ScopeResolver::find_node( $session['nodes'] ?? array(), $node_id );
@@ -80,6 +79,7 @@ final class PatchValidator {
 			'setProps'       => array( 'op', 'nodeId', 'props' ),
 			'setStyle'       => array( 'op', 'nodeId', 'style' ),
 			'setResponsive'  => array( 'op', 'nodeId', 'responsive' ),
+			'setStates'      => array( 'op', 'nodeId', 'states' ),
 			'setCustomCSS'   => array( 'op', 'nodeId', 'customCSS' ),
 			'insertNode'     => array( 'op', 'parentId', 'index', 'node' ),
 			'removeNode'     => array( 'op', 'nodeId' ),
@@ -89,9 +89,9 @@ final class PatchValidator {
 		foreach ( array_keys( $operation ) as $field ) if ( ! in_array( $field, $allowed_fields[ $op ], true ) ) return self::operation_error( 'Cresco Patch operation contains an unsupported field.', $index, array( 'field' => $field ) );
 
 		$scope = $target['scope'];
-		if ( 'widget' === $scope && ! in_array( $op, array( 'setProps', 'setStyle', 'setResponsive', 'setCustomCSS' ), true ) ) return self::escape_error( $index, 'Widget scope may change only that widget’s props, style, responsive style, and scoped Custom CSS.' );
+		if ( 'widget' === $scope && ! in_array( $op, array( 'setProps', 'setStyle', 'setResponsive', 'setStates', 'setCustomCSS' ), true ) ) return self::escape_error( $index, 'Widget scope may change only that widget’s props, style, responsive style, states, and scoped Custom CSS.' );
 
-		if ( in_array( $op, array( 'setProps', 'setStyle', 'setResponsive', 'setCustomCSS', 'removeNode', 'moveNode', 'replaceSubtree' ), true ) ) {
+		if ( in_array( $op, array( 'setProps', 'setStyle', 'setResponsive', 'setStates', 'setCustomCSS', 'removeNode', 'moveNode', 'replaceSubtree' ), true ) ) {
 			$node_id = (string) ( $operation['nodeId'] ?? '' );
 			$node    = ScopeResolver::find_node( $session['nodes'] ?? array(), $node_id );
 			if ( ! $node ) return self::target_not_found( $node_id, $index );
@@ -124,6 +124,11 @@ final class PatchValidator {
 		if ( 'setResponsive' === $op ) {
 			$node  = ScopeResolver::find_node( $session['nodes'] ?? array(), (string) $operation['nodeId'] );
 			$valid = ContractRegistry::validate_responsive_map( (string) $node['type'], $operation['responsive'] ?? null, 'operations.' . $index . '.responsive' );
+			if ( is_wp_error( $valid ) ) return $valid;
+		}
+		if ( 'setStates' === $op ) {
+			$node  = ScopeResolver::find_node( $session['nodes'] ?? array(), (string) $operation['nodeId'] );
+			$valid = ContractRegistry::validate_states_map( (string) $node['type'], $operation['states'] ?? null, 'operations.' . $index . '.states' );
 			if ( is_wp_error( $valid ) ) return $valid;
 		}
 		if ( 'setCustomCSS' === $op ) {
@@ -166,6 +171,12 @@ final class PatchValidator {
 		if ( 'page' === $scope ) return true;
 		if ( 'widget' === $scope ) return (string) $target['nodeId'] === (string) $node_id;
 		if ( 'selection' === $scope ) return in_array( (string) $node_id, (array) $target['nodeIds'], true );
+		if ( 'selection-subtrees' === $scope ) {
+			foreach ( (array) ( $target['nodeIds'] ?? array() ) as $root_id ) {
+				if ( ScopeResolver::is_descendant_or_self( $session['nodes'] ?? array(), (string) $root_id, (string) $node_id ) ) return true;
+			}
+			return false;
+		}
 		return ScopeResolver::is_descendant_or_self( $session['nodes'] ?? array(), (string) $target['nodeId'], (string) $node_id );
 	}
 
