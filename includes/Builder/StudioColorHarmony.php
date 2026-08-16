@@ -19,11 +19,11 @@ if ( ! defined( 'ABSPATH' ) ) {
  * interaction behavior.
  */
 final class StudioColorHarmony {
-	const HANDLE             = 'cresco-canvas-studio-color-harmony';
-	const STYLE              = 'assets/css/studio-color-harmony.css';
-	const LIGHT_HANDLE       = 'cresco-canvas-studio-light-first';
-	const LIGHT_STYLE        = 'assets/css/studio-light-first.css';
-	const LIGHT_SCRIPT       = 'build/studio-light-first.js';
+	const HANDLE              = 'cresco-canvas-studio-color-harmony';
+	const STYLE               = 'assets/css/studio-color-harmony.css';
+	const LIGHT_HANDLE        = 'cresco-canvas-studio-light-first';
+	const LIGHT_STYLE         = 'assets/css/studio-light-safe.css';
+	const LIGHT_SCRIPT        = 'build/studio-light-first.js';
 	const LIGHT_SCRIPT_HANDLE = 'cresco-canvas-studio-light-first-runtime';
 
 	public function register() {
