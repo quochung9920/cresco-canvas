@@ -49,5 +49,6 @@ add_action(
 		}
 		CrescoCanvas\Plugin::instance()->boot();
 		( new CrescoCanvas\Builder\ProfessionalWidgets() )->register();
+		( new CrescoCanvas\Builder\StudioDimensionControls() )->register();
 	}
 );
