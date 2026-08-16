@@ -19,7 +19,7 @@ final class DesignIntelligence {
 	public static function recommend( $request, $options = array() ) {
 		$request = trim( wp_strip_all_tags( (string) $request ) );
 		$options = is_array( $options ) ? $options : array();
-		$normalized = self::normalize( $request );
+		$normalized = self::expand_language_aliases( self::normalize( $request ) );
 
 		$industry_match = self::best_match( $normalized, DesignIntelligenceCatalog::industries(), 'general' );
 		$industry_id = $industry_match['id'];
@@ -132,9 +132,32 @@ final class DesignIntelligence {
 		return $package;
 	}
 
+	private static function expand_language_aliases( $text ) {
+		$aliases = array(
+			'chống thấm' => ' damp waterproofing home service', 'ẩm mốc' => ' mould home service', 'điện nước' => ' plumbing electrician home service',
+			'phần mềm' => ' software saas', 'ứng dụng' => ' app software', 'nền tảng' => ' platform software', 'bảng điều khiển' => ' dashboard',
+			'thương mại điện tử' => ' ecommerce online store', 'cửa hàng trực tuyến' => ' online store ecommerce', 'mua sắm' => ' shop commerce',
+			'phòng khám' => ' clinic healthcare', 'y tế' => ' healthcare', 'bác sĩ' => ' doctor healthcare', 'nha khoa' => ' dental healthcare',
+			'tài chính' => ' finance', 'ngân hàng' => ' banking finance', 'bảo hiểm' => ' insurance finance', 'đầu tư' => ' investment finance',
+			'luật sư' => ' lawyer legal', 'pháp lý' => ' legal', 'tư vấn' => ' consultation consulting',
+			'khách sạn' => ' hotel hospitality', 'du lịch' => ' travel hospitality', 'nhà hàng' => ' restaurant', 'ẩm thực' => ' food restaurant',
+			'bất động sản' => ' real estate property', 'nhà đất' => ' real estate property', 'giáo dục' => ' education', 'khóa học' => ' course education', 'đào tạo' => ' training education',
+			'thiết kế' => ' design creative', 'sáng tạo' => ' creative', 'nhiếp ảnh' => ' photography creative', 'làm đẹp' => ' beauty wellness', 'thẩm mỹ' => ' beauty wellness',
+			'từ thiện' => ' charity nonprofit', 'quyên góp' => ' donate fundraising', 'ủng hộ' => ' donate support',
+			'báo giá' => ' quote lead', 'liên hệ' => ' contact lead', 'đăng ký' => ' signup', 'dùng thử' => ' free trial', 'đặt lịch' => ' booking appointment', 'đặt chỗ' => ' booking reservation',
+			'mua hàng' => ' buy commerce', 'giỏ hàng' => ' cart commerce', 'thanh toán' => ' checkout commerce', 'uy tín' => ' trust authority', 'chuyên gia' => ' expert authority',
+			'tuyển sinh' => ' enrollment admission', 'hồ sơ năng lực' => ' portfolio', 'gây quỹ' => ' fundraising', 'tin tức' => ' news content', 'bài viết' => ' articles content',
+			'tối giản' => ' minimal', 'đơn giản' => ' simple', 'táo bạo' => ' bold', 'phá cách' => ' experimental', 'thoáng' => ' spacious', 'cao cấp' => ' luxury premium',
+			'dày đặc' => ' dense', 'nhiều dữ liệu' => ' data heavy dashboard', 'hoạt ảnh' => ' animated', 'sinh động' => ' dynamic', 'chuyển động nhẹ' => ' subtle motion',
+			'chế độ tối' => ' dark mode', 'giao diện tối' => ' dark theme',
+		);
+		foreach ( $aliases as $source => $expansion ) if ( false !== strpos( $text, $source ) ) $text .= $expansion;
+		return $text;
+	}
+
 	private static function normalize( $value ) {
-		$value = strtolower( (string) $value );
-		$value = preg_replace( '/[^a-z0-9\x{00C0}-\x{024F}]+/u', ' ', $value );
+		$value = function_exists( 'mb_strtolower' ) ? mb_strtolower( (string) $value, 'UTF-8' ) : strtolower( (string) $value );
+		$value = preg_replace( '/[^\p{L}\p{N}]+/u', ' ', $value );
 		return trim( preg_replace( '/\s+/', ' ', (string) $value ) );
 	}
 
@@ -167,16 +190,16 @@ final class DesignIntelligence {
 		if ( isset( $options[ $name ] ) && is_numeric( $options[ $name ] ) ) return self::clamp( (int) $options[ $name ] );
 		$rules = array(
 			'variance' => array(
-				'low' => array( 'minimal', 'simple', 'conservative', 'classic', 'clean', 'restrained' ),
-				'high' => array( 'bold', 'experimental', 'creative', 'asymmetric', 'expressive', 'brutalist' ),
+				'low' => array( 'minimal', 'simple', 'conservative', 'classic', 'clean', 'restrained', 'tối giản', 'đơn giản', 'gọn gàng' ),
+				'high' => array( 'bold', 'experimental', 'creative', 'asymmetric', 'expressive', 'brutalist', 'táo bạo', 'sáng tạo', 'phá cách' ),
 			),
 			'density' => array(
-				'low' => array( 'spacious', 'airy', 'luxury', 'premium', 'calm' ),
-				'high' => array( 'dense', 'compact', 'dashboard', 'data heavy', 'information rich' ),
+				'low' => array( 'spacious', 'airy', 'luxury', 'premium', 'calm', 'thoáng', 'cao cấp', 'sang trọng' ),
+				'high' => array( 'dense', 'compact', 'dashboard', 'data heavy', 'information rich', 'dày đặc', 'gọn', 'nhiều dữ liệu' ),
 			),
 			'motion' => array(
-				'low' => array( 'static', 'subtle motion', 'reduced motion', 'calm', 'restrained' ),
-				'high' => array( 'animated', 'dynamic', 'interactive motion', 'expressive motion', 'cinematic' ),
+				'low' => array( 'static', 'subtle motion', 'reduced motion', 'calm', 'restrained', 'tĩnh', 'chuyển động nhẹ', 'nhẹ nhàng' ),
+				'high' => array( 'animated', 'dynamic', 'interactive motion', 'expressive motion', 'cinematic', 'hoạt ảnh', 'chuyển động', 'sinh động' ),
 			),
 		);
 		$value = $fallback;
@@ -189,7 +212,7 @@ final class DesignIntelligence {
 
 	private static function mode( $text, $options ) {
 		if ( isset( $options['mode'] ) && in_array( $options['mode'], array( 'light', 'dark' ), true ) ) return $options['mode'];
-		foreach ( array( 'dark mode', 'dark theme', 'night mode', 'dark ui', 'oled' ) as $signal ) if ( false !== strpos( $text, $signal ) ) return 'dark';
+		foreach ( array( 'dark mode', 'dark theme', 'night mode', 'dark ui', 'oled', 'chế độ tối', 'giao diện tối' ) as $signal ) if ( false !== strpos( $text, $signal ) ) return 'dark';
 		return 'light';
 	}
 
