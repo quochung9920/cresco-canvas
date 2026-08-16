@@ -1,0 +1,349 @@
+/**
+ * Cresco Studio color harmony.
+ *
+ * A color-only refinement layer. It deliberately avoids changing document
+ * canvas content, layout dimensions, widget contracts, or interaction logic.
+ */
+@layer cresco.overrides {
+	/* Refined dark palette: charcoal/navy surfaces, quiet lines, indigo focus. */
+	html[data-cc-theme="dark"] #cresco-canvas-standalone-editor .cc-studio-app {
+		--cc-color-canvas: #0b1220;
+		--cc-color-surface: #111a29;
+		--cc-color-surface-raised: #172235;
+		--cc-color-surface-sunken: #0e1725;
+		--cc-color-surface-hover: #1d2a3c;
+		--cc-color-border: #26364a;
+		--cc-color-border-strong: #3a4d65;
+		--cc-color-text: #f3f6fb;
+		--cc-color-text-subtle: #c9d4e2;
+		--cc-color-text-muted: #8fa1b6;
+		--cc-color-accent: #7c83ff;
+		--cc-color-accent-hover: #9298ff;
+		--cc-color-accent-soft: #aab0ff;
+		--cc-color-accent-wash: rgba(124, 131, 255, 0.12);
+		--cc-color-danger: #ff7b7b;
+		--cc-color-success: #4fd1a5;
+		--cc-color-warning: #f4b85a;
+		--cc-bg: var(--cc-color-canvas);
+		--cc-panel: var(--cc-color-surface);
+		--cc-panel-2: var(--cc-color-surface-raised);
+		--cc-panel-3: var(--cc-color-surface-sunken);
+		--cc-line: var(--cc-color-border);
+		--cc-text: var(--cc-color-text);
+		--cc-muted: var(--cc-color-text-muted);
+		--cc-accent: var(--cc-color-accent);
+		--cc-accent-2: var(--cc-color-accent-soft);
+		--cc-danger: var(--cc-color-danger);
+		--cc-success: var(--cc-color-success);
+		--cc-warning: var(--cc-color-warning);
+		--cc-shadow-subtle: 0 1px 2px rgba(0, 0, 0, 0.18);
+		--cc-shadow-panel: 0 18px 48px rgba(2, 8, 23, 0.32);
+		--cc-shadow-popover: 0 16px 38px rgba(2, 8, 23, 0.42);
+	}
+
+	/* Refined light palette: cool neutral surfaces with the same accent family. */
+	html[data-cc-theme="light"] #cresco-canvas-standalone-editor .cc-studio-app {
+		--cc-color-canvas: #eaf0f6;
+		--cc-color-surface: #f8fafc;
+		--cc-color-surface-raised: #ffffff;
+		--cc-color-surface-sunken: #edf2f7;
+		--cc-color-surface-hover: #f1f5f9;
+		--cc-color-border: #d5dee8;
+		--cc-color-border-strong: #b8c6d5;
+		--cc-color-text: #172033;
+		--cc-color-text-subtle: #405169;
+		--cc-color-text-muted: #718197;
+		--cc-color-accent: #5d63e9;
+		--cc-color-accent-hover: #4f55d7;
+		--cc-color-accent-soft: #7d83f2;
+		--cc-color-accent-wash: rgba(93, 99, 233, 0.09);
+		--cc-color-danger: #d14343;
+		--cc-color-success: #198a68;
+		--cc-color-warning: #b66b14;
+		--cc-bg: var(--cc-color-canvas);
+		--cc-panel: var(--cc-color-surface);
+		--cc-panel-2: var(--cc-color-surface-raised);
+		--cc-panel-3: var(--cc-color-surface-sunken);
+		--cc-line: var(--cc-color-border);
+		--cc-text: var(--cc-color-text);
+		--cc-muted: var(--cc-color-text-muted);
+		--cc-accent: var(--cc-color-accent);
+		--cc-accent-2: var(--cc-color-accent-soft);
+		--cc-danger: var(--cc-color-danger);
+		--cc-success: var(--cc-color-success);
+		--cc-warning: var(--cc-color-warning);
+		--cc-shadow-subtle: 0 1px 2px rgba(16, 24, 40, 0.05);
+		--cc-shadow-panel: 0 18px 48px rgba(16, 24, 40, 0.12);
+		--cc-shadow-popover: 0 14px 34px rgba(16, 24, 40, 0.16);
+	}
+
+	/* The editor chrome should feel related, not like four different blacks. */
+	html[data-cc-theme="dark"] body.admin_page_cresco-canvas-editor,
+	html[data-cc-theme="dark"] body.toplevel_page_cresco-canvas-editor {
+		background: #0b1220 !important;
+	}
+	html[data-cc-theme="light"] body.admin_page_cresco-canvas-editor,
+	html[data-cc-theme="light"] body.toplevel_page_cresco-canvas-editor {
+		background: #eaf0f6 !important;
+	}
+
+	.cc-studio-topbar,
+	.cc-studio-left,
+	.cc-studio-structure,
+	.cc-studio-viewport-toolbar,
+	.cc-studio-context-row,
+	.cc-studio-panel {
+		border-color: var(--cc-color-border);
+	}
+
+	html[data-cc-theme="dark"] #cresco-canvas-standalone-editor .cc-studio-topbar {
+		background: rgba(15, 24, 38, 0.96);
+		box-shadow: 0 1px 0 rgba(255, 255, 255, 0.02), 0 10px 30px rgba(2, 8, 23, 0.12);
+	}
+	html[data-cc-theme="light"] #cresco-canvas-standalone-editor .cc-studio-topbar {
+		background: rgba(248, 250, 252, 0.96);
+		box-shadow: 0 1px 0 rgba(15, 23, 42, 0.04), 0 8px 24px rgba(15, 23, 42, 0.05);
+	}
+
+	.cc-studio-left,
+	.cc-studio-structure {
+		background: var(--cc-color-surface);
+	}
+
+	html[data-cc-theme="dark"] #cresco-canvas-standalone-editor .cc-studio-rail {
+		background: #0e1623;
+		border-color: #223247;
+	}
+	html[data-cc-theme="light"] #cresco-canvas-standalone-editor .cc-studio-rail {
+		background: #f3f6fa;
+		border-color: #d5dee8;
+	}
+
+	/* Active rail state: colored signal instead of a bright white tile. */
+	#cresco-canvas-standalone-editor .cc-studio-rail button {
+		color: var(--cc-color-text-muted);
+	}
+	#cresco-canvas-standalone-editor .cc-studio-rail button:hover {
+		background: var(--cc-color-surface-hover);
+		color: var(--cc-color-text);
+	}
+	#cresco-canvas-standalone-editor .cc-studio-rail button.is-active {
+		background: var(--cc-color-accent-wash);
+		border-color: color-mix(in srgb, var(--cc-color-accent) 42%, transparent);
+		color: var(--cc-color-accent-soft);
+		box-shadow: inset 2px 0 0 var(--cc-color-accent);
+	}
+	#cresco-canvas-standalone-editor .cc-studio-rail button.is-active small {
+		color: var(--cc-color-text-subtle);
+	}
+
+	/* Inputs and search fields use a quiet raised surface instead of near-black. */
+	#cresco-canvas-standalone-editor .cc-studio-app input,
+	#cresco-canvas-standalone-editor .cc-studio-app select,
+	#cresco-canvas-standalone-editor .cc-studio-app textarea,
+	#cresco-canvas-standalone-editor .cc-studio-search {
+		background: var(--cc-color-surface-raised);
+		border-color: var(--cc-color-border);
+		color: var(--cc-color-text);
+		box-shadow: none;
+	}
+	#cresco-canvas-standalone-editor .cc-studio-search:focus-within,
+	#cresco-canvas-standalone-editor .cc-studio-app input:focus,
+	#cresco-canvas-standalone-editor .cc-studio-app select:focus,
+	#cresco-canvas-standalone-editor .cc-studio-app textarea:focus {
+		border-color: var(--cc-color-accent);
+		box-shadow: 0 0 0 3px var(--cc-color-accent-wash);
+	}
+
+	/* Buttons: one restrained hierarchy for neutral, active and primary actions. */
+	#cresco-canvas-standalone-editor .cc-studio-app button,
+	#cresco-canvas-standalone-editor .cc-studio-button {
+		background: var(--cc-color-surface-raised);
+		border-color: var(--cc-color-border);
+		color: var(--cc-color-text-subtle);
+	}
+	#cresco-canvas-standalone-editor .cc-studio-app button:hover,
+	#cresco-canvas-standalone-editor .cc-studio-button:hover {
+		background: var(--cc-color-surface-hover);
+		border-color: var(--cc-color-border-strong);
+		color: var(--cc-color-text);
+	}
+	#cresco-canvas-standalone-editor .cc-studio-app button.is-primary,
+	#cresco-canvas-standalone-editor .cc-studio-save.is-dirty {
+		background: var(--cc-color-accent);
+		border-color: var(--cc-color-accent);
+		color: #ffffff;
+		box-shadow: 0 5px 16px color-mix(in srgb, var(--cc-color-accent) 22%, transparent);
+	}
+	#cresco-canvas-standalone-editor .cc-studio-app button.is-primary:hover,
+	#cresco-canvas-standalone-editor .cc-studio-save.is-dirty:hover {
+		background: var(--cc-color-accent-hover);
+		border-color: var(--cc-color-accent-hover);
+		color: #ffffff;
+	}
+
+	/* Tabs, pills and responsive/device state indicators share the same accent. */
+	#cresco-canvas-standalone-editor .cc-studio-device-tabs .is-active,
+	#cresco-canvas-standalone-editor .cc-studio-state-tabs .is-active,
+	#cresco-canvas-standalone-editor .cc-studio-property-device.is-active,
+	#cresco-canvas-standalone-editor .cc-studio-inspector-tabs button.is-active,
+	#cresco-canvas-standalone-editor .cc-studio-ux-filter.is-active,
+	#cresco-canvas-standalone-editor .cc-studio-ux-segment.is-active {
+		background: var(--cc-color-accent-wash);
+		border-color: color-mix(in srgb, var(--cc-color-accent) 55%, var(--cc-color-border));
+		color: var(--cc-color-accent-soft);
+	}
+
+	/* Widget cards should read as tools, not isolated black tiles. */
+	#cresco-canvas-standalone-editor .cc-studio-widget-grid button,
+	#cresco-canvas-standalone-editor .cc-studio-card,
+	#cresco-canvas-standalone-editor .cc-studio-ux-card {
+		background: var(--cc-color-surface-raised);
+		border-color: var(--cc-color-border);
+		box-shadow: var(--cc-shadow-subtle);
+	}
+	#cresco-canvas-standalone-editor .cc-studio-widget-grid button:hover,
+	#cresco-canvas-standalone-editor .cc-studio-card:hover,
+	#cresco-canvas-standalone-editor .cc-studio-ux-card:hover {
+		background: var(--cc-color-surface-hover);
+		border-color: var(--cc-color-border-strong);
+	}
+	#cresco-canvas-standalone-editor .cc-studio-widget-grid button .dashicons,
+	#cresco-canvas-standalone-editor .cc-studio-ux-kicker,
+	#cresco-canvas-standalone-editor .cc-studio-mark + * .dashicons {
+		color: var(--cc-color-accent-soft);
+	}
+
+	/* Structure tree: calm rows with a clear but not luminous selection. */
+	#cresco-canvas-standalone-editor .cc-studio-structure > header {
+		background: var(--cc-color-surface);
+		border-color: var(--cc-color-border);
+	}
+	#cresco-canvas-standalone-editor .cc-studio-tree-row:hover {
+		background: var(--cc-color-surface-hover);
+	}
+	#cresco-canvas-standalone-editor .cc-studio-tree-row.is-selected {
+		background: var(--cc-color-accent-wash);
+		border-color: color-mix(in srgb, var(--cc-color-accent) 34%, transparent);
+	}
+	#cresco-canvas-standalone-editor .cc-studio-tree-row.is-selected .cc-studio-tree-label {
+		color: var(--cc-color-text);
+	}
+
+	/* Canvas chrome: darker than panels, but no longer visually disconnected. */
+	html[data-cc-theme="dark"] #cresco-canvas-standalone-editor .cc-studio-center {
+		background: #09111d;
+	}
+	html[data-cc-theme="light"] #cresco-canvas-standalone-editor .cc-studio-center {
+		background: #dfe7f0;
+	}
+	html[data-cc-theme="dark"] #cresco-canvas-standalone-editor .cc-studio-stage {
+		background-color: #09111d;
+		background-image:
+			radial-gradient(circle at 50% 0%, rgba(124, 131, 255, 0.055), transparent 38%),
+			linear-gradient(rgba(148, 163, 184, 0.035) 1px, transparent 1px),
+			linear-gradient(90deg, rgba(148, 163, 184, 0.035) 1px, transparent 1px);
+		background-size: auto, 22px 22px, 22px 22px;
+	}
+	html[data-cc-theme="light"] #cresco-canvas-standalone-editor .cc-studio-stage {
+		background-color: #dfe7f0;
+		background-image:
+			radial-gradient(circle at 50% 0%, rgba(93, 99, 233, 0.055), transparent 38%),
+			linear-gradient(rgba(71, 85, 105, 0.045) 1px, transparent 1px),
+			linear-gradient(90deg, rgba(71, 85, 105, 0.045) 1px, transparent 1px);
+		background-size: auto, 22px 22px, 22px 22px;
+	}
+	#cresco-canvas-standalone-editor .cc-studio-frame {
+		border: 1px solid color-mix(in srgb, var(--cc-color-border-strong) 70%, transparent);
+		box-shadow: 0 28px 74px rgba(2, 8, 23, 0.30);
+	}
+	#cresco-canvas-standalone-editor .cc-studio-canvas-node:hover {
+		outline-color: color-mix(in srgb, var(--cc-color-accent) 46%, transparent);
+	}
+	#cresco-canvas-standalone-editor .cc-studio-canvas-node.is-selected {
+		outline-color: var(--cc-color-accent);
+	}
+	#cresco-canvas-standalone-editor .cc-studio-canvas-toolbar {
+		background: var(--cc-color-surface-raised);
+		border: 1px solid var(--cc-color-border);
+		box-shadow: var(--cc-shadow-popover);
+	}
+
+	/* Inspector and utility surfaces use one tonal scale. */
+	#cresco-canvas-standalone-editor .cc-studio-spacing,
+	#cresco-canvas-standalone-editor .cc-studio-extension-section,
+	#cresco-canvas-standalone-editor .cc-studio-responsive-layout-note,
+	#cresco-canvas-standalone-editor .cc-studio-ux-summary,
+	#cresco-canvas-standalone-editor .cc-studio-ux-diagnostic {
+		background: var(--cc-color-surface-sunken);
+		border-color: var(--cc-color-border);
+	}
+	#cresco-canvas-standalone-editor .cc-studio-responsive-layout-note {
+		background: var(--cc-color-accent-wash);
+		border-color: color-mix(in srgb, var(--cc-color-accent) 32%, var(--cc-color-border));
+	}
+
+	/* Quiet typography hierarchy. */
+	#cresco-canvas-standalone-editor .cc-studio-panel-head strong,
+	#cresco-canvas-standalone-editor .cc-studio-structure > header strong,
+	#cresco-canvas-standalone-editor .cc-studio-ux-card strong {
+		color: var(--cc-color-text);
+	}
+	#cresco-canvas-standalone-editor .cc-studio-panel-head small,
+	#cresco-canvas-standalone-editor .cc-studio-help,
+	#cresco-canvas-standalone-editor .cc-studio-field__label,
+	#cresco-canvas-standalone-editor .cc-studio-style-field__label,
+	#cresco-canvas-standalone-editor .cc-studio-widget-grid button small,
+	#cresco-canvas-standalone-editor .cc-studio-width,
+	#cresco-canvas-standalone-editor .cc-studio-state-label {
+		color: var(--cc-color-text-muted);
+	}
+	#cresco-canvas-standalone-editor .cc-studio-widget-group h3,
+	#cresco-canvas-standalone-editor .cc-studio-settings-section h3,
+	#cresco-canvas-standalone-editor .cc-studio-custom-css h3,
+	#cresco-canvas-standalone-editor .cc-studio-extension-section h3 {
+		color: var(--cc-color-text-subtle);
+	}
+
+	/* Keyboard focus is visible without becoming a neon outline. */
+	#cresco-canvas-standalone-editor .cc-studio-app button:focus-visible,
+	#cresco-canvas-standalone-editor .cc-studio-app a:focus-visible,
+	#cresco-canvas-standalone-editor .cc-studio-app input:focus-visible,
+	#cresco-canvas-standalone-editor .cc-studio-app select:focus-visible,
+	#cresco-canvas-standalone-editor .cc-studio-app textarea:focus-visible {
+		outline: 2px solid var(--cc-color-accent-soft);
+		outline-offset: 2px;
+	}
+
+	/* Scrollbars fade into the chrome instead of creating bright vertical bars. */
+	#cresco-canvas-standalone-editor .cc-studio-left,
+	#cresco-canvas-standalone-editor .cc-studio-structure,
+	#cresco-canvas-standalone-editor .cc-studio-rail,
+	#cresco-canvas-standalone-editor .cc-studio-stage {
+		scrollbar-color: var(--cc-color-border-strong) transparent;
+		scrollbar-width: thin;
+	}
+	#cresco-canvas-standalone-editor .cc-studio-left::-webkit-scrollbar,
+	#cresco-canvas-standalone-editor .cc-studio-structure::-webkit-scrollbar,
+	#cresco-canvas-standalone-editor .cc-studio-rail::-webkit-scrollbar,
+	#cresco-canvas-standalone-editor .cc-studio-stage::-webkit-scrollbar {
+		width: 8px;
+		height: 8px;
+	}
+	#cresco-canvas-standalone-editor .cc-studio-left::-webkit-scrollbar-thumb,
+	#cresco-canvas-standalone-editor .cc-studio-structure::-webkit-scrollbar-thumb,
+	#cresco-canvas-standalone-editor .cc-studio-rail::-webkit-scrollbar-thumb,
+	#cresco-canvas-standalone-editor .cc-studio-stage::-webkit-scrollbar-thumb {
+		background: var(--cc-color-border-strong);
+		border: 2px solid transparent;
+		border-radius: 999px;
+		background-clip: padding-box;
+	}
+
+	/* Respect users who reduce transparency. */
+	@media (prefers-reduced-transparency: reduce) {
+		#cresco-canvas-standalone-editor .cc-studio-topbar {
+			backdrop-filter: none;
+		}
+	}
+}
