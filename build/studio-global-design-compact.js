@@ -21,6 +21,7 @@ function compactTypography(host){
   input.remove();
   input.classList.add('cc-gd-compact-input');
   input.setAttribute('aria-label',label+' global size');
+  input.setAttribute('title',input.value||'');
   var row=document.createElement('label');
   row.className='cc-gd-control-row cc-gd-control-row--type';
   var copy=document.createElement('span');
@@ -36,10 +37,24 @@ function compactTypography(host){
   article.dataset.gdCompact='1';
  });
 }
+function compactColorActions(host){
+ host.querySelectorAll('.cc-gd-color-card').forEach(function(card){
+  var actions=card.querySelector('.cc-gdw-color-actions'),countNode=card.querySelector(':scope > div:first-child > b');
+  if(!actions)return;
+  var button=actions.querySelector('button');
+  if(!button)return;
+  var count=parseInt(text(countNode),10)||0;
+  button.textContent=count+' use'+(count===1?'':'s');
+  button.setAttribute('aria-label',count?'View '+count+' usages':'No usages in this document');
+  button.title=count?'View usage':'No usages in this document';
+  button.disabled=count===0;
+ });
+}
 function compactShell(host){
  host.classList.add('cc-gd-compact-controls');
  compactOverview(host);
  compactTypography(host);
+ compactColorActions(host);
 }
 function sync(){
  scheduled=false;
@@ -52,5 +67,5 @@ var observer=new MutationObserver(schedule);
 observer.observe(root,{childList:true,subtree:true});
 window.addEventListener('cresco:studio-ready',schedule);
 schedule();
-window.CrescoGlobalDesignCompactUI={version:'1.0.0',sync:sync};
+window.CrescoGlobalDesignCompactUI={version:'1.1.0',sync:sync};
 })(window,document);
