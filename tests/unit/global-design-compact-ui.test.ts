@@ -35,6 +35,28 @@ describe( 'compact Global Design UI', () => {
 		expect( CSS ).toContain( 'display:none' );
 	} );
 
+	it( 'keeps the tab strip compact instead of stretching into unused vertical space', () => {
+		expect( CSS ).toContain( 'grid-template-rows:auto minmax(0,1fr) auto' );
+		expect( CSS ).toContain( 'grid-template-columns:repeat(5,minmax(0,1fr))' );
+		expect( CSS ).toContain( 'height:34px;min-height:34px' );
+		expect( CSS ).toContain( 'height:28px!important;min-height:28px!important' );
+	} );
+
+	it( 'normalizes field padding, footer width, and avoids horizontal panel overflow', () => {
+		expect( CSS ).toContain( 'overflow-x:hidden' );
+		expect( CSS ).toContain( 'border-radius:7px!important' );
+		expect( CSS ).toContain( '.cc-gd-footer{width:100%;min-width:0;margin:0' );
+		expect( CSS ).not.toContain( '.cc-gd-footer{margin:0 -10px' );
+	} );
+
+	it( 'fits usage actions into the color row instead of creating a narrow wrapped column', () => {
+		expect( JS ).toContain( 'function compactColorActions(host)' );
+		expect( JS ).toContain( "button.textContent=count+' use'+(count===1?'':'s')" );
+		expect( JS ).toContain( 'button.disabled=count===0' );
+		expect( CSS ).toContain( '.cc-gdw-color-actions{grid-column:3;grid-row:1' );
+		expect( CSS ).toContain( '.cc-gd-color-card>input:not([type=color]){grid-column:1/4;grid-row:2' );
+	} );
+
 	it( 'uses a widget-inspector-sized panel and never owns rendered website controls', () => {
 		expect( CSS ).toContain( '--cc-ux-left-width:min(360px,calc(100vw - 66px))!important' );
 		expect( CSS ).not.toMatch( /\.cresco-session-root/ );
