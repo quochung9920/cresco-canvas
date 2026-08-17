@@ -11,18 +11,24 @@ final class StudioGlobalDesignProTest extends TestCase {
 		self::assertSame( 'assets/css/studio-global-design-pro.css', StudioGlobalDesignPro::STYLE );
 	}
 
-	public function test_global_design_script_exposes_user_facing_workspace_sections(): void {
+	public function test_global_design_script_exposes_compact_user_facing_workspace_sections(): void {
 		$path = CRESCO_CANVAS_PATH . StudioGlobalDesignPro::SCRIPT;
 		self::assertFileExists( $path );
 		$script = (string) file_get_contents( $path );
 
-		foreach ( array( 'Overview', 'Colors', 'Typography', 'Spacing', 'Shape & Layout', 'Usage', 'Advanced' ) as $label ) {
+		foreach ( array( 'Overview', 'Colors', 'Typography', 'Buttons', 'Layout', 'More' ) as $label ) {
 			self::assertStringContainsString( $label, $script );
 		}
 		self::assertStringContainsString( 'Design System Health', $script );
 		self::assertStringContainsString( 'Save globally', $script );
 		self::assertStringContainsString( 'Semantic aliases', $script );
 		self::assertStringContainsString( 'Token Explorer', $script );
+		self::assertStringContainsString( 'Global button', $script );
+		self::assertStringContainsString( 'button.background', $script );
+		self::assertStringContainsString( 'button.hoverBackground', $script );
+		self::assertStringContainsString( 'button.paddingInline', $script );
+		self::assertStringContainsString( 'button.fontWeight', $script );
+		self::assertStringNotContainsString( '<strong>Radius</strong><small>Shape personality', $script );
 		self::assertStringContainsString( 'cresco:studio-session-change', $script );
 		self::assertStringContainsString( 'cresco-global-design-pro/v1', $script );
 	}
