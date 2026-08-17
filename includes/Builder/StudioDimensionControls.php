@@ -12,15 +12,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 final class StudioDimensionControls {
-	const SCRIPT              = 'build/studio-dimension-controls.js';
-	const SYNC_SCRIPT         = 'build/studio-dimension-controls-sync.js';
-	const STYLE               = 'assets/css/studio-dimension-controls.css';
-	const HANDLE              = 'cresco-canvas-studio-dimension-controls';
-	const SYNC_HANDLE         = 'cresco-canvas-studio-dimension-controls-sync';
-	const PRESET_SCRIPT       = 'build/studio-dimension-presets.js';
-	const PRESET_STYLE        = 'assets/css/studio-dimension-presets.css';
-	const PRESET_SCRIPT_HANDLE = 'cresco-canvas-studio-dimension-presets-runtime';
-	const PRESET_STYLE_HANDLE  = 'cresco-canvas-studio-dimension-presets';
+	const SCRIPT      = 'build/studio-dimension-controls.js';
+	const SYNC_SCRIPT = 'build/studio-dimension-controls-sync.js';
+	const STYLE       = 'assets/css/studio-dimension-controls.css';
+	const HANDLE      = 'cresco-canvas-studio-dimension-controls';
+	const SYNC_HANDLE = 'cresco-canvas-studio-dimension-controls-sync';
 
 	public function register() {
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue' ), 1420 );
@@ -65,26 +61,6 @@ final class StudioDimensionControls {
 				WebsiteBuilderAsset::url( self::STYLE ),
 				$style_dependencies,
 				WebsiteBuilderAsset::version( self::STYLE )
-			);
-		}
-
-		if ( WebsiteBuilderAsset::readable( self::PRESET_SCRIPT ) ) {
-			$preset_script_deps = array( wp_script_is( self::SYNC_HANDLE, 'enqueued' ) ? self::SYNC_HANDLE : self::HANDLE );
-			wp_enqueue_script(
-				self::PRESET_SCRIPT_HANDLE,
-				WebsiteBuilderAsset::url( self::PRESET_SCRIPT ),
-				$preset_script_deps,
-				WebsiteBuilderAsset::version( self::PRESET_SCRIPT ),
-				true
-			);
-		}
-
-		if ( WebsiteBuilderAsset::readable( self::PRESET_STYLE ) ) {
-			wp_enqueue_style(
-				self::PRESET_STYLE_HANDLE,
-				WebsiteBuilderAsset::url( self::PRESET_STYLE ),
-				wp_style_is( self::HANDLE, 'enqueued' ) ? array( self::HANDLE ) : array(),
-				WebsiteBuilderAsset::version( self::PRESET_STYLE )
 			);
 		}
 	}
