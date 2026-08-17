@@ -22,6 +22,18 @@ final class SettingsApiTest extends TestCase {
 					'editorPreference' => 'canvas',
 					'fontFamily'       => 'safe;font}body{display:none',
 					'primary'          => '#ABCDEF',
+					'button'           => array(
+						'background' => '#123456',
+						'text' => '#ffffff',
+						'hoverBackground' => '#234567',
+						'hoverText' => '#ffffff',
+						'borderColor' => '#345678',
+						'borderWidth' => '2px',
+						'radius' => '14px',
+						'height' => '48px',
+						'paddingInline' => '22px',
+						'fontWeight' => '700',
+					),
 				)
 			)
 		);
@@ -29,9 +41,14 @@ final class SettingsApiTest extends TestCase {
 
 		self::assertSame( 2560, $settings['containerMax'] );
 		self::assertSame( '#abcdef', $settings['primary'] );
+		self::assertSame( '#123456', $settings['button']['background'] );
+		self::assertSame( '14px', $settings['button']['radius'] );
+		self::assertSame( '700', $settings['button']['fontWeight'] );
 		self::assertSame( 4, $settings['schemaVersion'] );
 		self::assertArrayNotHasKey( 'editorPreference', $settings );
 		self::assertArrayNotHasKey( 'editorPreference', $api->settings_schema()['properties'] );
+		self::assertArrayHasKey( 'button', $api->settings_schema()['properties'] );
+		self::assertFalse( $api->settings_schema()['properties']['button']['additionalProperties'] );
 		self::assertFalse( $api->settings_schema()['additionalProperties'] );
 		self::assertSame( $settings, get_option( 'cresco_canvas_settings' ) );
 	}
