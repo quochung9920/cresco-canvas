@@ -1,5 +1,7 @@
 # Architecture
 
+> **Historical Gutenberg-native architecture.** The body of this document records the earlier generation in which standard Gutenberg was the only Page editor. It is intentionally preserved for migration/history and the legacy/native path, but it is **not the canonical runtime ownership document for the current Cresco Studio Website Builder**. For the current architecture use `docs/CORE_ARCHITECTURE.md`, `docs/WEBSITE_BUILDER_CORE.md`, `docs/STUDIO_EDITOR_EXPERIENCE_2.md`, ADR-013/ADR-014 in `docs/DECISIONS.md`, and especially `docs/STUDIO_RUNTIME_OWNERSHIP_AND_CONFLICT_PREVENTION.md`. Where the statements below say there is no custom Page editor/workbench or no Page document route, those statements are superseded for Studio-owned Website Builder documents.
+
 ## Boundaries
 
 Cresco Canvas is a Gutenberg extension, not a fork and not a second editor. The normal WordPress Page **Edit** action opens Gutenberg. WordPress Core owns the Page entity and every document workflow; Cresco registers native blocks, a plugin sidebar, revision-enabled Page metadata, and scoped style tokens.
