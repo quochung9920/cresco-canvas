@@ -58,25 +58,4 @@ final class StudioGlobalDesignProTest extends TestCase {
 		self::assertStringContainsString( "'/cresco-canvas/v1/design-tokens'", $php );
 		self::assertStringContainsString( "'/cresco-canvas/v1/settings/reset'", $php );
 	}
-
-	public function test_pro_core_is_authoritative_when_optional_assets_are_missing(): void {
-		$php = (string) file_get_contents( CRESCO_CANVAS_PATH . 'includes/Builder/StudioGlobalDesignPro.php' );
-
-		self::assertStringContainsString( 'Only the Pro core is mandatory', $php );
-		self::assertStringNotContainsString( "if ( ! WebsiteBuilderAsset::readable( self::WORKFLOW_GUARD_SCRIPT ) ) return;", $php );
-		self::assertStringNotContainsString( "if ( ! WebsiteBuilderAsset::readable( self::COMPACT_SCRIPT ) || ! WebsiteBuilderAsset::readable( self::COMPACT_STYLE ) ) return;", $php );
-		self::assertStringNotContainsString( "if ( ! WebsiteBuilderAsset::readable( self::FONT_SEARCH_FIX_STYLE ) ) return;", $php );
-		self::assertStringNotContainsString( "if ( ! WebsiteBuilderAsset::readable( self::SHARED_STYLE ) || ! WebsiteBuilderAsset::readable( self::SHARED_SCRIPT ) ) return;", $php );
-		self::assertStringContainsString( 'legacy_fallback_guard', $php );
-		self::assertStringContainsString( "data-global-design-authority','pro", $php );
-		self::assertStringContainsString( 'crescoGlobalDesignLegacyFallback', $php );
-	}
-
-	public function test_pro_host_suppresses_legacy_global_design_controls(): void {
-		$css = (string) file_get_contents( CRESCO_CANVAS_PATH . StudioGlobalDesignPro::STYLE );
-
-		self::assertStringContainsString( '.cc-global-design-pro-host>.cc-studio-token-list', $css );
-		self::assertStringContainsString( '.cc-global-design-pro-host>.cc-studio-settings-section', $css );
-		self::assertStringContainsString( 'display:none!important', $css );
-	}
 }

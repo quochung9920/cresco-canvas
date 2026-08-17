@@ -13,8 +13,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 /**
  * Adds a visual Design System workspace on top of the canonical Global Design
- * settings and token APIs. The Pro workspace is authoritative in Studio: the
- * legacy token-list UI is suppressed before the Pro runtime mounts.
+ * settings and token APIs. The module is UI-only and does not introduce a
+ * second persistence model.
  */
 final class StudioGlobalDesignPro {
 	const HANDLE                    = 'cresco-canvas-studio-global-design-pro';
@@ -43,10 +43,12 @@ final class StudioGlobalDesignPro {
 		$context = WebsiteBuilderRuntimeContext::from_request();
 		if ( ! $context || ! WebsiteBuilderModuleRegistry::is_enabled( 'core', $context ) ) return;
 		if ( ! current_user_can( 'edit_theme_options' ) ) return;
-
-		// Only the Pro core is mandatory. Optional enhancement assets must never
-		// make Studio fall back to the legacy raw-token workspace.
 		if ( ! WebsiteBuilderAsset::readable( self::SCRIPT ) || ! WebsiteBuilderAsset::readable( self::STYLE ) ) return;
+		if ( ! WebsiteBuilderAsset::readable( self::WORKFLOW_GUARD_SCRIPT ) ) return;
+		if ( ! WebsiteBuilderAsset::readable( self::WORKFLOW_SCRIPT ) || ! WebsiteBuilderAsset::readable( self::WORKFLOW_STYLE ) ) return;
+		if ( ! WebsiteBuilderAsset::readable( self::COMPACT_SCRIPT ) || ! WebsiteBuilderAsset::readable( self::COMPACT_STYLE ) ) return;
+		if ( ! WebsiteBuilderAsset::readable( self::FONT_SEARCH_FIX_STYLE ) ) return;
+		if ( ! WebsiteBuilderAsset::readable( self::SHARED_STYLE ) || ! WebsiteBuilderAsset::readable( self::SHARED_SCRIPT ) ) return;
 
 		$style_deps = array( 'cresco-canvas-website-builder-studio' );
 		if ( wp_style_is( StudioUxPro::HANDLE, 'enqueued' ) ) $style_deps[] = StudioUxPro::HANDLE;
@@ -58,43 +60,48 @@ final class StudioGlobalDesignPro {
 			$style_deps,
 			WebsiteBuilderAsset::version( self::STYLE )
 		);
+		wp_enqueue_style(
+			self::WORKFLOW_HANDLE,
+			WebsiteBuilderAsset::url( self::WORKFLOW_STYLE ),
+			array( self::HANDLE ),
+			WebsiteBuilderAsset::version( self::WORKFLOW_STYLE )
+		);
+		wp_enqueue_style(
+			self::COMPACT_HANDLE,
+			WebsiteBuilderAsset::url( self::COMPACT_STYLE ),
+			array( self::WORKFLOW_HANDLE ),
+			WebsiteBuilderAsset::version( self::COMPACT_STYLE )
+		);
+		wp_enqueue_style(
+			self::FONT_SEARCH_FIX_HANDLE,
+			WebsiteBuilderAsset::url( self::FONT_SEARCH_FIX_STYLE ),
+			array( self::COMPACT_HANDLE ),
+			WebsiteBuilderAsset::version( self::FONT_SEARCH_FIX_STYLE )
+		);
+		wp_enqueue_style(
+			self::SHARED_STYLE_HANDLE,
+			WebsiteBuilderAsset::url( self::SHARED_STYLE ),
+			array( self::FONT_SEARCH_FIX_HANDLE ),
+			WebsiteBuilderAsset::version( self::SHARED_STYLE )
+		);
 
-		$last_style = self::HANDLE;
-		if ( WebsiteBuilderAsset::readable( self::WORKFLOW_STYLE ) ) {
-			wp_enqueue_style(
-				self::WORKFLOW_HANDLE,
-				WebsiteBuilderAsset::url( self::WORKFLOW_STYLE ),
-				array( $last_style ),
-				WebsiteBuilderAsset::version( self::WORKFLOW_STYLE )
-			);
-			$last_style = self::WORKFLOW_HANDLE;
-		}
-		if ( WebsiteBuilderAsset::readable( self::COMPACT_STYLE ) ) {
-			wp_enqueue_style(
-				self::COMPACT_HANDLE,
-				WebsiteBuilderAsset::url( self::COMPACT_STYLE ),
-				array( $last_style ),
-				WebsiteBuilderAsset::version( self::COMPACT_STYLE )
-			);
-			$last_style = self::COMPACT_HANDLE;
-		}
-		if ( WebsiteBuilderAsset::readable( self::FONT_SEARCH_FIX_STYLE ) ) {
-			wp_enqueue_style(
-				self::FONT_SEARCH_FIX_HANDLE,
-				WebsiteBuilderAsset::url( self::FONT_SEARCH_FIX_STYLE ),
-				array( $last_style ),
-				WebsiteBuilderAsset::version( self::FONT_SEARCH_FIX_STYLE )
-			);
-			$last_style = self::FONT_SEARCH_FIX_HANDLE;
-		}
-		if ( WebsiteBuilderAsset::readable( self::SHARED_STYLE ) ) {
-			wp_enqueue_style(
-				self::SHARED_STYLE_HANDLE,
-				WebsiteBuilderAsset::url( self::SHARED_STYLE ),
-				array( $last_style ),
-				WebsiteBuilderAsset::version( self::SHARED_STYLE )
-			);
-		}
+		wp_enqueue_script(
+			self::WORKFLOW_GUARD_HANDLE,
+			WebsiteBuilderAsset::url( self::WORKFLOW_GUARD_SCRIPT ),
+			array( WebsiteBuilderStudio::HANDLE, 'wp-api-fetch' ),
+			WebsiteBuilderAsset::version( self::WORKFLOW_GUARD_SCRIPT ),
+			true
+		);
+
+		$workflow_deps = array( WebsiteBuilderStudio::HANDLE, 'wp-api-fetch', self::WORKFLOW_GUARD_HANDLE );
+		if ( wp_script_is( StudioUxPro::HANDLE, 'enqueued' ) ) $workflow_deps[] = StudioUxPro::HANDLE;
+		wp_enqueue_script(
+			self::WORKFLOW_HANDLE,
+			WebsiteBuilderAsset::url( self::WORKFLOW_SCRIPT ),
+			$workflow_deps,
+			WebsiteBuilderAsset::version( self::WORKFLOW_SCRIPT ),
+			true
+		);
 
 		$config = array(
 			'schema'       => 'cresco-global-design-pro/v1',
@@ -105,36 +112,13 @@ final class StudioGlobalDesignPro {
 			'fonts'        => \CrescoCanvas\Styles\GlobalWebFonts::catalog(),
 			'systemFonts'  => \CrescoCanvas\Styles\GlobalWebFonts::system_fonts(),
 		);
-		$config_script = 'window.crescoGlobalDesignProSettings=' . wp_json_encode( $config ) . ';';
+		wp_add_inline_script(
+			self::WORKFLOW_HANDLE,
+			'window.crescoGlobalDesignProSettings=' . wp_json_encode( $config ) . ';',
+			'before'
+		);
 
-		$workflow_deps = array( WebsiteBuilderStudio::HANDLE, 'wp-api-fetch' );
-		if ( WebsiteBuilderAsset::readable( self::WORKFLOW_GUARD_SCRIPT ) ) {
-			wp_enqueue_script(
-				self::WORKFLOW_GUARD_HANDLE,
-				WebsiteBuilderAsset::url( self::WORKFLOW_GUARD_SCRIPT ),
-				$workflow_deps,
-				WebsiteBuilderAsset::version( self::WORKFLOW_GUARD_SCRIPT ),
-				true
-			);
-			$workflow_deps[] = self::WORKFLOW_GUARD_HANDLE;
-		}
-		if ( wp_script_is( StudioUxPro::HANDLE, 'enqueued' ) ) $workflow_deps[] = StudioUxPro::HANDLE;
-
-		$workflow_loaded = false;
-		if ( WebsiteBuilderAsset::readable( self::WORKFLOW_SCRIPT ) ) {
-			wp_enqueue_script(
-				self::WORKFLOW_HANDLE,
-				WebsiteBuilderAsset::url( self::WORKFLOW_SCRIPT ),
-				$workflow_deps,
-				WebsiteBuilderAsset::version( self::WORKFLOW_SCRIPT ),
-				true
-			);
-			wp_add_inline_script( self::WORKFLOW_HANDLE, $config_script, 'before' );
-			$workflow_loaded = true;
-		}
-
-		$script_deps = array( WebsiteBuilderStudio::HANDLE, 'wp-api-fetch' );
-		if ( $workflow_loaded ) $script_deps[] = self::WORKFLOW_HANDLE;
+		$script_deps = array( WebsiteBuilderStudio::HANDLE, 'wp-api-fetch', self::WORKFLOW_HANDLE );
 		if ( wp_script_is( StudioUxPro::HANDLE, 'enqueued' ) ) $script_deps[] = StudioUxPro::HANDLE;
 		wp_enqueue_script(
 			self::HANDLE,
@@ -143,52 +127,19 @@ final class StudioGlobalDesignPro {
 			WebsiteBuilderAsset::version( self::SCRIPT ),
 			true
 		);
-		wp_add_inline_script( self::HANDLE, $config_script, 'before' );
-		wp_add_inline_script( self::HANDLE, self::legacy_fallback_guard(), 'before' );
-
-		if ( WebsiteBuilderAsset::readable( self::COMPACT_SCRIPT ) ) {
-			wp_enqueue_script(
-				self::COMPACT_HANDLE,
-				WebsiteBuilderAsset::url( self::COMPACT_SCRIPT ),
-				array( self::HANDLE ),
-				WebsiteBuilderAsset::version( self::COMPACT_SCRIPT ),
-				true
-			);
-		}
-		if ( WebsiteBuilderAsset::readable( self::SHARED_SCRIPT ) ) {
-			$shared_deps = array( wp_script_is( self::COMPACT_HANDLE, 'enqueued' ) ? self::COMPACT_HANDLE : self::HANDLE );
-			wp_enqueue_script(
-				self::SHARED_SCRIPT_HANDLE,
-				WebsiteBuilderAsset::url( self::SHARED_SCRIPT ),
-				$shared_deps,
-				WebsiteBuilderAsset::version( self::SHARED_SCRIPT ),
-				true
-			);
-		}
-	}
-
-	private static function legacy_fallback_guard() {
-		return <<<'JS'
-(function(window,document){
-'use strict';
-var root=document.getElementById('cresco-canvas-standalone-editor');
-if(!root)return;
-function guard(){
- var panels=root.querySelectorAll('.cc-studio-left .cc-studio-panel');
- for(var i=0;i<panels.length;i++){
-  var panel=panels[i],heading=panel.querySelector('.cc-studio-panel-head strong');
-  if(!heading||String(heading.textContent||'').trim()!=='Global Design')continue;
-  panel.classList.add('cc-global-design-pro-host');
-  panel.setAttribute('data-global-design-authority','pro');
- }
-}
-var queued=false;
-function queue(){if(queued)return;queued=true;window.requestAnimationFrame(function(){queued=false;guard();});}
-guard();
-var observer=new MutationObserver(queue);
-observer.observe(root,{childList:true,subtree:true});
-window.crescoGlobalDesignLegacyFallback={disabled:true,authority:'pro'};
-})(window,document);
-JS;
+		wp_enqueue_script(
+			self::COMPACT_HANDLE,
+			WebsiteBuilderAsset::url( self::COMPACT_SCRIPT ),
+			array( self::HANDLE ),
+			WebsiteBuilderAsset::version( self::COMPACT_SCRIPT ),
+			true
+		);
+		wp_enqueue_script(
+			self::SHARED_SCRIPT_HANDLE,
+			WebsiteBuilderAsset::url( self::SHARED_SCRIPT ),
+			array( self::COMPACT_HANDLE ),
+			WebsiteBuilderAsset::version( self::SHARED_SCRIPT ),
+			true
+		);
 	}
 }
