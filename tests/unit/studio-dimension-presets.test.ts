@@ -26,13 +26,19 @@ describe( 'Studio dimension presets', () => {
 		expect( JS ).toContain( '100%' );
 	} );
 
-	it( 'covers margin/padding proxies and scopes styles to Studio left chrome', () => {
+	it( 'covers margin, padding, border width and radius controls', () => {
 		expect( JS ).toContain( '.cc-studio-spacing__grid>label' );
 		expect( JS ).toContain( '.cc-studio-spacing-proxy' );
+		expect( JS ).toContain( '.cc-studio-border-box-grid>label' );
+		expect( JS ).toContain( 'cc-studio-border-preset' );
 		expect( PHP ).toContain( "const PRESET_SCRIPT       = 'build/studio-dimension-presets.js'" );
 		expect( PHP ).toContain( "const PRESET_STYLE        = 'assets/css/studio-dimension-presets.css'" );
+	} );
+
+	it( 'scopes styles to Studio left chrome and never owns website Canvas controls', () => {
 		expect( CSS ).toContain( '#cresco-canvas-standalone-editor .cc-studio-left' );
 		expect( CSS ).not.toMatch( /\.cresco-session-root/ );
 		expect( CSS ).not.toMatch( /\.cresco-website-builder-root/ );
+		expect( CSS ).not.toMatch( /\.cc-studio-canvas\s+(button|input|select|textarea)/ );
 	} );
 });
