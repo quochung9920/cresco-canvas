@@ -31,6 +31,8 @@ final class GlobalStyles {
 			'background' => '#ffffff',
 			'containerMax' => 1440,
 			'contentMax' => 1200,
+			// Legacy radius settings stay in the schema for existing documents and token references.
+			// Global Design no longer exposes a generic Radius / Shape editor.
 			'radius' => 12,
 			'fontFamily' => 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
 			'fluidTokens' => array(
@@ -62,6 +64,18 @@ final class GlobalStyles {
 				'controlHeight' => 'clamp(2.75rem, 2.55rem + 0.5vw, 3.125rem)',
 				'buttonPadding' => 'clamp(1rem, 0.8rem + 0.65vw, 1.5rem)',
 			),
+			'button' => array(
+				'background' => '#635bff',
+				'text' => '#ffffff',
+				'hoverBackground' => '#635bff',
+				'hoverText' => '#ffffff',
+				'borderColor' => 'transparent',
+				'borderWidth' => '0px',
+				'radius' => 'clamp(0.5rem, 0.4rem + 0.25vw, 0.75rem)',
+				'height' => 'clamp(2.75rem, 2.55rem + 0.5vw, 3.125rem)',
+				'paddingInline' => 'clamp(1rem, 0.8rem + 0.65vw, 1.5rem)',
+				'fontWeight' => '600',
+			),
 			'breakpoints' => array(
 				'mobile' => 0,
 				'tablet' => 768,
@@ -89,18 +103,40 @@ final class GlobalStyles {
 			$fluid[ $key ] = self::sanitize_fluid_value( $input['fluidTokens'][ $key ] ?? $fallback, $fallback );
 		}
 		$breakpoints = self::sanitize_breakpoints( $input['breakpoints'] ?? array(), $defaults['breakpoints'] );
+		$primary = self::sanitize_color_value( $input['primary'] ?? '' ) ?: $defaults['primary'];
+		$text = self::sanitize_color_value( $input['text'] ?? '' ) ?: $defaults['text'];
+		$muted = self::sanitize_color_value( $input['muted'] ?? '' ) ?: $defaults['muted'];
+		$background = self::sanitize_color_value( $input['background'] ?? '' ) ?: $defaults['background'];
+
+		// Existing sites did not persist a button object. Derive its first canonical
+		// value from the legacy global primary/control/radius tokens so upgrading
+		// does not visually change existing buttons before the user edits them.
+		$button_fallback = array(
+			'background' => $primary,
+			'text' => '#ffffff',
+			'hoverBackground' => $primary,
+			'hoverText' => '#ffffff',
+			'borderColor' => 'transparent',
+			'borderWidth' => '0px',
+			'radius' => $fluid['radiusMd'],
+			'height' => $fluid['controlHeight'],
+			'paddingInline' => $fluid['buttonPadding'],
+			'fontWeight' => '600',
+		);
+		$button = self::sanitize_button_settings( $input['button'] ?? array(), $button_fallback );
 
 		return array(
 			'schemaVersion' => 4,
-			'primary' => self::sanitize_color_value( $input['primary'] ?? '' ) ?: $defaults['primary'],
-			'text' => self::sanitize_color_value( $input['text'] ?? '' ) ?: $defaults['text'],
-			'muted' => self::sanitize_color_value( $input['muted'] ?? '' ) ?: $defaults['muted'],
-			'background' => self::sanitize_color_value( $input['background'] ?? '' ) ?: $defaults['background'],
+			'primary' => $primary,
+			'text' => $text,
+			'muted' => $muted,
+			'background' => $background,
 			'containerMax' => $container_max,
 			'contentMax' => $content_max,
 			'radius' => min( 80, max( 0, absint( $input['radius'] ?? $defaults['radius'] ) ) ),
 			'fontFamily' => self::sanitize_font_family( $input['fontFamily'] ?? $defaults['fontFamily'] ),
 			'fluidTokens' => $fluid,
+			'button' => $button,
 			'breakpoints' => $breakpoints,
 			'customColors' => self::sanitize_custom_colors( $input['customColors'] ?? array() ),
 			'aliases' => self::sanitize_aliases( $input['aliases'] ?? array() ),
@@ -167,13 +203,14 @@ final class GlobalStyles {
 			'%1$s h5{font-size:var(--cc-h5);}' .
 			'%1$s h6{font-size:var(--cc-h6);}' .
 			'%1$s .wp-block-cresco-container a:not(.wp-block-button__link),%1$s .cresco-widget-text a{color:var(--cc-primary);}' .
-			'%1$s .wp-block-cresco-container .wp-block-button__link:not(.has-background){background-color:var(--cc-primary);}' .
-			'%1$s .wp-block-cresco-container .wp-block-button__link,%1$s .cresco-widget-button{border-radius:var(--cc-radius-md);min-height:var(--cc-control-height);padding-inline:var(--cc-button-padding);}' .
+			'%1$s .wp-block-cresco-container .wp-block-button__link,%1$s .cresco-widget-button,%1$s .cresco-form button[type="submit"]{border:var(--cc-button-border-width) solid var(--cc-button-border);border-radius:var(--cc-button-radius);min-height:var(--cc-button-height);padding-inline:var(--cc-button-padding-x);font-weight:var(--cc-button-font-weight);}' .
+			'%1$s .wp-block-cresco-container .wp-block-button__link:not(.has-background),%1$s .cresco-widget-button,%1$s .cresco-form button[type="submit"]{background-color:var(--cc-button-bg);}' .
+			'%1$s .wp-block-cresco-container .wp-block-button__link:not(.has-text-color),%1$s .cresco-widget-button,%1$s .cresco-form button[type="submit"]{color:var(--cc-button-text);}' .
+			'%1$s .wp-block-cresco-container .wp-block-button__link:hover,%1$s .cresco-widget-button:hover,%1$s .cresco-form button[type="submit"]:hover{background-color:var(--cc-button-hover-bg);color:var(--cc-button-hover-text);}' .
 			'%1$s .cresco-widget-image img{border-radius:var(--cc-radius-md);}' .
 			'%1$s .cresco-form{color:var(--cc-text);font-family:var(--cc-font);}' .
 			'%1$s .cresco-form-field input,%1$s .cresco-form-field textarea,%1$s .cresco-form-field select{min-height:var(--cc-control-height);border-radius:var(--cc-radius-sm);background:var(--cc-background);color:var(--cc-text);}' .
-			'%1$s .cresco-form button[type="submit"]{min-height:var(--cc-control-height);border-radius:var(--cc-radius-md);background:var(--cc-primary);color:#fff;}' .
-			'%1$s .cresco-form button:focus-visible,%1$s .cresco-form input:focus-visible,%1$s .cresco-form textarea:focus-visible,%1$s .cresco-form select:focus-visible{outline-color:var(--cc-primary);}',
+			'%1$s .cresco-form button:focus-visible,%1$s .cresco-form input:focus-visible,%1$s .cresco-form textarea:focus-visible,%1$s .cresco-form select:focus-visible{outline-color:var(--cc-button-bg);}',
 			$selector
 		);
 		return $css . self::scope_custom_css( $selector, $settings['customCss'] ?? '' );
@@ -233,6 +270,25 @@ final class GlobalStyles {
 		$value = trim( wp_strip_all_tags( (string) $value ) );
 		if ( strlen( $value ) > 160 ) return $fallback;
 		return preg_match( '/^(?:clamp|min|max|calc)\([0-9a-zA-Z.%+\-*\/(),\s]+\)|-?[0-9.]+(?:px|rem|em|%|vw|vh|vmin|vmax)$/', $value ) ? $value : $fallback;
+	}
+
+	private static function sanitize_button_settings( $value, $fallback ) {
+		$value = is_array( $value ) ? $value : array();
+		$font_weight = (string) ( $value['fontWeight'] ?? $fallback['fontWeight'] );
+		if ( ! preg_match( '/^[1-9]00$/', $font_weight ) ) $font_weight = (string) $fallback['fontWeight'];
+
+		return array(
+			'background' => self::sanitize_color_value( $value['background'] ?? '' ) ?: $fallback['background'],
+			'text' => self::sanitize_color_value( $value['text'] ?? '' ) ?: $fallback['text'],
+			'hoverBackground' => self::sanitize_color_value( $value['hoverBackground'] ?? '' ) ?: $fallback['hoverBackground'],
+			'hoverText' => self::sanitize_color_value( $value['hoverText'] ?? '' ) ?: $fallback['hoverText'],
+			'borderColor' => self::sanitize_color_value( $value['borderColor'] ?? '' ) ?: $fallback['borderColor'],
+			'borderWidth' => self::sanitize_fluid_value( $value['borderWidth'] ?? $fallback['borderWidth'], $fallback['borderWidth'] ),
+			'radius' => self::sanitize_fluid_value( $value['radius'] ?? $fallback['radius'], $fallback['radius'] ),
+			'height' => self::sanitize_fluid_value( $value['height'] ?? $fallback['height'], $fallback['height'] ),
+			'paddingInline' => self::sanitize_fluid_value( $value['paddingInline'] ?? $fallback['paddingInline'], $fallback['paddingInline'] ),
+			'fontWeight' => $font_weight,
+		);
 	}
 
 	private static function sanitize_custom_colors( $value ) {
