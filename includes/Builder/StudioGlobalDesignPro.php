@@ -89,6 +89,8 @@ final class StudioGlobalDesignPro {
 			'tokensPath'   => '/cresco-canvas/v1/design-tokens',
 			'resetPath'    => '/cresco-canvas/v1/settings/reset',
 			'postId'       => $context->post_id(),
+			'fonts'        => \CrescoCanvas\Styles\GlobalWebFonts::catalog(),
+			'systemFonts'  => \CrescoCanvas\Styles\GlobalWebFonts::system_fonts(),
 		);
 		wp_add_inline_script(
 			self::WORKFLOW_HANDLE,
