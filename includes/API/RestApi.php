@@ -97,6 +97,22 @@ final class RestApi {
 	public function settings_schema() {
 		$string_map = array( 'type' => 'object', 'additionalProperties' => array( 'type' => 'string' ) );
 		$integer_map = array( 'type' => 'object', 'additionalProperties' => array( 'type' => 'integer' ) );
+		$button_schema = array(
+			'type' => 'object',
+			'additionalProperties' => false,
+			'properties' => array(
+				'background' => array( 'type' => 'string' ),
+				'text' => array( 'type' => 'string' ),
+				'hoverBackground' => array( 'type' => 'string' ),
+				'hoverText' => array( 'type' => 'string' ),
+				'borderColor' => array( 'type' => 'string' ),
+				'borderWidth' => array( 'type' => 'string' ),
+				'radius' => array( 'type' => 'string' ),
+				'height' => array( 'type' => 'string' ),
+				'paddingInline' => array( 'type' => 'string' ),
+				'fontWeight' => array( 'type' => 'string' ),
+			),
+		);
 		return array(
 			'$schema' => 'http://json-schema.org/draft-04/schema#',
 			'additionalProperties' => false,
@@ -104,11 +120,13 @@ final class RestApi {
 			'type' => 'object',
 			'properties' => array(
 				'background' => array( 'type' => 'string' ),
+				'button' => $button_schema,
 				'containerMax' => array( 'type' => 'integer' ),
 				'contentMax' => array( 'type' => 'integer' ),
 				'fontFamily' => array( 'type' => 'string' ),
 				'muted' => array( 'type' => 'string' ),
 				'primary' => array( 'type' => 'string' ),
+				// Kept for backward-compatible settings round trips; no generic radius UI is exposed.
 				'radius' => array( 'type' => 'integer' ),
 				'fluidTokens' => $string_map,
 				'breakpoints' => $integer_map,
