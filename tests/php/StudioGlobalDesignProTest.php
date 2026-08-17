@@ -78,7 +78,7 @@ final class StudioGlobalDesignProTest extends TestCase {
 		self::assertStringContainsString( 'wp_add_inline_script( self::HANDLE, $config_script', $php );
 	}
 
-	public function test_authority_bridge_blocks_legacy_ux_without_blank_panel(): void {
+	public function test_authority_bridge_blocks_legacy_ux_without_blank_panel_or_loop(): void {
 		$path = CRESCO_CANVAS_PATH . StudioGlobalDesignPro::AUTHORITY_SCRIPT;
 		self::assertFileExists( $path );
 		$script = (string) file_get_contents( $path );
@@ -86,6 +86,9 @@ final class StudioGlobalDesignProTest extends TestCase {
 		self::assertStringContainsString( "target.dataset.uxEnhanced='1'", $script );
 		self::assertStringContainsString( '.cc-studio-ux-token-search', $script );
 		self::assertStringContainsString( "if(!target||!target.querySelector('.cc-global-design-pro'))return;", $script );
+		self::assertStringContainsString( "node.dataset.mode===mode&&node.dataset.message===message", $script );
+		self::assertStringContainsString( 'if(!state.timer)', $script );
+		self::assertStringContainsString( 'clearTimer()', $script );
 		self::assertStringContainsString( 'Loading Global Design Pro', $script );
 		self::assertStringContainsString( 'Retry Global Design', $script );
 		self::assertStringNotContainsString( 'cresco-session-root', $script );
