@@ -1,0 +1,49 @@
+/** Searchable Global Design font picker — Studio chrome only. */
+@layer cresco.overrides {
+.cc-global-design-pro .cc-gd-font-picker{position:relative;display:grid;gap:5px;margin-bottom:7px}
+.cc-global-design-pro .cc-gd-font-picker-label{font-size:9.5px;font-weight:600;color:var(--cc-color-text-subtle)}
+.cc-global-design-pro .cc-gd-font-trigger{width:100%;min-height:42px!important;display:flex!important;align-items:center;justify-content:space-between!important;gap:10px!important;padding:6px 9px!important;text-align:left!important;border:1px solid var(--cc-color-border)!important;border-radius:7px!important;background:var(--cc-color-surface-raised)!important;color:var(--cc-color-text)!important;box-shadow:none!important}
+.cc-global-design-pro .cc-gd-font-trigger>span{min-width:0;display:grid;gap:1px}
+.cc-global-design-pro .cc-gd-font-trigger strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px;line-height:1.25}
+.cc-global-design-pro .cc-gd-font-trigger small{font-size:8.5px;line-height:1.2;color:var(--cc-color-text-muted)}
+.cc-global-design-pro .cc-gd-font-trigger>i{flex:0 0 auto;width:16px;height:16px;font-size:16px;transition:transform .16s ease}
+.cc-global-design-pro .cc-gd-font-picker.is-open .cc-gd-font-trigger>i{transform:rotate(180deg)}
+.cc-global-design-pro .cc-gd-font-popup{position:absolute;z-index:70;top:calc(100% + 5px);left:0;right:0;display:grid;grid-template-rows:auto auto minmax(120px,320px) auto;overflow:hidden;border:1px solid var(--cc-color-border-strong,var(--cc-color-border));border-radius:9px;background:var(--cc-color-surface-raised);box-shadow:0 16px 36px rgba(16,24,40,.16)}
+.cc-global-design-pro .cc-gd-font-popup[hidden]{display:none!important}
+.cc-global-design-pro .cc-gd-font-search{display:grid;grid-template-columns:16px minmax(0,1fr);align-items:center;gap:6px;padding:7px 8px;border-bottom:1px solid var(--cc-color-border)}
+.cc-global-design-pro .cc-gd-font-search>span{width:16px;height:16px;font-size:16px;color:var(--cc-color-text-muted)}
+.cc-global-design-pro .cc-gd-font-search input{min-width:0;width:100%;min-height:31px!important;margin:0!important;padding:4px 7px!important;border:1px solid var(--cc-color-border)!important;border-radius:6px!important;background:var(--cc-color-surface)!important;font-size:10px!important}
+.cc-global-design-pro .cc-gd-font-categories{display:flex;gap:3px;overflow-x:auto;padding:6px 7px;border-bottom:1px solid var(--cc-color-border);scrollbar-width:none}
+.cc-global-design-pro .cc-gd-font-categories::-webkit-scrollbar{display:none}
+.cc-global-design-pro .cc-gd-font-categories button{flex:0 0 auto;min-height:25px!important;padding:2px 7px!important;border-color:transparent!important;border-radius:999px!important;background:transparent!important;color:var(--cc-color-text-muted)!important;font-size:8.5px!important;white-space:nowrap}
+.cc-global-design-pro .cc-gd-font-categories button.is-active{border-color:var(--cc-color-border)!important;background:var(--cc-color-accent-wash)!important;color:var(--cc-color-accent)!important}
+.cc-global-design-pro .cc-gd-font-results{min-height:120px;max-height:320px;overflow:auto;padding:4px}
+.cc-global-design-pro .cc-gd-font-option{display:grid;grid-template-columns:minmax(0,1fr) 28px;align-items:center;gap:2px;border-radius:6px}
+.cc-global-design-pro .cc-gd-font-option:hover,.cc-global-design-pro .cc-gd-font-option.is-selected{background:var(--cc-color-surface-hover)}
+.cc-global-design-pro .cc-gd-font-option.is-selected{box-shadow:inset 2px 0 0 var(--cc-color-accent)}
+.cc-global-design-pro .cc-gd-font-option-main{min-width:0;min-height:42px!important;display:flex!important;align-items:center;justify-content:space-between!important;gap:8px!important;padding:5px 7px!important;border:0!important;background:transparent!important;text-align:left!important;box-shadow:none!important}
+.cc-global-design-pro .cc-gd-font-option-main>span{min-width:0;display:grid;gap:1px}
+.cc-global-design-pro .cc-gd-font-option-main strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--cc-color-text);font-size:12px;font-weight:600;line-height:1.25}
+.cc-global-design-pro .cc-gd-font-option-main small{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--cc-color-text-muted);font:8px/1.25 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+.cc-global-design-pro .cc-gd-font-option-main>i{flex:0 0 auto;width:15px;height:15px;font-size:15px;color:var(--cc-color-accent)}
+.cc-global-design-pro .cc-gd-font-favorite{width:26px!important;height:26px!important;min-height:26px!important;display:grid!important;place-content:center!important;padding:0!important;border-color:transparent!important;background:transparent!important;color:var(--cc-color-text-muted)!important;box-shadow:none!important}
+.cc-global-design-pro .cc-gd-font-favorite.is-active{color:var(--cc-color-warning)!important}
+.cc-global-design-pro .cc-gd-font-favorite .dashicons{width:14px;height:14px;font-size:14px}
+.cc-global-design-pro .cc-gd-font-status{min-height:25px;padding:6px 8px;border-top:1px solid var(--cc-color-border);color:var(--cc-color-text-muted);font-size:8px;line-height:1.35}
+.cc-global-design-pro .cc-gd-font-message{min-height:130px;display:grid;place-content:center;justify-items:center;gap:5px;padding:14px;text-align:center;color:var(--cc-color-text-muted)}
+.cc-global-design-pro .cc-gd-font-message strong{color:var(--cc-color-text-subtle);font-size:10.5px}
+.cc-global-design-pro .cc-gd-font-message small{max-width:240px;font-size:8.5px;line-height:1.4}
+.cc-global-design-pro .cc-gd-font-message button{min-height:27px!important;margin-top:3px;padding:2px 8px!important;font-size:9px!important}
+.cc-global-design-pro .cc-gd-font-custom{margin-top:1px;padding-top:1px}
+.cc-global-design-pro .cc-gd-font-custom>summary{cursor:pointer;color:var(--cc-color-text-muted);font-size:8.5px;line-height:1.4;list-style-position:inside}
+.cc-global-design-pro .cc-gd-font-custom[open]>summary{margin-bottom:6px}
+.cc-global-design-pro .cc-gd-font-custom .cc-gd-field{margin-bottom:0}
+.cc-global-design-pro .cc-gd-font-custom .cc-gd-field>span{font-size:8.5px}
+.cc-global-design-pro .cc-gd-font-custom .cc-gd-field input{font:9px/1.35 ui-monospace,SFMono-Regular,Menlo,monospace!important}
+.cc-global-design-pro .cc-gd-font-trigger:focus-visible,
+.cc-global-design-pro .cc-gd-font-option-main:focus-visible,
+.cc-global-design-pro .cc-gd-font-favorite:focus-visible,
+.cc-global-design-pro .cc-gd-font-categories button:focus-visible{outline:2px solid var(--cc-color-focus,var(--cc-color-accent));outline-offset:1px}
+@media(max-width:860px){.cc-global-design-pro .cc-gd-font-popup{position:fixed;left:64px;right:10px;top:96px;bottom:16px;grid-template-rows:auto auto minmax(0,1fr) auto;max-width:360px}.cc-global-design-pro .cc-gd-font-results{max-height:none}}
+@media(prefers-reduced-motion:reduce){.cc-global-design-pro .cc-gd-font-trigger>i{transition:none}}
+}
