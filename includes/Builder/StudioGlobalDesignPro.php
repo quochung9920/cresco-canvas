@@ -25,6 +25,9 @@ final class StudioGlobalDesignPro {
 	const WORKFLOW_HANDLE       = 'cresco-canvas-studio-global-design-workflows';
 	const WORKFLOW_SCRIPT       = 'build/studio-global-design-workflows.js';
 	const WORKFLOW_STYLE        = 'assets/css/studio-global-design-workflows.css';
+	const COMPACT_HANDLE        = 'cresco-canvas-studio-global-design-compact';
+	const COMPACT_SCRIPT        = 'build/studio-global-design-compact.js';
+	const COMPACT_STYLE         = 'assets/css/studio-global-design-compact.css';
 
 	public function register() {
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue' ), 1430 );
@@ -37,6 +40,7 @@ final class StudioGlobalDesignPro {
 		if ( ! WebsiteBuilderAsset::readable( self::SCRIPT ) || ! WebsiteBuilderAsset::readable( self::STYLE ) ) return;
 		if ( ! WebsiteBuilderAsset::readable( self::WORKFLOW_GUARD_SCRIPT ) ) return;
 		if ( ! WebsiteBuilderAsset::readable( self::WORKFLOW_SCRIPT ) || ! WebsiteBuilderAsset::readable( self::WORKFLOW_STYLE ) ) return;
+		if ( ! WebsiteBuilderAsset::readable( self::COMPACT_SCRIPT ) || ! WebsiteBuilderAsset::readable( self::COMPACT_STYLE ) ) return;
 
 		$style_deps = array( 'cresco-canvas-website-builder-studio' );
 		if ( wp_style_is( StudioUxPro::HANDLE, 'enqueued' ) ) $style_deps[] = StudioUxPro::HANDLE;
@@ -53,6 +57,12 @@ final class StudioGlobalDesignPro {
 			WebsiteBuilderAsset::url( self::WORKFLOW_STYLE ),
 			array( self::HANDLE ),
 			WebsiteBuilderAsset::version( self::WORKFLOW_STYLE )
+		);
+		wp_enqueue_style(
+			self::COMPACT_HANDLE,
+			WebsiteBuilderAsset::url( self::COMPACT_STYLE ),
+			array( self::WORKFLOW_HANDLE ),
+			WebsiteBuilderAsset::version( self::COMPACT_STYLE )
 		);
 
 		wp_enqueue_script(
@@ -93,6 +103,13 @@ final class StudioGlobalDesignPro {
 			WebsiteBuilderAsset::url( self::SCRIPT ),
 			$script_deps,
 			WebsiteBuilderAsset::version( self::SCRIPT ),
+			true
+		);
+		wp_enqueue_script(
+			self::COMPACT_HANDLE,
+			WebsiteBuilderAsset::url( self::COMPACT_SCRIPT ),
+			array( self::HANDLE ),
+			WebsiteBuilderAsset::version( self::COMPACT_SCRIPT ),
 			true
 		);
 	}
