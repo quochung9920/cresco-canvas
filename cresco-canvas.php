@@ -48,6 +48,7 @@ add_action(
 			return;
 		}
 		CrescoCanvas\Plugin::instance()->boot();
+		( new CrescoCanvas\Styles\GlobalWebFonts() )->register();
 		( new CrescoCanvas\AI\DesignIntelligenceRestApi() )->register();
 		( new CrescoCanvas\AI\AIInterchangeHardening() )->register();
 		( new CrescoCanvas\Builder\ProfessionalWidgets() )->register();
