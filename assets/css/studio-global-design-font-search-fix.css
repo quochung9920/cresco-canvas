@@ -1,0 +1,48 @@
+/** Global Design font search alignment fix — editor chrome only. */
+@layer cresco.overrides {
+.cc-global-design-pro.cc-gd-compact-controls .cc-gd-font-search{
+	display:grid;
+	grid-template-columns:16px minmax(0,1fr);
+	align-items:center;
+	gap:7px;
+	min-width:0;
+	min-height:32px;
+	margin-bottom:6px;
+	padding:0 9px;
+	border:1px solid var(--cc-color-border);
+	border-radius:7px;
+	background:var(--cc-color-surface-raised);
+	box-shadow:none;
+}
+.cc-global-design-pro.cc-gd-compact-controls .cc-gd-font-search:focus-within{
+	border-color:var(--cc-color-accent);
+	box-shadow:0 0 0 2px color-mix(in srgb,var(--cc-color-accent) 18%,transparent);
+}
+.cc-global-design-pro.cc-gd-compact-controls .cc-gd-font-search>.dashicons{
+	position:static;
+	z-index:auto;
+	width:16px;
+	height:16px;
+	margin:0;
+	font-size:16px;
+	line-height:16px;
+	color:var(--cc-color-text-muted);
+	pointer-events:none;
+}
+.cc-global-design-pro.cc-gd-compact-controls .cc-gd-font-search input[type="search"]{
+	height:30px!important;
+	min-height:30px!important;
+	min-width:0;
+	padding:4px 0!important;
+	border:0!important;
+	border-radius:0!important;
+	background:transparent!important;
+	box-shadow:none!important;
+	outline:0!important;
+}
+.cc-global-design-pro.cc-gd-compact-controls .cc-gd-font-search input[type="search"]:focus-visible{
+	border:0!important;
+	box-shadow:none!important;
+	outline:0!important;
+}
+}
