@@ -105,6 +105,8 @@ final class RestApi {
 				'text' => array( 'type' => 'string' ),
 				'hoverBackground' => array( 'type' => 'string' ),
 				'hoverText' => array( 'type' => 'string' ),
+				'activeBackground' => array( 'type' => 'string' ),
+				'activeText' => array( 'type' => 'string' ),
 				'borderColor' => array( 'type' => 'string' ),
 				'borderWidth' => array( 'type' => 'string' ),
 				'radius' => array( 'type' => 'string' ),
