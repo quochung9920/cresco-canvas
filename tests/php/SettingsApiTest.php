@@ -27,7 +27,9 @@ final class SettingsApiTest extends TestCase {
 						'text' => '#ffffff',
 						'hoverBackground' => '#234567',
 						'hoverText' => '#ffffff',
-						'borderColor' => '#345678',
+						'activeBackground' => '#345678',
+						'activeText' => '#f4f4f4',
+						'borderColor' => '#456789',
 						'borderWidth' => '2px',
 						'radius' => '14px',
 						'height' => '48px',
@@ -42,12 +44,16 @@ final class SettingsApiTest extends TestCase {
 		self::assertSame( 2560, $settings['containerMax'] );
 		self::assertSame( '#abcdef', $settings['primary'] );
 		self::assertSame( '#123456', $settings['button']['background'] );
+		self::assertSame( '#345678', $settings['button']['activeBackground'] );
+		self::assertSame( '#f4f4f4', $settings['button']['activeText'] );
 		self::assertSame( '14px', $settings['button']['radius'] );
 		self::assertSame( '700', $settings['button']['fontWeight'] );
 		self::assertSame( 4, $settings['schemaVersion'] );
 		self::assertArrayNotHasKey( 'editorPreference', $settings );
 		self::assertArrayNotHasKey( 'editorPreference', $api->settings_schema()['properties'] );
 		self::assertArrayHasKey( 'button', $api->settings_schema()['properties'] );
+		self::assertArrayHasKey( 'activeBackground', $api->settings_schema()['properties']['button']['properties'] );
+		self::assertArrayHasKey( 'activeText', $api->settings_schema()['properties']['button']['properties'] );
 		self::assertFalse( $api->settings_schema()['properties']['button']['additionalProperties'] );
 		self::assertFalse( $api->settings_schema()['additionalProperties'] );
 		self::assertSame( $settings, get_option( 'cresco_canvas_settings' ) );
