@@ -4,6 +4,7 @@ import { join } from 'path';
 const ROOT = join( __dirname, '..', '..' );
 const JS = readFileSync( join( ROOT, 'build/studio-global-design-shared-controls.js' ), 'utf8' );
 const CSS = readFileSync( join( ROOT, 'assets/css/studio-global-design-shared-controls.css' ), 'utf8' );
+const PRO_JS = readFileSync( join( ROOT, 'build/studio-global-design-pro.js' ), 'utf8' );
 const PHP = readFileSync( join( ROOT, 'includes/Builder/StudioGlobalDesignPro.php' ), 'utf8' );
 const DIMENSION_PHP = readFileSync( join( ROOT, 'includes/Builder/StudioDimensionControls.php' ), 'utf8' );
 const DIMENSION_JS = readFileSync( join( ROOT, 'build/studio-dimension-controls.js' ), 'utf8' );
@@ -38,6 +39,15 @@ describe( 'shared dimension controls', () => {
 		expect( CSS ).toContain( '.cc-gd-buttons .cc-gd-button-group' );
 		expect( CSS ).toContain( '.cc-gd-buttons .cc-gd-field .cc-gd-unit-control{grid-column:2' );
 		expect( CSS ).toContain( '.cc-gd-button-color input[type=color]' );
+	} );
+
+	it( 'switches Normal Hover and Active through one compact internal tab strip', () => {
+		expect( PRO_JS ).toContain( "states=[['normal','Normal'],['hover','Hover'],['active','Active']]" );
+		expect( PRO_JS ).toContain( 'data-button-state' );
+		expect( PRO_JS ).toContain( "state==='active'?['activeBackground','activeText']" );
+		expect( CSS ).toContain( '.cc-gd-button-state-tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr))' );
+		expect( CSS ).toContain( '.cc-gd-button-state-tabs button.is-active' );
+		expect( CSS ).toContain( '.cc-gd-button-state-panel{display:grid' );
 	} );
 
 	it( 'keeps numeric-only settings honest by exposing px only', () => {
