@@ -26,6 +26,8 @@ final class DesignTokensTest extends TestCase {
 		self::assertArrayHasKey( 'button', $tokens );
 		self::assertSame( '#635bff', $tokens['button']['background'] );
 		self::assertSame( '#ffffff', $tokens['button']['text'] );
+		self::assertSame( '#635bff', $tokens['button']['activeBackground'] );
+		self::assertSame( '#ffffff', $tokens['button']['activeText'] );
 		self::assertSame( '600', $tokens['button']['fontWeight'] );
 		// Existing documents may still resolve legacy radius paths.
 		self::assertArrayHasKey( 'radius', $tokens );
@@ -42,6 +44,8 @@ final class DesignTokensTest extends TestCase {
 			'--cc-button-bg:',
 			'--cc-button-text:',
 			'--cc-button-hover-bg:',
+			'--cc-button-active-bg:',
+			'--cc-button-active-text:',
 			'--cc-button-radius:',
 			'--cc-button-font-weight:',
 		) as $token ) {
