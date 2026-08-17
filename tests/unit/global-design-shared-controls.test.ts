@@ -26,6 +26,12 @@ describe( 'shared dimension controls', () => {
 		expect( CSS ).toContain( 'grid-template-columns:minmax(0,1fr) 62px' );
 	} );
 
+	it( 'keeps spacing value and unit controls on the same row', () => {
+		expect( CSS ).toContain( '.cc-gd-space-list label:has(.cc-gd-unit-control)>.cc-gd-unit-control{grid-column:2;grid-row:1}' );
+		expect( CSS ).toContain( '>.cc-gd-unit-control>.cc-gd-unit-value{grid-column:1!important;grid-row:1!important' );
+		expect( CSS ).toContain( '>.cc-gd-unit-control>.cc-gd-unit-select{grid-column:2!important;grid-row:1!important' );
+	} );
+
 	it( 'keeps numeric-only settings honest by exposing px only', () => {
 		expect( JS ).toContain( "input.hasAttribute('data-number')||input.hasAttribute('data-breakpoint')" );
 		expect( JS ).toContain( "return['px']" );
