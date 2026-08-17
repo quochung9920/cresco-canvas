@@ -28,6 +28,9 @@ final class StudioGlobalDesignPro {
 	const COMPACT_HANDLE        = 'cresco-canvas-studio-global-design-compact';
 	const COMPACT_SCRIPT        = 'build/studio-global-design-compact.js';
 	const COMPACT_STYLE         = 'assets/css/studio-global-design-compact.css';
+	const FONT_HANDLE           = 'cresco-canvas-studio-global-design-fonts';
+	const FONT_SCRIPT           = 'build/studio-global-design-fonts.js';
+	const FONT_STYLE            = 'assets/css/studio-global-design-fonts.css';
 
 	public function register() {
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue' ), 1430 );
@@ -41,6 +44,7 @@ final class StudioGlobalDesignPro {
 		if ( ! WebsiteBuilderAsset::readable( self::WORKFLOW_GUARD_SCRIPT ) ) return;
 		if ( ! WebsiteBuilderAsset::readable( self::WORKFLOW_SCRIPT ) || ! WebsiteBuilderAsset::readable( self::WORKFLOW_STYLE ) ) return;
 		if ( ! WebsiteBuilderAsset::readable( self::COMPACT_SCRIPT ) || ! WebsiteBuilderAsset::readable( self::COMPACT_STYLE ) ) return;
+		if ( ! WebsiteBuilderAsset::readable( self::FONT_SCRIPT ) || ! WebsiteBuilderAsset::readable( self::FONT_STYLE ) ) return;
 
 		$style_deps = array( 'cresco-canvas-website-builder-studio' );
 		if ( wp_style_is( StudioUxPro::HANDLE, 'enqueued' ) ) $style_deps[] = StudioUxPro::HANDLE;
@@ -64,6 +68,12 @@ final class StudioGlobalDesignPro {
 			array( self::WORKFLOW_HANDLE ),
 			WebsiteBuilderAsset::version( self::COMPACT_STYLE )
 		);
+		wp_enqueue_style(
+			self::FONT_HANDLE,
+			WebsiteBuilderAsset::url( self::FONT_STYLE ),
+			array( self::COMPACT_HANDLE ),
+			WebsiteBuilderAsset::version( self::FONT_STYLE )
+		);
 
 		wp_enqueue_script(
 			self::WORKFLOW_GUARD_HANDLE,
@@ -84,11 +94,12 @@ final class StudioGlobalDesignPro {
 		);
 
 		$config = array(
-			'schema'       => 'cresco-global-design-pro/v1',
-			'settingsPath' => '/cresco-canvas/v1/settings',
-			'tokensPath'   => '/cresco-canvas/v1/design-tokens',
-			'resetPath'    => '/cresco-canvas/v1/settings/reset',
-			'postId'       => $context->post_id(),
+			'schema'          => 'cresco-global-design-pro/v1',
+			'settingsPath'    => '/cresco-canvas/v1/settings',
+			'tokensPath'      => '/cresco-canvas/v1/design-tokens',
+			'resetPath'       => '/cresco-canvas/v1/settings/reset',
+			'fontLibraryPath' => '/cresco-canvas/v1/font-library',
+			'postId'          => $context->post_id(),
 		);
 		wp_add_inline_script(
 			self::WORKFLOW_HANDLE,
@@ -110,6 +121,13 @@ final class StudioGlobalDesignPro {
 			WebsiteBuilderAsset::url( self::COMPACT_SCRIPT ),
 			array( self::HANDLE ),
 			WebsiteBuilderAsset::version( self::COMPACT_SCRIPT ),
+			true
+		);
+		wp_enqueue_script(
+			self::FONT_HANDLE,
+			WebsiteBuilderAsset::url( self::FONT_SCRIPT ),
+			array( self::COMPACT_HANDLE, 'wp-api-fetch' ),
+			WebsiteBuilderAsset::version( self::FONT_SCRIPT ),
 			true
 		);
 	}
