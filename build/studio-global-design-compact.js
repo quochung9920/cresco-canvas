@@ -11,7 +11,7 @@ function panel(){
  return panels.find(function(item){var title=item.querySelector('.cc-studio-panel-head strong');return text(title)==='Global Design'})||null;
 }
 function firstFamily(stack){return String(stack||'').split(',')[0].trim().replace(/^['"]|['"]$/g,'')||'Custom font'}
-function findFontByStack(stack){var family=firstFamily(stack).toLowerCase();return fonts.find(function(font){return String(font.family||'').toLowerCase()===family})||null}
+function findFontByStack(stack){var raw=String(stack||'').trim().toLowerCase(),family=firstFamily(stack).toLowerCase();return fonts.find(function(font){return String(font.stack||'').trim().toLowerCase()===raw})||fonts.find(function(font){return String(font.family||'').toLowerCase()===family})||null}
 function googleUrl(family){return 'https://fonts.googleapis.com/css2?family='+encodeURIComponent(String(family||'').trim()).replace(/%20/g,'+')+'&display=swap'}
 function ensureFontInDocument(doc,font){
  if(!doc||!font||font.category==='system')return;
