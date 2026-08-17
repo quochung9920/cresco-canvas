@@ -11,16 +11,38 @@ var LOAD_TIMEOUT=12000;
 var STALL_TIMEOUT=14000;
 
 function isObject(value){return !!value&&typeof value==='object'&&!Array.isArray(value)}
-function isGlobalSettings(value){
- return isObject(value)&&isObject(value.customColors)&&(
+function looksLikeGlobalSettings(value){
+ return isObject(value)&&(
   isObject(value.fluidTokens)||isObject(value.breakpoints)||
   Object.prototype.hasOwnProperty.call(value,'primary')||
-  Object.prototype.hasOwnProperty.call(value,'fontFamily')
+  Object.prototype.hasOwnProperty.call(value,'fontFamily')||
+  Object.prototype.hasOwnProperty.call(value,'radius')||
+  Object.prototype.hasOwnProperty.call(value,'containerMax')||
+  Object.prototype.hasOwnProperty.call(value,'contentMax')
  );
 }
+function customColorMap(value){
+ if(isObject(value))return value;
+ if(Array.isArray(value)){
+  var mapped={};
+  value.forEach(function(item,index){
+   if(!isObject(item))return;
+   var key=String(item.key||item.slug||item.name||('color-'+index)).toLowerCase().replace(/[^a-z0-9_-]+/g,'-').replace(/^-+|-+$/g,'');
+   var color=item.value||item.color;
+   if(key&&color!=null)mapped[key]=color;
+  });
+  return mapped;
+ }
+ return {};
+}
 function decorateCustomColors(settings){
- if(!isGlobalSettings(settings))return settings;
- var colors=settings.customColors;
+ if(!looksLikeGlobalSettings(settings))return settings;
+ var target=settings,colors=customColorMap(settings.customColors);
+ if(colors!==settings.customColors){
+  try{target.customColors=colors}catch(error){target=Object.assign({},settings,{customColors:colors})}
+  if(!isObject(target.customColors))target=Object.assign({},target,{customColors:colors});
+ }
+ colors=target.customColors;
  try{
   if(!Object.prototype.hasOwnProperty.call(colors,'length')){
    Object.defineProperty(colors,'length',{configurable:true,enumerable:false,get:function(){return Object.keys(this).length}});
@@ -32,19 +54,24 @@ function decorateCustomColors(settings){
    }});
   }
  }catch(error){}
- return settings;
+ return target;
 }
 function decorateParsed(value){
- if(isGlobalSettings(value))decorateCustomColors(value);
- if(isObject(value)&&isGlobalSettings(value.settings))decorateCustomColors(value.settings);
+ if(looksLikeGlobalSettings(value))value=decorateCustomColors(value);
+ if(isObject(value)&&looksLikeGlobalSettings(value.settings)){
+  var nested=decorateCustomColors(value.settings);
+  if(nested!==value.settings){
+   try{value.settings=nested}catch(error){value=Object.assign({},value,{settings:nested})}
+  }
+ }
  return value;
 }
 
 /*
- * The shipped Global Design v2 overview still consumes customColors as an
- * array while the canonical settings schema stores it as an object map. Keep
- * persistence unchanged and add only non-enumerable compatibility accessors to
- * parsed settings objects until the hand-authored build artifact is rebuilt.
+ * Global Design v2 still has one overview consumer that calls array helpers on
+ * customColors while the canonical schema stores a keyed object map. Keep the
+ * persistence contract object-shaped and expose non-enumerable compatibility
+ * helpers, including when customColors is omitted because the map is empty.
  */
 window.JSON.parse=function(text,reviver){return decorateParsed(nativeJsonParse.call(window.JSON,text,reviver))};
 
@@ -63,11 +90,11 @@ wp.apiFetch=function(options){
   return Promise.reject(error);
  }
  var request=base(options);
- if(method==='GET'&&(path===studio.sessionPath||/\/cresco-canvas\/v1\/settings$/.test(path))){
+ if(method==='GET'&&(path===studio.sessionPath||/\/cresco-canvas\/v1\/settings(?:\?|$)/.test(path))){
   request=withTimeout(request,path===studio.sessionPath?'Global Design session request':'Global Design settings request');
  }
  return Promise.resolve(request).then(function(result){
-  if(method==='GET'&&/\/cresco-canvas\/v1\/settings$/.test(path))return decorateParsed(result);
+  if(method==='GET'&&/\/cresco-canvas\/v1\/settings(?:\?|$)/.test(path))return decorateParsed(result);
   return result;
  });
 };
@@ -151,7 +178,7 @@ window.addEventListener('error',function(event){if(loaderHost()&&relatedRuntimeE
 window.addEventListener('unhandledrejection',function(event){if(loaderHost()&&relatedRuntimeError(event.reason))showLoadError(event.reason&&event.reason.message||'Global Design stopped while rendering.')});
 
 window.CrescoGlobalDesignLoadGuard={
- version:'1.1.0',
+ version:'1.2.0',
  decorateSettings:decorateCustomColors,
  cleanupPanel:cleanupGlobalPanel,
  showLoadError:showLoadError,
