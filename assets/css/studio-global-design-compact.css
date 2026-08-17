@@ -45,6 +45,37 @@
 .cc-global-design-pro.cc-gd-compact-controls .cc-gd-control-label strong{display:block;font-size:10px;color:var(--cc-color-text-subtle)}
 .cc-global-design-pro.cc-gd-compact-controls .cc-gd-control-label small{display:none}
 .cc-global-design-pro.cc-gd-compact-controls .cc-gd-compact-input{min-width:0!important;height:30px!important;min-height:30px!important;padding:4px 7px!important;font:9px/1.3 ui-monospace,SFMono-Regular,Menlo,monospace!important;text-overflow:ellipsis}
+.cc-global-design-pro.cc-gd-compact-controls .cc-gd-font-picker{position:relative;z-index:30;margin-bottom:5px}
+.cc-global-design-pro.cc-gd-compact-controls .cc-gd-font-trigger{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:8px!important;width:100%;min-height:40px!important;padding:6px 9px!important;border:1px solid var(--cc-color-border)!important;border-radius:7px!important;background:var(--cc-color-surface-raised)!important;text-align:left!important}
+.cc-global-design-pro.cc-gd-compact-controls .cc-gd-font-trigger>span:first-child{min-width:0}
+.cc-global-design-pro.cc-gd-compact-controls .cc-gd-font-trigger small,.cc-global-design-pro.cc-gd-compact-controls .cc-gd-font-trigger strong{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cc-global-design-pro.cc-gd-compact-controls .cc-gd-font-trigger small{font-size:8px;color:var(--cc-color-text-muted)}
+.cc-global-design-pro.cc-gd-compact-controls .cc-gd-font-trigger strong{margin-top:1px;font-size:10.5px;color:var(--cc-color-text)}
+.cc-global-design-pro.cc-gd-compact-controls .cc-gd-font-trigger>.dashicons{flex:0 0 auto;width:16px;height:16px;font-size:16px;color:var(--cc-color-text-muted);transition:transform .16s ease}
+.cc-global-design-pro.cc-gd-compact-controls .cc-gd-font-picker.is-open .cc-gd-font-trigger{border-color:var(--cc-color-accent)!important;box-shadow:0 0 0 2px color-mix(in srgb,var(--cc-color-accent) 13%,transparent)!important}
+.cc-global-design-pro.cc-gd-compact-controls .cc-gd-font-picker.is-open .cc-gd-font-trigger>.dashicons{transform:rotate(180deg)}
+.cc-global-design-pro.cc-gd-compact-controls .cc-gd-font-popover{display:none;position:absolute;z-index:100;top:calc(100% + 5px);left:0;right:0;max-height:380px;padding:7px;border:1px solid var(--cc-color-border);border-radius:9px;background:var(--cc-color-surface-raised);box-shadow:0 16px 40px rgba(15,23,42,.18)}
+.cc-global-design-pro.cc-gd-compact-controls .cc-gd-font-picker.is-open .cc-gd-font-popover{display:block}
+.cc-global-design-pro.cc-gd-compact-controls .cc-gd-font-search{position:relative;margin-bottom:6px}
+.cc-global-design-pro.cc-gd-compact-controls .cc-gd-font-search>.dashicons{position:absolute;left:8px;top:50%;z-index:1;width:14px;height:14px;margin-top:-7px;font-size:14px;color:var(--cc-color-text-muted);pointer-events:none}
+.cc-global-design-pro.cc-gd-compact-controls .cc-gd-font-search input{height:32px!important;padding-left:27px!important}
+.cc-global-design-pro.cc-gd-compact-controls .cc-gd-font-categories{display:flex;gap:3px;overflow-x:auto;margin-bottom:5px;padding-bottom:1px;scrollbar-width:none}
+.cc-global-design-pro.cc-gd-compact-controls .cc-gd-font-categories::-webkit-scrollbar{display:none}
+.cc-global-design-pro.cc-gd-compact-controls .cc-gd-font-categories button{flex:0 0 auto;min-height:24px!important;padding:2px 6px!important;border-radius:999px!important;font-size:8px!important;white-space:nowrap}
+.cc-global-design-pro.cc-gd-compact-controls .cc-gd-font-categories button.is-active{border-color:var(--cc-color-accent)!important;background:var(--cc-color-accent-wash)!important;color:var(--cc-color-accent)!important}
+.cc-global-design-pro.cc-gd-compact-controls .cc-gd-font-meta{padding:2px 3px 5px;color:var(--cc-color-text-muted);font-size:8px}
+.cc-global-design-pro.cc-gd-compact-controls .cc-gd-font-results{display:grid;gap:2px;max-height:275px;overflow-y:auto;overscroll-behavior:contain;padding-right:2px}
+.cc-global-design-pro.cc-gd-compact-controls .cc-gd-font-option{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:8px!important;width:100%;min-height:36px!important;padding:5px 7px!important;border-color:transparent!important;background:transparent!important;text-align:left!important}
+.cc-global-design-pro.cc-gd-compact-controls .cc-gd-font-option:hover,.cc-global-design-pro.cc-gd-compact-controls .cc-gd-font-option:focus-visible{background:var(--cc-color-surface-hover)!important;border-color:var(--cc-color-border)!important}
+.cc-global-design-pro.cc-gd-compact-controls .cc-gd-font-option span:first-child{min-width:0}
+.cc-global-design-pro.cc-gd-compact-controls .cc-gd-font-option strong,.cc-global-design-pro.cc-gd-compact-controls .cc-gd-font-option small{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cc-global-design-pro.cc-gd-compact-controls .cc-gd-font-option strong{font-size:10px;color:var(--cc-color-text)}
+.cc-global-design-pro.cc-gd-compact-controls .cc-gd-font-option small{margin-top:1px;font-size:8px;color:var(--cc-color-text-muted)}
+.cc-global-design-pro.cc-gd-compact-controls .cc-gd-font-option>.dashicons{width:14px;height:14px;font-size:14px;color:var(--cc-color-text-muted)}
+.cc-global-design-pro.cc-gd-compact-controls .cc-gd-font-empty,.cc-global-design-pro.cc-gd-compact-controls .cc-gd-font-more{padding:12px 7px;color:var(--cc-color-text-muted);font-size:9px;line-height:1.4;text-align:center}
+.cc-global-design-pro.cc-gd-compact-controls .cc-gd-font-custom{margin-top:4px}
+.cc-global-design-pro.cc-gd-compact-controls .cc-gd-font-custom summary{cursor:pointer;color:var(--cc-color-text-muted);font-size:8.5px;user-select:none}
+.cc-global-design-pro.cc-gd-compact-controls .cc-gd-font-custom input{margin-top:5px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace!important;font-size:8.5px!important}
 .cc-global-design-pro.cc-gd-compact-controls .cc-gd-color-grid{gap:5px}
 .cc-global-design-pro.cc-gd-compact-controls .cc-gd-color-card{display:grid;grid-template-columns:32px minmax(0,1fr) auto;grid-template-rows:auto auto;align-items:center;gap:6px 7px;min-width:0;padding:7px;border-radius:7px}
 .cc-global-design-pro.cc-gd-compact-controls .cc-gd-color-card>div:first-child{display:contents}
