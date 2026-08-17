@@ -19,7 +19,8 @@ describe( 'shared dimension controls', () => {
 
 	it( 'uses value plus unit selectors for every editable Global Design dimension', () => {
 		expect( JS ).toContain( "ALL_UNITS=['px','%','em','rem','vw','vh','vmin','vmax','ch']" );
-		expect( JS ).toContain( "input[data-fluid],input[data-number],input[data-breakpoint]" );
+		expect( JS ).toContain( "input[data-fluid],input[data-number],input[data-breakpoint],input[data-dimension]" );
+		expect( JS ).toContain( 'input.dataset.dimension' );
 		expect( JS ).toContain( "unit.appendChild(option('custom','Custom'))" );
 		expect( JS ).toContain( "proxy.type=custom?'text':'number'" );
 		expect( JS ).toContain( "placeholder=custom?'clamp(), calc(), min(), max()':'0'" );
@@ -30,6 +31,13 @@ describe( 'shared dimension controls', () => {
 		expect( CSS ).toContain( '.cc-gd-space-list label:has(.cc-gd-unit-control)>.cc-gd-unit-control{grid-column:2;grid-row:1}' );
 		expect( CSS ).toContain( '>.cc-gd-unit-control>.cc-gd-unit-value{grid-column:1!important;grid-row:1!important' );
 		expect( CSS ).toContain( '>.cc-gd-unit-control>.cc-gd-unit-select{grid-column:2!important;grid-row:1!important' );
+	} );
+
+	it( 'uses the same compact inspector pattern for Global Button dimensions', () => {
+		expect( CSS ).toContain( 'repeat(6,minmax(0,1fr))' );
+		expect( CSS ).toContain( '.cc-gd-buttons .cc-gd-button-group' );
+		expect( CSS ).toContain( '.cc-gd-buttons .cc-gd-field .cc-gd-unit-control{grid-column:2' );
+		expect( CSS ).toContain( '.cc-gd-button-color input[type=color]' );
 	} );
 
 	it( 'keeps numeric-only settings honest by exposing px only', () => {
