@@ -29,6 +29,7 @@ final class DesignTokens {
 		);
 		foreach ( (array) ( $settings['customColors'] ?? array() ) as $slug => $color ) $colors[ 'custom-' . $slug ] = $color;
 		$fluid = (array) ( $settings['fluidTokens'] ?? array() );
+		$button = (array) ( $settings['button'] ?? array() );
 		$space = array(
 			'2xs' => $fluid['space2xs'], 'xs' => $fluid['spaceXs'], 'sm' => $fluid['spaceSm'],
 			'md' => $fluid['spaceMd'], 'lg' => $fluid['spaceLg'], 'xl' => $fluid['spaceXl'],
@@ -73,9 +74,23 @@ final class DesignTokens {
 				'contentMax' => sprintf( '%dpx', (int) $settings['contentMax'] ),
 			),
 			'containers' => $containers,
+			// Legacy radius tokens remain resolvable for existing documents even though
+			// the generic Radius / Shape editor has been removed from Global Design.
 			'radius' => array(
 				'base' => sprintf( '%dpx', (int) $settings['radius'] ),
 				'sm' => $fluid['radiusSm'], 'md' => $fluid['radiusMd'], 'lg' => $fluid['radiusLg'], 'pill' => '9999px',
+			),
+			'button' => array(
+				'background' => (string) ( $button['background'] ?? $settings['primary'] ),
+				'text' => (string) ( $button['text'] ?? '#ffffff' ),
+				'hoverBackground' => (string) ( $button['hoverBackground'] ?? $settings['primary'] ),
+				'hoverText' => (string) ( $button['hoverText'] ?? '#ffffff' ),
+				'borderColor' => (string) ( $button['borderColor'] ?? 'transparent' ),
+				'borderWidth' => (string) ( $button['borderWidth'] ?? '0px' ),
+				'radius' => (string) ( $button['radius'] ?? $fluid['radiusMd'] ),
+				'height' => (string) ( $button['height'] ?? $fluid['controlHeight'] ),
+				'paddingInline' => (string) ( $button['paddingInline'] ?? $fluid['buttonPadding'] ),
+				'fontWeight' => (string) ( $button['fontWeight'] ?? '600' ),
 			),
 			'controls' => array( 'height' => $fluid['controlHeight'], 'buttonPadding' => $fluid['buttonPadding'] ),
 			'breakpoints' => (array) $settings['breakpoints'],
@@ -114,6 +129,11 @@ final class DesignTokens {
 			'--cc-container-sm' => $t['containers']['sm'], '--cc-container-md' => $t['containers']['md'], '--cc-container-lg' => $t['containers']['lg'],
 			'--cc-radius' => $t['radius']['base'], '--cc-radius-sm' => $t['radius']['sm'],
 			'--cc-radius-md' => $t['radius']['md'], '--cc-radius-lg' => $t['radius']['lg'], '--cc-radius-pill' => $t['radius']['pill'],
+			'--cc-button-bg' => $t['button']['background'], '--cc-button-text' => $t['button']['text'],
+			'--cc-button-hover-bg' => $t['button']['hoverBackground'], '--cc-button-hover-text' => $t['button']['hoverText'],
+			'--cc-button-border' => $t['button']['borderColor'], '--cc-button-border-width' => $t['button']['borderWidth'],
+			'--cc-button-radius' => $t['button']['radius'], '--cc-button-height' => $t['button']['height'],
+			'--cc-button-padding-x' => $t['button']['paddingInline'], '--cc-button-font-weight' => $t['button']['fontWeight'],
 			'--cc-control-height' => $t['controls']['height'], '--cc-button-padding' => $t['controls']['buttonPadding'],
 			'--cc-breakpoint-mobile' => $t['breakpoints']['mobile'] . 'px', '--cc-breakpoint-tablet' => $t['breakpoints']['tablet'] . 'px',
 			'--cc-breakpoint-laptop' => $t['breakpoints']['laptop'] . 'px', '--cc-breakpoint-desktop' => $t['breakpoints']['desktop'] . 'px',
