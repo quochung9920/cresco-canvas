@@ -4,7 +4,14 @@ import vm from 'node:vm';
 
 const root = process.cwd();
 const errors = [];
-const read = ( relative ) => fs.readFileSync( path.join( root, relative ), 'utf8' );
+// The repository has no `.gitattributes` and Git for Windows checks out with
+// `core.autocrlf=true`, so every file here is CRLF on a Windows clone. The
+// registration token below is matched across a line break and the runtime
+// heredoc is matched with a `\n`-anchored regex, both of which fail on CRLF for
+// reasons that have nothing to do with the code being checked. Normalise on
+// read so this gate reports the same result on every platform.
+const read = ( relative ) =>
+	fs.readFileSync( path.join( root, relative ), 'utf8' ).replace( /\r\n/g, '\n' );
 const expect = ( source, token, label ) => {
 	if ( ! source.includes( token ) ) errors.push( `${ label } missing ${ token }` );
 };

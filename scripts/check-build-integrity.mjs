@@ -30,6 +30,19 @@ for ( const [ output, source ] of Object.entries( manifest.generated ) ) {
 		await access( path.join( root, 'build', output ) );
 	} catch ( error ) {
 		errors.push( `Generated runtime ownership is incomplete for build/${ output } <- ${ source }: ${ error.message }` );
+		continue;
+	}
+	// A generated entry sourced from `runtime-src/build/` is copied verbatim by
+	// scripts/build-runtime.mjs, so it needs the same parity as a reviewed entry.
+	// Existence alone let build/standalone-ai-bridge.js be edited directly and
+	// drift a full feature ahead of its source; the next `npm run build` would
+	// have silently reverted the shipped runtime. Entries owned by webpack are
+	// compiled, not copied, so they are exempt.
+	if ( ! source.startsWith( 'runtime-src/build/' ) ) continue;
+	const sourceBytes = await readFile( path.join( root, source ) );
+	const outputBytes = await readFile( path.join( root, 'build', output ) );
+	if ( hash( sourceBytes ) !== hash( outputBytes ) ) {
+		errors.push( `Generated runtime differs from its copied source: build/${ output } != ${ source }` );
 	}
 }
 

@@ -39,8 +39,12 @@ for ( const token of [
 	"'CSS default'",
 	"'Default / cascade'",
 	"'Inherited: '",
-	"'Empty = no CSS override.'",
-	"'Reset ↶ = CSS default (initial).'",
+	// Asserted without the surrounding quotes: the help sentence is built by
+	// concatenation around a device/state-dependent middle clause, so each half
+	// carries a padding space inside its literal. The wording is the contract,
+	// not the string-literal boundary.
+	'Empty = no CSS override.',
+	'Reset ↶ = CSS default (initial).',
 	"data-cresco-style-source",
 	"cresco:studio-session-change",
 ] ) expect( source, token );

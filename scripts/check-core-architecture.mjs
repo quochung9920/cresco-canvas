@@ -71,12 +71,25 @@ for ( const token of [ 'metaKey||e.ctrlKey', 'crescoBuilderArchitecture', 'addCo
 const contractRegistry = await read( 'includes/AI/ContractRegistry.php' );
 if ( ! contractRegistry.includes( 'WidgetCatalog::all()' ) ) errors.push( 'AI ContractRegistry must use the canonical Website Builder widget catalog.' );
 if ( contractRegistry.includes( 'SessionManager::widget_catalog()' ) ) errors.push( 'AI ContractRegistry regressed to the legacy Session widget catalog.' );
-for ( const token of [ 'validate_states_map', 'WebsiteBuilder::sanitize_custom_css', "'json' === $kind", "'bool' === $kind" ] ) {
+// Custom CSS sanitising moved out of the WebsiteBuilder monolith into
+// `ScopedCss`, which is the dependency direction this document asks for. The
+// boundary still has to exist -- only the class that owns it changed.
+for ( const token of [ 'validate_states_map', 'ScopedCss::sanitize', "'json' === $kind", "'bool' === $kind" ] ) {
 	if ( ! contractRegistry.includes( token ) ) errors.push( `AI ContractRegistry missing extended contract support ${ token }` );
 }
 
+// Likewise, PatchValidator sanitises through `WebsiteBuilderSessionSanitizer`,
+// which strips and separately validates scoped Custom CSS before delegating to
+// `WebsiteBuilder::sanitize_session`. Checksums belong to CommandBus and
+// TransactionManager, not to a pure validator, so requiring `Document::checksum`
+// here asserted a layering violation rather than preventing one. What must hold
+// is that both the incoming session and the resulting candidate are sanitised.
 const patchValidator = await read( 'includes/AI/PatchValidator.php' );
-for ( const token of [ 'WebsiteBuilder::sanitize_session', 'Document::checksum', 'WebsiteBuilder::sanitize_custom_css' ] ) {
+const sanitiseCalls = ( patchValidator.match( /WebsiteBuilderSessionSanitizer::sanitize_session/g ) || [] ).length;
+if ( sanitiseCalls < 2 ) {
+	errors.push( `PatchValidator must sanitise both the current session and the patched candidate; found ${ sanitiseCalls } call(s).` );
+}
+for ( const token of [ 'validate_custom_css_map', 'cresco_ai_patch_scope_escape' ] ) {
 	if ( ! patchValidator.includes( token ) ) errors.push( `PatchValidator missing canonical boundary ${ token }` );
 }
 if ( patchValidator.includes( 'SessionManager::sanitize_session' ) ) errors.push( 'PatchValidator regressed to legacy Session sanitization.' );

@@ -47,35 +47,22 @@ const asset = await readFile(
 const packaging = await readFile( 'scripts/build-release.mjs', 'utf8' );
 const sessionSpec = await readFile( 'docs/CRESCO_SESSION_V1.md', 'utf8' );
 
-const requiredVisualEditorTokens = [
-	"'sessionPath'",
-	"'validatePath'",
-	"'aiContextPath'",
-	"'historyPath'",
-	"'pageSettingsPath'",
-	"'widgetCatalog' => SessionManager::widget_catalog()",
-	'use CrescoCanvas\\Session\\SessionManager;',
-	'build/standalone-visual-editor.js',
-	'build/standalone-inspector-v2.js',
-	'build/widget-control-enhancements.js',
-	'build/standalone-ui-v3.js',
-	'build/standalone-page-settings.js',
-	'build/standalone-history.js',
-	'build/global-config-import.js',
-	'build/viewport-shell.js',
-	'assets/css/standalone-visual-editor.css',
-	'assets/css/standalone-inspector-v2.css',
-	'assets/css/widget-control-enhancements.css',
-	'assets/css/standalone-ui-v3.css',
-	'assets/css/standalone-page-settings.css',
-	'assets/css/standalone-history.css',
-	'assets/css/global-config-import.css',
-	'assets/css/viewport-shell.css',
-	'GlobalStyles::css',
-];
-for ( const token of requiredVisualEditorTokens ) {
+// `VisualEditor` used to build the standalone runtime's settings payload and
+// enqueue its scripts and styles, and this gate listed every one of those
+// tokens. The standalone runtime was retired: the class now owns only routing
+// and the Studio loading/fatal shell, and WebsiteBuilder,
+// WebsiteBuilderCompatibility and WebsiteBuilderRuntimeOwner dequeue and
+// deregister the old handles. Asserting the retired payload made this gate fail
+// on every run, which is how a syntax error reached `build/` unnoticed. What
+// still has to hold is that the shell did not quietly regain a second runtime.
+for ( const token of [ 'build/website-builder-studio.js', 'assets/css/website-builder-studio.css' ] ) {
 	if ( ! visualEditor.includes( token ) ) {
-		errors.push( `VisualEditor is missing ${ token }` );
+		errors.push( `VisualEditor no longer requires the canonical Studio shell asset ${ token }` );
+	}
+}
+for ( const token of [ 'build/standalone-visual-editor.js', 'standalone-content-bootstrap.js', 'BlockEditorProvider' ] ) {
+	if ( visualEditor.includes( token ) ) {
+		errors.push( `VisualEditor must not mount a retired editor runtime: ${ token }` );
 	}
 }
 
@@ -317,12 +304,6 @@ for ( const token of [
 	if ( ! sessionSpec.includes( token ) ) {
 		errors.push( `Cresco Session specification is missing: ${ token }` );
 	}
-}
-
-if ( visualEditor.includes( 'standalone-content-bootstrap.js' ) ) {
-	errors.push(
-		'VisualEditor still loads the retired standalone content bootstrap.'
-	);
 }
 
 if ( errors.length ) {

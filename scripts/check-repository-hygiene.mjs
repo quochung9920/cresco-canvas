@@ -1,5 +1,6 @@
 import { access, readFile, readdir } from 'node:fs/promises';
 import path from 'node:path';
+import { assetFiles, blockFiles, buildFiles } from './release-files.mjs';
 
 const root = process.cwd();
 const errors = [];
@@ -59,8 +60,30 @@ for ( const file of retiredEditorAssets ) {
 	if ( await exists( file ) ) errors.push( `Retired editor asset is still checked in: ${ file }` );
 }
 
-const visualEditor = await readFile( 'includes/Admin/VisualEditor.php', 'utf8' );
 const packaging = await readFile( 'scripts/build-release.mjs', 'utf8' );
+
+// Every shipped runtime path named by PHP, mapped back to the file that names
+// it. `VisualEditor` used to enqueue the standalone runtime and this gate
+// asserted that class by name; the runtime moved to WebsiteBuilderRuntimeOwner
+// and the hard-coded owner turned into a permanent false failure. Ownership is
+// what matters, not which class holds it, so resolve the owner from source.
+async function collectPhpFiles( directory, files = [] ) {
+	for ( const entry of await readdir( path.join( root, directory ), { withFileTypes: true } ) ) {
+		const relative = `${ directory }/${ entry.name }`;
+		if ( entry.isDirectory() ) await collectPhpFiles( relative, files );
+		else if ( entry.name.endsWith( '.php' ) ) files.push( relative );
+	}
+	return files;
+}
+
+const referencedAssets = new Map();
+for ( const file of await collectPhpFiles( 'includes' ) ) {
+	const source = await readFile( path.join( root, file ), 'utf8' );
+	for ( const match of source.matchAll( /'((?:build|assets)\/[A-Za-z0-9._/-]+\.(?:js|css|php))'/g ) ) {
+		if ( ! referencedAssets.has( match[ 1 ] ) ) referencedAssets.set( match[ 1 ], [] );
+		referencedAssets.get( match[ 1 ] ).push( file );
+	}
+}
 
 for ( const file of activeStandaloneAssets ) {
 	if ( file === 'assets/css/container-width.css' ) continue;
@@ -69,11 +92,26 @@ for ( const file of activeStandaloneAssets ) {
 	}
 }
 
-for ( const file of activeStandaloneAssets.filter( ( file ) => file.startsWith( 'build/' ) || file.startsWith( 'assets/css/standalone' ) || file.includes( 'global-config-import' ) || file.includes( 'viewport-shell' ) ) ) {
-	if ( file.endsWith( '.asset.php' ) ) continue;
-	if ( ! visualEditor.includes( file ) ) {
-		errors.push( `VisualEditor does not own active asset ${ file }` );
-	}
+// This gate used to require `VisualEditor` to enqueue each standalone asset by
+// path. That class no longer mounts a runtime, and no class replaced it:
+// WebsiteBuilder, WebsiteBuilderCompatibility and WebsiteBuilderRuntimeOwner
+// all *dequeue and deregister* these handles so Studio is the only editor
+// presentation. The files are therefore retired artifacts that are still
+// checked in and still packaged. Removing them is a separate, verified change
+// -- they stay listed here so packaging stays deliberate rather than silent,
+// but no ownership is asserted, because asserting it is what kept this gate
+// permanently red.
+
+// A strict allowlist only protects the release if everything the plugin
+// actually enqueues is on it. Studio's Global Design Pro, UX Pro, Color
+// Harmony, Dimension Controls and Widget State Tabs runtimes were all enqueued
+// unconditionally while absent from the ZIP, so they worked in a source
+// checkout and silently vanished in a packaged install.
+const packagedAssets = new Set( [ ...assetFiles, ...blockFiles, ...buildFiles ] );
+for ( const [ file, owners ] of referencedAssets ) {
+	if ( packagedAssets.has( file ) ) continue;
+	if ( ! ( await exists( file ) ) ) continue; // Guarded reference to a retired runtime.
+	errors.push( `Enqueued asset is missing from the release allowlist: ${ file } (enqueued by ${ [ ...new Set( owners ) ].join( ', ' ) })` );
 }
 
 for ( const file of retiredEditorAssets ) {
@@ -94,4 +132,4 @@ if ( errors.length ) {
 	process.exit( 1 );
 }
 
-process.stdout.write( 'Repository hygiene verified: active standalone assets are owned and retired editor artifacts are absent.\n' );
+process.stdout.write( `Repository hygiene verified: every enqueued asset (${ referencedAssets.size } referenced from includes/) is on the release allowlist, retired editor artifacts are absent, and no source maps are checked in.\n` );

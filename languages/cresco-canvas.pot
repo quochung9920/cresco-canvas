@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Cresco Canvas\n"
 "Report-Msgid-Bugs-To: https://github.com/quochung9920/cresco-canvas\n"
-"POT-Creation-Date: 2026-08-15 08:54:04+0000\n"
+"POT-Creation-Date: 2026-08-17 15:32:07+0000\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -49,12 +49,70 @@ msgstr ""
 msgid "Loading Cresco Studio…"
 msgstr ""
 
-#: includes/AI/AIInterchange.php:171
+#: includes/AI/AIInterchange.php:164
 msgid "The exported scope renders no content."
 msgstr ""
 
-#: includes/AI/AIInterchange.php:223
+#: includes/AI/AIInterchange.php:212
 msgid "AI result schema is not supported."
+msgstr ""
+
+#: includes/AI/AIInterchangeHardening.php:120
+msgid "AI result must explicitly declare cresco-patch/v1 or cresco-session/v1."
+msgstr ""
+
+#: includes/AI/AIInterchangeHardening.php:137
+msgid "A scoped AI task must return a cresco-patch/v1 result. A full Session would widen the edit to the whole document."
+msgstr ""
+
+#: includes/AI/AIInterchangeHardening.php:149
+msgid "AI result target no longer matches the target that was exported. Re-export the intended target instead of widening the patch."
+msgstr ""
+
+#: includes/AI/AIInterchangeHardening.php:162
+#: includes/Builder/WebsiteBuilderInterchange.php:158
+msgid "Expected a cresco-interchange/v1 package."
+msgstr ""
+
+#: includes/AI/AIInterchangeHardening.php:167
+msgid "The interchange package declares an unsupported scope."
+msgstr ""
+
+#: includes/AI/AIInterchangeHardening.php:171
+msgid "The interchange package target does not match its exported scope."
+msgstr ""
+
+#: includes/AI/AIInterchangeHardening.php:178
+msgid "A widget, subtree, or selection package cannot replace the entire page. Export the whole page or choose a widget destination."
+msgstr ""
+
+#: includes/AI/AIInterchangeHardening.php:215
+msgid "AI target scope is missing."
+msgstr ""
+
+#: includes/AI/AIInterchangeHardening.php:233
+msgid "Portable Session content must be an object."
+msgstr ""
+
+#: includes/AI/AIInterchangeHardening.php:235
+msgid "Portable Session content uses an unsupported schema."
+msgstr ""
+
+#: includes/AI/AIInterchangeHardening.php:236
+msgid "Portable Session content uses an unsupported version."
+msgstr ""
+
+#: includes/AI/AIInterchangeHardening.php:239
+msgid "Portable widget content must be an object."
+msgstr ""
+
+#: includes/AI/AIInterchangeHardening.php:240
+msgid "Portable selection content must be an array."
+msgstr ""
+
+#: includes/AI/AIInterchangeHardening.php:241
+#: includes/Builder/WebsiteBuilderInterchange.php:161
+msgid "The interchange package has no portable content."
 msgstr ""
 
 #: includes/AI/AIResultNormalizer.php:101
@@ -85,93 +143,105 @@ msgstr ""
 msgid "AI result is not valid JSON: %s"
 msgstr ""
 
-#: includes/AI/ContextBuilder.php:46
-#: includes/AI/ContextBuilderV2.php:83
+#: includes/AI/ContextBuilder.php:45
+#: includes/AI/ContextBuilderV2.php:82
 msgid "Unsupported AI context mode."
 msgstr ""
 
-#: includes/AI/ContextBuilderV2.php:78
+#: includes/AI/ContextBuilderV2.php:77
 msgid "Unsupported AI context purpose."
 msgstr ""
 
-#: includes/AI/OneShotPrompt.php:100
-msgid "Keep baseChecksum and target exactly as given."
+#: includes/AI/OneShotPrompt.php:18
+msgid "Improve this design. Keep the existing copy and make it responsive."
 msgstr ""
 
-#: includes/AI/OneShotPrompt.php:101
-msgid "Do not wrap the answer in Markdown fences. Do not explain the answer."
-msgstr ""
-
-#: includes/AI/OneShotPrompt.php:36
-msgid "Improve this design. Keep the existing copy."
-msgstr ""
-
-#: includes/AI/OneShotPrompt.php:84
+#: includes/AI/OneShotPrompt.php:54
 msgid "the whole page"
 msgstr ""
 
-#: includes/AI/OneShotPrompt.php:85
+#: includes/AI/OneShotPrompt.php:55
 msgid "the %1$s \"%2$s\""
 msgstr ""
 
-#: includes/AI/OneShotPrompt.php:88
+#: includes/AI/OneShotPrompt.php:58
 msgid "Treat the Cresco package below as authoritative."
 msgstr ""
 
-#: includes/AI/OneShotPrompt.php:89
-msgid "If reference images are attached to this message, use them as the intended visual direction."
+#: includes/AI/OneShotPrompt.php:59
+msgid "If reference images are attached to this AI message, use them as the intended visual direction."
 msgstr ""
 
-#: includes/AI/OneShotPrompt.php:90
-msgid "Make reasonable design decisions. Do not ask follow-up questions."
+#: includes/AI/OneShotPrompt.php:60
+msgid "Make reasonable design decisions without asking follow-up questions."
 msgstr ""
 
-#: includes/AI/OneShotPrompt.php:91
-msgid "Use only widget types listed in scopePackage.contracts.creationCatalog."
+#: includes/AI/OneShotPrompt.php:61
+msgid "Prefer native widget props and structured styles; use responsive styles and states next; use scoped Custom CSS only for capabilities native controls cannot express."
 msgstr ""
 
-#: includes/AI/OneShotPrompt.php:92
-msgid "Use only props, structured style properties, responsive devices, states and selector parts those contracts declare."
+#: includes/AI/OneShotPrompt.php:62
+msgid "Never invent widget types, props, structured style properties, responsive devices, states, or selector parts."
 msgstr ""
 
-#: includes/AI/OneShotPrompt.php:93
-msgid "Prefer native props and structured styles. Use scoped Custom CSS only where native controls cannot express the result."
+#: includes/AI/OneShotPrompt.php:63
+msgid "Use design tokens from scopePackage.designSystem.available whenever they express the requested design intent."
 msgstr ""
 
-#: includes/AI/OneShotPrompt.php:94
-msgid "Design tokens available for authoring are in scopePackage.designSystem.available. Preserve token references such as {colors.primary} where they already express intent."
+#: includes/AI/OneShotPrompt.php:64
+msgid "Base styles belong in node.style. Responsive override bags may use only the devices declared by scopePackage.capabilities.responsiveDevices."
 msgstr ""
 
-#: includes/AI/OneShotPrompt.php:97
-msgid "Base styles go in node.style. Only the devices in capabilities.responsiveDevices may appear under node.responsive; a narrower device inherits every wider one."
-msgstr ""
-
-#: includes/AI/OneShotPrompt.php:98
+#: includes/AI/OneShotPrompt.php:65
 msgid "Stay strictly inside %s. Operations outside it are rejected."
 msgstr ""
 
-#: includes/AI/OneShotPrompt.php:99
-msgid "Return ONLY one %s object, matching returnContract.template with operations filled in."
+#: includes/AI/OneShotPrompt.php:66
+msgid "Return ONLY one %s object matching returnContract.template with operations filled in."
 msgstr ""
 
-#: includes/AI/PatchApplier.php:127
-msgid "Unsupported Cresco Patch operation."
+#: includes/AI/OneShotPrompt.php:67
+msgid "Keep returnContract.template.target exactly as provided. Do not add a checksum."
 msgstr ""
 
-#: includes/AI/PatchApplier.php:167
-msgid "A Cresco Patch operation references a node that does not exist."
+#: includes/AI/OneShotPrompt.php:68
+msgid "Do not wrap the answer in Markdown fences and do not explain the answer."
 msgstr ""
 
-#: includes/AI/PatchApplier.php:94
+#: includes/AI/OneShotPrompt.php:75
+msgid "Use scopePackage.designIntelligence as the coherent recommended design direction for pattern, hierarchy, palette, typography, spacing, motion, widget choice and anti-pattern avoidance."
+msgstr ""
+
+#: includes/AI/OneShotPrompt.php:76
+msgid "Design intelligence is guidance, not authority to widen scope or invent capabilities. Explicit user instructions, reference-image intent and Cresco contracts remain higher priority."
+msgstr ""
+
+#: includes/AI/OneShotPrompt.php:85
+msgid "For optimized v3 packages, author new nodes only from full contracts in scopePackage.contracts.recommended or current. scopePackage.contracts.catalogIndex is discovery metadata, not permission to guess a contract."
+msgstr ""
+
+#: includes/AI/OneShotPrompt.php:86
+msgid "Use scopePackage.scene and scopePackage.visual as read-only surrounding context. They help you judge the design but never widen the editable target."
+msgstr ""
+
+#: includes/AI/OneShotPrompt.php:87
+msgid "Use scopePackage.visualFacts as semantic evidence only; measuredGeometry=false means exact browser boxes were not captured and must not be invented."
+msgstr ""
+
+#: includes/AI/PatchApplier.php:100
 msgid "A node cannot be moved inside itself or one of its descendants."
 msgstr ""
 
-#: includes/AI/PatchValidator.php:197
-msgid "Cresco Patch references a node that does not exist."
+#: includes/AI/PatchApplier.php:133
+msgid "Unsupported Cresco Patch operation."
 msgstr ""
 
-#: includes/AI/PatchValidator.php:31
-msgid "This AI patch was created from a different Cresco Session. Export fresh context before applying it."
+#: includes/AI/PatchApplier.php:173
+msgid "A Cresco Patch operation references a node that does not exist."
+msgstr ""
+
+#: includes/AI/PatchValidator.php:198
+msgid "Cresco Patch references a node that does not exist."
 msgstr ""
 
 #: includes/AI/ScopeResolver.php:209
@@ -186,102 +256,77 @@ msgstr ""
 msgid "Selection export requires at least one node ID."
 msgstr ""
 
-#: includes/AI/VisualContext.php:115
+#: includes/AI/VisualContext.php:99
 msgid "Cresco Canvas export"
 msgstr ""
 
-#: includes/Builder/WebsiteBuilder.php:158
+#: includes/Builder/WebsiteBuilder.php:159
 msgid "The Website Builder document could not be encoded."
 msgstr ""
 
-#: includes/Builder/WebsiteBuilder.php:240
+#: includes/Builder/WebsiteBuilder.php:241
 #: includes/Builder/WebsiteBuilderCorePlatform.php:307
 msgid "Component title and node are required."
 msgstr ""
 
-#: includes/Builder/WebsiteBuilder.php:245
+#: includes/Builder/WebsiteBuilder.php:246
 #: includes/Builder/WebsiteBuilderCorePlatform.php:311
 msgid "Component could not be encoded."
 msgstr ""
 
-#: includes/Builder/WebsiteBuilder.php:260
+#: includes/Builder/WebsiteBuilder.php:261
 #: includes/Builder/WebsiteBuilderCorePlatform.php:326
 msgid "Component could not be moved to Trash."
 msgstr ""
 
-#: includes/Builder/WebsiteBuilder.php:390
+#: includes/Builder/WebsiteBuilder.php:391
 msgid "Website Builder document must be a JSON object."
 msgstr ""
 
-#: includes/Builder/WebsiteBuilder.php:391
+#: includes/Builder/WebsiteBuilder.php:392
 #: includes/Session/SessionManager.php:183
 msgid "Unsupported Cresco Session schema."
 msgstr ""
 
-#: includes/Builder/WebsiteBuilder.php:392
+#: includes/Builder/WebsiteBuilder.php:393
 #: includes/Session/SessionManager.php:184
 msgid "Unsupported Cresco Session version."
 msgstr ""
 
-#: includes/Builder/WebsiteBuilder.php:401
+#: includes/Builder/WebsiteBuilder.php:402
 msgid "Website Builder nesting is too deep."
 msgstr ""
 
-#: includes/Builder/WebsiteBuilder.php:402
+#: includes/Builder/WebsiteBuilder.php:403
 msgid "Website Builder nodes must be an array."
 msgstr ""
 
-#: includes/Builder/WebsiteBuilder.php:406
+#: includes/Builder/WebsiteBuilder.php:407
 msgid "Every Website Builder node must be an object."
 msgstr ""
 
-#: includes/Builder/WebsiteBuilder.php:407
+#: includes/Builder/WebsiteBuilder.php:408
 msgid "Website Builder document contains too many widgets."
 msgstr ""
 
-#: includes/Builder/WebsiteBuilder.php:409
+#: includes/Builder/WebsiteBuilder.php:410
 msgid "Unknown Website Builder widget: %s"
 msgstr ""
 
-#: includes/Builder/WebsiteBuilder.php:411
+#: includes/Builder/WebsiteBuilder.php:412
 msgid "Every Website Builder widget requires a stable id."
 msgstr ""
 
-#: includes/Builder/WebsiteBuilder.php:412
+#: includes/Builder/WebsiteBuilder.php:413
 msgid "Duplicate Website Builder widget id: %s"
 msgstr ""
 
-#: includes/Builder/WebsiteBuilder.php:417
+#: includes/Builder/WebsiteBuilder.php:418
 #: includes/Session/SessionManager.php:210
 msgid "%s does not allow child widgets."
 msgstr ""
 
-#: includes/Builder/WebsiteBuilder.php:612
-#: includes/Session/SessionManager.php:291
-msgid "Widget Custom CSS is too large."
-msgstr ""
-
-#: includes/Builder/WebsiteBuilder.php:613
-#: includes/Session/SessionManager.php:292
-msgid "Widget Custom CSS contains a forbidden construct."
-msgstr ""
-
-#: includes/Builder/WebsiteBuilder.php:614
-#: includes/Session/SessionManager.php:293
-msgid "Widget Custom CSS has unbalanced braces."
-msgstr ""
-
-#: includes/Builder/WebsiteBuilder.php:619
-#: includes/Session/SessionManager.php:299
-msgid "Every Widget Custom CSS selector must include &."
-msgstr ""
-
-#: includes/Builder/WebsiteBuilder.php:620
-#: includes/Session/SessionManager.php:300
-msgid "Widget Custom CSS cannot escape its widget scope."
-msgstr ""
-
-#: includes/Builder/WebsiteBuilder.php:63
+#: includes/Builder/WebsiteBuilder.php:64
 msgid "Cresco Components"
 msgstr ""
 
@@ -441,47 +486,39 @@ msgstr ""
 msgid "Last editor heartbeat"
 msgstr ""
 
-#: includes/Builder/WebsiteBuilderInterchange.php:114
+#: includes/Builder/WebsiteBuilderInterchange.php:113
 msgid "Unsupported import destination."
 msgstr ""
 
-#: includes/Builder/WebsiteBuilderInterchange.php:126
+#: includes/Builder/WebsiteBuilderInterchange.php:125
 msgid "The import package does not contain any widgets."
 msgstr ""
 
-#: includes/Builder/WebsiteBuilderInterchange.php:128
+#: includes/Builder/WebsiteBuilderInterchange.php:127
 msgid "Choose a valid target widget before importing."
 msgstr ""
 
-#: includes/Builder/WebsiteBuilderInterchange.php:131
+#: includes/Builder/WebsiteBuilderInterchange.php:130
 msgid "Replace import accepts exactly one widget or section."
 msgstr ""
 
-#: includes/Builder/WebsiteBuilderInterchange.php:153
+#: includes/Builder/WebsiteBuilderInterchange.php:151
 msgid "The current Website Builder document is invalid."
 msgstr ""
 
-#: includes/Builder/WebsiteBuilderInterchange.php:160
-msgid "Expected a cresco-interchange/v1 package."
-msgstr ""
-
-#: includes/Builder/WebsiteBuilderInterchange.php:163
-msgid "The interchange package has no portable content."
-msgstr ""
-
-#: includes/Builder/WebsiteBuilderInterchange.php:190
+#: includes/Builder/WebsiteBuilderInterchange.php:188
 msgid "The interchange package does not contain portable widgets."
 msgstr ""
 
-#: includes/Builder/WebsiteBuilderInterchange.php:197
+#: includes/Builder/WebsiteBuilderInterchange.php:195
 msgid "The target widget could not be resolved."
 msgstr ""
 
-#: includes/Builder/WebsiteBuilderInterchange.php:232
+#: includes/Builder/WebsiteBuilderInterchange.php:227
 msgid "Media references are site-local; verify imported images and attachments."
 msgstr ""
 
-#: includes/Builder/WebsiteBuilderInterchange.php:233
+#: includes/Builder/WebsiteBuilderInterchange.php:228
 msgid "This design uses Global Design tokens; verify token mappings on the destination site."
 msgstr ""
 
@@ -1247,6 +1284,26 @@ msgstr ""
 
 #: includes/Session/SessionManager.php:205
 msgid "Duplicate Cresco widget id: %s"
+msgstr ""
+
+#: includes/Session/SessionManager.php:291
+msgid "Widget Custom CSS is too large."
+msgstr ""
+
+#: includes/Session/SessionManager.php:292
+msgid "Widget Custom CSS contains a forbidden construct."
+msgstr ""
+
+#: includes/Session/SessionManager.php:293
+msgid "Widget Custom CSS has unbalanced braces."
+msgstr ""
+
+#: includes/Session/SessionManager.php:299
+msgid "Every Widget Custom CSS selector must include &."
+msgstr ""
+
+#: includes/Session/SessionManager.php:300
+msgid "Widget Custom CSS cannot escape its widget scope."
 msgstr ""
 
 #: includes/Session/SessionManager.php:48
@@ -2923,6 +2980,10 @@ msgstr ""
 msgid "Applying…"
 msgstr ""
 
+#: runtime-src/build/standalone-history.js:256
+msgid "Apply"
+msgstr ""
+
 #: runtime-src/build/standalone-history.js:265
 msgid "Loading revisions…"
 msgstr ""
@@ -3656,6 +3717,14 @@ msgid "Copy AI Context"
 msgstr ""
 
 #: runtime-src/build/standalone-visual-editor.js:518
+msgid "Current Session copied."
+msgstr ""
+
+#: runtime-src/build/standalone-visual-editor.js:518
+msgid "Copy Session"
+msgstr ""
+
+#: runtime-src/build/standalone-visual-editor.js:518
 msgid "Widget Catalog copied."
 msgstr ""
 
@@ -3669,6 +3738,14 @@ msgstr ""
 
 #: runtime-src/build/standalone-visual-editor.js:519
 msgid "Paste a cresco-session/v1 object. Cresco validates widget types, stable IDs, style values, responsive values, and scoped Custom CSS before it can be applied."
+msgstr ""
+
+#: runtime-src/build/standalone-visual-editor.js:519
+msgid "Validate import"
+msgstr ""
+
+#: runtime-src/build/standalone-visual-editor.js:519
+msgid "Apply to Cresco Editor"
 msgstr ""
 
 #: runtime-src/build/standalone-visual-editor.js:519
@@ -5450,214 +5527,6 @@ msgstr ""
 #: src/preview/index.tsx:238
 #: runtime-src/build/preview.js:419
 msgid "Cresco frontend Page preview"
-msgstr ""
-
-#: src/standalone/standalone-ai-bridge.js:125
-#: runtime-src/build/standalone-ai-bridge.js:125
-msgid "Select an element before exporting this scope."
-msgstr ""
-
-#: src/standalone/standalone-ai-bridge.js:126
-#: runtime-src/build/standalone-ai-bridge.js:126
-msgid "Building AI context…"
-msgstr ""
-
-#: src/standalone/standalone-ai-bridge.js:134
-#: src/standalone/standalone-ai-bridge.js:288
-#: runtime-src/build/standalone-ai-bridge.js:134
-#: runtime-src/build/standalone-ai-bridge.js:288
-msgid "AI Context copied as JSON."
-msgstr ""
-
-#: src/standalone/standalone-ai-bridge.js:136
-#: runtime-src/build/standalone-ai-bridge.js:136
-msgid "AI context export failed."
-msgstr ""
-
-#: src/standalone/standalone-ai-bridge.js:151
-#: src/standalone/standalone-ai-bridge.js:167
-#: runtime-src/build/standalone-ai-bridge.js:151
-#: runtime-src/build/standalone-ai-bridge.js:167
-msgid "AI result is not valid JSON."
-msgstr ""
-
-#: src/standalone/standalone-ai-bridge.js:152
-#: runtime-src/build/standalone-ai-bridge.js:152
-msgid "Validating through Cresco contracts…"
-msgstr ""
-
-#: src/standalone/standalone-ai-bridge.js:157
-#: runtime-src/build/standalone-ai-bridge.js:157
-msgid "Valid. Review the structured changes before applying."
-msgstr ""
-
-#: src/standalone/standalone-ai-bridge.js:160
-#: runtime-src/build/standalone-ai-bridge.js:160
-msgid "AI result validation failed."
-msgstr ""
-
-#: src/standalone/standalone-ai-bridge.js:169
-#: runtime-src/build/standalone-ai-bridge.js:169
-msgid "Rechecking the current Session before Apply…"
-msgstr ""
-
-#: src/standalone/standalone-ai-bridge.js:176
-#: runtime-src/build/standalone-ai-bridge.js:176
-msgid "AI result became stale before Apply."
-msgstr ""
-
-#: src/standalone/standalone-ai-bridge.js:186
-#: runtime-src/build/standalone-ai-bridge.js:186
-msgid "AI changes applied to the editor. Use Undo to restore the pre-AI checkpoint. Nothing is saved until Update."
-msgstr ""
-
-#: src/standalone/standalone-ai-bridge.js:202
-#: src/standalone/standalone-ai-bridge.js:218
-#: runtime-src/build/standalone-ai-bridge.js:202
-#: runtime-src/build/standalone-ai-bridge.js:218
-#: runtime-src/build/standalone-visual-editor.js:519
-msgid "Validate import"
-msgstr ""
-
-#: src/standalone/standalone-ai-bridge.js:203
-#: runtime-src/build/standalone-ai-bridge.js:203
-msgid "Editor apply bridge is unavailable."
-msgstr ""
-
-#: src/standalone/standalone-ai-bridge.js:208
-#: runtime-src/build/standalone-ai-bridge.js:208
-#: runtime-src/build/standalone-visual-editor.js:519
-msgid "Apply to Cresco Editor"
-msgstr ""
-
-#: src/standalone/standalone-ai-bridge.js:211
-#: runtime-src/build/standalone-ai-bridge.js:211
-msgid "AI changes applied. Use Undo to roll back. Nothing is saved until Update."
-msgstr ""
-
-#: src/standalone/standalone-ai-bridge.js:215
-#: runtime-src/build/standalone-ai-bridge.js:215
-msgid "The editor could not apply the validated Session."
-msgstr ""
-
-#: src/standalone/standalone-ai-bridge.js:219
-#: runtime-src/build/standalone-ai-bridge.js:219
-msgid "Editor validation bridge is unavailable."
-msgstr ""
-
-#: src/standalone/standalone-ai-bridge.js:229
-#: runtime-src/build/standalone-ai-bridge.js:229
-msgid "Review Changes"
-msgstr ""
-
-#: src/standalone/standalone-ai-bridge.js:244
-#: runtime-src/build/standalone-ai-bridge.js:244
-#: runtime-src/build/standalone-history.js:256
-msgid "Apply"
-msgstr ""
-
-#: src/standalone/standalone-ai-bridge.js:262
-#: runtime-src/build/standalone-ai-bridge.js:262
-msgid "Export for AI"
-msgstr ""
-
-#: src/standalone/standalone-ai-bridge.js:263
-#: runtime-src/build/standalone-ai-bridge.js:263
-msgid "Export the live editor Session with only the contracts and design dependencies the selected scope needs."
-msgstr ""
-
-#: src/standalone/standalone-ai-bridge.js:265
-#: runtime-src/build/standalone-ai-bridge.js:265
-msgid "Optimized Context"
-msgstr ""
-
-#: src/standalone/standalone-ai-bridge.js:265
-#: runtime-src/build/standalone-ai-bridge.js:265
-msgid "Full Context"
-msgstr ""
-
-#: src/standalone/standalone-ai-bridge.js:270
-#: runtime-src/build/standalone-ai-bridge.js:270
-msgid "Export Current Page"
-msgstr ""
-
-#: src/standalone/standalone-ai-bridge.js:271
-#: runtime-src/build/standalone-ai-bridge.js:271
-msgid "Export Selected Element"
-msgstr ""
-
-#: src/standalone/standalone-ai-bridge.js:272
-#: runtime-src/build/standalone-ai-bridge.js:272
-msgid "Export Selected Subtree"
-msgstr ""
-
-#: src/standalone/standalone-ai-bridge.js:273
-#: runtime-src/build/standalone-ai-bridge.js:273
-msgid "Export Selection"
-msgstr ""
-
-#: src/standalone/standalone-ai-bridge.js:276
-#: runtime-src/build/standalone-ai-bridge.js:276
-msgid "Copy Current Session"
-msgstr ""
-
-#: src/standalone/standalone-ai-bridge.js:277
-#: runtime-src/build/standalone-ai-bridge.js:277
-#: runtime-src/build/standalone-visual-editor.js:518
-msgid "Current Session copied."
-msgstr ""
-
-#: src/standalone/standalone-ai-bridge.js:277
-#: runtime-src/build/standalone-ai-bridge.js:277
-msgid "Current Session could not be copied."
-msgstr ""
-
-#: src/standalone/standalone-ai-bridge.js:279
-#: runtime-src/build/standalone-ai-bridge.js:279
-msgid "Copy Widget Contracts"
-msgstr ""
-
-#: src/standalone/standalone-ai-bridge.js:280
-#: runtime-src/build/standalone-ai-bridge.js:280
-msgid "Widget Contracts copied."
-msgstr ""
-
-#: src/standalone/standalone-ai-bridge.js:280
-#: runtime-src/build/standalone-ai-bridge.js:280
-msgid "Widget Contracts could not be copied."
-msgstr ""
-
-#: src/standalone/standalone-ai-bridge.js:288
-#: runtime-src/build/standalone-ai-bridge.js:288
-msgid "Copy JSON"
-msgstr ""
-
-#: src/standalone/standalone-ai-bridge.js:293
-#: runtime-src/build/standalone-ai-bridge.js:293
-msgid "Import AI Result"
-msgstr ""
-
-#: src/standalone/standalone-ai-bridge.js:294
-#: runtime-src/build/standalone-ai-bridge.js:294
-msgid "Paste cresco-patch/v1 for targeted edits or a complete cresco-session/v1 document. Cresco validates first; nothing is applied directly to DOM or WordPress data."
-msgstr ""
-
-#: src/standalone/standalone-ai-bridge.js:297
-#: src/standalone/standalone-ai-bridge.js:306
-#: runtime-src/build/standalone-ai-bridge.js:297
-#: runtime-src/build/standalone-ai-bridge.js:306
-msgid "Detected:"
-msgstr ""
-
-#: src/standalone/standalone-ai-bridge.js:298
-#: runtime-src/build/standalone-ai-bridge.js:298
-msgid "Validate"
-msgstr ""
-
-#: src/standalone/standalone-ai-bridge.js:63
-#: runtime-src/build/standalone-ai-bridge.js:63
-#: runtime-src/build/standalone-visual-editor.js:518
-msgid "Copy Session"
 msgstr ""
 
 #: src/studio/announcer.ts:117
