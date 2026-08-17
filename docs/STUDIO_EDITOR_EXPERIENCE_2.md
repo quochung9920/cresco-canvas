@@ -4,6 +4,8 @@ Baseline: `c77fbd0eb166f9cfb9d9bd202ec4e6464cd5511b`
 
 This release keeps `cresco-session/v1` and the existing renderer/storage contracts while replacing the active Website Builder browser shell with a unified Session-native Studio runtime. It does not introduce another numbered builder generation.
 
+> **Architecture authority:** this document describes the Studio 2.0 feature experience and its release baseline. For current runtime ownership, React DOM extension rules, CSS cascade ownership, Page Settings schema/UI parity, branch synchronization, source/build parity, diagnostics, troubleshooting and pre-merge conflict checks, use `docs/STUDIO_RUNTIME_OWNERSHIP_AND_CONFLICT_PREVENTION.md`. Historical Gutenberg-only architecture statements do not override that contract for Studio-owned Website Builder documents.
+
 ## P0 - Runtime, Architecture and Diagnostics
 
 - `WebsiteBuilderStudio` replaces the core browser script on the existing `cresco-canvas-website-builder` handle, preserving optional-module dependency compatibility.
@@ -27,6 +29,8 @@ The Inspector is schema-driven from `WidgetCatalog`. Content controls, shared la
 ### Page Settings 2.0
 
 The Page panel exposes the existing hardened Page Settings schema using visual controls for shell/layout, title/header/footer, classic and gradient backgrounds, background media, responsive body spacing, scroll snap and page-scoped Custom CSS.
+
+The Page panel is a **view over the canonical `PageSettings` backend model**. A similarly named standalone or Pro Page Settings enhancement does not automatically replace this Studio panel. Any new persisted Page Settings control must remain within the backend schema or update defaults, sanitization, compiler, every relevant editing surface and tests atomically as required by the ownership contract.
 
 ### Responsive 2.0
 
