@@ -24,10 +24,17 @@ final class StudioGlobalDesignProTest extends TestCase {
 		self::assertStringContainsString( 'Semantic aliases', $script );
 		self::assertStringContainsString( 'Token Explorer', $script );
 		self::assertStringContainsString( 'Global button', $script );
+		self::assertStringContainsString( 'data-button-state', $script );
+		self::assertStringContainsString( "['normal','Normal']", $script );
+		self::assertStringContainsString( "['hover','Hover']", $script );
+		self::assertStringContainsString( "['active','Active']", $script );
 		self::assertStringContainsString( 'button.background', $script );
 		self::assertStringContainsString( 'button.hoverBackground', $script );
+		self::assertStringContainsString( 'button.activeBackground', $script );
 		self::assertStringContainsString( 'button.paddingInline', $script );
 		self::assertStringContainsString( 'button.fontWeight', $script );
+		self::assertStringNotContainsString( '<strong>Normal</strong>', $script );
+		self::assertStringNotContainsString( '<strong>Hover</strong>', $script );
 		self::assertStringNotContainsString( '<strong>Radius</strong><small>Shape personality', $script );
 		self::assertStringContainsString( 'cresco:studio-session-change', $script );
 		self::assertStringContainsString( 'cresco-global-design-pro/v1', $script );
