@@ -10,7 +10,7 @@ function panel(){return Array.prototype.slice.call(root.querySelectorAll('.cc-st
 function emit(input){input.dispatchEvent(new Event('input',{bubbles:true}));input.dispatchEvent(new Event('change',{bubbles:true}))}
 function parse(value){var raw=String(value||'').trim(),m=raw.match(/^(-?(?:\d+|\d*\.\d+))(px|%|em|rem|vw|vh|vmin|vmax|ch)$/i);return m?{number:m[1],unit:m[2].toLowerCase()}:null}
 function option(value,label){var o=document.createElement('option');o.value=value;o.textContent=label||value;return o}
-function unitsFor(input){var key=String(input.dataset.fluid||input.dataset.number||input.dataset.breakpoint||'').toLowerCase();if(input.hasAttribute('data-number')||input.hasAttribute('data-breakpoint'))return['px'];if(/^h[1-6]$|^font/.test(key))return FONT_UNITS;if(/radius/.test(key))return RADIUS_UNITS;return ALL_UNITS}
+function unitsFor(input){var key=String(input.dataset.fluid||input.dataset.number||input.dataset.breakpoint||input.dataset.dimension||'').toLowerCase();if(input.hasAttribute('data-number')||input.hasAttribute('data-breakpoint'))return['px'];if(/^h[1-6]$|^font/.test(key))return FONT_UNITS;if(/radius/.test(key))return RADIUS_UNITS;return ALL_UNITS}
 function color(host){var value=host.querySelector('.cc-gd-add input[data-color-value]');if(!value||value.dataset.gdColorPicker)return;value.dataset.gdColorPicker='1';var picker=document.createElement('input');picker.type='color';picker.className='cc-gd-custom-color-picker';picker.value=/^#[0-9a-f]{6}$/i.test(value.value)?value.value:'#5b5cf6';picker.setAttribute('aria-label','Choose custom color');value.parentNode.insertBefore(picker,value);picker.addEventListener('input',function(){value.value=picker.value;emit(value)});value.addEventListener('input',function(){if(/^#[0-9a-f]{6}$/i.test(value.value))picker.value=value.value})}
 function enhanceDimension(input){
  if(!input||input.dataset.gdUnitControl==='1')return;
@@ -34,10 +34,10 @@ function enhanceDimension(input){
 }
 function enhance(host){
  color(host);
- host.querySelectorAll('input[data-fluid],input[data-number],input[data-breakpoint]').forEach(enhanceDimension);
+ host.querySelectorAll('input[data-fluid],input[data-number],input[data-breakpoint],input[data-dimension]').forEach(enhanceDimension);
 }
 function sync(){scheduled=false;var p=panel(),host=p&&p.querySelector('.cc-global-design-pro');if(host)enhance(host)}
 function schedule(){if(scheduled)return;scheduled=true;window.requestAnimationFrame(sync)}
 new MutationObserver(schedule).observe(root,{childList:true,subtree:true});window.addEventListener('cresco:studio-ready',schedule);schedule();
-window.CrescoGlobalDesignSharedControls={version:'2.0.0',sync:sync,units:ALL_UNITS.slice()};
+window.CrescoGlobalDesignSharedControls={version:'2.1.0',sync:sync,units:ALL_UNITS.slice()};
 })(window,document);
