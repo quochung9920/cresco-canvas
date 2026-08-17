@@ -1,21 +1,21 @@
-# Global Design editing and import/export
+# Chỉnh sửa và Import/Export Global Design
 
-Cresco Canvas keeps Global Design simple inside the **Global** tab. The same panel is used to edit values directly, import a configuration, and export the current configuration.
+Cresco Canvas giữ Global Design đơn giản trong tab/panel **Global**. Cùng một domain được dùng để edit trực tiếp, import configuration và export current configuration.
 
-## Editor workflow
+## Workflow trong editor
 
-1. Open a Page with Cresco Canvas.
-2. Open **Global**.
-3. Edit Colors, Font family, Layout, Radius, or Breakpoints directly in the fields.
-4. Click **Save Global**.
-5. Use **Import** to paste CSS variables or JSON.
-6. Use **Export** to copy the complete current Global settings as JSON.
+1. Mở Page bằng Cresco Canvas.
+2. Mở **Global**.
+3. Chỉnh Colors, Font family, Layout, Radius hoặc Breakpoints trong các field được UI hiện hành expose.
+4. Bấm **Save Global**.
+5. Dùng **Import** để đưa CSS variable hoặc JSON hợp lệ vào preview/flow import.
+6. Dùng **Export** để copy Global settings hiện tại dưới dạng JSON.
 
-After Global Design is saved, **Reload editor** refreshes Canvas token resolution and AI Context. Save any unsaved Page changes before reloading.
+Sau khi Save Global Design, reload editor khi cần để refresh token resolution và AI Context. Save Page đang dirty trước khi reload.
 
-Import validation and saving use protected Cresco REST endpoints and require the WordPress `edit_theme_options` capability.
+Import validation/save dùng protected Cresco REST endpoint và yêu cầu WordPress capability phù hợp, điển hình `edit_theme_options`.
 
-## CSS import example
+## Ví dụ CSS import
 
 ```css
 --bg: oklch(98% 0.005 250);
@@ -32,22 +32,30 @@ font-family: Poppins, sans-serif;
 color: var(--ink);
 ```
 
-Built-in mappings include:
+Mapping built-in gồm:
 
 - `--bg` / `--background` -> `colors.background`
 - `--ink` / `--text` / `--foreground` -> `colors.text`
 - `--ink-muted` / `--muted` -> `colors.muted`
 - `--blue` / `--primary` / `--brand` / `--accent` -> `colors.primary`
-- Other safe color variables -> `colors.custom-*`
+- safe color variable khác -> `colors.custom-*`
 
-Custom colors are shown as editable rows in the Global panel after import. New custom colors can also be added manually.
+Custom color có thể xuất hiện thành editable row sau import và có thể thêm thủ công nếu UI hiện hành hỗ trợ.
 
-## Supported color values
+## Color value được hỗ trợ
 
-Global colors accept sanitized HEX, `rgb()`, `rgba()`, `hsl()`, `hsla()`, `oklab()`, and `oklch()` values. External resources and arbitrary CSS are rejected.
+Global color chấp nhận sanitized HEX, `rgb()`, `rgba()`, `hsl()`, `hsla()`, `oklab()`, `oklch()` theo sanitizer hiện hành.
+
+External resource và arbitrary CSS không thuộc grammar phải bị reject.
 
 ## JSON import/export
 
-**Export** copies the complete editable Cresco Global settings as JSON. The importer accepts raw Cresco settings JSON, exported Global JSON, and the token catalog produced by older **Copy Global Config** builds.
+**Export** copy editable Cresco Global settings dưới dạng JSON.
 
-Font-family import stores the font stack only. Cresco does not automatically download or load external font files.
+Importer có thể nhận raw Cresco settings JSON, exported Global JSON và compatibility token catalog của build cũ khi adapter hiện hành hỗ trợ.
+
+Font-family import lưu font stack; Cresco không tự động download/load external font file.
+
+## Ownership rule
+
+Global Design UI không được tạo một token store thứ hai. Import/export/preview phải đi qua canonical Global settings sanitizer và REST/service owner.

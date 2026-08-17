@@ -1,8 +1,8 @@
 # Cresco Session v1
 
-Cresco Session is the authoritative visual document format used by the standalone Cresco Editor. It is also the copy/paste interchange format used when a page is analyzed or generated outside WordPress by ChatGPT or another AI tool.
+Cresco Session là visual document format authoritative của standalone Cresco Editor. Đây cũng là format trao đổi copy/paste khi Page được phân tích hoặc tạo bên ngoài WordPress bởi ChatGPT hoặc AI tool khác.
 
-The AI workflow is intentionally simple:
+Luồng AI:
 
 ```text
 Global Design + Widget Contract + Current Session
@@ -23,18 +23,18 @@ Global Design + Widget Contract + Current Session
               Cresco Editor
 ```
 
-Gutenberg block markup is not the AI interchange format. WordPress remains the host for authentication, permissions, media, routing, REST, and page delivery; the Cresco Session is the source of truth for a page that has a saved Cresco document.
+Gutenberg block markup không phải AI interchange format. WordPress vẫn sở hữu authentication, permissions, media, routing, REST và page delivery; Cresco Session là source of truth cho Page có saved Cresco document hợp lệ.
 
-## Design principles
+## Nguyên tắc thiết kế
 
-1. Keep the widget catalog small and stable.
-2. Prefer Global Design tokens over hard-coded visual values.
-3. Prefer native widget props and structured `style` properties over Custom CSS.
-4. Use widget-scoped Custom CSS only when the widget contract does not expose the required visual capability.
-5. Every node has a stable, unique `id` so future patch workflows can address widgets deterministically.
-6. Import never saves immediately. A session is validated, applied to the current editor state, and only persisted when the user presses **Update**.
+1. Giữ widget catalog nhỏ, ổn định và có contract.
+2. Ưu tiên Global Design token hơn hard-coded visual value.
+3. Ưu tiên native widget prop và structured `style` hơn Custom CSS.
+4. Chỉ dùng widget-scoped Custom CSS khi contract chưa expose capability cần thiết.
+5. Mỗi node có `id` ổn định/duy nhất để patch có thể address deterministically.
+6. Import không Save ngay. Session được validate, Apply vào editor state và chỉ persist khi người dùng bấm **Update**.
 
-## Document shape
+## Cấu trúc document
 
 ```json
 {
@@ -89,7 +89,7 @@ Gutenberg block markup is not the AI interchange format. WordPress remains the h
 
 ## Core widgets
 
-Version 1 intentionally exposes only a compact core:
+Version 1 ban đầu expose một core nhỏ:
 
 - `container`
 - `columns`
@@ -101,11 +101,11 @@ Version 1 intentionally exposes only a compact core:
 - `divider`
 - `spacer`
 
-The live catalog is exported by **Copy Widgets** and is included in **Copy AI Context**. AI output must not invent widget types or properties that are absent from that catalog.
+Repository hiện có catalog rộng hơn, nhưng nguyên tắc không đổi: AI output chỉ được dùng widget/property có trong **live catalog** được export bởi current context. Không invent type/property ngoài contract.
 
-## Global Design references
+## Global Design reference
 
-Structured styles may reference Global Design values using token paths:
+Structured style có thể dùng token path:
 
 ```json
 {
@@ -119,11 +119,11 @@ Structured styles may reference Global Design values using token paths:
 }
 ```
 
-The renderer compiles known token references to stable `--cc-*` CSS variables. Custom colors and aliases are included in the exported AI context as well.
+Renderer compile known token thành stable `--cc-*` CSS variable. Custom color/alias hợp lệ cũng được đưa vào AI context khi contract hỗ trợ.
 
 ## Responsive model
 
-`style` is the base/widescreen style. Device overrides are stored in `responsive`:
+`style` là base/widescreen style. Device override nằm trong `responsive`:
 
 ```json
 {
@@ -143,13 +143,19 @@ The renderer compiles known token references to stable `--cc-*` CSS variables. C
 }
 ```
 
-Media-query boundaries are generated from Global Design breakpoints. Sessions and AI output do not need to write `@media` rules.
+Breakpoint/media query được compiler sinh từ responsive contract. Session/AI output không cần tự viết raw `@media` để sở hữu breakpoint system.
+
+## State style
+
+Current Website Builder node có thể có `states` cho các state được widget contract cho phép, ví dụ `hover`, `focus`, `active`.
+
+State override chỉ lưu value explicit. Không được tạo state schema riêng trong optional UI module.
 
 ## Custom CSS
 
-Custom CSS is a first-class fallback for widget capabilities that do not belong in the normal Inspector.
+Custom CSS là fallback first-class cho capability chưa thuộc Inspector contract.
 
-`&` always means the current widget:
+`&` nghĩa là current widget:
 
 ```json
 {
@@ -160,7 +166,7 @@ Custom CSS is a first-class fallback for widget capabilities that do not belong 
 }
 ```
 
-Stable inner parts are published by the widget contract. For example, Button exposes its text part:
+Stable inner part được widget contract publish, ví dụ:
 
 ```css
 & [data-cresco-part="text"] {
@@ -168,18 +174,13 @@ Stable inner parts are published by the widget contract. For example, Button exp
 }
 ```
 
-Custom CSS rules are intentionally constrained:
+Custom CSS phải đi qua canonical scoped CSS validator. Global selector, executable/script-like construct, resource-loading ngoài policy và escape khỏi widget scope phải bị reject.
 
-- every selector must contain `&`;
-- global selectors such as `html`, `body`, and `:root` are rejected;
-- `@import`, `@media`, `@supports`, external `url()`, JavaScript expressions, and markup escapes are rejected;
-- responsive Custom CSS uses the `desktop`, `laptop`, `tablet`, and `mobile` buckets instead of raw media queries.
-
-When Global Design values are needed inside Custom CSS, use the CSS variables published in the AI context, for example `var(--cc-primary)`, `var(--cc-space-xl)`, or `var(--cc-radius-md)`.
+Responsive Custom CSS dùng bucket Cresco thay vì tự tạo breakpoint ownership song song.
 
 ## AI context
 
-**Copy AI Context** returns four important sections:
+AI context có thể chứa:
 
 ```json
 {
@@ -191,28 +192,31 @@ When Global Design values are needed inside Custom CSS, use the CSS variables pu
 }
 ```
 
-A recommended prompt after copying the context is:
+Context version mới hơn có thể thêm field/shape, nhưng nguyên tắc vẫn là: AI phải dựa trên live widget contract, Global Design và current Session.
 
-> Analyze this Cresco AI Context and redesign the page. Use only widget types and properties declared in `widgets`. Prefer Global Design tokens and structured style values. Use scoped Custom CSS only for capabilities that are not available natively. Return one complete `cresco-session/v1` JSON object and no other format.
+Prompt cơ bản:
 
-## Validation and limits
+> Phân tích Cresco AI Context này và thiết kế lại Page. Chỉ dùng widget type/property được khai báo trong `widgets`. Ưu tiên Global Design token và structured style. Chỉ dùng scoped Custom CSS khi capability chưa có native control. Trả về đúng format Cresco mà workflow yêu cầu, không tự phát minh schema khác.
 
-The server validates every imported or saved session. Version 1 enforces:
+## Validation và giới hạn
+
+Server validate imported/saved Session, gồm tối thiểu:
 
 - schema/version compatibility;
-- known widget types;
-- stable unique widget IDs;
-- parent/child capability rules;
-- maximum 500 nodes;
-- maximum nesting depth 12;
-- allow-listed structured style properties;
-- bounded/sanitized props;
-- scoped Custom CSS with a per-widget size limit.
+- known widget type;
+- stable unique ID;
+- parent/child capability;
+- node/depth budget theo runtime hiện hành;
+- allow-listed structured style;
+- bounded/sanitized prop;
+- scoped Custom CSS budget.
 
-Invalid AI output never becomes the current document through the normal Import flow.
+Invalid AI output không được trở thành current document qua normal Import flow.
 
-## Storage and frontend
+## Storage và frontend
 
-A saved session is stored in page meta under `_cresco_canvas_document`. When the saved document contains nodes, Cresco renders that session for the page and emits its structured/responsive/scoped CSS. The existing page content remains untouched as a fallback and is used when no valid Cresco document is present.
+Saved Session được lưu dưới meta `_cresco_canvas_document`. Khi document hợp lệ có node, Cresco render Session và structured/responsive/scoped CSS.
 
-This separation lets Cresco evolve its editor and AI workflow without requiring an AI tool to understand WordPress block serialization.
+Existing `post_content` được giữ nguyên làm fallback và được dùng khi không có valid Cresco document.
+
+Sự tách biệt này cho phép Cresco phát triển editor/AI mà không yêu cầu AI hiểu WordPress block serialization.

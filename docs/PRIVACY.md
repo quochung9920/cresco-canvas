@@ -1,89 +1,101 @@
-# Cresco Canvas Privacy and Data Retention
+# Quyền riêng tư và thời gian lưu dữ liệu của Cresco Canvas
 
-## Data ownership
+## Ownership dữ liệu
 
-Cresco Canvas distinguishes plugin-owned records from user-authored WordPress content.
+Cresco Canvas phân biệt resource do plugin sở hữu với content WordPress do người dùng tạo.
 
-Cresco-owned records/resources include:
+Cresco-owned resource gồm:
 
-- `cresco_submission` private form-submission posts;
-- `cresco_upload` private upload ownership records and their files;
-- `cresco_revision` Cresco Session revision records;
-- Cresco options, migration state/backups, webhook failure metadata and scoped transients;
-- Cresco-specific post/user metadata documented by `Lifecycle\\UninstallPolicy`.
+- private `cresco_submission` post cho form submission;
+- private `cresco_upload` record và file upload tương ứng;
+- `cresco_revision` Session revision;
+- Cresco option, migration state/backup, webhook failure metadata và scoped transient;
+- Cresco-specific post/user metadata được `Lifecycle\\UninstallPolicy` liệt kê.
 
-Normal WordPress `post` and `page` records are **not Cresco-owned**. User-authored `post_content` is never an uninstall cleanup target.
+WordPress `post` và `page` bình thường **không thuộc Cresco ownership**. User-authored `post_content` không bao giờ là target của uninstall cleanup.
 
 ## Form submissions
 
-A form stores submission data only when `storeSubmissions` is enabled in its signed server-authored configuration. Stored records are private and include:
+Form chỉ lưu submission khi signed server-authored config bật `storeSubmissions`.
+
+Private stored record có thể gồm:
 
 - sanitized field values;
-- the owning form ID;
-- a deletion timestamp derived from the form retention policy.
+- owning form ID;
+- deletion timestamp từ retention policy.
 
-Default retention is **30 days**. The signed form configuration can choose 1-365 days. The daily retention job removes expired Cresco submissions in bounded batches and cascades deletion to private uploads linked to the submission.
+Default retention là **30 ngày**. Signed form config có thể chọn 1–365 ngày theo contract hiện hành. Daily retention job xóa expired Cresco submissions theo bounded batch và cascade private upload liên kết.
 
-Email and optional webhook delivery can transmit submitted values to the destinations configured by the site administrator. Operators are responsible for configuring lawful recipients, retention and data-processing arrangements for those external systems.
+Email/webhook có thể truyền submitted values tới destination do site administrator cấu hình. Site operator chịu trách nhiệm về lawful recipient, retention và data-processing arrangement bên ngoài Cresco.
 
 ## Uploaded files
 
-New form uploads are stored in Cresco private storage outside the web document root and represented by private `cresco_upload` records. They are not public Media Library URLs.
+Form upload mới được lưu trong Cresco private storage ngoài web document root và có private `cresco_upload` record. Chúng không phải public Media Library URL.
 
-Each upload records an expiration timestamp and, after the submission is stored, the linked submission ID. The daily cleanup job deletes expired orphan/private upload records and files in bounded batches. Erasing a matching form submission also deletes its linked private uploads.
+Mỗi upload lưu expiration metadata; sau khi submission được lưu, upload có thể liên kết submission ID. Daily cleanup xóa expired orphan/private upload record/file theo bounded batch.
 
-Legacy Media Library attachments marked `_cresco_form_upload=1` remain recognized for cleanup/erasure compatibility.
+Privacy erasure của matching submission cũng xóa linked private upload.
 
-## Webhook retry state and failure logs
+Legacy Media Library attachment có `_cresco_form_upload=1` có thể vẫn được nhận diện để cleanup/erasure compatibility.
 
-Failed webhook delivery stores a short-lived opaque retry token in WordPress transients. The transient contains the minimum delivery state necessary to retry and expires after one hour. Cron arguments contain only the retry token and attempt number, not the form payload or webhook secret.
+## Webhook retry và failure log
 
-Webhook failure logs contain only operational metadata: form ID, destination host, attempt count, response status/reason and timestamp. They do not contain submitted values, full destination URLs/query strings, webhook secrets, authorization headers, cookies, CAPTCHA secrets or passwords.
+Failed webhook delivery lưu opaque retry token ngắn hạn trong WordPress transient. Transient chỉ chứa minimum delivery state cần để retry và có expiry theo contract (nguồn hiện tại ghi một giờ).
+
+Cron argument chỉ mang retry token + attempt number, không mang form payload hoặc webhook secret.
+
+Failure log chỉ nên chứa operational metadata như form ID, destination host, attempt, response status/reason và timestamp.
+
+Không log submitted values, full destination query string, webhook secret, Authorization header, cookie, CAPTCHA secret hoặc password.
 
 ## CSV exports
 
-CSV export is an administrator action protected by `manage_options` and an admin nonce. Export is capped at 2,000 records and formula-like spreadsheet cells are neutralized before output. CSV files may contain private submission data, so administrators must store and transmit exports according to their site's privacy policy.
+CSV export là administrator action được bảo vệ bằng `manage_options` và admin nonce theo implementation hiện hành. Export có record/cell bound và neutralize formula-like spreadsheet cell trước output.
 
-## WordPress personal-data exporter and eraser
+CSV có thể chứa private submission data; administrator phải lưu/truyền theo privacy policy của site.
 
-Cresco registers a WordPress personal-data exporter and eraser for form submissions.
+## WordPress personal-data exporter/eraser
 
-The exporter:
+Cresco đăng ký WordPress personal-data exporter và eraser cho form submission.
 
-- normalizes the requested email address;
-- searches private Cresco submissions in bounded pages of 100;
-- recursively matches the email in nested submitted values;
-- returns matching submission fields in the WordPress privacy-export format.
+Exporter:
 
-The eraser:
+- normalize requested email;
+- tìm private Cresco submissions theo bounded page;
+- recursively match email trong submitted values;
+- trả matching field theo WordPress privacy-export format.
 
-- uses a two-pass marker so deletion does not skip later records while paging;
-- removes matching private submissions;
-- removes linked private/legacy Cresco uploads;
-- reports `items_removed=true` when a record was actually deleted.
+Eraser:
 
-No ordinary WordPress page/post is erased by the Cresco privacy eraser.
+- dùng safe paging/marker strategy để không skip record khi delete;
+- remove matching private submission;
+- remove linked private/legacy Cresco upload;
+- report `items_removed=true` khi thực sự xóa.
 
-## Deactivation and reactivation
+Không ordinary WordPress Page/Post nào bị Cresco privacy eraser xóa.
 
-Deactivation preserves all Cresco data. It removes migration locks and scheduled Cresco background work. Reactivation reruns idempotent migrations as necessary and recreates periodic retention jobs.
+## Deactivation và reactivation
+
+Deactivation preserve Cresco data. Nó remove migration lock và unschedule Cresco background work theo lifecycle contract.
+
+Reactivation chạy idempotent migration check và recreate periodic job khi cần.
 
 ## Uninstall
 
-Default uninstall behavior is **preserve data**. Scheduled Cresco jobs are cleared, but stored Cresco data remains unless the administrator explicitly enabled `removeDataOnUninstall` before uninstalling.
+Mặc định uninstall **preserve data**. Scheduled Cresco job được clear nhưng stored Cresco data chỉ bị xóa khi administrator đã explicit opt-in `removeDataOnUninstall` theo policy.
 
-Explicit cleanup deletes only resources on the Cresco ownership allowlist. It does not delete `post` or `page` records and does not alter user-authored `post_content`.
+Explicit cleanup chỉ xóa resource trong Cresco ownership allowlist. Không xóa `post`/`page` bình thường và không alter user-authored `post_content`.
 
-On multisite, uninstall processes each site's own tables in bounded batches using `switch_to_blog()`/`restore_current_blog()`. Cleanup decisions are read from each site's Cresco settings, so one site's opt-in does not authorize deletion of another site's data.
+Multisite cleanup xử lý site riêng biệt bằng bounded batch + `switch_to_blog()`/`restore_current_blog()`. Cleanup decision của site này không được authorize xóa data site khác.
 
-## Site-operator responsibilities
+## Trách nhiệm của site operator
 
-Before collecting production form data, document:
+Trước khi thu production form data, cần document:
 
-1. what each form collects and why;
-2. whether submission storage is enabled;
-3. the configured retention period;
-4. external email/webhook recipients and processors;
-5. the private upload directory and backup policy;
-6. how WordPress privacy export/erasure requests are handled;
-7. whether uninstall should preserve or explicitly clean Cresco-owned data.
+1. mỗi form thu gì và vì sao;
+2. submission storage có bật không;
+3. retention period;
+4. external email/webhook recipient/processor;
+5. private upload directory + backup policy;
+6. cách xử lý WordPress privacy export/erase request;
+7. uninstall nên preserve hay explicit cleanup Cresco data.

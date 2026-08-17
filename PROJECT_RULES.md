@@ -1,34 +1,34 @@
-# Project Rules
+# Quy tắc dự án Cresco Canvas
 
-> **Scope:** Cresco Canvas repository-wide engineering rules for AI Coding Agents and developers.
+> **Phạm vi:** Quy tắc kỹ thuật áp dụng cho toàn bộ repository Cresco Canvas, dành cho developer và AI Coding Agent.
 >
-> **Purpose:** Keep architecture, runtime, data, CSS, build artifacts, tests, and documentation aligned while Cresco Canvas evolves.
+> **Mục tiêu:** Giữ kiến trúc, runtime, dữ liệu, CSS, build artifact, kiểm thử và tài liệu đồng bộ trong suốt quá trình phát triển.
 >
-> **Precedence:** Direct user instructions take priority. If a requested change conflicts with these rules or with a canonical architecture contract, explain the risk before implementing it.
+> **Ưu tiên:** Yêu cầu trực tiếp của người dùng có ưu tiên cao nhất. Nếu yêu cầu xung đột với contract kiến trúc canonical hoặc có nguy cơ gây mất dữ liệu/phá tương thích, phải nêu rõ rủi ro trước khi triển khai.
 
 ---
 
-## 1. Read this before changing code
+## 1. Đọc trước khi sửa code
 
-Before editing Cresco Canvas:
+Trước khi chỉnh Cresco Canvas:
 
-1. Read this file.
-2. Read the canonical document for the subsystem being changed.
-3. Inspect the current source before assuming behavior.
-4. Search for existing owners, adapters, tests, and compatibility paths.
-5. Reuse or extend the existing contract instead of creating a parallel system.
-6. Patch the smallest safe surface.
-7. Run the relevant verification commands after the change.
+1. Đọc file này.
+2. Đọc tài liệu canonical của subsystem đang sửa.
+3. Đọc source hiện tại; không suy đoán từ ảnh chụp, branch cũ hoặc tên class cũ.
+4. Tìm owner, adapter, test, migration và compatibility path đã tồn tại.
+5. Mở rộng contract hiện có thay vì tạo một hệ thống song song.
+6. Chỉ sửa bề mặt nhỏ nhất đủ an toàn.
+7. Chạy các lệnh kiểm tra liên quan sau khi thay đổi.
 
-Do not infer current architecture from an old design document, stale branch, old screenshot, or legacy class name.
+Không được dùng tài liệu lịch sử để phủ định runtime hoặc source đang thực sự được đăng ký trên `main`.
 
 ---
 
-## 2. Project reality
+## 2. Thực trạng dự án
 
-Cresco Canvas is a WordPress visual builder with a standalone Studio editor and a portable AI-readable document model.
+Cresco Canvas là visual website builder cho WordPress, sử dụng Studio độc lập và document model có thể đọc/trao đổi với AI.
 
-Current repository baseline:
+Baseline hiện tại:
 
 - Package: `1.0.0-rc.1`
 - WordPress: `6.7+`
@@ -38,62 +38,62 @@ Current repository baseline:
 - Composer: `2`
 - License: GPL-2.0-or-later
 
-For Pages with a saved Cresco document, `cresco-session/v1` is the visual source of truth. WordPress remains the host for authentication, permissions, media, routing, REST, Page records, previews, and frontend delivery.
+Với Page đã có Cresco document hợp lệ, `cresco-session/v1` là nguồn dữ liệu hình ảnh/chỉnh sửa chính. WordPress vẫn là host cho authentication, capability, media, routing, REST, Page record, preview và frontend delivery.
 
-Existing user-authored `post_content` is preserved as a fallback and must not be destructively rewritten merely because Cresco Session data exists.
+`post_content` do người dùng tạo phải được bảo toàn làm fallback. Không được rewrite/xóa `post_content` chỉ vì Session tồn tại.
 
-The project is still release-candidate software. Do not describe it as production/commercially ready unless all required release gates have objective evidence for the exact release commit and ZIP.
+Đây vẫn là release candidate. Không được mô tả là stable/commercially ready nếu chưa có bằng chứng cho đúng release commit và đúng ZIP.
 
 ---
 
-## 3. Canonical architecture
+## 3. Kiến trúc canonical
 
-Cresco Canvas uses a modular-monolith, contract-first architecture.
+Cresco Canvas dùng kiến trúc **modular monolith, contract-first**.
 
-Stable dependency direction:
+Hướng dependency ổn định:
 
 ```text
 Contracts -> Core -> Application -> Modules / Infrastructure / Presentation
 ```
 
-Canonical responsibilities:
+Trách nhiệm chính:
 
-- **Contracts:** portable document, scope, command, transaction, patch, interchange, and AI envelopes.
-- **Core:** document model, scope/context, commands/patches, responsive inheritance, design tokens, Widget Registry, Inspector/UI Registry, dependency policy, migrations.
-- **Application:** editor workflows such as export, transaction preview/commit, render preview, save, history, and component operations.
-- **Rendering:** one HTML/CSS boundary through `RenderEngine/v2` and the canonical render/compiler stack.
-- **Modules:** Theme, Loop, Forms, WooCommerce, Components, AI, and future modules register capabilities rather than modifying Core contracts directly.
-- **WordPress infrastructure:** storage, REST, media, users/capabilities, WP_Query, WooCommerce, ACF integration.
-- **Editor presentation:** a client of Core/Application, not an independent persistence authority.
+- **Contracts:** document, scope, command, transaction, patch, interchange và AI envelope có tính portable.
+- **Core:** document model, scope/context, command/patch, responsive inheritance, design token, Widget Registry, Inspector/UI Registry, dependency policy và migration.
+- **Application:** export, transaction preview/commit, render preview, save, history, component workflow.
+- **Rendering:** một ranh giới HTML/CSS thông qua `RenderEngine/v2` và compiler/renderer canonical.
+- **Modules:** Theme, Loop, Forms, WooCommerce, Components, AI và module tương lai đăng ký capability; không sửa contract Core tùy tiện.
+- **WordPress infrastructure:** storage, REST, media, user/capability, WP_Query, WooCommerce, ACF.
+- **Editor presentation:** là client của Core/Application, không phải persistence authority riêng.
 
-### Hard rule
+### Quy tắc cứng
 
-Do not create a new parallel builder generation such as `V4`, `V5`, or another standalone document/render/state system.
+Không tạo builder generation song song như `V4`, `V5` hoặc một document/render/state stack mới cho cùng bài toán.
 
-Version contracts and migrations, not service names.
-
----
-
-## 4. One document model
-
-`cresco-session/v1` remains the authoritative editable Website Builder document model.
-
-`cresco-document/v1` may wrap Session data with `documentType` without forcing destructive migration.
-
-Supported/future document types share the same Session node tree and rendering architecture rather than introducing separate builders.
-
-Do not:
-
-- create a second page document store;
-- keep a hidden DOM-only state that overrides Session after reload;
-- mutate persisted Session outside validated command/transaction or approved compatibility save paths;
-- rewrite user `post_content` as a side effect of saving Cresco Session data.
+Version contract và migration, không version hóa bằng cách nhân bản service.
 
 ---
 
-## 5. One mutation path
+## 4. Một document model
 
-New editor, AI, import, clipboard, and component mutations should converge on:
+`cresco-session/v1` là editable Website Builder document model authoritative.
+
+`cresco-document/v1` có thể bọc Session với `documentType` mà không ép migration phá dữ liệu.
+
+Page, Theme document, Component, Loop Item, Popup và các document type tương lai phải ưu tiên dùng cùng cây Session + rendering architecture.
+
+Không được:
+
+- tạo page document store thứ hai;
+- giữ hidden DOM state có thể ghi đè Session sau reload;
+- mutate persisted Session ngoài command/transaction đã validate hoặc compatibility save path được phê duyệt;
+- rewrite `post_content` như side effect của Session save.
+
+---
+
+## 5. Một mutation path
+
+Mutation mới từ UI, AI, Import, Clipboard và Component nên hội tụ vào:
 
 ```text
 UI / AI / Import / Clipboard / Component
@@ -106,15 +106,15 @@ UI / AI / Import / Clipboard / Component
   -> History
 ```
 
-`DocumentRepository` owns persistence. `WordPressDocumentRepository` is the current WordPress adapter.
+`DocumentRepository` sở hữu persistence. `WordPressDocumentRepository` là adapter WordPress hiện tại.
 
-When concurrency protection is available, preserve checksum/`ifMatch` semantics. Do not silently overwrite a newer document state.
+Khi có concurrency protection, phải giữ checksum/`ifMatch` semantics. Không được âm thầm ghi đè document mới hơn.
 
 ---
 
-## 6. Canonical rendering and WYSIWYG
+## 6. Rendering canonical và WYSIWYG
 
-The canonical visual path is:
+Luồng hình ảnh canonical:
 
 ```text
 Session + Architecture v2
@@ -124,95 +124,89 @@ Session + Architecture v2
   -> HTML/CSS
 ```
 
-The canonical Studio iframe and frontend must derive from the same normalized Session/Architecture state.
+Studio preview/iframe và frontend phải xuất phát từ cùng normalized Session/Architecture state.
 
-Do not create a second Page frontend renderer or CSS compiler that competes with Core Platform v2.
+Không tạo frontend renderer hoặc CSS compiler cạnh tranh với Core Platform v2.
 
-Compatibility renderers may translate legacy data but must not regain permanent frontend ownership.
+Compatibility renderer chỉ được chuyển đổi legacy data; không được lấy lại ownership frontend lâu dài.
 
-A visual preview that differs from canonical render output is a defect; do not paper over it with Studio-only CSS.
-
----
-
-## 7. Studio runtime ownership
-
-`WebsiteBuilderStudio` is the canonical active Website Builder runtime owner.
-
-The existing `cresco-canvas-website-builder` handle is intentionally retained for compatibility while its implementation evolves.
-
-### Required invariants
-
-- Exactly one Studio shell owns the editor screen.
-- Optional modules never replace the core runtime.
-- A failed optional feature degrades that feature only.
-- Runtime context and endpoints come from the canonical server-side runtime/config owners.
-- Long-lived branches must not silently lag behind `main` during runtime/UI work.
-
-### Forbidden patterns
-
-Do not:
-
-- enqueue an older core Website Builder runtime after Studio;
-- mount a competing `.cc-builder-app` or second `.cc-studio-app`;
-- recover from optional-module failure by switching the canonical script handle to another runtime;
-- let compatibility code mutate the canonical handle after ownership is enforced;
-- build a second editor shell around Studio using DOM observers.
-
-When debugging Studio startup, verify runtime ownership before debugging CSS.
+Nếu Studio preview khác canonical render output thì đó là defect. Không che lỗi bằng Studio-only CSS.
 
 ---
 
-## 8. React DOM ownership
+## 7. Ownership của Studio runtime
 
-React owns the DOM it renders.
+`WebsiteBuilderStudio` là owner canonical của Website Builder runtime đang hoạt động.
 
-`.cc-studio-*` classes are implementation selectors, not a public permission to restructure the React tree.
+Handle `cresco-canvas-website-builder` được giữ để tương thích; implementation bên dưới có thể phát triển.
 
-Extension order of preference:
+Invariant bắt buộc:
 
-1. `window.CrescoStudioSDK` registration.
-2. Explicit Studio event/state bridge.
-3. React portal into a stable host.
-4. Explicit additive sibling mount point.
-5. Narrow DOM enhancer only when no supported extension point exists.
+- chỉ một Studio shell sở hữu editor screen;
+- optional module không thay thế core runtime;
+- optional feature lỗi chỉ làm feature đó degrade;
+- runtime context/endpoints lấy từ owner server-side canonical;
+- branch UI/runtime dài hạn không được âm thầm tụt sau `main`.
 
-Do not use against React-owned Studio content unless ownership is explicitly delegated:
+Không được:
+
+- enqueue runtime core cũ sau Studio;
+- mount `.cc-builder-app` hoặc `.cc-studio-app` cạnh tranh;
+- đổi canonical handle sang runtime khác để “fallback” khi module phụ lỗi;
+- để compatibility code mutate canonical handle sau khi ownership đã được enforce;
+- dùng DOM observer dựng một editor shell thứ hai quanh Studio.
+
+Khi debug startup, kiểm tra runtime ownership trước khi debug CSS.
+
+---
+
+## 8. React sở hữu DOM do React render
+
+`.cc-studio-*` là implementation selector, không phải API cho phép tái cấu trúc React tree.
+
+Thứ tự ưu tiên khi mở rộng Studio:
+
+1. `window.CrescoStudioSDK`.
+2. Event/state bridge được Studio công bố.
+3. React portal vào host ổn định.
+4. Additive sibling mount point được dành sẵn.
+5. DOM enhancer hẹp, chỉ khi không có extension point phù hợp.
+
+Không dùng trên React-owned content nếu chưa được delegate ownership:
 
 ```text
 innerHTML = ...
 replaceWith(...)
 replaceChildren(...)
-removing React-owned parents
-reparenting canonical controls
-cloning controls and hiding originals
-changing input values and assuming React state changed
-unbounded MutationObserver enhancement loops
+remove React-owned parent
+reparent canonical controls
+clone control rồi ẩn bản gốc
+đổi DOM input rồi giả định React state đã đổi
+MutationObserver loop không giới hạn
 ```
 
-A `MutationObserver` may discover a mount point; it must not become a second UI owner.
-
-Observers must be narrow, idempotent, scheduled/coalesced, and tear down cleanly.
+`MutationObserver` chỉ nên dùng để phát hiện mount point, không trở thành UI owner thứ hai. Observer phải hẹp, idempotent, coalesced/debounced và teardown được.
 
 ---
 
-## 9. State ownership
+## 9. Ownership của state
 
-Authority order for Studio-owned state:
+Thứ tự authority:
 
-1. Server model/sanitizer defines valid persisted state.
-2. Studio React state defines current editable browser state.
-3. DOM reflects state; DOM is not a competing source of truth.
-4. Optional module local state is presentation/transient only unless a contract grants ownership.
+1. Server model/sanitizer định nghĩa persisted state hợp lệ.
+2. Studio React state định nghĩa editable browser state hiện tại.
+3. DOM phản chiếu state, không phải source of truth cạnh tranh.
+4. Local state của optional module chỉ dùng cho presentation/transient state trừ khi contract giao ownership rõ ràng.
 
-Never let two modules independently own the same semantic value.
+Không để hai module sở hữu độc lập cùng một semantic value.
 
-Reset/unset is a model operation. Clearing an input visually is not sufficient if an override key remains persisted.
+Reset/unset là model operation. Xóa trắng input không đủ nếu override key vẫn tồn tại trong Session/Page Settings.
 
-For responsive controls, define:
+Với responsive control phải định nghĩa rõ:
 
-- inherited display behavior;
-- explicit value vs missing override semantics;
-- reset/unset behavior;
+- cách hiển thị inherited value;
+- explicit value so với missing override;
+- reset/unset;
 - parent/base resolution;
 - save/reload verification.
 
@@ -220,345 +214,378 @@ For responsive controls, define:
 
 ## 10. Responsive contract
 
-`ResponsiveResolver` is the canonical Core Platform responsive inheritance authority.
+`ResponsiveResolver` là authority canonical cho responsive inheritance ở Core Platform.
 
-Default inheritance direction:
+Hướng mặc định:
 
 ```text
 wide base -> desktop -> laptop -> tablet -> mobile
 ```
 
-A smaller viewport receives larger buckets in source order followed by its more-specific override.
+Viewport nhỏ nhận các bucket lớn hơn theo source order rồi áp override cụ thể hơn.
 
-Do not implement a second breakpoint cascade in a widget, optional module, AI adapter, or CSS compiler.
+Không viết breakpoint cascade thứ hai trong widget, optional module, AI adapter hoặc CSS compiler.
 
-Preview widths and effective values should come from the same published responsive contract.
+Preview width và effective value phải dùng cùng responsive contract đã publish.
 
 ---
 
-## 11. Inspector and Widget Catalog
+## 11. Inspector, Widget Catalog và control dùng chung
 
-The Inspector is schema-driven from `WidgetCatalog` / `InspectorSchema`.
+Inspector được điều khiển bằng schema từ `WidgetCatalog` / `InspectorSchema`.
 
-A visible control should exist because the widget contract declares the capability, and renderer/validator code must consume the same contract.
+Một control chỉ nên xuất hiện khi widget contract khai báo capability đó; validator/sanitizer và renderer/compiler phải dùng cùng contract.
 
-Before adding a widget control:
+Trước khi thêm control:
 
-1. Check `WidgetCatalog` capability/schema.
-2. Check validation/sanitization.
-3. Check renderer/compiler consumption.
-4. Check responsive/state semantics.
-5. Check AI/interchange contract if applicable.
-6. Add tests.
+1. Kiểm tra `WidgetCatalog` capability/schema.
+2. Kiểm tra validation/sanitization.
+3. Kiểm tra renderer/compiler.
+4. Kiểm tra responsive/state semantics.
+5. Kiểm tra AI/interchange nếu liên quan.
+6. Thêm test.
 
-Do not create widget-specific Inspector systems that bypass the catalog.
+Không tạo Inspector riêng theo từng widget nếu có thể dùng shared primitive.
 
-Prefer shared control primitives for dimensions, units, responsive values, border, radius, states, and tokens when the underlying data contract is actually shared.
+### Dimension và unit
+
+Dimension control phải dùng primitive/adapter hiện có khi contract tương thích. Các unit như `px`, `%`, `em`, `rem`, `vw`, `vh`, `vmin`, `vmax`, `ch`, keyword hoặc `custom` chỉ được expose khi storage/validator/compiler của domain đó thực sự hỗ trợ.
+
+Không được biến `custom` thành đường bypass sanitizer.
+
+### Border và Border Radius
+
+Widget Border/Radius dùng các style key canonical của Session. Shared Border UI được phép proxy control hiện có nhưng không được tạo một state khác.
+
+Không copy Widget Border control sang Page Settings nếu Page Settings backend chưa có schema tương ứng.
+
+### Typography popup
+
+`StudioTypographyPopup` là presentation layer cho các Typography control canonical; nó không được tạo typography state/store thứ hai. Responsive selector, dimension/unit, state override, reset và save vẫn phải đi qua control/Session owner hiện tại.
+
+Khi thêm property như `wordSpacing`, phải thêm vào contract/style allow-list và compiler trước hoặc cùng lúc với UI.
 
 ---
 
 ## 12. Page Settings contract
 
-`includes/Page/PageSettings.php` is the canonical persistence/model owner for Page Settings.
+`includes/Page/PageSettings.php` là persistence/model owner của Page Settings.
 
-The Studio Page panel and any standalone/alternate Page Settings UI are views over the same backend model. They must not diverge in persistence semantics.
+Studio Page panel và UI Page Settings khác chỉ là các view trên cùng backend model; semantics persistence không được lệch nhau.
 
-### Current spacing constraints
+### Constraint spacing hiện tại
 
-Page Settings v2 currently uses:
+Page Settings v2 dùng:
 
-- `desktop`, `tablet`, `mobile` spacing buckets;
-- four sides: `top`, `right`, `bottom`, `left`;
-- one shared unit for all Margin sides/buckets;
-- one shared unit for all Padding sides/buckets;
-- a `linked` flag;
-- allowed units including `px`, `%`, `em`, `rem`, `vh`, `vw`.
+- bucket `desktop`, `tablet`, `mobile`;
+- `top`, `right`, `bottom`, `left`;
+- một shared unit cho toàn bộ Margin;
+- một shared unit cho toàn bộ Padding;
+- `linked` flag;
+- unit gồm `px`, `%`, `em`, `rem`, `vh`, `vw`.
 
-Do not expose per-side/per-breakpoint units until the backend schema, sanitizer, compiler, REST contract, migrations, tests, and all UI surfaces support them.
+Không expose per-side/per-breakpoint unit cho đến khi defaults, sanitizer, compiler, REST, migration, test và toàn bộ UI surface hỗ trợ.
 
-Do not implement a UI-only `custom` unit and assume persistence supports it.
+Không tạo UI-only `custom` unit rồi giả định persistence lưu được.
 
-### Atomic Page Settings evolution
-
-A persisted Page Settings feature is complete only when all relevant owners change together:
+### Thay đổi Page Settings phải atomic
 
 ```text
 defaults
 -> sanitizer/validation
--> inheritance/effective-value logic
--> compiler/frontend output
--> REST payload
+-> inheritance/effective values
+-> compiler/frontend
+-> REST
 -> Studio Page UI
 -> alternate Page Settings UI
--> AI/import-export contracts where applicable
+-> AI/import-export nếu có
 -> tests
 -> save/reload browser verification
 -> docs
 ```
 
-A CSS-only visual patch is not a schema upgrade.
+CSS-only patch không phải schema upgrade.
 
 ---
 
-## 13. Global Design and tokens
+## 13. Global Design và design token
 
-Global settings are stored in validated `cresco_canvas_settings` data.
+Global settings được lưu trong dữ liệu `cresco_canvas_settings` đã validate.
 
-Prefer design tokens in this order:
+Ưu tiên thiết kế:
 
 1. Global Design token.
 2. Widget prop.
 3. Structured widget style.
-4. Scoped Custom CSS for the remaining special case.
+4. Scoped Custom CSS cho trường hợp còn lại.
 
-Known token references compile to stable `--cc-*` CSS variables.
+Known token reference compile thành `--cc-*` CSS variable ổn định.
 
-Do not create a second site-token store or an optional-module copy of canonical design state.
+Không tạo site-token store thứ hai hoặc copy canonical design state vào optional module.
 
-Token analysis/replacement should use the Design System/Core contract rather than scanning arbitrary HTML.
+Token usage/replacement phải đi qua Design System/Core contract thay vì scan HTML tùy tiện.
 
 ---
 
 ## 14. Custom CSS
 
-Custom CSS is a first-class fallback, not a replacement for structured controls.
+Custom CSS là fallback chính thức, không phải thay thế structured controls.
 
-Widget Custom CSS must remain scoped to the widget contract.
+Widget Custom CSS phải scoped theo widget contract và được server validate.
 
-Server validation rejects unsafe/out-of-contract patterns such as global selectors, raw `@media`, `@import`, external `url()`, JavaScript expressions, or markup escapes.
+Không đưa một capability có tính design-system vào Custom CSS chỉ vì triển khai nhanh hơn.
 
-Responsive Custom CSS should use Cresco device buckets, not handwritten media-query ownership that bypasses the responsive model.
+Responsive Custom CSS phải dùng Cresco device bucket, không tự sở hữu media-query system song song.
 
-Do not move a reusable design-system capability into Custom CSS merely because it is faster than implementing the structured control correctly.
+Các pattern nguy hiểm/out-of-contract như global selector, resource-loading, JavaScript/expression, markup escape phải bị chặn theo sanitizer hiện tại.
 
 ---
 
-## 15. CSS cascade and file ownership
+## 15. CSS cascade và ownership
 
-`assets/css/cresco-foundation.css` declares canonical Cresco cascade layer order and must be loaded before stylesheets that open Cresco layers.
+`assets/css/cresco-foundation.css` là nơi khai báo layer order canonical và phải xuất hiện trước các stylesheet mở Cresco layer.
 
-Canonical order:
+Thứ tự hiện tại trên `main`:
 
 ```css
-@layer cresco.base, cresco.legacy, cresco.components, cresco.utilities, cresco.overrides;
+@layer cresco.base, cresco.tokens, cresco.components, cresco.theme, cresco.overrides, cresco.motion;
 ```
 
-Responsibilities:
+Trách nhiệm:
 
-- `cresco.base`: canonical base/editor structure and primitives.
-- `cresco.legacy`: compatibility rules.
-- `cresco.components`: reusable component presentation.
-- `cresco.utilities`: narrow utilities.
-- `cresco.overrides`: final visual polish only.
+- `cresco.base`: cấu trúc/primitives nền tảng.
+- `cresco.tokens`: token và alias canonical.
+- `cresco.components`: presentation của reusable component.
+- `cresco.theme`: theme-level presentation khi có.
+- `cresco.overrides`: visual polish cuối cùng, không sở hữu logic/cấu trúc.
+- `cresco.motion`: timing và micro-motion, luôn tôn trọng reduced motion.
 
-A layer does not eliminate conflicts inside the same layer. Source order and specificity still matter.
+Layer không loại bỏ conflict trong cùng layer; source order và specificity vẫn có hiệu lực.
 
-### CSS rules
+Quy tắc:
 
-- One semantic rule should have one canonical owner.
-- Do not copy selectors into later files just to force the desired appearance.
-- Fix the actual owner when possible.
-- Check layer, load order, specificity, and duplicate ownership before adding `!important`.
-- `website-builder-premium-polish.css` is presentation-only; it must not own shell structure, runtime behavior, data semantics, or DOM mount behavior.
-- If polish CSS is required for the UI to function, the rule belongs elsewhere.
-
----
-
-## 16. Source/build ownership
-
-Checked-in runtime/build assets are part of the product and release process.
-
-Where source/build runtime files are documented as byte-identical mirrors, update them together.
-
-Do not hand-edit one generated/runtime mirror and leave its canonical partner stale.
-
-Run the repository's build-integrity checks after changes to generated/runtime assets.
-
-Do not assume a successful source edit means the browser is running that source file; verify the enqueued build asset and content-hashed version.
+- một semantic rule nên có một owner;
+- không copy selector sang file sau chỉ để “ép thắng”;
+- sửa đúng owner nếu có thể;
+- kiểm tra layer, load order, specificity và duplicate owner trước khi dùng `!important`;
+- `website-builder-premium-polish.css` chỉ presentation;
+- nếu polish CSS cần thiết để UI hoạt động, rule đó đang nằm sai owner.
 
 ---
 
-## 17. Runtime modules
+## 16. Motion system
 
-`WebsiteBuilderModuleRegistry` is the authoritative required/optional module catalog.
+Motion dùng token canonical trong `cresco-foundation.css`:
 
-Required modules must not depend on optional presentation modules.
+- `--cc-motion-instant`
+- `--cc-motion-fast`
+- `--cc-motion-base`
+- `--cc-motion-slow`
+- các easing token canonical.
 
-Optional modules must:
+Không hard-code nhiều timing/easing khác nhau cho cùng interaction family nếu token đã tồn tại.
 
-- be additive;
-- fail independently;
-- expose useful diagnostics;
-- avoid taking over core state/runtime/rendering;
-- use bounded observers/listeners;
-- provide teardown/guard behavior.
+Không animate layout lớn hoặc site content chỉ vì Studio chrome có micro-motion.
 
-Diagnostic/isolation modes must derive from the same registry rather than a second hard-coded module list.
+`prefers-reduced-motion: reduce` phải được tôn trọng.
 
 ---
 
-## 18. AI, interchange, import/export
+## 17. Source/build ownership
 
-AI uses the same document/contracts as the editor; it does not own a separate builder schema.
+Checked-in runtime/build asset là một phần của product/release process.
 
-Stable scope model includes:
+Nếu source/runtime mirror được quy định byte-identical thì phải cập nhật cùng nhau. Không hand-edit một bản rồi để bản canonical còn lại stale.
+
+Sau thay đổi runtime/build:
+
+- chạy build-integrity check;
+- kiểm tra browser thực sự enqueue file nào;
+- kiểm tra content-hashed version thay đổi đúng;
+- không giả định source edit đồng nghĩa browser đang chạy source đó.
+
+---
+
+## 18. Runtime module
+
+`WebsiteBuilderModuleRegistry` là catalog authoritative cho required/optional browser module.
+
+Required module không được phụ thuộc optional presentation module.
+
+Optional module phải:
+
+- additive;
+- fail độc lập;
+- có diagnostics hữu ích;
+- không takeover state/runtime/rendering core;
+- listener/observer có giới hạn;
+- có guard/teardown.
+
+Các Studio service đăng ký trực tiếp như Dimension Controls, Typography Popup, Widget State Tabs, Structure Layout, UX Pro, Color Harmony và Global Design Pro vẫn phải tuân thủ cùng ownership contract và không tạo runtime thứ hai.
+
+---
+
+## 19. AI, interchange, import/export
+
+AI dùng cùng document/contract với editor, không có builder schema riêng.
+
+Scope ổn định bao gồm:
 
 - `widget`
 - `subtree`
 - `selection`
 - `document`
 
-AI/import changes must be validated before applying and must not bypass server sanitization.
+Các compatibility scope như `selection-subtrees` chỉ được dùng khi resolver hỗ trợ.
 
-Applying imported/AI output must not silently save the document; persistence remains an explicit editor/user action unless a documented workflow states otherwise.
+AI/import output phải validate trước khi Apply và không được bypass server sanitization.
 
-Prefer `cresco-patch/v1`/command/transaction semantics for scoped mutations.
+Apply không tự động Save trừ khi workflow được document rõ ràng. Persistence vẫn là hành động editor/user riêng.
 
-Do not allow an AI response to mutate outside the exported scope boundary.
+Ưu tiên `cresco-patch/v1`/command/transaction cho mutation có scope.
+
+AI response không được mutate ngoài scope boundary đã export.
 
 ---
 
-## 19. WordPress / PHP rules
+## 20. WordPress/PHP
 
-Use WordPress APIs and project service boundaries.
+Dùng WordPress API và service boundary của dự án.
 
-For server-side writes, apply as appropriate:
+Write path phía server phải áp dụng phù hợp:
 
 - capability checks;
-- nonce verification;
+- WordPress REST authentication/nonce semantics;
 - validation;
 - sanitization;
 - output escaping;
-- permissioned REST callbacks;
-- safe WordPress database/storage APIs;
-- slash-safe JSON persistence where required.
+- permissioned REST callback;
+- storage/database API an toàn;
+- slash-safe JSON khi contract yêu cầu.
 
-Do not edit WordPress Core or third-party plugin core to implement Cresco behavior.
+Không sửa WordPress Core hoặc core của plugin bên thứ ba.
 
-Do not leak WordPress persistence calls across Core/Application when `DocumentRepository` or an existing infrastructure port owns the responsibility.
-
----
-
-## 20. JavaScript / TypeScript rules
-
-Prefer the existing Studio/Core registries and APIs over direct DOM coupling.
-
-Do not create global mutable state when the Session/Studio state contract already exists.
-
-Avoid:
-
-- repeated DOM queries in hot loops;
-- duplicate event listeners;
-- unbounded scroll/resize handlers;
-- observer feedback loops;
-- optional modules that block core startup;
-- DOM mutation as a substitute for state mutation.
-
-For behavior that touches the canonical canvas, Inspector, Structure, Page panel, Global Design, or runtime startup, first identify the documented owner.
+Không rải WordPress persistence call qua Core/Application nếu `DocumentRepository` hoặc infrastructure port đã sở hữu trách nhiệm đó.
 
 ---
 
-## 21. Accessibility
+## 21. JavaScript/TypeScript
 
-Accessibility is a release gate, not optional polish.
+Ưu tiên Studio/Core registry và API hơn coupling trực tiếp với DOM.
 
-Preserve or improve:
+Không tạo global mutable state nếu Session/Studio state đã có contract tương ứng.
+
+Tránh:
+
+- DOM query lặp trong hot loop;
+- duplicate listener;
+- scroll/resize handler không giới hạn;
+- observer feedback loop;
+- optional module block core startup;
+- DOM mutation thay cho state mutation.
+
+Khi sửa Canvas, Inspector, Structure, Page, Global Design hoặc startup, phải xác định owner trước.
+
+---
+
+## 22. Accessibility
+
+Accessibility là release gate, không phải polish tùy chọn.
+
+Phải giữ hoặc cải thiện:
 
 - keyboard access;
-- focus visibility;
-- semantic control names;
+- `:focus-visible`;
+- accessible/semantic control name;
 - panel/navigation semantics;
-- touch targets;
+- touch target;
 - contrast;
 - reduced motion;
-- screen-reader state for expandable/selectable controls;
-- drag/drop alternatives where required.
+- screen-reader state cho expandable/selectable control;
+- keyboard alternative cho drag/drop khi cần.
 
-Do not remove focus outlines without an equivalent visible `:focus-visible` treatment.
+Không xóa focus outline nếu không có visible replacement tương đương.
 
-A configured accessibility test is not evidence that the exact release build passed.
+Configured accessibility test không đồng nghĩa exact release build đã pass.
 
 ---
 
-## 22. Performance and reliability
+## 23. Performance và reliability
 
-Changes must avoid regressions in editor startup, responsiveness, memory, and frontend output.
+Không làm regression startup, responsiveness, memory hoặc frontend output.
 
-Pay special attention to:
+Đặc biệt kiểm tra:
 
-- MutationObservers;
-- event-loop stalls;
-- repeated rendering/compilation;
-- large Session operations;
-- unnecessary optional modules;
-- duplicate CSS/JS owners;
+- MutationObserver;
+- event-loop stall;
+- repeated render/compile;
+- Session lớn;
+- optional module không cần thiết;
+- duplicate CSS/JS owner;
 - repeated DOM mutation;
-- startup requests without bounds/timeouts.
+- startup request thiếu timeout/bound.
 
-Optional modules must degrade without blocking Session loading or core Studio mount.
+Optional module lỗi không được ngăn Session load hoặc Studio mount.
 
 ---
 
-## 23. Repository structure and important entry points
-
-Important root areas include:
+## 24. Cấu trúc repository và entry point quan trọng
 
 ```text
 cresco-canvas.php        Plugin bootstrap
-includes/                PHP application/core/infrastructure/runtime services
-contracts/               Stable machine-readable contracts
-src/                     Compiled editor/block source
-runtime-src/             Runtime source mirrors/contracts where applicable
+includes/                PHP Core/Application/Infrastructure/Runtime
+contracts/               Machine-readable contracts ổn định
+src/                     Source compile cho editor/block
+runtime-src/             Runtime source/mirror canonical khi áp dụng
 build/                   Checked-in production/runtime assets
 assets/css/              Studio/frontend/module CSS
-blocks/                   Block metadata/styles/assets
-docs/                     Architecture, behavior, release, and audit contracts
-scripts/                  Build/check/release verification scripts
+docs/                     Kiến trúc, behavior, release, audit, policy
+scripts/                  Build/check/release verification
 tests/                    Unit/integration/e2e/release evidence
 ```
 
-Do not assume a similarly named `legacy`, `V2`, or `V3` file is canonical. Check ownership docs and registration code.
+Không giả định file có tên `legacy`, `V2`, `V3` là canonical; phải kiểm tra registration và ownership docs.
 
 ---
 
-## 24. Canonical documentation authority
+## 25. Authority của tài liệu
 
-For current Studio/Core work, consult at minimum:
+Với Studio/Core hiện tại, tối thiểu đọc:
 
 - `README.md`
+- `PROJECT_RULES.md`
+- `docs/README.md`
 - `docs/CORE_ARCHITECTURE.md`
 - `docs/STUDIO_RUNTIME_OWNERSHIP_AND_CONFLICT_PREVENTION.md`
 - `docs/STUDIO_EDITOR_EXPERIENCE_2.md`
 - `docs/DECISIONS.md`
 - `docs/CRESCO_SESSION_V1.md`
-- subsystem-specific contracts such as responsive/unset/release docs
+- contract subsystem liên quan.
 
-`docs/ARCHITECTURE.md` contains historical Gutenberg-native architecture. It remains useful for migration/history but must not override current Studio ownership where the documents explicitly conflict.
+`docs/ARCHITECTURE.md`, audit cũ, roadmap cũ và release report cũ có thể là historical evidence. Chúng không được ghi đè code/runtime/ADR hiện tại nếu scope đã bị supersede.
 
-When architecture intentionally changes, update the relevant ADR/contract in the same change.
-
-Do not leave old documentation phrased as current fact after it has been superseded.
+Khi architecture thay đổi có chủ ý, cập nhật ADR/contract trong cùng change.
 
 ---
 
-## 25. Branch discipline
+## 26. Branch discipline
 
-Before runtime/UI/core architecture work:
+Trước runtime/UI/core architecture work:
 
-1. Confirm the working branch base against `main`.
-2. Rebase/merge/fast-forward as appropriate before implementing against stale code.
-3. After canonical changes land on `main`, resynchronize long-lived feature branches.
-4. Re-run ownership/build checks after synchronization.
+1. Kiểm tra branch base so với `main`.
+2. Fast-forward/rebase/merge phù hợp trước khi sửa stale code.
+3. Sau khi canonical change vào `main`, sync lại long-lived branch.
+4. Chạy lại ownership/build checks sau sync.
 
-Do not diagnose a browser regression from a stale branch until branch parity is confirmed.
+Không debug regression từ stale branch như thể đó là `main` hiện tại.
 
 ---
 
-## 26. Refactoring rules
+## 27. Quy tắc refactor
 
-Do not refactor solely because another structure looks cleaner.
+Không refactor chỉ vì cấu trúc khác “đẹp hơn”.
 
-A meaningful refactor should improve at least one of:
+Refactor có ý nghĩa phải cải thiện ít nhất một trong:
 
 - maintainability;
 - reuse;
@@ -569,7 +596,7 @@ A meaningful refactor should improve at least one of:
 - security;
 - ownership clarity.
 
-For a significant refactor, record:
+Refactor lớn cần ghi rõ:
 
 ```text
 Problem
@@ -583,43 +610,43 @@ Regression risk
 Verification
 ```
 
-Prefer consolidation behind existing Core APIs over a rewrite.
+Ưu tiên consolidation phía sau Core API hiện có hơn rewrite.
 
 ---
 
-## 27. Delete-code rule
+## 28. Quy tắc xóa code
 
-Do not delete code because it appears unused from one search result.
+Không xóa code chỉ vì một search không thấy dùng.
 
-Before deletion:
+Trước khi xóa:
 
-1. Search PHP registration/hooks.
-2. Search runtime/module registry references.
-3. Search build/source mirrors.
-4. Search REST routes/contracts.
-5. Search tests and release allowlists.
-6. Search compatibility adapters and migrations.
-7. Search docs/ADR references.
+1. Search PHP registration/hook.
+2. Search runtime/module registry.
+3. Search build/source mirror.
+4. Search REST route/contract.
+5. Search test/release allowlist.
+6. Search compatibility adapter/migration.
+7. Search docs/ADR.
 
-If ownership is uncertain, mark technical debt rather than deleting blindly.
+Nếu ownership chưa rõ, ghi technical debt thay vì xóa mù.
 
 ---
 
-## 28. No over-engineering
+## 29. Không over-engineer
 
-Do not:
+Không tạo:
 
-- create another builder framework;
-- create another Session/document schema for the same problem;
-- create another token system;
-- create another responsive inheritance engine;
-- create another Inspector architecture;
-- create another Page Settings backend;
-- create another frontend render pipeline;
-- add a dependency for a small local problem;
-- rewrite stable contracts for cosmetic code style reasons.
+- builder framework thứ hai;
+- Session/document schema thứ hai cho cùng bài toán;
+- token system thứ hai;
+- responsive engine thứ hai;
+- Inspector architecture thứ hai;
+- Page Settings backend thứ hai;
+- frontend render pipeline thứ hai;
+- dependency lớn cho một vấn đề local nhỏ;
+- rewrite stable contract chỉ vì style code.
 
-Prefer:
+Ưu tiên:
 
 ```text
 Existing contract -> shared primitive -> compatibility adapter -> migration
@@ -627,60 +654,60 @@ Existing contract -> shared primitive -> compatibility adapter -> migration
 
 ---
 
-## 29. Pre-change checklist
+## 30. Checklist trước khi sửa
 
 ```text
-[ ] I read PROJECT_RULES.md.
-[ ] I identified the canonical owner of this subsystem.
-[ ] I checked current source, not only docs/screenshots.
-[ ] I searched for existing contracts/adapters/tests.
-[ ] I checked whether my branch is current with main.
-[ ] I am not creating a second source of truth.
-[ ] I am not creating a competing runtime/render/state system.
-[ ] UI capabilities match backend persistence/validation.
-[ ] Responsive behavior uses the canonical resolver/contract.
-[ ] CSS ownership/layer/source order is understood.
-[ ] React-owned DOM is not being taken over by an optional module.
-[ ] Source/build mirrors that must match are identified.
-[ ] Accessibility impact is understood.
-[ ] Performance/startup impact is understood.
-[ ] Compatibility/migration impact is understood.
+[ ] Đã đọc PROJECT_RULES.md.
+[ ] Đã xác định canonical owner.
+[ ] Đã đọc source hiện tại, không chỉ docs/screenshot.
+[ ] Đã search contract/adapter/test hiện có.
+[ ] Branch đang đồng bộ phù hợp với main.
+[ ] Không tạo source of truth thứ hai.
+[ ] Không tạo runtime/render/state system cạnh tranh.
+[ ] UI capability khớp backend persistence/validation.
+[ ] Responsive dùng resolver/contract canonical.
+[ ] Đã hiểu CSS layer/load order/specificity/owner.
+[ ] Không takeover React-owned DOM.
+[ ] Đã xác định source/build mirror phải đồng bộ.
+[ ] Đã đánh giá accessibility.
+[ ] Đã đánh giá performance/startup.
+[ ] Đã đánh giá compatibility/migration.
 ```
 
 ---
 
-## 30. Post-change checklist
+## 31. Checklist sau khi sửa
 
 ```text
-[ ] Relevant syntax/type/lint checks pass.
-[ ] Relevant unit/PHP tests pass.
+[ ] Syntax/type/lint liên quan pass.
+[ ] Unit/PHP test liên quan pass.
 [ ] Architecture/runtime ownership checks pass.
-[ ] Source/build integrity passes where applicable.
-[ ] No competing Studio runtime/root is mounted.
-[ ] No new console/PHP errors in the affected flow.
-[ ] Save -> reload preserves the intended model change.
-[ ] Reset/unset removes the actual persisted override when applicable.
-[ ] Canonical renderer/frontend matches intended Studio output.
-[ ] Desktop/tablet/mobile responsive behavior is verified.
-[ ] Keyboard/focus/accessibility behavior is verified.
-[ ] Optional-module failure still degrades safely.
-[ ] Documentation/ADR/contracts were updated if architecture changed.
-[ ] Release claims are not stronger than available evidence.
+[ ] Source/build integrity pass khi áp dụng.
+[ ] Không có Studio root/runtime cạnh tranh.
+[ ] Không phát sinh console/PHP error trong flow bị ảnh hưởng.
+[ ] Save -> reload giữ đúng model change.
+[ ] Reset/unset thay đổi persisted override thật sự.
+[ ] Canonical renderer/frontend khớp Studio intent.
+[ ] Responsive desktop/tablet/mobile được verify.
+[ ] Keyboard/focus/accessibility được verify.
+[ ] Optional module failure vẫn degrade an toàn.
+[ ] Docs/ADR/contract được cập nhật nếu architecture đổi.
+[ ] Release claim không mạnh hơn bằng chứng hiện có.
 ```
 
 ---
 
-## 31. Quality commands
+## 32. Lệnh kiểm tra chất lượng
 
-Use the smallest relevant checks during development, then broader checks before merge/release.
-
-Core commands include:
+Dùng check nhỏ nhất trong lúc phát triển, sau đó dùng check rộng hơn trước merge/release.
 
 ```bash
 npm ci
 composer install
 npm run build
 npm run typecheck
+npm run lint:php
+npm run lint:runtime
 npm run lint:js
 npm run lint:css
 npm run lint:md
@@ -694,28 +721,28 @@ npm run check:runtime-modules
 npm run check:studio
 npm run check:studio-ui
 npm run check:studio-premium
+npm run check:studio-motion
 npm run check:studio-unset-styles
 npm run check:canonical-preview-owner
 npm run check:known-defects
+npm run check:comprehensive-v3
 npm run check:architecture
 npm run check:production-hardening
 npm run check:build-integrity
 npm run check:version
 ```
 
-`npm run check:quality` aggregates the repository's main static/unit quality checks.
+`npm run check:quality` gom các static/unit quality gate chính của repository.
 
-Browser, accessibility, performance, exact-ZIP installation, upgrade/rollback, compatibility matrices, and commercial-readiness evidence remain separate gates where documented.
-
-A skipped/configured check is not a pass.
+Browser, accessibility, performance, exact-ZIP install, upgrade/rollback và compatibility matrix là gate riêng. Check bị skip/chưa chạy không được tính là pass.
 
 ---
 
-## 32. Release rules
+## 33. Quy tắc release
 
-Release packaging must remain deterministic and strict-allowlist based.
+Release package phải deterministic và dùng strict allowlist.
 
-Typical release flow:
+Flow điển hình:
 
 ```bash
 composer install --no-dev --optimize-autoloader
@@ -726,48 +753,47 @@ npm run package
 node scripts/verify-package.mjs
 ```
 
-Do not manually add development-only source, tests, secrets, or tooling to the production ZIP outside the release ownership manifest/allowlist.
+Không thêm source/test/secret/dev tooling vào production ZIP ngoài release ownership manifest/allowlist.
 
-Do not call an RC build commercially ready without exact artifact evidence required by the release documents.
-
----
-
-## 33. AI Coding Agent behavior
-
-Every AI Coding Agent working in this repository must:
-
-1. Read this file first.
-2. Inspect source before assuming.
-3. Search before creating.
-4. Reuse before duplicating.
-5. Respect canonical ownership.
-6. Patch before rewriting.
-7. Preserve compatibility unless a migration is explicit.
-8. Keep backend/UI/render/test/docs changes atomic when a persisted contract changes.
-9. Never claim a visual patch fixed persistence without save/reload evidence.
-10. Never claim a model change fixed UI without browser evidence.
-11. Never use stale documentation to override current runtime registration/source.
-12. Never silently resolve architecture conflicts by adding another layer/system.
-13. Report unverified claims as unverified.
-14. Update this file if project-wide engineering rules intentionally change.
+Không gọi RC là commercially ready nếu thiếu exact-artifact evidence được release docs yêu cầu.
 
 ---
 
-## 34. Non-negotiable summary
+## 34. Hành vi bắt buộc của AI Coding Agent
 
-When in doubt, preserve these invariants:
+Mọi AI Coding Agent làm việc trong repository này phải:
+
+1. Đọc file này trước.
+2. Đọc source trước khi giả định.
+3. Search trước khi tạo mới.
+4. Reuse trước khi duplicate.
+5. Tôn trọng canonical ownership.
+6. Patch trước khi rewrite toàn bộ.
+7. Giữ compatibility trừ khi migration được định nghĩa rõ.
+8. Khi persisted contract đổi, backend/UI/render/test/docs phải thay đổi atomic.
+9. Không tuyên bố visual patch đã sửa persistence nếu chưa verify save/reload.
+10. Không tuyên bố model change đã sửa UI nếu chưa có browser evidence.
+11. Không dùng stale docs để override runtime registration/source hiện tại.
+12. Không giải quyết conflict kiến trúc bằng cách thêm một layer/system cạnh tranh.
+13. Claim chưa verify phải ghi rõ là chưa verify.
+14. Nếu quy tắc kỹ thuật toàn dự án thay đổi có chủ ý, cập nhật file này.
+
+---
+
+## 35. Tóm tắt bất biến không được phá
 
 ```text
-One Studio runtime.
-One Session document model.
-One canonical render path.
-One responsive inheritance authority.
-One backend owner per persisted setting domain.
-One semantic CSS owner per rule.
-React owns React-rendered DOM.
-Optional modules are additive and degradable.
-Source/build mirrors do not drift.
-Architecture docs and code must agree.
-Branches must not silently drift from main.
-Release claims require evidence.
+Một Studio runtime.
+Một Session document model.
+Một canonical render path.
+Một responsive inheritance authority.
+Một backend owner cho mỗi persisted setting domain.
+Một semantic CSS owner cho mỗi rule.
+React sở hữu DOM do React render.
+Optional module chỉ additive và có thể degrade độc lập.
+Source/build mirror không được drift.
+UI không được hứa nhiều hơn schema lưu được.
+Architecture docs phải khớp code hiện tại.
+Branch không được âm thầm drift khỏi main.
+Release claim luôn cần bằng chứng.
 ```

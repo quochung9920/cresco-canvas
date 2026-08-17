@@ -1,133 +1,152 @@
-# Cresco Canvas Security Model
+# Security Model của Cresco Canvas
 
-This document records the production security boundary for Cresco Canvas 1.0. It is intentionally narrower than the feature documentation: it identifies authentication, authorization, request bounds, public abuse controls, outbound-network restrictions, upload policy, and the REST inventory that must remain true across releases.
+Tài liệu này ghi production security boundary cho Cresco Canvas 1.0. Nó tập trung vào authentication, authorization, request bounds, public abuse controls, outbound network restriction, upload policy và REST inventory phải giữ đúng qua các release.
 
 ## WordPress REST authentication model
 
-Authenticated Cresco REST endpoints do not add a second plugin nonce check. WordPress REST cookie authentication validates the REST nonce before the endpoint permission callback; non-cookie mechanisms such as Application Passwords authenticate without that browser nonce. Cresco therefore treats the route `permission_callback` and WordPress capability checks as the authorization boundary.
+Authenticated Cresco REST endpoint không thêm một plugin nonce layer thứ hai chỉ để lặp lại WordPress REST cookie authentication. WordPress REST cookie auth validate REST nonce trước `permission_callback`; cơ chế như Application Password có authentication path riêng.
 
-Public endpoints exist only where anonymous frontend operation is required. They do not rely on a WordPress nonce as an authentication mechanism. Instead they use signed server-authored payloads where applicable, strict input/resource bounds, rate limits, and idempotency controls.
+Vì vậy Cresco coi route `permission_callback` + WordPress capability checks là authorization boundary.
+
+Public endpoint chỉ tồn tại khi anonymous frontend operation thật sự cần. Chúng không dùng WordPress nonce như authentication mechanism; thay vào đó dùng signed server-authored payload khi phù hợp, input/resource bounds, rate limit và idempotency.
 
 ## Global request bounds
 
-`CrescoCanvas\\Security\\SecurityHardening` runs before Cresco REST callbacks.
+`CrescoCanvas\\Security\\SecurityHardening` chạy trước Cresco REST callback.
 
-- Every mutating `/cresco-canvas/v1/*` request is capped at **1 MiB** unless a tighter route-specific cap applies.
-- `/forms/submit`: **256 KiB** JSON, at most **50 fields**, **12 requests/minute** per anonymous identity/form.
-- `/forms/submit-multipart`: **8 MiB** multipart body, at most **5 files**, each file at most **5 MiB**, **8 requests/minute**.
-- `/forms/verify-captcha`: **16 KiB**, CAPTCHA token at most **4096 bytes**, **20 requests/minute**.
-- `/dynamic/interactive-query`: **128 KiB**, page at most **100**, at most **3 taxonomy filters** and **12 terms/filter**, **40 requests/minute**.
-- `/dynamic/facet-counts`: **128 KiB**, at most **3 taxonomy filters** and **12 terms/filter**, **3 requests/minute**. Responses are cached for 60 seconds with a stable canonical request key.
-- Form submit endpoints accept an optional `X-Cresco-Idempotency-Key`. The key is combined with a request fingerprint and retained for 10 minutes.
-- Cresco Session additionally limits documents to **500 nodes**, nesting depth **12**, and bounded per-widget Custom CSS.
+Theo security contract hiện tại:
 
-Public rate keys contain only a keyed hash of the request identity, not the source IP itself.
+- Mutating `/cresco-canvas/v1/*` request bị cap **1 MiB** trừ route có cap nhỏ hơn.
+- `/forms/submit`: **256 KiB**, tối đa **50 fields**, **12 requests/phút** mỗi anonymous identity/form.
+- `/forms/submit-multipart`: **8 MiB**, tối đa **5 files**, mỗi file tối đa **5 MiB**, **8 requests/phút**.
+- `/forms/verify-captcha`: **16 KiB**, CAPTCHA token tối đa **4096 bytes**, **20 requests/phút**.
+- `/dynamic/interactive-query`: **128 KiB**, page tối đa **100**, tối đa **3 taxonomy filters**, **12 terms/filter**, **40 requests/phút**.
+- `/dynamic/facet-counts`: **128 KiB**, tối đa **3 taxonomy filters**, **12 terms/filter**, **3 requests/phút**; response cache 60 giây với canonical request key.
+- Form submit có thể nhận `X-Cresco-Idempotency-Key`; key kết hợp request fingerprint và retention 10 phút theo current contract.
+- Cresco Session giới hạn document theo sanitizer hiện hành; security baseline này ghi **500 nodes**, nesting depth **12**, cùng bounded per-widget Custom CSS.
+
+Public rate key chỉ chứa keyed hash của request identity, không lưu raw source IP làm key công khai.
 
 ## REST route inventory
 
-`Authentication / capability` below describes the effective endpoint gate after WordPress REST authentication. `Core REST nonce` means Cresco does not duplicate WordPress cookie-auth nonce validation.
+`Authentication / capability` dưới đây mô tả effective gate. “Core REST nonce” nghĩa Cresco không duplicate WordPress cookie-auth nonce validation.
 
-| Route | Methods | Authentication / capability | Nonce / signature | Payload / resource bound | Sensitive output / leakage policy |
+| Route | Methods | Authentication / capability | Nonce / signature | Bound chính | Output/leakage policy |
 | --- | --- | --- | --- | --- | --- |
-| `/cresco-canvas/v1/settings` | GET, POST/PUT/PATCH | Authenticated; `edit_theme_options` | Core REST nonce for cookie auth | Writes <= 1 MiB; settings allowlist/sanitizers | Site design settings; no credentials |
-| `/cresco-canvas/v1/settings/import-preview` | POST | Authenticated; `edit_theme_options` | Core REST nonce | <= 1 MiB; importer schema and value sanitizers | Sanitized preview only |
+| `/cresco-canvas/v1/settings` | GET, POST/PUT/PATCH | Authenticated; `edit_theme_options` | Core REST nonce | Write <= 1 MiB; allowlist/sanitizer | Site design settings; không credential |
+| `/cresco-canvas/v1/settings/import-preview` | POST | Authenticated; `edit_theme_options` | Core REST nonce | <= 1 MiB; importer sanitizer | Sanitized preview |
 | `/cresco-canvas/v1/settings/reset` | POST | Authenticated; `edit_theme_options` | Core REST nonce | <= 1 MiB | Sanitized defaults |
-| `/cresco-canvas/v1/design-tokens` | GET | Authenticated; `edit_theme_options` | Core REST nonce | Read-only | Public-design token catalog; no secrets |
-| `/cresco-canvas/v1/site-identity` | GET, POST/PUT/PATCH | Authenticated; `edit_theme_options` | Core REST nonce | Writes <= 1 MiB; image IDs validated | Site name/description/logo/icon only |
-| `/cresco-canvas/v1/page-settings/{postId}` | GET, POST | Authenticated; must be able to `edit_post(postId)` and target a Page | Core REST nonce | Write <= 1 MiB; page-settings schema sanitizer | Page-owned settings |
-| `/cresco-canvas/v1/session/{postId}` | GET, POST | Authenticated; `edit_post(postId)` on a Page | Core REST nonce | Write <= 1 MiB; max 500 nodes/depth 12; strict widget/style contract | Full Cresco page document; editor-only |
-| `/cresco-canvas/v1/session/validate` | POST | Authenticated; `edit_pages` | Core REST nonce | <= 1 MiB; same Session validator | Sanitized session/checksum/count |
-| `/cresco-canvas/v1/ai-context/{postId}` | GET | Authenticated; `edit_post(postId)` | Core REST nonce | Read-only | Global design, widget contract, current session; editor-only |
-| `/cresco-canvas/v1/ai-interchange/{postId}/context` | POST | Authenticated; `edit_post(postId)` on a Page | Core REST nonce | <= 1 MiB; current/supplied Session passes strict Session validation; scope/target/mode contracts | Sanitized AI context envelope derived from editable page data |
-| `/cresco-canvas/v1/ai-interchange/{postId}/validate` | POST | Authenticated; `edit_post(postId)` on a Page | Core REST nonce | <= 1 MiB; current Session sanitized; result must validate as Cresco Session or Cresco Patch | Validated candidate Session, bounded structured diff/checksums; no execution |
-| `/cresco-canvas/v1/history/{postId}` | GET | Authenticated; `edit_post(postId)` | Core REST nonce | Max 50 revisions returned | Revision metadata; author email only when caller can `list_users` |
-| `/cresco-canvas/v1/history/{postId}/{revisionId}/restore` | POST | Authenticated; `edit_post(postId)`; revision ownership checked | Core REST nonce | <= 1 MiB; stored revision re-sanitized before restore | Restore result/checksum only |
-| `/cresco-canvas/v1/templates/catalog` | GET | Authenticated; `edit_pages` | Core REST nonce | Bounded bundled catalog | Bundled template markup; no secrets |
-| `/cresco-canvas/v1/components` | GET, POST | Authenticated; `edit_pages`; per-item editability also checked on list | Core REST nonce | POST <= 1 MiB; executable/third-party block types rejected | Component metadata; create result only |
-| `/cresco-canvas/v1/site-kit` | GET, POST | Authenticated; `edit_theme_options` | Core REST nonce | POST <= 1 MiB; settings sanitized; template IDs allowlisted | Cresco site design/settings, no secret store |
-| `/cresco-canvas/v1/theme-templates` | GET, POST | Authenticated; `edit_pages` | Core REST nonce | POST <= 1 MiB; safe Core/Cresco block allowlist | Theme-template data for editors |
-| `/cresco-canvas/v1/theme-templates/{id}` | POST/PUT/PATCH, DELETE | Authenticated; `edit_post(id)` | Core REST nonce | Write <= 1 MiB; safe-block validation | Theme-template data for authorized editor |
-| `/cresco-canvas/v1/theme-builder/options` | GET | Authenticated; `edit_pages` | Core REST nonce | Bounded option catalogs | Public content-type metadata |
-| `/cresco-canvas/v1/theme-builder/diagnostics` | GET | Authenticated; `edit_pages` | Core REST nonce | Up to 200 templates inspected | Diagnostics may derive from template content; editor-only |
-| `/cresco-canvas/v1/dynamic/options` | GET | Authenticated; `edit_pages` | Core REST nonce | Bounded public content catalogs | Type/query metadata only |
-| `/cresco-canvas/v1/dynamic/query-preview` | POST | Authenticated; `edit_pages` | Core REST nonce | <= 1 MiB; query normalized to bounded args | IDs/titles/URLs readable by caller |
-| `/cresco-canvas/v1/dynamic/field-inspect` | POST | Authenticated; `edit_pages` plus `edit_post(postId)` inside callback | Core REST nonce | <= 1 MiB; key/source sanitized | Type/count only, never raw field value |
-| `/cresco-canvas/v1/dynamic/acf-fields` | GET | Authenticated; `edit_pages` | Core REST nonce | Bounded field schema catalog | Field definitions only, not values |
-| `/cresco-canvas/v1/dynamic/advanced-query-options` | GET | Authenticated; `edit_pages` | Core REST nonce | Authors limited to 100; fixed option catalogs | Query-dimension metadata |
-| `/cresco-canvas/v1/dynamic/advanced-query-preview` | POST | Authenticated; `edit_pages` | Core REST nonce | <= 1 MiB; <=24 rows/page, <=3 tax filters, <=24 IDs/terms/filter, search/value lengths bounded | Readable result metadata only |
-| `/cresco-canvas/v1/dynamic/interactive-query` | POST | **Public**; anonymous frontend query | HMAC-signed server-authored query payload | 128 KiB; 40/min; page <=100; 3 filters; 12 terms/filter; query rows <=24; 60s cache | Rendered public post markup + public counts only |
-| `/cresco-canvas/v1/dynamic/facet-counts` | POST | **Public**; anonymous frontend facets | HMAC-signed server-authored query payload | 128 KiB; 3/min; 3 filters; 12 terms/filter; max 3 facets / 50 catalog terms per facet; 60s cache | Public aggregate counts only |
-| `/cresco-canvas/v1/dynamic/diagnostics/{id}` | GET | Authenticated; `edit_post(id)` | Core REST nonce | Structural scan of one post | Diagnostic codes/instance IDs only |
-| `/cresco-canvas/v1/forms/submit` | POST | **Public**; anonymous visitor submission | HMAC-signed form config; honeypot; CAPTCHA enforced when signed config requires it | 256 KiB; 50 fields; per-field size/type bounds; 12/min; optional 10-minute idempotency | Success message + validated redirect only; submitted private data is not echoed |
-| `/cresco-canvas/v1/forms/submit-multipart` | POST | **Public**; anonymous visitor submission | Same signed form config/honeypot/CAPTCHA boundary | 8 MiB request; max 5 files; max 5 MiB/file; 8/min; private upload policy | Success message + validated redirect only |
-| `/cresco-canvas/v1/forms/verify-captcha` | POST | **Public**; preflight CAPTCHA adapter | Provider token validated by server adapter | 16 KiB; token <=4096 bytes; 20/min | Boolean success/generic failure only |
-| `/cresco-canvas/v1/forms/diagnostics/{postId}` | GET | Authenticated; `edit_post(postId)` | Core REST nonce | Visits max 500 blocks / reports max 100 issues | Structural form issues; no submission values |
+| `/cresco-canvas/v1/design-tokens` | GET | Authenticated; `edit_theme_options` | Core REST nonce | Read-only | Design token catalog; không secret |
+| `/cresco-canvas/v1/site-identity` | GET, POST/PUT/PATCH | Authenticated; `edit_theme_options` | Core REST nonce | Write <= 1 MiB; image ID validate | Site identity only |
+| `/cresco-canvas/v1/page-settings/{postId}` | GET, POST | Authenticated; `edit_post(postId)` trên Page | Core REST nonce | <= 1 MiB; Page Settings sanitizer | Page-owned settings |
+| `/cresco-canvas/v1/session/{postId}` | GET, POST | Authenticated; `edit_post(postId)` trên Page | Core REST nonce | <= 1 MiB; Session limits/contracts | Full editor-only Cresco document |
+| `/cresco-canvas/v1/session/validate` | POST | Authenticated; `edit_pages` | Core REST nonce | <= 1 MiB; Session validator | Sanitized Session/checksum/count |
+| `/cresco-canvas/v1/ai-context/{postId}` | GET | Authenticated; `edit_post(postId)` | Core REST nonce | Read-only | Global/widget/session editor context |
+| `/cresco-canvas/v1/ai-interchange/{postId}/context` | POST | Authenticated; `edit_post(postId)` | Core REST nonce | <= 1 MiB; validated Session/scope | Sanitized AI context envelope |
+| `/cresco-canvas/v1/ai-interchange/{postId}/validate` | POST | Authenticated; `edit_post(postId)` | Core REST nonce | <= 1 MiB; Session/Patch validator | Candidate Session + bounded Diff; không execute |
+| `/cresco-canvas/v1/history/{postId}` | GET | Authenticated; `edit_post(postId)` | Core REST nonce | Max 50 revisions | Revision metadata; sensitive author info capability-gated |
+| `/cresco-canvas/v1/history/{postId}/{revisionId}/restore` | POST | Authenticated; `edit_post(postId)` + ownership | Core REST nonce | Re-sanitize stored revision | Restore result/checksum |
+| `/cresco-canvas/v1/templates/catalog` | GET | Authenticated; `edit_pages` | Core REST nonce | Bounded bundled catalog | Bundled template data |
+| `/cresco-canvas/v1/components` | GET, POST | Authenticated; `edit_pages` + per-item checks | Core REST nonce | POST <= 1 MiB; executable blocks reject | Component metadata/result |
+| `/cresco-canvas/v1/site-kit` | GET, POST | Authenticated; `edit_theme_options` | Core REST nonce | <= 1 MiB; sanitized settings/allowlisted IDs | Site design/settings, không secret store |
+| `/cresco-canvas/v1/theme-templates` | GET, POST | Authenticated; `edit_pages` | Core REST nonce | <= 1 MiB; safe block/session contract | Theme template data |
+| `/cresco-canvas/v1/theme-templates/{id}` | POST/PUT/PATCH, DELETE | Authenticated; `edit_post(id)` | Core REST nonce | <= 1 MiB; validation | Authorized template data |
+| `/cresco-canvas/v1/theme-builder/options` | GET | Authenticated; `edit_pages` | Core REST nonce | Bounded catalogs | Public content-type metadata |
+| `/cresco-canvas/v1/theme-builder/diagnostics` | GET | Authenticated; `edit_pages` | Core REST nonce | Bounded template scan | Editor-only diagnostics |
+| `/cresco-canvas/v1/dynamic/options` | GET | Authenticated; `edit_pages` | Core REST nonce | Bounded catalogs | Type/query metadata |
+| `/cresco-canvas/v1/dynamic/query-preview` | POST | Authenticated; `edit_pages` | Core REST nonce | <= 1 MiB; bounded args | Caller-readable IDs/titles/URLs |
+| `/cresco-canvas/v1/dynamic/field-inspect` | POST | Authenticated; `edit_pages` + `edit_post(postId)` | Core REST nonce | <= 1 MiB; key/source sanitized | Type/count, không raw field value |
+| `/cresco-canvas/v1/dynamic/acf-fields` | GET | Authenticated; `edit_pages` | Core REST nonce | Bounded schema catalog | Field definition, không value |
+| `/cresco-canvas/v1/dynamic/advanced-query-options` | GET | Authenticated; `edit_pages` | Core REST nonce | Bounded author/options | Query metadata |
+| `/cresco-canvas/v1/dynamic/advanced-query-preview` | POST | Authenticated; `edit_pages` | Core REST nonce | <= 1 MiB; bounded rows/filters/IDs | Readable result metadata |
+| `/cresco-canvas/v1/dynamic/interactive-query` | POST | **Public** | HMAC-signed server-authored query | 128 KiB; rate/page/filter bounds | Rendered public post markup/counts |
+| `/cresco-canvas/v1/dynamic/facet-counts` | POST | **Public** | HMAC-signed query | 128 KiB; strict filter/rate/cache bounds | Public aggregate counts |
+| `/cresco-canvas/v1/dynamic/diagnostics/{id}` | GET | Authenticated; `edit_post(id)` | Core REST nonce | Structural scan one post | Diagnostic code/instance only |
+| `/cresco-canvas/v1/forms/submit` | POST | **Public** | Signed form config + honeypot + CAPTCHA khi required | 256 KiB; 50 fields; field bounds; 12/min | Success + validated redirect; không echo private data |
+| `/cresco-canvas/v1/forms/submit-multipart` | POST | **Public** | Cùng signed form boundary | 8 MiB; 5 files; 5 MiB/file; 8/min | Success + validated redirect |
+| `/cresco-canvas/v1/forms/verify-captcha` | POST | **Public** | Provider token server validation | 16 KiB; token <=4096; 20/min | Boolean/generic failure |
+| `/cresco-canvas/v1/forms/diagnostics/{postId}` | GET | Authenticated; `edit_post(postId)` | Core REST nonce | Bounded structural scan | Form issues; không submission values |
 
-### Implicit WordPress REST surfaces
+### WordPress REST surface ngầm định
 
-`cresco_template` remains registered with `show_in_rest => true`, so WordPress Core exposes its normal post-type REST controller in addition to Cresco's Theme Builder routes. That surface uses WordPress post capabilities/KSES rather than Cresco's custom route callback. `wp_block` is also a WordPress Core REST resource used by synced components. These are not anonymous Cresco custom endpoints and must remain covered by WordPress Core capability/KSES regression testing.
+Custom post types/resource có `show_in_rest => true` vẫn có thể được WordPress Core expose qua Core REST controller. Những surface này dùng WordPress capability/KSES và không phải anonymous Cresco custom endpoint. Chúng vẫn cần compatibility/security regression testing.
 
 ## Form input validation
 
-The browser is never trusted as the validation authority.
+Browser không bao giờ là validation authority.
 
-- Field names are normalized and bounded.
-- At most 50 fields are accepted.
-- Scalar text is bounded; textarea, email, URL, number, date, consent and choice fields have dedicated sanitization/validation paths.
-- Email uses WordPress email validation; URL values are sanitized and validated; numeric values must be finite and respect signed min/max rules.
-- Multi-value input is accepted only for declared checkbox groups and is bounded to 24 values.
-- Required validation happens on the server.
-- Hidden/calculated values are still treated as untrusted submitted values and validated against their signed schema.
-- Honeypot and optional CAPTCHA checks occur on the actual submit endpoint, not only in browser JavaScript or a separate preflight call.
-- Stored submissions are private Cresco-owned records with form ownership and deletion timestamps.
+- Field name normalize + bound.
+- Tối đa 50 fields.
+- Scalar/textarea/email/URL/number/date/consent/choice có sanitizer/validator phù hợp.
+- Email dùng WordPress email validation; URL được sanitize/validate; number phải finite và tôn trọng signed min/max.
+- Multi-value chỉ cho declared checkbox group và bị bound.
+- Required validation chạy server-side.
+- Hidden/calculated value vẫn là untrusted submitted value và validate theo signed schema.
+- Honeypot/CAPTCHA check phải diễn ra trên actual submit endpoint, không chỉ browser/preflight.
+- Stored submission là private Cresco-owned record có ownership/retention metadata.
 
 ## File upload policy
 
-Accepted extensions are restricted to JPEG, PNG, GIF, WebP, PDF, TXT and CSV. SVG and executable/server-config formats are not accepted.
+Accepted extension hiện tại giới hạn JPEG, PNG, GIF, WebP, PDF, TXT, CSV. SVG và executable/server-config format không được nhận.
 
-Validation combines extension allowlisting, filename inspection, WordPress extension/type checking, server-side content/MIME inspection and format-specific checks. Dangerous secondary extensions, MIME spoofing, PHP-like/executable payload markers, binary text payloads, malformed PDFs and detectable appended image polyglots are rejected.
+Validation kết hợp:
 
-Accepted files are **not Media Library attachments**. They are copied to a random filename in a Cresco private directory outside both `ABSPATH` and the server `DOCUMENT_ROOT` when available. If Cresco cannot establish a path outside the web document root, storage fails closed and the operator must define `CRESCO_CANVAS_PRIVATE_UPLOAD_DIR` to an appropriate non-web-served path. Files are mode `0640` where supported and are referenced by an internal `cresco_upload` ownership record.
+- extension allowlist;
+- filename inspection;
+- WordPress extension/type checks;
+- server-side MIME/content inspection;
+- format-specific checks;
+- dangerous secondary extension / executable marker / polyglot rejection.
 
-Download is through an authenticated admin-post handler requiring a nonce plus either `manage_options` or permission to edit the linked private submission. Responses use no-store, nosniff and CSP sandbox headers.
+Accepted file **không phải Media Library attachment** theo default current private-upload path. File được copy tới random filename trong Cresco private directory ngoài `ABSPATH` và server `DOCUMENT_ROOT` khi có thể.
 
-## Webhook SSRF and delivery policy
+Nếu không xác lập được non-web-served path, storage phải fail closed và operator cần cấu hình `CRESCO_CANVAS_PRIVATE_UPLOAD_DIR` phù hợp.
 
-Webhook destinations must:
+Protected download yêu cầu authenticated admin-post flow, nonce và capability/ownership phù hợp; response dùng no-store/nosniff/CSP sandbox headers theo current implementation.
 
-- use HTTPS;
-- have no URL credentials;
-- use port 443 unless explicitly allowlisted by the site administrator;
-- not target localhost, `.local`, loopback, RFC1918/private, link-local, reserved, metadata-service or private/reserved IPv6 addresses;
-- resolve to at least one address, with **every returned A/AAAA address** required to be public.
+## Webhook SSRF và delivery policy
 
-Every delivery/retry revalidates the destination immediately before the request. Redirects are disabled (`redirection = 0`), so a redirect cannot jump into a private network. Safe WordPress HTTP requests are used with SSL verification, an 8-second maximum timeout and a 64 KiB response cap.
+Webhook destination phải:
 
-Retries are bounded to three retries. Cron arguments carry only an opaque retry token and attempt number; the temporary delivery state expires after one hour. A stable delivery ID is sent so receivers can deduplicate. Failure logs keep only form ID, destination host, attempt, status/reason and timestamp. Request bodies, authorization/cookie headers, webhook secrets and submitted values are not logged.
+- HTTPS;
+- không URL credentials;
+- port 443 trừ khi administrator allowlist;
+- không localhost, `.local`, loopback, RFC1918/private, link-local, reserved, metadata service hoặc private/reserved IPv6;
+- DNS resolve thành address công khai; mọi A/AAAA returned phải public.
 
-DNS validation reduces SSRF risk but cannot eliminate all resolver/connection time-of-check/time-of-use behavior. Production hosts should also enforce outbound firewall/egress policy when webhook delivery is enabled.
+Mỗi delivery/retry revalidate destination ngay trước request. Redirect bị disable (`redirection = 0`) để tránh jump vào private network.
+
+WordPress HTTP request dùng SSL verification, bounded timeout và bounded response size theo contract.
+
+Retry bị bound. Cron argument chỉ chứa opaque retry token + attempt, không payload/secret. Failure log không chứa request body, auth/cookie, webhook secret hoặc submitted values.
+
+DNS validation giảm SSRF risk nhưng không loại hết resolver/connection TOCTOU. Production host nên có outbound firewall/egress policy khi bật webhook.
 
 ## CSV export policy
 
-CSV export requires `manage_options` and an admin nonce, is limited to 2,000 submissions, and caps each cell at 32 KiB. Cells whose first non-whitespace/control character is `=`, `+`, `-`, or `@` are prefixed with a single quote before CSV serialization to neutralize spreadsheet formula execution.
+CSV export yêu cầu admin capability/nonce theo implementation, có record/cell bound. Cell có ký tự formula-leading như `=`, `+`, `-`, `@` sau whitespace/control phải được neutralize trước serialization.
 
 ## Dynamic-query resource policy
 
-Advanced queries use allowlisted public post types, bounded rows, bounded pages/offsets, bounded ID lists, bounded taxonomy clauses and terms, bounded search/meta strings, and a one-level loop policy where applicable. Public AJAX/facet requests require a signed server-authored query payload and are additionally rate-limited. Public dynamic responses use a stable canonical cache key with a per-site generation number; public post/term changes increment the generation to invalidate prior results without unbounded transient scans.
+Advanced query dùng allowlisted public post type, bounded rows/page/offset/ID/filter/term/search/meta strings và bounded nesting/loop policy.
+
+Public query/facet request cần signed server-authored payload + rate limit. Public response dùng canonical cache key và invalidation generation để tránh transient scan không giới hạn.
 
 ## AI/import security boundary
 
-Cresco Session/import security remains owned by its existing subsystem, but the production boundary is:
+- Mọi Cresco write/import request bị byte-bound trước callback.
+- Session enforce known schema/version, unique IDs, widget catalog, node/depth budget và sanitized style.
+- Custom CSS phải widget-scoped và reject out-of-contract/global/resource/executable constructs.
+- Component/theme import reject executable Core block/unknown third-party content theo allowlist.
+- AI context/validate edit-post scoped, byte-bounded và đi qua Session/Patch validators.
+- Site Kit/Global setting đi qua canonical sanitizer/allowlist.
 
-- all Cresco write/import requests are byte-bounded before callback execution;
-- Session documents enforce a known schema/version, stable unique IDs, a fixed widget catalog, max node/depth bounds and sanitized style values;
-- widget Custom CSS must remain widget-scoped and rejects `@import`, `@media`, external `url()`, JavaScript/expression constructs, global selectors and malformed braces;
-- component/theme imports reject executable Core blocks such as HTML/shortcode/freeform and reject unknown third-party blocks;
-- AI Interchange context/validate endpoints are edit-post scoped, byte-bounded centrally, and route candidate output through the existing Cresco Session/Patch validators before it can be applied;
-- Site Kit settings pass through the Global Design sanitizer and bundled template IDs are allowlisted.
-
-No passwords, tokens, CAPTCHA secrets, webhook secrets, authorization headers, cookies or private submission values should be added to diagnostics/logs. Use `SecurityHardening::redact_sensitive()` before logging arbitrary structured diagnostic data.
+Không đưa password, token, CAPTCHA secret, webhook secret, Authorization header, cookie hoặc private submission value vào diagnostics/log. Dùng `SecurityHardening::redact_sensitive()` trước khi log arbitrary structured diagnostic data.
 
 ## Operational verification
 
-Before a production release, run the PHP security/lifecycle tests, WordPress compatibility matrix, Plugin Check, E2E suite and a real web-server upload/download test. Also verify that the configured private upload directory is outside Nginx/Apache document roots and cannot execute scripts.
+Trước production release, chạy security/lifecycle PHP tests, WordPress compatibility matrix, Plugin Check, E2E và real web-server upload/download test.
+
+Cần verify private upload directory nằm ngoài Nginx/Apache document root và không execute script.
+
+Source contract/automation không thay thế penetration testing, production-like egress test hoặc exact-artifact release evidence.

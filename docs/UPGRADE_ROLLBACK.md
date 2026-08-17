@@ -1,95 +1,95 @@
-# Cresco Canvas Upgrade, Downgrade, Rollback, and Multisite Lifecycle
+# Upgrade, Downgrade, Rollback và Multisite Lifecycle
 
 ## Lifecycle invariant
 
-Cresco Canvas migrations may modify Cresco-owned settings/metadata, but lifecycle code must not rewrite or delete user-authored `post_content` as a migration/uninstall side effect.
+Migration có thể sửa Cresco-owned settings/metadata nhưng không được rewrite/xóa user-authored `post_content` như side effect của migration/uninstall.
 
-The supported lifecycle is:
+Lifecycle hỗ trợ:
 
-`clean install -> activation -> use -> deactivate -> reactivate -> upgrade -> migration -> rollback/downgrade detection -> uninstall`
+```text
+clean install -> activation -> use -> deactivate -> reactivate -> upgrade -> migration -> rollback/downgrade detection -> uninstall
+```
 
-## Clean install and activation
+## Clean install và activation
 
-Activation validates plugin requirements and runs versioned migrations for the current site. Successful activation schedules daily submission/upload retention jobs.
+Activation validate requirements và chạy versioned migration cho site hiện tại. Activation thành công schedule retention job cần thiết.
 
-For network activation on multisite, Cresco enumerates sites in batches of 100, switches to each site, runs that site's migration and schedules that site's jobs. Sites created later are initialized when the plugin is network-active.
+Với network activation trên multisite, Cresco xử lý site theo bounded batch, `switch_to_blog()`/`restore_current_blog()`, migrate/schedule per-site. Site tạo mới khi network-active phải được initialize theo hook hiện hành.
 
-If migration fails during activation, activation is stopped and the plugin is deactivated for the relevant site/network scope. The user receives a safe error message; page body content is not changed.
+Migration fail trong activation phải fail safely; không sửa Page body content.
 
 ## Migration contract
 
-Schema version is stored in `cresco_canvas_db_version`.
+Schema version lưu tại `cresco_canvas_db_version`.
 
-Migration behavior:
+Behavior:
 
-- a lock prevents concurrent migration writers and expires after 5 minutes if stale;
-- a one-time `cresco_canvas_migration_backup` snapshot records the pre-migration Cresco settings and starting/target schema versions;
-- migration steps execute in ascending order;
-- after each successful step, the completed schema version is persisted immediately;
-- a failed later step therefore retries from the last completed version rather than replaying prior completed steps;
-- failure state records a non-secret error fingerprint, not the exception message/stack/private values;
-- migrations are designed to be idempotent where possible.
+- lock ngăn concurrent migration writer và có expiry cho stale lock;
+- `cresco_canvas_migration_backup` lưu snapshot pre-migration theo contract;
+- step chạy tăng dần;
+- sau step thành công, completed schema version được persist;
+- later failure retry từ last completed version;
+- failure state chỉ giữ non-secret fingerprint/metadata, không log private value;
+- migration nên idempotent khi có thể.
 
-Historical test fixtures cover old settings, malformed settings, a historical Session v1 document and malformed Session input.
+Historical fixture bao phủ old settings/Session và malformed input theo test suite.
 
 ## Upgrade
 
-After a WordPress plugin upgrade completes, Cresco detects whether its plugin package was updated. It then runs the same per-site migration/scheduling path. Network-active installs process each site independently in bounded batches.
-
 Recommended production procedure:
 
-1. Back up database and the Cresco private upload directory.
-2. Record the installed plugin and schema versions.
-3. Deploy the new plugin package.
-4. Activate/update and confirm migration state is `complete`.
-5. Smoke-test the editor, frontend rendering, forms, private downloads, webhooks and retention jobs.
-6. Keep the pre-deploy package and backup until verification is complete.
+1. Backup database và Cresco private upload directory.
+2. Ghi installed plugin/schema version.
+3. Deploy package mới.
+4. Activate/update và confirm migration complete.
+5. Smoke editor, frontend, forms, private download, webhook, retention.
+6. Giữ package/backup trước deploy cho tới khi verify xong.
 
-## Migration failure and retry
+## Migration failure và retry
 
-If migration state is `failed`:
+Nếu state là `failed`:
 
-1. Do not manually edit the stored schema version upward.
-2. Record the displayed reference/error fingerprint.
-3. Inspect server/PHP logs with normal secret-redaction procedures.
-4. Resolve the underlying environment/data issue.
-5. Retry activation or the normal migration path. Completed versions are not rerun.
-6. If recovery is not possible, restore the pre-upgrade database/private-file backup and the matching plugin package.
+1. Không manually tăng stored schema version.
+2. Ghi reference/fingerprint an toàn.
+3. Kiểm tra server/PHP log theo secret-redaction policy.
+4. Sửa environment/data issue gốc.
+5. Retry activation/migration path bình thường.
+6. Nếu không recover được, restore matching DB/private-file backup + plugin package.
 
 ## Downgrade detection
 
-If `cresco_canvas_db_version` is greater than the schema version understood by the running plugin, Cresco enters a compatibility pause. It does **not** silently write the older format.
+Nếu stored schema version lớn hơn schema mà plugin cũ hiểu, Cresco phải vào compatibility pause thay vì silently ghi format cũ.
 
-In this mode the normal Cresco editor/REST/domain services are not booted and administrators receive a warning. Recovery choices are:
+Recovery:
 
-- reinstall the plugin version that supports the stored schema; or
-- restore a database/private-file backup captured before the newer schema was introduced, then install the matching older plugin package.
+- cài lại plugin version hỗ trợ stored schema; hoặc
+- restore backup trước newer schema rồi cài matching older package.
 
-Do not lower `cresco_canvas_db_version` manually. A version number change does not reverse migrated data.
+Không hạ `cresco_canvas_db_version` thủ công; đổi số version không reverse migrated data.
 
-## Deactivation and reactivation
+## Deactivation/reactivation
 
-Deactivation is non-destructive. It removes migration locks and unschedules Cresco cleanup/retention/webhook-retry jobs, including retry events that have arguments. Settings, sessions, revisions, submissions and private uploads are preserved.
+Deactivation non-destructive: remove migration lock và unschedule Cresco jobs theo contract; settings, Session, revisions, submissions, private uploads được preserve.
 
-Reactivation reruns migration checks and schedules jobs idempotently.
+Reactivation chạy migration check và schedule idempotently.
 
-## Multisite behavior
+## Multisite
 
-Cresco stores operational data per site. Network lifecycle operations use site batches of 100 and always pair `switch_to_blog()` with `restore_current_blog()`.
+Operational data lưu per-site. Network lifecycle dùng bounded batch và luôn pair `switch_to_blog()` với `restore_current_blog()`.
 
-Required multisite verification:
+Verify:
 
-- activate per-site and confirm only that site's options/meta are initialized;
-- network-activate and confirm all existing sites initialize;
-- create a new site while network-active and confirm it initializes;
-- deactivate per-site and network-wide and confirm data is preserved but cron is cleared in the intended scope;
-- upgrade a network-active plugin and confirm migration state independently on every site;
-- uninstall with mixed `removeDataOnUninstall` settings and verify one site's cleanup decision does not delete another site's data.
+- per-site activate chỉ initialize site đó;
+- network activate initialize existing sites;
+- new site khi network-active được initialize;
+- deactivate preserve data nhưng clear intended cron scope;
+- network upgrade migrate từng site độc lập;
+- uninstall với mixed `removeDataOnUninstall` không để decision site này xóa data site khác.
 
-## Uninstall and rollback invariants
+## Uninstall và rollback invariant
 
-Default uninstall preserves Cresco data. Explicit cleanup is opt-in and deletes only the resource types documented by `Lifecycle\\UninstallPolicy`.
+Mặc định uninstall preserve Cresco data. Explicit cleanup là opt-in và chỉ xóa resource thuộc `Lifecycle\\UninstallPolicy`.
 
-Absolute invariant: **Cresco uninstall never deletes ordinary WordPress `post`/`page` records and never deletes or rewrites user-authored `post_content`.**
+**Invariant tuyệt đối: Cresco uninstall không xóa ordinary WordPress `post`/`page` record và không xóa/rewrite user-authored `post_content`.**
 
-For rollback, restoring the matching database and private upload backup is the authoritative reversal path. The migration settings snapshot is an additional diagnostic/recovery aid, not a full database rollback mechanism.
+Rollback authoritative là restore matching database + private upload backup. Migration settings snapshot chỉ là aid bổ sung, không phải full database rollback.

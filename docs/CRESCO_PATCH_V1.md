@@ -1,6 +1,6 @@
 # Cresco Patch v1
 
-`cresco-patch/v1` is the targeted mutation protocol used by Cresco AI Interchange. A patch is data, not executable code. It is never applied directly to the DOM, PHP, or WordPress storage.
+`cresco-patch/v1` là targeted mutation protocol dùng bởi Cresco AI Interchange. Patch là **data**, không phải executable code. Nó không được apply trực tiếp lên DOM, PHP hoặc WordPress storage.
 
 ## Envelope
 
@@ -15,27 +15,27 @@
 }
 ```
 
-Supported target scopes are `page`, `subtree`, `widget`, `selection`, and `selection-subtrees` where supported by the scope resolver.
+Target scope có thể gồm `page`, `subtree`, `widget`, `selection` và `selection-subtrees` khi scope resolver hỗ trợ.
 
-Cresco Patch v1 no longer binds a patch to an exported Session revision. There is no required checksum field and no stale-checksum rejection. A legacy `baseChecksum` field may still be present in older AI output, but the validator ignores it.
+Patch v1 không yêu cầu bind vào exported Session revision. Không có checksum field bắt buộc. Legacy `baseChecksum` có thể còn xuất hiện trong output cũ nhưng validator hiện tại không dùng nó như revision gate của patch.
 
 ## Validation pipeline
 
-Every patch follows this pipeline:
+Mọi patch đi qua:
 
 1. parse JSON;
 2. verify `cresco-patch/v1` schema;
-3. validate target existence and scope against the **current** Session;
-4. validate node IDs and structural destinations;
-5. validate widget contracts and operation permissions;
-6. apply operations to an in-memory Session clone;
-7. run the canonical Website Builder Session sanitizer, including scoped Custom CSS validation;
-8. generate a structured Diff;
-9. return the validated candidate for user review;
-10. only after explicit **Apply** does the editor replace its local Session;
-11. the user can **Undo** to the pre-AI checkpoint; persistence still requires **Update**.
+3. validate target/scope trên **current Session**;
+4. validate node ID và structural destination;
+5. validate widget contract và operation permission;
+6. apply vào in-memory Session clone;
+7. chạy canonical Session sanitizer, gồm scoped Custom CSS validation;
+8. tạo structured Diff;
+9. trả candidate đã validate để review;
+10. chỉ sau **Apply** editor mới thay local Session;
+11. **Undo** quay lại pre-AI checkpoint; persistence vẫn cần **Update**.
 
-Removing revision checks does not remove scope or contract safety. If the target no longer exists, the patch is rejected. If an operation escapes the target scope, uses an unsupported widget/property, or produces an invalid Session, it is rejected.
+Bỏ revision check của patch không có nghĩa bỏ scope/contract safety. Target mất, scope escape, unsupported widget/property hoặc invalid Session đều phải reject.
 
 ## Operations
 
@@ -49,7 +49,7 @@ Removing revision checks does not remove scope or contract safety. If the target
 }
 ```
 
-Only props declared by that widget contract are accepted.
+Chỉ prop được widget contract khai báo mới hợp lệ.
 
 ### `setStyle`
 
@@ -61,7 +61,7 @@ Only props declared by that widget contract are accepted.
 }
 ```
 
-Only structured style properties declared by the contract are accepted.
+Chỉ structured style property được contract cho phép.
 
 ### `setResponsive`
 
@@ -76,7 +76,7 @@ Only structured style properties declared by the contract are accepted.
 }
 ```
 
-Devices are limited to `desktop`, `laptop`, `tablet`, and `mobile`. Widescreen/base values belong in `style`.
+Override device dùng `desktop`, `laptop`, `tablet`, `mobile`; widescreen/base nằm trong `style`.
 
 ### `setCustomCSS`
 
@@ -90,7 +90,9 @@ Devices are limited to `desktop`, `laptop`, `tablet`, and `mobile`. Widescreen/b
 }
 ```
 
-Buckets are limited to `base`, `desktop`, `laptop`, `tablet`, and `mobile`. Custom CSS is parsed by the canonical scoped CSS engine. Ordinary selectors must contain `&`. Local `@keyframes` / `@-webkit-keyframes` and scoped nested `@media`, `@supports`, `@container`, and `@layer` blocks are supported. Document-global/resource-loading constructs such as `@import`, `@charset`, `@namespace`, external `url()`, JavaScript/expression constructs, and global selectors remain forbidden.
+Bucket gồm `base`, `desktop`, `laptop`, `tablet`, `mobile` theo contract hiện hành. Custom CSS phải qua canonical scoped CSS engine.
+
+Local animation/at-rule chỉ được chấp nhận khi validator hiện hành cho phép và vẫn nằm trong scope. Resource-loading/global/executable construct bị cấm.
 
 ### `insertNode`
 
@@ -111,7 +113,7 @@ Buckets are limited to `base`, `desktop`, `laptop`, `tablet`, and `mobile`. Cust
 }
 ```
 
-`parentId: null` is allowed only for a page-scoped patch. The destination must allow children.
+`parentId: null` chỉ hợp lệ với page-scoped patch. Destination phải cho phép children.
 
 ### `removeNode`
 
@@ -130,7 +132,7 @@ Buckets are limited to `base`, `desktop`, `laptop`, `tablet`, and `mobile`. Cust
 }
 ```
 
-A node cannot be moved into itself or one of its descendants. Moving to the Session root is page-scope only.
+Không move node vào chính nó hoặc descendant. Move về Session root chỉ dành cho page scope.
 
 ### `replaceSubtree`
 
@@ -150,37 +152,39 @@ A node cannot be moved into itself or one of its descendants. Moving to the Sess
 }
 ```
 
-The existing target root ID is preserved. Descendant IDs are kept when safe and remapped when they collide with IDs outside the replaced subtree.
+Target root ID hiện có được preserve. Descendant ID được giữ khi an toàn và remap khi collision với node ngoài replaced subtree.
 
-## Scope boundaries
+## Scope boundary
 
-- `page`: may modify any node and may insert/move at the Session root.
-- `subtree`: may modify the target and its descendants only; structural destinations must remain inside that subtree.
-- `widget`: may only use `setProps`, `setStyle`, `setResponsive`, and `setCustomCSS` on the exact target widget. It cannot edit children or structure.
-- `selection`: may modify selected node IDs only. V1 UI is single-select, while the protocol already accepts multiple `nodeIds`.
+- `page`: có thể modify mọi node và insert/move ở Session root.
+- `subtree`: chỉ target + descendants; destination phải nằm trong subtree.
+- `widget`: chỉ `setProps`, `setStyle`, `setResponsive`, `setCustomCSS` trên đúng target; không edit structure/child.
+- `selection`: chỉ selected node ID.
 
-An escape attempt returns `cresco_ai_patch_scope_escape`.
+Scope escape phải trả lỗi validator tương ứng, ví dụ `cresco_ai_patch_scope_escape` theo implementation hiện hành.
 
 ## ID remapping
 
-Cresco stable IDs are preserved when they do not collide. Inserted IDs that collide are deterministically suffixed (`-ai`, `-ai-2`, and so on). The validator returns `idMap`, and subsequent patch operations referring to a remapped AI ID are rewritten to the mapped ID.
+Stable ID được giữ nếu không collision. Inserted ID collision được suffix deterministically như `-ai`, `-ai-2`.
 
-The current core widget contracts do not contain cross-node ID reference props. When reference-bearing contracts are added later, those reference paths must be registered and remapped by the same ID layer.
+Validator trả `idMap`; operation sau tham chiếu AI ID đã remap phải được rewrite sang mapped ID.
+
+Khi widget contract tương lai có cross-node reference prop, reference path phải được đăng ký và remap bởi cùng ID layer.
 
 ## Diff
 
-Validation returns a structured diff with:
+Validation trả structured diff gồm:
 
-- `changed` fields such as `props.text`, `style.fontSize`, or `responsive.mobile.paddingTop`;
-- `inserted` nodes;
-- `removed` nodes;
-- `moved` nodes with old/new parent and index.
+- `changed` field như `props.text`, `style.fontSize`, `responsive.mobile.paddingTop`;
+- `inserted` node;
+- `removed` node;
+- `moved` node với old/new parent/index.
 
-The review UI displays these changes before Apply.
+Review UI hiển thị thay đổi trước Apply.
 
 ## Full Session compatibility
 
-The validation endpoint also accepts a complete `cresco-session/v1`. A full Session goes through the canonical Session validator and structured Diff before Apply. Existing Session import remains supported.
+Validation endpoint cũng có thể nhận full `cresco-session/v1`. Full Session đi qua canonical Session validator và structured Diff trước Apply.
 
 ## API
 
@@ -193,8 +197,10 @@ The validation endpoint also accepts a complete `cresco-session/v1`. A full Sess
 }
 ```
 
-The route only validates and returns a candidate Session + Diff. It does not persist the page. The standalone AI bridge applies the validated candidate to editor state, where normal Undo and Update semantics remain authoritative.
+Route này validate và trả candidate Session + Diff. Nó **không persist Page**.
 
-## Prohibited output
+Standalone AI bridge chỉ Apply candidate vào editor state; Undo/Update bình thường vẫn authoritative.
 
-`cresco-patch/v1` has no JavaScript, DOM-command, arbitrary PHP, SQL, raw WordPress-meta, request-header, or credential operation. There is no bypass flag for the Cresco Session validator.
+## Output bị cấm
+
+`cresco-patch/v1` không có JavaScript, DOM command, arbitrary PHP, SQL, raw WordPress meta, request header hoặc credential operation. Không có bypass flag cho Session validator.

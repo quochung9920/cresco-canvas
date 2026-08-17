@@ -1,24 +1,46 @@
-# Studio style unset semantics
+# Semantics Reset/Unset style trong Studio
 
-Cresco Studio treats the Layout, Style, and Advanced inspector as an override layer.
+Cresco Studio coi Inspector Layout, Style và Advanced là một lớp **override**.
 
 ## Contract
 
-- An empty inspector field means **no CSS override is stored** for that property at the active scope.
-- Wide + Normal with no override falls back to the widget, theme, or browser cascade.
-- Desktop, Laptop, Tablet, and Mobile with no override inherit the last value from a wider breakpoint when one exists; otherwise they fall back to the normal cascade.
-- Hover, Focus, and Active with no override fall back to the Normal effective value.
-- Reset writes the CSS-wide keyword `initial` at the active scope. This intentionally blocks a wider-breakpoint or state value and returns the property to its CSS specification initial value.
-- Clearing an input or choosing the empty option removes the active override and restores inheritance/cascade behavior.
-- Inherited/default values may be shown as placeholders, but placeholders are never serialized into the Cresco Session.
-- Multi-selection shows an explicit value only when the selected widgets share the same override. Mixed or unset selections stay visually empty until the user enters a new override.
+- Field Inspector rỗng nghĩa là **không lưu CSS override** cho property tại active scope.
+- Wide + Normal không có override thì fallback về widget/theme/browser cascade.
+- Desktop/Laptop/Tablet/Mobile không có override thì inherit value từ breakpoint rộng hơn nếu có; nếu không thì fallback cascade bình thường.
+- Hover/Focus/Active không có override thì fallback về Normal effective value.
+- Reset có thể ghi CSS-wide keyword `initial` tại active scope theo unset bridge hiện hành. Điều này cố ý chặn value từ wider breakpoint/state và đưa property về initial value theo CSS spec.
+- Clearing input hoặc chọn empty option phải remove active override và khôi phục inheritance/cascade.
+- Inherited/default value có thể hiển thị dưới dạng placeholder/context nhưng không serialize vào Session.
+- Multi-selection chỉ hiển thị explicit value khi các widget được chọn có cùng override; mixed/unset phải để trống cho đến khi user nhập override mới.
 
-## Persistence and rendering
+## Persistence và rendering
 
-The canonical Studio `style()` mutation deletes empty keys from base, responsive, and state buckets. The frontend CSS compilers skip empty declarations as a second safety boundary. A Reset value is different: `initial` is deliberately persisted and emitted as CSS so it can override inherited Cresco breakpoint/state values without hard-coding a literal value such as `auto`, `flex`, `44px`, or `176px`.
+Canonical Studio style mutation xóa empty key khỏi base/responsive/state bucket. Frontend compiler bỏ qua empty declaration như safety boundary thứ hai.
 
-Purpose-built widget behavior remains separate from style overrides. For example, Container, Columns, and Spacer have semantic properties needed to perform their documented function; clearing a Style Inspector override does not remove those widget semantics.
+Reset value `initial` khác với unset: nếu bridge dùng `initial`, keyword này được persist/emitted có chủ ý để override inherited Cresco value mà không hard-code literal như `auto`, `flex`, `44px` hoặc `176px`.
+
+Purpose-built widget behavior tách khỏi style override. Ví dụ Container/Columns/Spacer có semantic prop cần cho chức năng; clear Style override không xóa semantic đó.
 
 ## Runtime presentation
 
-`website-builder-unset-styles.js` runs after the responsive inspector and UI correction modules. It reads the current Cresco Session, displays only the explicit value owned by the active scope, uses inherited/default values only as placeholders and context, intercepts the per-property Reset action to persist `initial`, and suppresses the legacy WordPress spinner so Studio startup presents a single loading indicator.
+`website-builder-unset-styles.js` chạy sau responsive Inspector/UI correction module. Nhiệm vụ:
+
+- đọc current Session;
+- hiển thị explicit value thuộc active scope;
+- dùng inherited/default chỉ làm placeholder/context;
+- điều phối Reset để model semantics đúng;
+- tránh tình trạng input nhìn như reset nhưng persisted override còn tồn tại.
+
+## Quy tắc khi thêm control mới
+
+Mỗi responsive/state control phải định nghĩa:
+
+1. explicit value nằm ở bucket nào;
+2. inherited value resolve từ đâu;
+3. empty input nghĩa unset hay literal empty;
+4. Reset có nghĩa delete key hay persist `initial`;
+5. UI hiển thị placeholder thế nào;
+6. Save -> reload có tái tạo đúng effective value không;
+7. frontend compiler phát CSS nào.
+
+Không được tự tạo reset semantics riêng trong một popup/enhancer.

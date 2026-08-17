@@ -1,40 +1,42 @@
 # Website Builder Comprehensive V3
 
-Comprehensive V3 is an additive professional workflow layer for the existing `website-core/v1` builder. It does not change the `cresco-session/v1` schema.
+Comprehensive V3 là additive professional workflow layer cho `website-core/v1`. Nó **không đổi schema `cresco-session/v1`** và không phải builder generation mới.
 
-## Phase 1 — rendering parity
+## Phase 1 — Rendering parity
 
-- Frontend document styles are normalized to the authoritative `WebsiteBuilderCssCompiler` range model.
-- Editor virtual breakpoints keep the same structured style contract, and V3 adds Pixel 100% for direct frontend comparisons.
-- Scoped Custom CSS gets an unsaved live preview for the selected widget while editing.
-- Native Form rendering stays authoritative on the frontend, with editor Form controls normalized for closer visual parity.
+- Frontend document style được normalize theo authoritative `WebsiteBuilderCssCompiler` range model.
+- Editor virtual breakpoint giữ structured style contract; Pixel 100% có thể dùng cho direct frontend comparison khi runtime hỗ trợ.
+- Scoped Custom CSS có unsaved live preview cho selected widget trong editor.
+- Native Form rendering vẫn authoritative trên frontend; editor Form controls được normalize để gần visual parity hơn.
 
-## Phase 2 — portable interchange and AI
+## Phase 2 — Portable interchange và AI
 
-`cresco-interchange/v1` packages represent an entire page, selected subtree/section, one widget, or a multi-widget selection. Export packages include source checksum, dependencies, optimized Design System data and scoped AI context.
+`cresco-interchange/v1` package có thể represent entire Page, selected subtree/section, one widget hoặc multi-widget selection.
 
-Import remains non-destructive until Preview Diff succeeds. Insert/replace actions go through the existing `cresco-patch/v1`, `PatchValidator`, `PatchApplier` and `IdRemapper` pipeline. Destinations are before, after, inside, replace and replace-page. Preview returns the candidate Session, structural diff, ID remaps and dependency warnings. The editor stages the candidate through its existing Validate -> Apply workflow so Undo/History behavior is preserved.
+Export package chứa source checksum, dependency, optimized Design System data và scoped AI context theo contract.
 
-Media references remain descriptors and are never auto-downloaded. The Import UI reads package dependencies and exposes explicit mapping controls: each Global Design token path can be remapped before validation, and each image media descriptor can be confirmed or replaced by a destination URL. The mapped package is still sent through server-side validation before Apply.
+Import non-destructive cho tới khi Preview Diff thành công. Insert/replace dùng existing `cresco-patch/v1`, `PatchValidator`, `PatchApplier`, `IdRemapper`. Preview trả candidate Session, structural diff, ID remap và dependency warning; editor stage candidate qua Validate -> Apply để giữ Undo/History.
 
-## Phase 3 — builder systems
+Media reference là descriptor, không auto-download. Import UI có thể map Global Design token/media descriptor trước server validation.
 
-- Professional Canvas/Inspector V2 remains the primary visual editing surface; V3 links portable design, accessibility and production tools into it rather than creating a second editor.
-- Linked reusable component instances can be explicitly synchronized from their published component source with collision-safe descendant IDs.
-- Existing Loop Grid query controls continue to provide bounded post type, ordering, taxonomy, column and content controls. Reusable Components and section/widget interchange are the portable authoring path for custom repeated layouts in this tranche.
-- Theme Builder templates now have a Session-native bridge. Theme template REST items point their Edit action to a dedicated Cresco Theme Template editor using the same Website Builder runtime. Saving the template stores `cresco-session/v1` and replaces its block content with the safe dynamic `cresco/theme-session` bridge block, so existing Theme Builder display conditions and template resolution stay intact.
-- Theme Session templates enqueue the Website Builder frontend runtime/CSS and compile the same authoritative structured styles used by Pages.
+## Phase 3 — Builder systems
 
-## Phase 4 — commerce and production hardening
+- Professional Canvas/Inspector tiếp tục là primary visual editing surface; V3 gắn portability/accessibility/production tool vào surface này, không tạo editor thứ hai.
+- Reusable component linked instance có thể sync explicit từ published source với collision-safe descendant IDs.
+- Loop Grid tiếp tục dùng bounded query control. Reusable Component và section/widget interchange là portable authoring path cho repeated layout.
+- Theme Builder template có Session-native bridge khi runtime hiện hành hỗ trợ. Display condition/template resolution vẫn có owner canonical.
+- Theme Session template phải dùng cùng authoritative structured style compile path như Page.
 
-- WooCommerce capability detection accepts the WooCommerce class, `WC_VERSION`, or `WC()` bootstrap signals.
-- V3 adds a Create / Edit Single Product Template workflow. When WooCommerce is active it reuses an existing product-specific Theme Template or creates a draft Session-native template with Product Image, Product Title, Product Price and Add to Cart widgets, plus a `post_type:product` Theme Builder condition. The template opens directly in the Cresco Theme Template editor for further visual design.
-- The V3 production panel reports node count, maximum nesting depth, Custom CSS volume, Forms, Loop Grids and WooCommerce widget usage.
-- Canvas accessibility scan checks missing image alt text, empty/hash links, heading-level jumps and multiple visible H1 elements. It is an authoring aid and does not replace release accessibility automation.
-- Existing license/update/migration, upgrade smoke, ZIP install, browser E2E, accessibility and performance suites remain the release authority.
+## Phase 4 — Commerce và production hardening
+
+- WooCommerce capability detection theo integration contract hiện hành.
+- Single Product Template workflow có thể reuse/create Theme Template Session-native với Product Image/Title/Price/Add to Cart và condition phù hợp.
+- Production panel có thể report node count, nesting depth, Custom CSS volume, Forms, Loops, Woo usage.
+- Canvas accessibility scan có thể phát hiện missing alt, empty/hash link, heading jump, multiple visible H1. Đây là authoring aid, không thay release accessibility gate.
+- License/update/migration, ZIP install, browser E2E, accessibility, performance vẫn là release authority.
 
 ## Release gate
 
-`npm run check:comprehensive-v3` verifies runtime syntax, source/build equality, service registration, portable interchange contracts, dependency mapping, Theme Session bridge registration, WooCommerce template workflow, accessibility/performance tool tokens, runtime manifest ownership and release-package allowlisting. `check:quality` includes this gate.
+`npm run check:comprehensive-v3` verify runtime syntax, source/build equality, registration, interchange contract, dependency mapping, Theme Session bridge, Woo workflow, accessibility/performance tool token, manifest ownership và release allowlist.
 
-The plugin remains `1.0.0-rc.1`; V3 adds commercial-grade workflows but does not by itself certify a stable release without hosted CI/browser/accessibility/release evidence.
+Plugin vẫn là `1.0.0-rc.1`. V3 có thể bổ sung commercial-grade workflow nhưng **không tự chứng nhận stable release** nếu thiếu hosted/browser/accessibility/release evidence.

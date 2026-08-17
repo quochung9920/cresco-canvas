@@ -1,17 +1,24 @@
 # Realtime canonical Studio preview
 
-Cresco Studio uses one persistent canonical iframe as its visual renderer.
+Cresco Studio dùng một persistent canonical iframe làm visual renderer khi canonical preview path được bật theo runtime hiện hành.
 
 ## Runtime contract
 
-- The persisted document is rendered once on the server during Studio bootstrap and embedded as the initial iframe document.
-- The legacy React canvas remains hidden and may only be used temporarily as an interaction bridge.
-- Session edits patch the current iframe immediately. Root node CSS is compiled in the browser from the current Session, so style changes do not wait for a REST round trip.
-- RenderEngine reconciliation runs in the background. It updates canonical HTML plus server-compiled root/stable CSS in place without replacing `iframe.srcdoc`, blanking the surface, or showing a blocking spinner after the first render.
-- A new local edit clears the previously reconciled root CSS before installing the full live root stylesheet. This prevents removed/reset declarations from leaking through from an older server render.
-- Renderer failures after hydration are non-blocking: the existing preview remains visible and editable while the status reports delayed synchronization.
-- If no bootstrap render can be produced, only then may Studio show the blocking renderer/retry state.
+- Persisted document được render server-side cho bootstrap preview theo canonical render path.
+- Legacy React canvas nếu còn tồn tại chỉ được dùng như interaction bridge, không phải competing visual authority.
+- Session edit phải patch current visual preview sớm; root node CSS có thể compile từ current Session để style change không phải chờ REST round trip.
+- `RenderEngine` reconciliation chạy background và cập nhật canonical HTML/CSS mà không liên tục replace `iframe.srcdoc`, blank surface hoặc hiện blocking spinner sau initial render.
+- Local edit mới phải loại stale reconciled root CSS trước khi cài live root stylesheet đầy đủ để removed/reset declaration không leak từ render cũ.
+- Renderer failure sau hydration phải non-blocking: preview hiện có vẫn visible/editable, status báo synchronization delayed.
+- Chỉ khi bootstrap render không thể tạo mới dùng blocking renderer/retry state.
 
-## Regression rules
+## Regression rule
 
-The canonical runtime must keep `legacyVisualFallback` false, `realtime` true, and `iframeReloadOnEdit` false. Session-change handlers must call the local live patch path before scheduling background reconciliation.
+Canonical runtime phải giữ intent tương đương:
+
+- không tự chuyển sang legacy visual fallback như visual authority;
+- realtime update bật;
+- không reload iframe toàn bộ cho mỗi edit;
+- Session-change handler áp local live patch trước rồi mới schedule background reconciliation.
+
+Source/runtime flag cụ thể phải được verify theo code hiện hành trước khi sửa.

@@ -1,60 +1,59 @@
-# Cresco Studio Runtime Ownership and Conflict Prevention
+# Ownership runtime Cresco Studio và phòng ngừa xung đột
 
-Status: **Canonical engineering contract for the current Cresco Studio Website Builder runtime**
+Trạng thái: **Contract kỹ thuật canonical cho Website Builder runtime của Cresco Studio hiện tại**
 
-Audited baseline: `00be3f489dfef530d31394d951b3ea4d261cc7d3` (2026-08-17)
+Baseline audit gốc: `00be3f489dfef530d31394d951b3ea4d261cc7d3` (2026-08-17)
 
-This document exists to prevent a class of regressions that Cresco Canvas has already encountered: a feature appears implemented in one file or branch, but the browser still renders an older UI; two runtimes or two CSS owners compete; a DOM enhancement mutates React-owned nodes; a visual control exposes values the persistence model cannot store; generated assets drift from their source mirror; or historical architecture documentation contradicts the runtime that actually ships.
+Tài liệu này tồn tại để ngăn nhóm regression mà Cresco Canvas đã gặp: một feature có vẻ đã được làm trong một file/branch nhưng browser vẫn chạy UI cũ; hai runtime hoặc hai CSS owner cạnh tranh; DOM enhancer sửa node do React sở hữu; UI expose value backend không lưu được; source/build drift; hoặc tài liệu kiến trúc lịch sử mâu thuẫn runtime thực sự ship.
 
-The goal is not merely to avoid merge conflicts. The goal is to prevent **ownership conflicts** across runtime, DOM, state, CSS, data schema, build artifacts, optional modules, documentation, and long-lived branches.
-
-When another document conflicts with this contract for the current Cresco Studio Website Builder, use the precedence rules in [Documentation authority](#documentation-authority-and-precedence).
+Mục tiêu không chỉ là tránh merge conflict mà là tránh **ownership conflict** giữa runtime, DOM, state, CSS, data schema, build artifact, optional module, documentation và long-lived branch.
 
 ---
 
-## 1. Core invariants
+## 1. Invariant cốt lõi
 
-The following rules are non-negotiable unless a new ADR explicitly supersedes them.
+Các quy tắc sau không được phá trừ khi ADR mới supersede rõ ràng:
 
-1. **One active Website Builder runtime owns the Studio shell.** `WebsiteBuilderStudio` is the canonical browser runtime owner for the current Studio experience.
-2. **One Session model owns the editable Website Builder document.** `cresco-session/v1` remains the authoritative Studio document model.
-3. **React owns React-rendered Studio DOM.** Optional modules may extend it through explicit extension points, portals, bridges, or stable mount hosts; they must not replace, reparent, clone, or rewrite React-owned nodes.
-4. **The server-side schema and sanitizer define what can be persisted.** UI controls may not advertise unsupported values or structures.
-5. **A persisted feature must evolve atomically.** Defaults, sanitizer, compiler/renderer, REST payload, Studio UI, alternate UI surfaces, tests, AI/export contracts, and docs must change together when the data model changes.
-6. **CSS ownership is explicit.** Foundation declares cascade layer order first. Structural rules and presentation polish have different owners.
-7. **Same-layer source order still matters.** Cascade layers reduce accidental precedence, but they do not eliminate conflicts between selectors in the same layer.
-8. **Generated/runtime mirrors do not drift.** Studio source/build runtime files that are expected to be byte-identical must be updated together.
-9. **Optional modules are additive.** They may degrade or fail independently without taking ownership of the core Studio shell.
-10. **A long-lived feature branch must not silently lag behind `main`.** Runtime/UI work starts from a verified current base and is re-synchronized after canonical changes land.
-11. **Historical documentation is never allowed to silently override current code ownership.** Superseded decisions remain as history but must be labeled as such.
-12. **A visual change is not proof of a model change, and a model change is not proof of a visual change.** Both must be verified independently.
+1. **Một Website Builder runtime sở hữu Studio shell.** `WebsiteBuilderStudio` là owner canonical.
+2. **Một Session model sở hữu editable document.** `cresco-session/v1` authoritative cho Studio document.
+3. **React sở hữu React-rendered DOM.** Optional module không replace/reparent/clone/rewrite React-owned node.
+4. **Server schema/sanitizer quyết định persisted state hợp lệ.** UI không được quảng bá cấu trúc/value unsupported.
+5. **Persisted feature phải tiến hóa atomic.** Defaults, sanitizer, compiler/renderer, REST, UI, alternate surface, tests, AI/export và docs phải đồng bộ khi data model đổi.
+6. **CSS ownership phải explicit.** Foundation khai báo layer order; structural rule và presentation polish có owner khác nhau.
+7. **Source order trong cùng layer vẫn quan trọng.** Layer không loại bỏ CSS conflict.
+8. **Source/build mirror không drift.** Cặp được quy định byte-identical phải cập nhật cùng nhau.
+9. **Optional module chỉ additive.** Lỗi module không được takeover core Studio.
+10. **Long-lived branch không được âm thầm tụt sau `main`.**
+11. **Historical docs không được override current code ownership.**
+12. **Visual change không chứng minh model change và ngược lại.** Phải verify độc lập.
 
 ---
 
-## 2. Canonical runtime map
+## 2. Bản đồ ownership runtime hiện tại
 
-The current Studio stack is intentionally split into owners with narrow responsibilities.
-
-| Area | Canonical owner | Responsibility | Must not do |
+| Khu vực | Owner canonical | Trách nhiệm | Không được làm |
 | --- | --- | --- | --- |
-| Studio browser shell | `build/website-builder-studio.js` + its source mirror | React app, primary state, panels, Canvas, Structure, Inspector, Page panel, commands, save flow | Allow another runtime to mount a competing Studio app |
-| Runtime registration | `includes/Builder/WebsiteBuilderStudio.php` | Canonical script handle, dependencies, content-hashed versions, support assets, runtime diagnostics | Register a second competing core editor handle for the same screen |
-| Runtime context | `WebsiteBuilderRuntimeContext`, `WebsiteBuilderEditorConfig` | Resolve page/editor context and endpoint configuration | Let optional modules invent independent document identity or endpoints |
-| Module activation | `WebsiteBuilderModuleRegistry` | Decide whether core/optional modules are active for the context | Let modules bypass registry ownership rules |
-| Responsive Inspector enhancement | `build/website-builder-responsive-properties.js` | Per-property responsive UI, grouping/accordion, widget-aware control enhancement | Become the source of truth for widget data or rewrite React state directly |
-| UI structural correction | `build/website-builder-ui-correction.js`, `assets/css/website-builder-ui-correction.css` | Canonical structural corrections around Studio controls/layout | Become a second data model or styling theme |
-| Explicit unset/reset semantics | `build/website-builder-unset-styles.js` + `docs/STYLE_UNSET_SEMANTICS.md` | Clear/remove responsive style keys through an explicit model bridge | Fake an unset by only blanking a DOM input |
-| Responsive inheritance extension | `build/studio-responsive-inheritance.js`, `assets/css/studio-responsive-inheritance.css` | Expose inheritance semantics without replacing the Studio runtime | Persist a second responsive schema |
-| Foundation/layer order | `assets/css/cresco-foundation.css` | Declare global Cresco cascade layer order and shared foundation | Be loaded after stylesheets that already establish an incompatible layer order |
-| Base Studio presentation | `assets/css/website-builder-studio.css` | Core Studio structural/base styles | Become a place for unrelated feature overrides |
-| Premium polish | `assets/css/website-builder-premium-polish.css` | Presentation-only refinement in the override layer | Own layout structure, DOM visibility contracts, runtime behavior, or data semantics |
-| Page Settings persistence | `includes/Page/PageSettings.php` | Page Settings defaults, sanitization, effective values, frontend compilation and REST persistence | Accept a UI-only schema that cannot compile consistently |
-| Studio Page Settings view | `pagePanel()` in Studio runtime | Edit the canonical Page Settings model from the Studio Page rail | Create a different Page Settings schema |
-| Alternate/standalone Page Settings view | standalone Page Settings runtime | Present another view over the same Page Settings backend | Diverge in persistence semantics from the Studio Page panel |
-| Global Design Pro UI | Global Design Pro module/bridge | Extend the canonical Global Design surface using a safe mount/portal bridge | Replace/reparent the legacy/canonical React-owned panel or create competing site-token state |
-| Legacy Website Builder assets | legacy builder files, where still retained | Compatibility only when explicitly selected/required | Load after Studio and visually/runtime-take over the same editor surface |
+| Studio shell | `build/website-builder-studio.js` + source mirror | React app, primary state, panel, Canvas, Structure, Inspector, Page panel, command, save | Cho runtime khác mount app cạnh tranh |
+| Runtime registration | `includes/Builder/WebsiteBuilderStudio.php` | Handle canonical, deps, content hash, support assets, diagnostics | Tạo core editor handle thứ hai cho cùng screen |
+| Runtime context/config | `WebsiteBuilderRuntimeContext`, `WebsiteBuilderEditorConfig` | Resolve Page/editor context và endpoint | Optional module tự invent document identity/endpoint |
+| Module activation | `WebsiteBuilderModuleRegistry` | Required/optional module policy | Module bypass registry ownership |
+| Responsive Inspector | `build/website-builder-responsive-properties.js` | Responsive UI, grouping/accordion, widget-aware enhancement | Trở thành source of truth dữ liệu |
+| Dimension/Border | `StudioDimensionControls`, `build/studio-dimension-controls.js` | Proxy dimension/unit và Border/Radius trên control canonical | Tạo dimension/border schema thứ hai |
+| Typography popup | `StudioTypographyPopup`, `build/studio-typography-popup.js` | Trình bày Typography canonical controls trong popup | Tạo typography state/store thứ hai |
+| Widget state tabs | `StudioWidgetStateTabs` + runtime asset liên quan | Presentation cho state được widget contract hỗ trợ | Invent state không có trong contract |
+| Structure ownership | Studio Structure + `StudioStructureLayout` | Node management/navigation | Duplicate node-management owner trong Inspector |
+| UI correction | `website-builder-ui-correction.js/css` | Structural correction hẹp | Tạo data model/theme khác |
+| Unset/reset | `website-builder-unset-styles.js`, `STYLE_UNSET_SEMANTICS.md` | Explicit unset/reset model bridge | Chỉ blank DOM input |
+| Responsive inheritance extension | `studio-responsive-inheritance.js/css` | Hiển thị inheritance semantics | Persist responsive schema thứ hai |
+| Foundation | `assets/css/cresco-foundation.css` | Token + cascade layer order + motion foundation | Load sau layer declaration cạnh tranh |
+| Base Studio CSS | `website-builder-studio.css` | Cấu trúc/base presentation | Chứa unrelated override |
+| Premium polish | `website-builder-premium-polish.css` | Presentation refinement | Sở hữu runtime/layout semantics/data |
+| Page Settings model | `includes/Page/PageSettings.php` | Defaults, sanitizer, effective value, compile, persistence | Chấp nhận UI-only schema |
+| Studio Page Settings | `pagePanel()` trong Studio | View/edit canonical Page Settings | Tạo Page Settings schema khác |
+| Global Design Pro | Global Design Pro module/bridge | Extend Global Design bằng mount/bridge an toàn | Replace/reparent panel hoặc token state canonical |
+| Legacy builder asset | Legacy file còn giữ | Compatibility khi được chọn rõ | Load sau Studio và takeover same screen |
 
-A new module must be added to this map, or to an equally explicit successor contract, before it is allowed to modify a Studio-owned surface.
+Feature mới chạm Studio-owned surface phải xác định owner tương tự trước khi triển khai.
 
 ---
 
@@ -62,217 +61,164 @@ A new module must be added to this map, or to an equally explicit successor cont
 
 ### 3.1 Canonical handle
 
-The Studio runtime owns the existing `cresco-canvas-website-builder` script handle through `WebsiteBuilderStudio`. This is intentional: optional code that already depends on the canonical Website Builder handle remains compatible while the active script implementation can evolve.
+Studio sở hữu handle `cresco-canvas-website-builder` thông qua `WebsiteBuilderStudio`. Việc giữ handle là chủ ý để module phụ cũ vẫn dependency đúng trong khi implementation thay đổi.
 
-The owner is responsible for:
+Owner chịu trách nhiệm:
 
-- setting the canonical script `src`;
-- setting dependencies;
-- applying a content-addressed version;
-- enqueueing the script once;
-- attaching `window.crescoWebsiteBuilderSettings` before execution;
-- declaring the expected runtime as `studio`;
-- enqueueing only support assets that belong to the same runtime family.
+- canonical script `src`;
+- dependencies;
+- content-addressed version;
+- enqueue một lần;
+- `window.crescoWebsiteBuilderSettings` trước execution;
+- expected runtime = `studio`;
+- support asset cùng runtime family.
 
-### 3.2 Forbidden competing-runtime patterns
+### 3.2 Pattern bị cấm
 
-Do not:
+Không:
 
-- enqueue an older Website Builder core script after Studio on the same editor screen;
-- mount a second `.cc-studio-app` or legacy `.cc-builder-app` as a fallback after Studio has mounted;
-- recover from an optional module failure by re-registering the core handle to another runtime;
-- let a compatibility service mutate the canonical handle after `WebsiteBuilderStudio::enforce_runtime_ownership()`;
-- use a DOM observer to detect Studio and then mount a second editor shell around it.
+- enqueue core runtime cũ sau Studio;
+- mount `.cc-studio-app` thứ hai hoặc legacy `.cc-builder-app` sau Studio;
+- module phụ lỗi rồi re-register core handle sang runtime khác;
+- compatibility service mutate handle sau `WebsiteBuilderStudio::enforce_runtime_ownership()`;
+- observer phát hiện Studio rồi dựng editor shell thứ hai.
 
-A failure in an optional feature must result in **feature degradation**, not runtime replacement.
+Optional feature lỗi phải thành **feature degradation**, không phải runtime replacement.
 
-### 3.3 Runtime diagnostics
+### 3.3 Diagnostics tối thiểu
 
-During browser troubleshooting, verify at minimum:
+Khi debug browser, kiểm tra:
 
 - `window.crescoExpectedWebsiteBuilderRuntime === 'studio'`;
-- `window.crescoWebsiteBuilderEditorBoot` reaches the expected Studio phase;
-- `window.crescoStudioRuntimeOwnership` reports a Studio mount and no legacy competing mount;
-- exactly one `.cc-studio-app` exists;
-- no unexpected legacy root is mounted inside `#cresco-canvas-standalone-editor`;
-- the loaded Studio asset URL carries the expected content-hashed version.
+- `window.crescoWebsiteBuilderEditorBoot` đi tới Studio phase mong đợi;
+- `window.crescoStudioRuntimeOwnership` báo Studio mount và không có competing legacy mount;
+- chỉ một `.cc-studio-app` tồn tại;
+- không có unexpected legacy root trong `#cresco-canvas-standalone-editor`;
+- asset URL có content-hashed version mong đợi.
 
-If these conditions are not true, fix runtime ownership before investigating visual CSS.
+Nếu sai, sửa runtime ownership trước CSS.
 
 ---
 
 ## 4. React DOM ownership
 
-### 4.1 React-rendered DOM is not an extension API
+### 4.1 DOM do React render không phải extension API
 
-Classes such as `.cc-studio-*` are implementation selectors, not permission to mutate the node tree arbitrarily. React expects the DOM shape it rendered to remain stable.
+`.cc-studio-*` là implementation selector. Optional module ưu tiên:
 
-Optional modules must prefer, in order:
+1. `window.CrescoStudioSDK`;
+2. explicit event/state bridge;
+3. React portal vào stable host;
+4. additive sibling mount point;
+5. DOM enhancer hẹp nếu không có extension point.
 
-1. `window.CrescoStudioSDK` extension registration;
-2. an explicit event/state bridge owned by Studio;
-3. a React portal into a stable host that remains owned by the canonical panel;
-4. an additive sibling mount point expressly reserved for the module;
-5. a narrowly scoped DOM enhancer only when no React extension point exists.
+### 4.2 Operation bị cấm
 
-### 4.2 Forbidden DOM operations
-
-An optional module must not use any of the following against React-owned Studio content unless the core runtime explicitly delegates ownership:
+Không dùng trên React-owned content nếu Core chưa delegate:
 
 - `innerHTML = ...`;
 - `replaceWith(...)`;
 - `replaceChildren(...)`;
-- removing a React-rendered parent;
-- reparenting React-rendered controls into another container;
-- cloning canonical controls and hiding the originals;
-- changing input values and assuming React state changed;
-- repeatedly appending controls on every `MutationObserver` callback without idempotency.
+- remove React parent;
+- reparent canonical control;
+- clone control rồi hide original;
+- đổi input DOM và giả định React state đã đổi;
+- append enhancer không idempotent từ `MutationObserver`.
 
-### 4.3 MutationObserver rules
+### 4.3 MutationObserver
 
-A `MutationObserver` may be used for **discovery**, not ownership.
+Observer dùng cho **discovery**, không ownership. Observer an toàn phải:
 
-A safe observer:
-
-- observes the narrowest stable root;
-- has an idempotent mount marker;
-- schedules/debounces work;
-- disconnects or becomes inert after its mount is stable when continuous observation is unnecessary;
-- does not create mutations that recursively retrigger an unbounded enhancement loop;
-- does not treat text labels as the only durable identity when an explicit id/data attribute can be provided.
+- theo dõi root hẹp nhất;
+- có mount marker idempotent;
+- schedule/debounce/coalesce;
+- disconnect/inert khi không cần;
+- không tự tạo feedback loop;
+- ưu tiên stable id/data attribute thay vì label text.
 
 ### 4.4 Portal/bridge pattern
 
-The stabilized Global Design Pro mount is the preferred pattern when an enhancement must appear inside an existing React-owned panel:
+Khi enhancement cần xuất hiện trong React-owned panel:
 
-- discover a stable host;
-- do not replace the host;
-- create one additive mount container;
-- render/portal the enhancement into that container;
-- read/write through the canonical state bridge;
-- unmount cleanly when the host disappears;
-- remount idempotently if React recreates the host.
-
-This pattern must be reused rather than reinventing panel takeover logic.
+- tìm stable host;
+- không replace host;
+- tạo một additive mount container;
+- render/portal vào container;
+- đọc/ghi qua canonical state bridge;
+- unmount khi host mất;
+- remount idempotent nếu React recreate host.
 
 ---
 
 ## 5. State ownership
 
-### 5.1 Sources of truth
+Authority:
 
-For Studio-owned data, authority is layered:
+1. server sanitizer/model;
+2. Studio React state;
+3. DOM phản chiếu state;
+4. optional module local state chỉ presentation/transient trừ khi được contract giao ownership.
 
-1. **Server sanitizer/model** defines valid persisted state.
-2. **Studio React state** defines the current editable browser state.
-3. **Rendered DOM** reflects React state; it is not a competing source of truth.
-4. **Optional module local state** may hold presentation/transient state only, unless an explicit contract grants ownership.
+Không để duplicate semantic state, ví dụ:
 
-### 5.2 No silent duplicate state
+- Studio Page panel và Page Settings Pro lưu shape khác nhau;
+- enhancer dùng `sessionStorage` để override Session sau reload;
+- Global Design module giữ token object riêng không reconcile;
+- DOM input rỗng nhưng responsive key vẫn còn trong Session.
 
-Do not let two modules independently own the same semantic value. Examples of prohibited duplicates:
-
-- Studio Page panel stores one Margin value while Page Settings Pro stores another shape;
-- an Inspector enhancer keeps a `sessionStorage` value that overrides the Session model after reload;
-- a Global Design enhancement has a separate token object that is not reconciled with the canonical settings state;
-- a DOM input is visually cleared while the responsive override key remains in the Session.
-
-### 5.3 Reset/unset is a model operation
-
-Responsive style reset must remove the correct override from the canonical model. It must not be implemented as a visual blank input only. The exact contract is documented in `docs/STYLE_UNSET_SEMANTICS.md`.
-
-When adding a new responsive control, define all of the following:
-
-- how an inherited value is displayed;
-- how an explicit empty value differs from a missing override, if the property permits that distinction;
-- how Reset/Unset is dispatched;
-- how the parent/base value is resolved;
-- how save/reload proves the override was actually removed.
+Reset/unset phải thay model thật sự. Xem `STYLE_UNSET_SEMANTICS.md`.
 
 ---
 
-## 6. CSS cascade and ownership contract
+## 6. CSS cascade và ownership
 
-### 6.1 Foundation must declare layer order first
+### 6.1 Foundation khai báo layer order trước
 
-`assets/css/cresco-foundation.css` declares the canonical order:
+`assets/css/cresco-foundation.css` hiện khai báo:
 
 ```css
-@layer cresco.base, cresco.legacy, cresco.components, cresco.utilities, cresco.overrides;
+@layer cresco.base, cresco.tokens, cresco.components, cresco.theme, cresco.overrides, cresco.motion;
 ```
 
-Layer order is fixed by first declaration. Therefore the foundation stylesheet must be enqueued before any stylesheet that opens a Cresco layer.
+Layer order bị cố định từ lần khai báo đầu tiên. Foundation phải enqueue trước stylesheet mở Cresco layer.
 
-Do not create another stylesheet that declares a different order first.
+### 6.2 Trách nhiệm layer
 
-### 6.2 Layer responsibilities
-
-| Layer | Intended responsibility |
+| Layer | Trách nhiệm |
 | --- | --- |
-| `cresco.base` | Canonical base/editor structure and primitives |
-| `cresco.legacy` | Compatibility rules that must remain isolated from current owners |
-| `cresco.components` | Reusable component-level presentation |
-| `cresco.utilities` | Narrow utility rules with explicit scope |
-| `cresco.overrides` | Final presentation polish only; not structural ownership |
+| `cresco.base` | Base/editor structure và primitive |
+| `cresco.tokens` | Canonical token và legacy alias |
+| `cresco.components` | Reusable component presentation |
+| `cresco.theme` | Theme-level presentation khi có |
+| `cresco.overrides` | Final polish, không structural ownership |
+| `cresco.motion` | Timing/micro-motion và interaction feedback |
 
-### 6.3 A layer is not a conflict shield
+### 6.3 Layer không phải conflict shield
 
-Two stylesheets inside `cresco.base` can still conflict. Within the same layer, normal cascade rules, specificity, and source order still apply.
+Trong cùng layer vẫn áp specificity/source order. Do đó:
 
-Therefore:
+- một semantic rule nên có một owner;
+- không copy selector sang file sau để ép appearance;
+- sửa owner thật;
+- kiểm tra duplicate owner trước `!important`.
 
-- one semantic rule should have one canonical owner;
-- if two base stylesheets target the same property on the same element, document which one is expected to win and why;
-- avoid copying a selector into a later file just to “force” an appearance;
-- prefer moving the rule to the actual owner rather than accumulating patches;
-- before adding `!important`, verify whether the declaration is compensating for a duplicate owner.
+### 6.4 Structural CSS và polish CSS
 
-### 6.4 Structural CSS vs polish CSS
+Premium polish có thể refine color, shadow, gradient, visual border, focus, subtle hover, radius không structural.
 
-`assets/css/website-builder-premium-polish.css` is presentation-only. It may refine:
+Nó không được sở hữu shell grid/flex, existence/visibility contract của core control, responsive data semantics hoặc mount behavior.
 
-- colors;
-- shadows;
-- gradients;
-- visual borders;
-- focus appearance;
-- subtle hover motion;
-- non-structural radii.
+### 6.5 Motion
 
-It must not become the owner of:
-
-- grid/flex architecture of the Studio shell;
-- whether a core panel/control exists;
-- display/hide contracts required for runtime behavior;
-- source ordering of interactive controls;
-- responsive data semantics;
-- DOM mount behavior.
-
-If a polish rule is required for the UI to function, the rule is in the wrong file.
-
-### 6.5 `!important` policy
-
-Use `!important` only when the rule represents a deliberate hard boundary, such as suppressing WordPress admin chrome on the dedicated editor screen or enforcing a documented compatibility guarantee.
-
-Do not use `!important` as the first response to a Studio-vs-legacy conflict. First identify:
-
-1. which stylesheet owns the selector;
-2. which layer each rule is in;
-3. load order;
-4. specificity;
-5. whether both rules should exist at all.
+Motion timing/easing dùng token trong `cresco-foundation.css`; `cresco.motion` là layer cuối cho interaction timing. `prefers-reduced-motion` phải thắng decorative motion.
 
 ---
 
-## 7. Page Settings: canonical model contract
+## 7. Page Settings: canonical model
 
-Page Settings is the area most vulnerable to UI/schema drift because more than one UI surface can edit the same backend object.
+`includes/Page/PageSettings.php` là persistence owner.
 
-### 7.1 Canonical persistence owner
-
-`includes/Page/PageSettings.php` owns the persisted Page Settings model.
-
-The current model is version 2 and includes, at minimum:
+Page Settings v2 có shape khái quát:
 
 ```json
 {
@@ -304,67 +250,53 @@ The current model is version 2 and includes, at minimum:
 }
 ```
 
-This example is schematic. The PHP defaults/sanitizer remain authoritative for the complete object.
+PHP defaults/sanitizer mới là authority đầy đủ.
 
-### 7.2 Current spacing semantics
+### 7.1 Spacing semantics hiện tại
 
-The current Page Settings spacing contract has important limits:
+- Margin dùng **một shared unit** cho 4 side và mọi bucket.
+- Padding cũng dùng **một shared unit**.
+- Unit: `px`, `%`, `em`, `rem`, `vh`, `vw`.
+- Value lưu tách khỏi unit.
+- `linked` thuộc control model.
+- Bucket: `desktop`, `tablet`, `mobile`.
+- Tablet/mobile missing value inherit theo backend logic.
 
-- Margin has **one shared unit** for all four sides and all responsive buckets.
-- Padding has **one shared unit** for all four sides and all responsive buckets.
-- Allowed units are currently `px`, `%`, `em`, `rem`, `vh`, `vw`.
-- Values are stored as numbers/number strings separate from the shared unit.
-- `linked` is part of the control model, but every UI surface must implement its meaning consistently if it exposes the link control.
-- Responsive buckets are `desktop`, `tablet`, `mobile`.
-- Missing tablet/mobile side values inherit through the backend resolution logic.
+Không expose Top=`2rem`, Left=`24px` nếu backend chỉ lưu một unit chung.
 
-**Do not implement per-side units in the UI while the backend still stores one shared unit.** A UI that visually allows Top=`2rem` and Left=`24px` would be lying to the user because the current persistence/compiler cannot faithfully store that distinction.
+### 7.2 Responsive resolution
 
-### 7.3 Responsive resolution
+- desktop = desktop;
+- tablet = desktop + non-empty tablet override;
+- mobile = desktop + tablet + non-empty mobile override.
 
-The backend resolves spacing in order:
+Clear tablet/mobile side nghĩa remove override để inheritance quay lại, không phải persist `0`.
 
-- desktop uses desktop values;
-- tablet begins with desktop and overrides with non-empty tablet values;
-- mobile begins with desktop, then tablet, then overrides with non-empty mobile values.
+### 7.3 Nhiều view, một model
 
-Resetting a tablet/mobile side therefore means removing that device override so inheritance resumes. It is not equivalent to persisting `0`.
+Studio Page rail và standalone/classic Page Settings là nhiều view của cùng backend. Feature mới phải liệt kê mọi UI surface bị ảnh hưởng.
 
-### 7.4 Multiple views, one model
+### 7.4 Protocol thay schema atomic
 
-The Studio `Page` rail panel and any standalone/classic Page Settings UI are **views over the same backend model**, not independent Page Settings products.
+Một persisted capability chỉ hoàn chỉnh khi cập nhật:
 
-If Page Settings Pro enhances an alternate Page Settings surface, that does not automatically upgrade `pagePanel()` in the Studio runtime. Conversely, changes to Studio `pagePanel()` do not change the backend schema unless `PageSettings.php` changes.
-
-Any Page Settings feature must explicitly list every UI surface it affects.
-
-### 7.5 Atomic Page Settings schema change protocol
-
-A persisted Page Settings capability is complete only when the same change set updates all applicable layers:
-
-1. `PageSettings::defaults()`;
-2. sanitizer/validation;
+1. defaults;
+2. sanitizer;
 3. effective/inheritance logic;
 4. frontend compiler;
-5. REST read/write behavior;
-6. Studio `pagePanel()` controls;
-7. standalone/alternate Page Settings view, if it exposes the same field;
-8. import/export/AI context if the field is portable;
-9. unit tests in `tests/php/PageSettingsTest.php` or a dedicated successor test;
-10. browser save/reload verification;
-11. this contract or the feature-specific documentation.
+5. REST;
+6. Studio Page UI;
+7. alternate UI nếu expose cùng field;
+8. AI/import/export nếu portable;
+9. tests;
+10. save/reload browser verification;
+11. docs.
 
-A PR that changes only step 6 is a UI experiment, not a complete persisted Page Settings feature.
+### 7.5 Border/Radius warning
 
-### 7.6 Border and radius warning
+Widget Inspector có Border/Radius không có nghĩa Page Settings tự động có cùng schema. Muốn Page-level Border/Radius phải thiết kế Page Settings storage, sanitizer, compiler, inheritance, unit, linked/unlinked và tests trước.
 
-The Widget Inspector currently has style properties for Border and Border Radius. That does **not** mean Page Settings has the same persistence contract.
-
-Do not expose Page-level Border/Radius controls merely by copying Widget Inspector controls. First design the Page Settings schema, sanitizer, compiler, inheritance behavior, allowed units, linked/unlinked semantics, reset semantics, and tests.
-
-### 7.7 Shared control primitives, separate adapters
-
-The long-term UI architecture should reuse control primitives while retaining domain-specific adapters:
+### 7.6 Shared primitive, adapter riêng
 
 ```text
 Control primitives
@@ -376,18 +308,16 @@ Control primitives
   └─ Reset/Inherit affordance
         ↓
 Widget style adapter            Page Settings adapter
-(Session style/responsive)      (PageSettings v2 or successor)
+(Session style/responsive)      (PageSettings v2 hoặc successor)
 ```
 
-Do not create a third independent control engine with its own semantics. Reuse presentation/interaction primitives, but adapt them to the canonical storage model of each domain.
+Reuse interaction/presentation primitive, nhưng adapt theo canonical storage model từng domain.
 
 ---
 
 ## 8. Widget responsive style contract
 
-Widget responsive styling is not the same schema as Page Settings spacing.
-
-The Studio uses the device sequence:
+Device sequence:
 
 - `wide` / base;
 - `desktop`;
@@ -395,419 +325,305 @@ The Studio uses the device sequence:
 - `tablet`;
 - `mobile`.
 
-The responsive Inspector enhancer groups properties into canonical categories such as Display & Size, Spacing & Gaps, Alignment, Flexbox, Grid, Typography, Background, Border, Effects, Margin & Padding, Position & Layer, Overflow & Visibility, Transform & Effects, Media & Cursor, and Custom CSS.
+Responsive Inspector có thể group Display & Size, Gaps, Alignment, Flexbox, Grid, Typography, Background, Border, Effects, Margin/Padding, Position, Overflow, Transform, Media, Custom CSS.
 
-Rules:
+Quy tắc:
 
-1. The enhancer may organize or proxy controls, but the Session remains authoritative.
-2. A property reset must remove the correct override through the explicit unset contract.
-3. The same property must not be simultaneously owned by a React control and a second hidden input with independent state.
-4. Device/state interactions must be documented. State styling must not accidentally create a second breakpoint cascade.
-5. If a composite control represents several style keys, the adapter must define exactly which keys it reads/writes/resets.
-6. Border controls should operate on the existing Widget style keys; do not reuse those keys for Page Settings without an explicit adapter.
-
----
-
-## 9. Global Design and optional module ownership
-
-Global Design Pro established an important safe-extension pattern: **mount into a stable host without taking ownership of the host**.
-
-For optional modules:
-
-- use module-registry activation;
-- depend on the canonical Studio handle when load order matters;
-- never register another core Website Builder runtime;
-- fail closed to the feature, not to the editor;
-- use canonical settings/session bridges;
-- keep local state transient where possible;
-- mount once and unmount cleanly;
-- do not assume a panel's current text/DOM shape is a permanent API if a formal SDK hook exists.
-
-If an optional module cannot operate without replacing a core Studio node, the core needs a new explicit extension point before the module ships.
+1. Enhancer tổ chức/proxy control; Session authoritative.
+2. Reset phải sửa đúng model override.
+3. Không có hidden input thứ hai sở hữu independent state.
+4. State styling không được tạo breakpoint cascade thứ hai.
+5. Composite control phải khai báo rõ style key đọc/ghi/reset.
+6. Border control dùng Widget style keys hiện có.
+7. Typography popup chỉ trình bày canonical Typography controls.
 
 ---
 
-## 10. Build/source parity and cache safety
+## 9. Global Design và optional module
 
-### 10.1 Studio runtime parity
+Global Design Pro thể hiện pattern extension an toàn: **mount vào stable host mà không lấy ownership của host**.
 
-Where the repository keeps a source/runtime mirror and a production `build/` copy of the same Studio runtime, they must remain byte-identical when that is the declared release invariant.
+Optional module phải:
 
-A change is incomplete if it updates only one copy.
+- dùng activation policy canonical;
+- depend canonical Studio handle khi cần load order;
+- không register core runtime khác;
+- fail closed ở mức feature;
+- dùng settings/session bridge canonical;
+- giữ local state transient;
+- mount một lần, cleanup rõ;
+- không phụ thuộc label/DOM text nếu SDK hook tồn tại.
 
-Recommended verification:
+Nếu module không thể hoạt động nếu không replace core node, Core cần extension point mới trước khi module ship.
+
+---
+
+## 10. Build/source parity và cache safety
+
+### 10.1 Runtime parity
+
+Source/runtime mirror và production `build/` copy được khai báo byte-identical phải giữ giống nhau.
 
 ```text
 sha256(source-runtime-file) == sha256(build-runtime-file)
 ```
 
-Do not “fix production quickly” by editing only `build/` and planning to synchronize source later.
+Không sửa riêng `build/` để hot-fix rồi “đồng bộ sau”.
 
-### 10.2 Content-addressed asset versions
+### 10.2 Content-addressed version
 
-`WebsiteBuilderAsset` versions canonical Studio assets using their content hash. This is the preferred cache invalidation boundary.
+`WebsiteBuilderAsset` dùng content hash cho canonical asset.
 
-When an old UI appears after a deployment:
+Nếu UI cũ xuất hiện:
 
-1. inspect the actual script/style URL in DevTools;
-2. confirm the query/version changed with file content;
-3. confirm the expected file path is registered on the canonical handle;
-4. only then investigate browser/proxy caches.
+1. xem URL asset thực trong DevTools;
+2. verify version/hash đổi;
+3. verify canonical handle trỏ đúng file;
+4. sau đó mới nghi cache.
 
-Do not assume every old-looking UI is a cache problem. If the current React source still renders the old control shape, no cache clear can create a newer structure that is not implemented.
-
----
-
-## 11. Branch and merge discipline
-
-Runtime ownership bugs are frequently branch-age bugs disguised as frontend bugs.
-
-### 11.1 Before starting Studio/runtime work
-
-Verify the target base branch and compare it with `main`.
-
-Required questions:
-
-- What commit is `main` on?
-- What commit is the feature branch on?
-- Is the feature branch an ancestor of `main`, ahead of it, or diverged?
-- Did `main` recently change Studio runtime ownership, CSS foundation/layers, Page Settings, Global Design, responsive inheritance, or optional module mounting?
-
-If a long-lived branch is simply behind and can fast-forward safely, fast-forward it before editing.
-
-### 11.2 During work
-
-- Keep runtime ownership changes small and explicit.
-- Do not mix unrelated UI takeover fixes into visual-polish commits.
-- Avoid no-op “retry” commits as a substitute for a diagnosed change.
-- Do not force-update a shared branch merely to make a comparison disappear.
-- If the branch must diverge, document why and what must be reconciled before merge.
-
-### 11.3 Before merge
-
-Re-read the latest `main` versions of:
-
-- `includes/Builder/WebsiteBuilderStudio.php`;
-- Studio runtime JS;
-- responsive-properties JS;
-- UI-correction JS/CSS;
-- foundation CSS;
-- premium polish CSS;
-- Page Settings backend and tests;
-- any module that mounts into the same panel being changed.
-
-Then perform a semantic conflict review even if Git reports no textual conflict.
-
-A **semantic conflict** includes:
-
-- two files both believing they own the same DOM node;
-- two CSS files targeting the same property for different reasons;
-- two controls representing the same setting differently;
-- two runtime modules registering the same handle;
-- a new UI value that the sanitizer discards;
-- a source/build mirror mismatch.
-
-### 11.4 After canonical changes land
-
-Long-lived integration branches should be synchronized again. Do not leave a branch pointing at an old runtime for days while continuing UI work on top of it.
+Nếu React source vẫn render UI cũ thì cache clear không tạo được structure chưa tồn tại.
 
 ---
 
-## 12. Documentation authority and precedence
+## 11. Branch và merge discipline
 
-The repository contains documents from multiple architecture generations. They are useful history but cannot all be simultaneously normative.
+Runtime bug thường là branch-age bug giả dạng frontend bug.
 
-For the current Cresco Studio Website Builder, use this precedence:
+Trước khi sửa:
+
+- main ở commit nào?
+- feature branch ở commit nào?
+- branch behind/ahead/diverged?
+- main có vừa đổi runtime, foundation CSS, Page Settings, responsive hoặc mount pattern không?
+
+Nếu branch chỉ behind và fast-forward an toàn, sync trước khi chỉnh.
+
+Trong lúc làm:
+
+- runtime ownership change phải nhỏ và explicit;
+- không mix takeover fix với unrelated polish;
+- không dùng no-op retry commit thay diagnosis;
+- không force-update shared branch chỉ để làm comparison biến mất.
+
+Trước merge, đọc lại latest main của runtime owner, responsive, UI correction, foundation, polish, Page Settings và module cùng panel. Review **semantic conflict** ngay cả khi Git không báo textual conflict.
+
+Semantic conflict gồm:
+
+- hai file cùng nghĩ mình sở hữu một DOM node;
+- hai CSS file cùng target property vì lý do khác;
+- hai control represent cùng setting khác nhau;
+- hai module register cùng handle;
+- UI value bị sanitizer bỏ;
+- source/build mirror mismatch.
+
+---
+
+## 12. Authority tài liệu
+
+Thứ tự cho Studio hiện tại:
 
 1. current executable code + tests;
-2. current ADRs that explicitly apply to Studio-owned Website Builder documents;
-3. this document;
-4. `docs/CORE_ARCHITECTURE.md` and `docs/WEBSITE_BUILDER_CORE.md` where they describe the current Studio stack;
-5. feature-specific current docs such as `docs/STUDIO_EDITOR_EXPERIENCE_2.md`, `docs/STYLE_UNSET_SEMANTICS.md`, and `docs/STUDIO_PREMIUM_POLISH.md`;
-6. historical Gutenberg-native architecture docs for their original scope only.
+2. current ADR áp dụng rõ cho Studio-owned document;
+3. `PROJECT_RULES.md`;
+4. tài liệu này;
+5. `CORE_ARCHITECTURE.md`, `WEBSITE_BUILDER_CORE.md`;
+6. feature-specific current docs;
+7. historical Gutenberg-native docs trong scope cũ.
 
-If code and this document diverge accidentally, treat that as a defect: update the code or the documentation in the same change that resolves the discrepancy.
+Nếu code và contract này lệch ngoài ý muốn, đó là defect; sửa một trong hai trong cùng change.
 
-### 12.1 ADR policy
-
-Do not delete old ADRs merely because architecture evolved. Instead:
-
-- preserve the decision as history;
-- label its scope or superseded status;
-- add a new ADR that names what it supersedes;
-- link the new canonical contract.
-
-This prevents a future agent from reading an older confident statement such as “no custom workbench shell” and incorrectly removing the current Studio runtime.
+ADR cũ được giữ làm history nhưng phải ghi superseded/scope rõ.
 
 ---
 
-## 13. Change protocols
+## 13. Protocol theo loại thay đổi
 
-### 13.1 Visual-only Studio polish
+### 13.1 Visual-only polish
 
-Allowed scope:
+Cho phép color/shadow/focus/radius/non-structural motion. Verify không đổi DOM ownership, schema, functional visibility và keyboard focus.
 
-- premium polish CSS;
-- non-structural visual tokens;
-- hover/focus/shadow/color/radius refinements that do not affect behavior.
+### 13.2 Structural Inspector/Page UI
 
-Required verification:
+Phải xác định React owner, observer/enhancer liên quan, nơi thay đổi đúng (React/UI correction/SDK), stable selector/data attribute và compatibility với responsive/unset module.
 
-- no DOM ownership change;
-- no data/schema change;
-- no hidden/visible behavior required for functionality;
-- keyboard focus remains visible;
-- reduced-motion behavior remains acceptable.
+### 13.3 Page Settings field mới
 
-### 13.2 Structural Inspector/Page UI change
+Một change phối hợp gồm schema/default, sanitization, persistence, inheritance, compile/render, UI surfaces, tests, AI/import/export nếu áp dụng, docs.
 
-Required review:
+### 13.4 Optional Studio module mới
 
-- identify the React owner;
-- identify all enhancers observing the same DOM;
-- decide whether the change belongs in React, UI-correction, or an SDK extension;
-- verify selectors used by responsive/unset modules still resolve;
-- verify no module depends on text labels that the change renames;
-- add stable data attributes/extension hooks instead of increasing DOM scraping.
-
-### 13.3 New Page Settings field
-
-Required in one coordinated change:
-
-- schema/default;
-- sanitization;
-- persistence;
-- effective/inheritance semantics;
-- frontend compile/render;
-- every editing surface that should expose it;
-- tests;
-- AI/export/import contract if applicable;
-- docs.
-
-### 13.4 New optional Studio module
-
-Before implementation, define:
-
-- module id and registry dependency;
-- mount target or SDK hook;
-- state source of truth;
-- failure behavior;
-- cleanup/unmount behavior;
-- CSS layer/file ownership;
-- tests/diagnostics.
+Phải định nghĩa module id/dependency, mount/SDK hook, state authority, failure, cleanup, CSS owner, test/diagnostics.
 
 ### 13.5 Core runtime replacement
 
-A core runtime replacement is an architectural migration, not an ordinary feature. It requires a new ADR and must explicitly address:
-
-- canonical handle ownership;
-- optional module dependency compatibility;
-- Session compatibility/migration;
-- CSS ownership;
-- diagnostics;
-- rollback/recovery;
-- source/build migration;
-- stale historical docs.
+Đây là architectural migration, cần ADR mới, canonical handle plan, module compatibility, Session migration, CSS ownership, diagnostics, rollback, source/build migration và stale docs update.
 
 ---
 
 ## 14. Verification matrix
 
-No single test proves the Studio is conflict-free. Use layered verification.
+### Static/code
 
-### 14.1 Static/code verification
+- PHP syntax pass cho file đổi.
+- JS syntax/build pass.
+- source/build parity pass.
+- không duplicate runtime registration.
+- foundation layer order đúng.
+- module dependency hướng về canonical runtime.
 
-- PHP syntax passes for changed PHP files.
-- JavaScript syntax/build checks pass for changed runtime files.
-- Studio source/build parity passes.
-- no duplicate canonical runtime registration was introduced.
-- CSS foundation remains first in Cresco layer declaration order.
-- optional module dependencies point toward the canonical runtime, not around it.
+### PHP tests
 
-### 14.2 PHP tests
+Review/run suite liên quan như Page Settings, Studio hardening, Website Builder và module-specific test.
 
-At minimum, review/run the suites relevant to the change. Important existing coverage includes:
+UI schema change không được chấp nhận chỉ vì JS render được; backend persistence test phải chứng minh value sống qua sanitizer/compiler.
 
-- `tests/php/PageSettingsTest.php` for Page Settings defaults, sanitization, inheritance, background/custom CSS and frontend behavior;
-- `tests/php/StudioHardeningTest.php` for Studio persistence/concurrency isolation behavior;
-- `tests/php/WebsiteBuilderTest.php` for Website Builder contracts;
-- feature/module tests for the optional module being modified.
+### Browser smoke
 
-A UI schema change is not accepted because JavaScript renders successfully; its PHP persistence tests must prove the value survives sanitization and compilation.
-
-### 14.3 Browser smoke matrix
-
-For Studio-affecting changes, verify at least:
+Với Studio change, tối thiểu:
 
 - first load;
 - save;
 - reload;
-- dirty-state guard;
-- Desktop/Tablet/Mobile behavior relevant to the feature;
-- switch away from and back to the panel;
-- mount/unmount of optional panel enhancement;
-- keyboard access/focus;
-- no duplicate controls after repeated navigation;
-- no console error or MutationObserver loop;
-- no legacy runtime mount.
+- dirty guard;
+- breakpoint liên quan;
+- rời/quay lại panel;
+- optional mount/unmount;
+- keyboard/focus;
+- không duplicate controls;
+- không console error/observer loop;
+- không legacy runtime mount.
 
-For Page Settings specifically:
-
-1. set a desktop value;
-2. set/clear a tablet override;
-3. set/clear a mobile override;
-4. save;
-5. reload editor;
-6. verify returned UI values;
-7. verify frontend computed result;
-8. verify reset returns to inherited value rather than zero.
+Page Settings cần test set/clear desktop-tablet-mobile override, save/reload, frontend effective result và reset về inherited value.
 
 ---
 
-## 15. Troubleshooting playbook
+## 15. Troubleshooting
 
-### Symptom: “I changed the UI but the old Page Settings still appears”
+### “Đã đổi UI nhưng Page Settings cũ vẫn hiện”
 
-Check in this order:
+Kiểm tra branch SHA -> served runtime asset -> React implementation -> duplicate runtime -> CSS owner -> backend schema.
 
-1. **Branch SHA** — is the deployed/working branch actually at the intended `main` commit?
-2. **Runtime asset** — is `build/website-builder-studio.js` the file being served by the canonical handle?
-3. **Actual React implementation** — does `pagePanel()` contain the new structure? If not, CSS/cache cannot create it.
-4. **Duplicate runtime** — is a legacy runtime mounting after Studio?
-5. **CSS owner** — is the structure correct but visually overridden?
-6. **Schema owner** — is the control trying to represent data that Page Settings v2 cannot store?
+### “CSS đã load nhưng không đổi gì”
 
-### Symptom: “CSS is loaded but nothing changes”
+Kiểm tra selector -> layer -> same-layer source order -> override layer -> inline/React control -> liệu yêu cầu có thật sự visual hay structural.
 
-Verify:
+### “Reset đúng cho tới khi reload”
 
-- selector matches the current DOM;
-- the file is in the expected cascade layer;
-- a later same-layer rule is not winning;
-- an override-layer rule is not intentionally winning;
-- the property is not inline/React-controlled;
-- the desired change is truly visual rather than structural.
+Khả năng cao DOM đổi nhưng model override chưa bị remove. Dùng unset bridge và kiểm tra persisted Session.
 
-### Symptom: “Reset looks correct until reload”
+### “Pro panel bị duplicate”
 
-The DOM was probably changed without removing the model override. Use the explicit unset bridge and verify the persisted Session.
+Kiểm tra mount idempotency, observer re-entry, host recreation, cleanup.
 
-### Symptom: “A Pro panel duplicates itself”
+### “Control nhận value nhưng save đổi/xóa nó”
 
-Check mount idempotency, MutationObserver re-entry, host recreation, and unmount cleanup. One host must have at most one module mount instance.
+Đọc PHP sanitizer trước CSS. UI có thể đang đi trước schema.
 
-### Symptom: “A control accepts a value, but save changes/removes it”
+### “Fix có trên GitHub nhưng branch tôi không có”
 
-Inspect the PHP sanitizer before touching CSS. The UI is probably ahead of the schema or using a different shape/unit contract.
-
-### Symptom: “A fix exists in GitHub but not in my branch”
-
-Compare branch heads. If the feature branch is an ancestor of current `main`, fast-forward it. Do not debug stale code as if it were current code.
+Compare branch head; fast-forward nếu an toàn trước khi debug.
 
 ---
 
-## 16. Pre-merge conflict checklist
-
-A Studio/UI PR is not ready until the author/reviewer can answer **yes** to all applicable items.
+## 16. Checklist trước merge
 
 ### Runtime
 
-- [ ] Exactly one core Studio runtime owns the editor screen.
-- [ ] No optional module re-registers or replaces the canonical handle.
-- [ ] Failure of the new feature does not block core Studio startup.
+- [ ] Một core Studio runtime.
+- [ ] Optional module không replace canonical handle.
+- [ ] Feature lỗi không block core startup.
 
 ### DOM
 
-- [ ] React-owned nodes are not replaced/reparented/cloned.
-- [ ] Any observer is discovery-only and idempotent.
-- [ ] Any portal/mount has deterministic cleanup.
-- [ ] Stable ids/data attributes are used instead of fragile label scraping where possible.
+- [ ] Không replace/reparent/clone React node.
+- [ ] Observer discovery-only và idempotent.
+- [ ] Portal/mount cleanup deterministic.
+- [ ] Dùng stable identity thay label scraping khi có thể.
 
 ### State
 
-- [ ] There is one source of truth for every persisted field.
-- [ ] Reset/unset changes the model, not merely the DOM.
-- [ ] Local module state is transient or explicitly synchronized.
+- [ ] Một source of truth cho persisted field.
+- [ ] Reset/unset sửa model.
+- [ ] Local state transient/synchronized.
 
 ### CSS
 
-- [ ] Foundation layer order remains canonical.
-- [ ] Structural rules live with the structural owner.
-- [ ] Premium polish remains presentation-only.
-- [ ] Same-layer selector collisions were reviewed.
-- [ ] New `!important` usage has a documented hard-boundary reason.
+- [ ] Foundation layer order đúng.
+- [ ] Structural rule nằm ở structural owner.
+- [ ] Premium polish chỉ presentation.
+- [ ] Same-layer collision đã review.
+- [ ] `!important` mới có lý do hard-boundary.
 
-### Page Settings / schema
+### Schema/Page Settings
 
-- [ ] The UI only exposes values the backend can store.
-- [ ] Defaults, sanitizer, compiler, REST, UI and tests agree on the data shape.
-- [ ] All relevant Page Settings views use the same semantics.
-- [ ] Responsive inheritance and reset behavior survive save/reload.
+- [ ] UI chỉ expose value backend lưu được.
+- [ ] Defaults/sanitizer/compiler/REST/UI/test cùng shape.
+- [ ] Các view cùng semantics.
+- [ ] Responsive/reset sống qua save/reload.
 
-### Build and branch
+### Build/branch
 
-- [ ] Source/build mirrors are synchronized.
-- [ ] The branch was compared with latest `main` before merge.
-- [ ] No recent runtime/CSS/module owner on `main` was missed.
-- [ ] The change contains diagnosed modifications rather than no-op retry commits.
+- [ ] Source/build synchronized.
+- [ ] Branch đã compare latest main.
+- [ ] Không bỏ sót owner mới trên main.
 
-### Documentation
+### Docs
 
-- [ ] A new architectural ownership rule has an ADR or updates this contract.
-- [ ] Superseded docs are labeled, not silently left contradictory.
-- [ ] Feature docs describe the current UI surface(s), not a similarly named legacy surface.
-
----
-
-## 17. “Never do this” list
-
-Do not:
-
-- assume a screenshot mismatch is cache before checking the actual React source;
-- fix an old branch without first checking whether `main` already changed the same runtime;
-- create a second editor runtime as a fallback;
-- make premium-polish CSS responsible for functional layout/visibility;
-- solve CSS ownership conflicts by endlessly increasing specificity;
-- directly rewrite React-owned DOM to create a “new panel”;
-- write a DOM input and assume the React/Session state changed;
-- expose per-side Page Settings units while the backend stores one shared unit;
-- copy Widget Border controls into Page Settings without creating a Page Settings border schema;
-- let Studio Page Settings and standalone Page Settings use different persistence shapes;
-- edit only one side of a source/build mirror;
-- preserve a contradicted historical architecture statement without a superseded warning;
-- use no-op commits as evidence that a feature was retried/fixed;
-- call a feature complete until save/reload and the compiled/frontend result agree.
+- [ ] Ownership rule mới có ADR/contract update.
+- [ ] Superseded docs được đánh dấu.
+- [ ] Feature docs nói đúng current surface.
 
 ---
 
-## 18. Current audit findings recorded by this contract
+## 17. Danh sách tuyệt đối không làm
 
-The 2026-08-17 audit that produced this document found the following important facts:
+Không:
 
-1. A long-lived Studio branch had lagged behind `main`, which contained later runtime/CSS/Global Design fixes. The branch was fast-forwarded before continuing diagnosis.
-2. The current Studio Page panel still renders its own Page Settings 2.0 control structure. A separately implemented “Page Settings Pro” surface must not be assumed to replace that Studio panel automatically.
-3. Page Settings v2 currently persists one shared unit per Margin control and one shared unit per Padding control. UI redesign must respect that until the schema changes.
-4. The Widget Inspector has a richer Border/Radius and per-property responsive system, but those controls cannot be copied directly into Page Settings without a backend schema/adapter change.
-5. The repository now has an explicit CSS foundation/layer order plus UI-correction and premium-polish layers, but same-layer source ordering still needs ownership discipline.
-6. The stabilized Global Design Pro mount demonstrates the preferred portal/bridge pattern for extending a React-owned panel.
-7. Historical documentation still described Gutenberg as the only Page editor and prohibited a custom workbench. Those statements are historical for the old Gutenberg-native architecture and are superseded for Studio-owned Website Builder documents by current ADRs and this contract.
-
-These findings are intentionally recorded so a future agent does not have to rediscover the same conflict chain from screenshots and commit history.
+- đổ lỗi cache trước khi kiểm tra source/runtime;
+- sửa branch cũ mà không compare main;
+- tạo fallback runtime thứ hai;
+- dùng polish CSS cho functional layout/visibility;
+- tăng specificity vô hạn thay vì sửa owner;
+- rewrite React DOM để tạo panel mới;
+- đổi DOM input rồi giả định state đổi;
+- expose per-side Page Settings unit khi backend dùng shared unit;
+- copy Widget Border vào Page Settings thiếu schema;
+- cho các Page Settings view lưu shape khác nhau;
+- sửa một phía source/build mirror;
+- giữ historical architecture mâu thuẫn mà không warning;
+- dùng no-op commit như bằng chứng fix;
+- gọi feature complete nếu save/reload và frontend result chưa khớp.
 
 ---
 
-## 19. Definition of “conflict-free enough to ship”
+## 18. Kết luận audit ownership
 
-No documentation can guarantee that future code will never conflict. For Cresco Studio, “conflict-free enough to ship” means:
+Các phát hiện quan trọng từ audit gốc vẫn có giá trị như bài học:
 
-- ownership is unambiguous;
-- there is one runtime and one persisted model per domain;
-- extension mechanisms are additive;
-- CSS precedence is intentional;
-- UI capabilities match storage/compiler capabilities;
-- source/build and branch state are current;
-- automated tests cover persistence contracts;
-- browser smoke tests prove save/reload and responsive behavior;
-- historical docs cannot plausibly direct a future contributor to reintroduce the superseded architecture.
+1. Branch dài hạn từng tụt sau `main`; phải sync trước diagnosis.
+2. Studio Page panel có control structure riêng nhưng cùng backend Page Settings; Pro surface không tự thay thế nó.
+3. Page Settings v2 lưu shared unit cho Margin/Padding.
+4. Widget Inspector Border/Radius giàu hơn Page Settings nhưng không thể copy schema trực tiếp.
+5. CSS foundation giúp giảm conflict nhưng source order/specificity vẫn cần owner rõ.
+6. Global Design Pro mount là pattern portal/bridge nên reuse.
+7. Gutenberg-only docs lịch sử đã bị supersede trong scope Studio-owned document.
 
-If any one of those conditions is unknown, the change is not yet verified; record it as unverified rather than assuming success.
+Hiện tại còn bổ sung một bài học: Dimension/Border, State Tabs và Typography popup phải tiếp tục là presentation/proxy trên canonical Session controls, không được tiến hóa thành store cạnh tranh.
+
+---
+
+## 19. Định nghĩa “đủ conflict-free để ship”
+
+Không có tài liệu nào đảm bảo tương lai không có conflict. Với Cresco Studio, đủ để ship nghĩa là:
+
+- ownership không mơ hồ;
+- một runtime và một persisted model cho mỗi domain;
+- extension additive;
+- CSS precedence có chủ ý;
+- UI capability khớp storage/compiler;
+- source/build và branch current;
+- test cover persistence;
+- browser smoke chứng minh save/reload/responsive;
+- historical docs không thể khiến contributor hợp lý nào tái tạo kiến trúc đã supersede.
+
+Điều gì chưa biết thì ghi **chưa verify**, không giả định pass.

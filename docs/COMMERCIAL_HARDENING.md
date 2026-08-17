@@ -1,105 +1,100 @@
-# 1.0 Commercial Hardening
+# Commercial Hardening cho 1.0
 
-This document is the authoritative plan for moving Cresco Canvas from `1.0.0-rc.1` to a commercially supported `1.0.0` release.
+Tài liệu này là kế hoạch chuyển Cresco Canvas từ `1.0.0-rc.1` thành stable `1.0.0` được hỗ trợ thương mại.
 
-## Release rule
+## Quy tắc release
 
-Do not tag or market `1.0.0` until every P0 item has objective evidence. Source presence or checked-in runtime is not equivalent to a passing release gate.
+Không tag/market `1.0.0` cho tới khi mọi P0 có objective evidence. Source có mặt hoặc checked-in runtime không đồng nghĩa gate đã pass.
 
 ## P0 blockers
 
-### Source and build integrity
+### Source và build integrity
 
-- [ ] Every checked-in runtime has an authoritative source file.
-- [ ] A clean checkout can run `npm ci`, `composer install --no-dev --optimize-autoloader`, and `npm run build`.
-- [ ] Deleting `build/` and rebuilding reproduces every required runtime.
-- [x] Release ZIP contents are allow-listed and now include the Inspector style engine assets.
-- [ ] Two clean package builds produce the same SHA-256 checksum.
-- [ ] No manually edited generated file is required for functionality.
+- [ ] Mọi checked-in runtime có authoritative source owner.
+- [ ] Clean checkout chạy được `npm ci`, `composer install --no-dev --optimize-autoloader`, `npm run build`.
+- [ ] Xóa `build/` rồi rebuild tái tạo required runtime.
+- [x] Release ZIP dùng allowlist và chứa runtime/control asset cần thiết theo manifest hiện hành.
+- [ ] Hai clean package build có cùng SHA-256.
+- [ ] Không cần manually edited generated file để feature hoạt động.
 
-### Inspector and rendering integrity
+### Inspector và rendering integrity
 
-- [ ] Every visible inspector control produces verified editor and frontend output on the supported WordPress matrix.
-- [x] The visible generic Inspector controls now have a matching editor preview and sanitized frontend renderer.
-- [x] Cresco positioning/effects use a versioned Cresco configuration rather than relying on unsupported Core style keys.
-- [x] New values are mirrored into universal block `metadata.crescoStyle`; legacy `style` and `crescoStyle` values remain readable fallbacks.
-- [x] Width, max width, minimum height, spacing, colors, radius, typography, opacity, transform, shadow, position, offsets, z-index, overflow, and device visibility have render paths.
-- [x] Device visibility CSS is compiled from the editable Global tablet/laptop breakpoints.
-- [ ] Save, reload, copy, duplicate, undo, redo, revisions, and reusable patterns preserve settings in runtime tests.
-- [ ] Invalid or legacy style data is exercised against real historical fixtures without invalidating blocks.
+- [ ] Mọi visible Inspector control có verified editor/frontend output trên supported WordPress matrix.
+- [ ] Dimension/unit, Border/Radius, responsive/state và Typography popup phải có save/reload evidence, không chỉ source presence.
+- [x] Generic structured style path có sanitized renderer/compiler coverage theo current architecture.
+- [ ] Save/reload/copy/duplicate/undo/redo/revision/component flow preserve setting trong runtime test phù hợp.
+- [ ] Invalid/legacy style data được test bằng historical fixture thực.
 
 ### Security
 
-- [ ] All REST routes have documented authentication, capability, nonce, signature, rate, and payload limits.
-- [ ] File uploads pass extension, MIME, size, executable, polyglot, ownership, and download-permission review.
-- [ ] Webhooks block loopback, link-local, private-network, metadata-service, and DNS-rebinding targets.
-- [ ] CSV exports neutralize spreadsheet formulas.
-- [ ] Dynamic queries and facets have bounded cost, cache keys, and invalidation.
-- [ ] Import/export cannot inject scripts, arbitrary CSS, objects, or executable markup.
-- [ ] Form, diagnostics, and webhook logs do not expose sensitive values.
+- [ ] REST route có documented auth/capability/rate/payload boundary.
+- [ ] Upload pass extension/MIME/size/executable/polyglot/ownership/download review.
+- [ ] Webhook chặn private/metadata/DNS-rebinding target theo production-like test.
+- [ ] CSV neutralize spreadsheet formula.
+- [ ] Dynamic query/facet có bounded cost/cache/invalidation.
+- [ ] Import/export không inject executable content.
+- [ ] Form/diagnostics/webhook log không expose sensitive value.
 
-### Lifecycle and data
+### Lifecycle và data
 
-- [x] Settings schema 4 migration exists and creates a pre-migration backup.
-- [x] Uninstall inventory covers known settings, schedules, submissions, uploads, and metadata.
-- [ ] Clean install and activation pass.
-- [ ] Upgrade fixtures from supported historical versions pass against a real database.
-- [ ] Downgrade detection and rollback guidance are implemented.
-- [ ] Single-site and multisite deactivate/reactivate/uninstall pass.
-- [ ] User-authored `post_content` is never deleted by cleanup.
+- [x] Settings schema 4 migration + pre-migration backup tồn tại.
+- [x] Uninstall inventory bao phủ known Cresco ownership.
+- [ ] Clean install/activation pass.
+- [ ] Historical upgrade fixture pass trên real database.
+- [ ] Downgrade detection/rollback guidance được verify.
+- [ ] Single-site/multisite lifecycle pass.
+- [ ] User-authored `post_content` không bị xóa.
 
 ### Compatibility
 
-- [ ] Minimum supported WordPress passes.
-- [ ] Latest stable WordPress passes.
-- [ ] Latest-minus-one WordPress passes.
-- [ ] PHP 8.1, 8.2, 8.3, and 8.4 pass.
-- [ ] Block theme and classic theme smoke tests pass.
-- [ ] Post Editor, Page Editor, and Site Editor smoke tests pass.
-- [ ] Chrome, Firefox, WebKit/Safari, and Edge pass critical flows.
-- [ ] ACF, WooCommerce, multisite, object cache, page cache, and common optimization-plugin smoke tests pass.
+- [ ] Minimum/latest/latest-minus-one WordPress pass.
+- [ ] PHP 8.1/8.2/8.3/8.4 pass.
+- [ ] Block/classic theme smoke pass.
+- [ ] Supported editor/document routes pass.
+- [ ] Chrome/Firefox/WebKit/Edge pass.
+- [ ] ACF/WooCommerce/multisite/cache/optimization smoke pass.
 
 ### Accessibility
 
-- [ ] Keyboard-only operation passes.
-- [ ] NVDA and VoiceOver smoke tests pass.
-- [ ] 200% and 400% zoom pass.
-- [ ] RTL and forced-colors pass.
-- [ ] Reduced motion is respected.
-- [ ] Modal, off-canvas, slider, AJAX results, and form errors pass focus and announcement review.
-- [ ] axe reports no serious or critical violations in critical flows.
+- [ ] Keyboard-only pass.
+- [ ] NVDA/VoiceOver smoke pass.
+- [ ] 200%/400% zoom pass.
+- [ ] RTL/forced-colors pass.
+- [ ] Reduced motion được tôn trọng.
+- [ ] Interactive/modal/form focus & announcement pass.
+- [ ] axe không có serious/critical violation.
 
 ### Performance
 
-- [ ] Editor overhead is measured on 50-, 200-, and 500-block documents.
-- [ ] Selecting a block and opening the Cresco inspector stays within the interaction budget.
-- [ ] Frontend assets load only when their blocks are present.
-- [ ] Mutation observers and data subscriptions are scoped, debounced, and disconnected correctly.
-- [ ] Dynamic loops and facets are benchmarked with representative datasets.
-- [ ] Form submission, upload, email, and webhook work are separated from the response path where appropriate.
+- [ ] Editor được đo với 50/200/500 node.
+- [ ] Selection/Inspector interaction nằm trong evidence-based budget.
+- [ ] Frontend asset chỉ load khi cần.
+- [ ] Observer/subscription scoped/debounced/cleanup đúng.
+- [ ] Dynamic loop/facet benchmark representative dataset.
+- [ ] Form/upload/email/webhook workload được tách khỏi response path khi phù hợp.
 
-### Documentation and release operations
+### Documentation và release operation
 
-- [x] README describes the actual `1.0.0-rc.1` scope.
-- [ ] Architecture documentation matches the current services and editor shell.
-- [x] Known limitations are current and evidence-based.
-- [ ] Changelog is complete and user-facing.
-- [ ] Upgrade, rollback, privacy, security, and support policies are published.
-- [ ] Release ZIP, checksum, SBOM, and provenance are produced.
-- [ ] A clean WordPress install successfully installs the exact release ZIP.
-- [ ] Beta and RC feedback contain no unresolved P0/P1 defects.
+- [x] README mô tả scope `1.0.0-rc.1`.
+- [ ] Architecture docs khớp current service/editor shell.
+- [x] Known limitations evidence-based.
+- [ ] Changelog đầy đủ.
+- [ ] Upgrade/rollback/privacy/security/support policy publish.
+- [ ] Release ZIP/checksum/SBOM/provenance được tạo.
+- [ ] Clean WordPress install exact ZIP thành công.
+- [ ] Beta/RC feedback không còn unresolved P0/P1.
 
 ## P1 commercial quality
 
-- [ ] One persistent Add/Edit/Global shell replaces module switching.
-- [ ] Responsive inheritance and reset-to-global indicators are complete.
-- [ ] Global token preview, validation, presets, contrast checks, usage counts, and per-group reset are complete.
-- [ ] Safe mode and conflict diagnostics are available.
-- [ ] System status can be copied without private data.
-- [ ] Form delivery history, retry status, and download permissions are complete.
-- [ ] Translation catalogs and localization review are complete.
-- [ ] Automatic updates, release channels, and rollback behavior are defined.
+- [ ] Unified Studio shell/ownership rõ và không duplicate surface.
+- [ ] Responsive inheritance/reset-to-global indicator hoàn chỉnh.
+- [ ] Global token preview/validation/preset/contrast/usage/reset hoàn chỉnh theo scope ship.
+- [ ] Safe mode/conflict diagnostics khả dụng.
+- [ ] Privacy-safe system status có thể copy.
+- [ ] Form delivery history/retry/download permission hoàn chỉnh.
+- [ ] Translation/localization review hoàn chỉnh.
+- [ ] Automatic update/release channel/rollback behavior được định nghĩa.
 
-## Deferred after 1.0
+## Deferred sau 1.0
 
-Cloud libraries, marketplace features, AI generation, collaboration, white-label tools, advanced animation timelines, and broad CRM catalogs do not block the first stable commercial release.
+Cloud library, marketplace, collaboration, white-label, advanced animation timeline và broad CRM catalog không chặn stable 1.0 trừ khi release scope được thay đổi bằng ADR/plan mới.

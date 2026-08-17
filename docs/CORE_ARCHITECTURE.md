@@ -1,133 +1,174 @@
-# Cresco Core Architecture
+# Kiến trúc Core của Cresco Canvas
 
-Cresco Canvas uses a modular-monolith, contract-first architecture. The goal is to let Page Builder, Theme Builder, Loop, Components, Forms, WooCommerce, AI, Import/Export, and future modules share one document model and one mutation/render pipeline instead of creating parallel builders.
+Cresco Canvas dùng kiến trúc **modular monolith, contract-first**. Mục tiêu là để Page Builder, Theme Builder, Loop, Components, Forms, WooCommerce, AI, Import/Export và các module tương lai dùng chung một document model và một mutation/render pipeline thay vì phát triển thành nhiều builder song song.
 
-## Stable layers
+## Các tầng ổn định
 
-1. **Contracts** define portable document, scope, command, transaction, patch, interchange, and AI envelopes.
-2. **Core** owns Document, Scope, Context, Command/Patch, responsive inheritance, design-token analysis, Widget Registry, Inspector/UI Registry, dependency policy, and migrations.
-3. **Application** orchestrates editor requests such as scoped export, transaction preview/commit, render preview, save, history, and component workflows.
-4. **Rendering** is the single HTML/CSS boundary. `RenderEngine` uses `WebsiteRendererV2`, `WebsiteBuilderCssCompiler`, `WidgetPartStyleCompiler`, and `ComponentStyleCompiler` from the same normalized Session/Architecture snapshot.
-5. **Modules** such as Theme, Loop, Forms, WooCommerce, Components, and AI register capabilities rather than modifying Core contracts.
-6. **WordPress infrastructure** remains responsible for storage, REST, media, users/capabilities, WP_Query, WooCommerce, and ACF integration.
-7. **Editor presentation** is a client of Application/Core. It must not mutate persisted Sessions directly outside validated commands/transactions or the compatibility save path while migration is in progress.
+1. **Contracts** định nghĩa document, scope, command, transaction, patch, interchange và AI envelope có tính portable.
+2. **Core** sở hữu Document, Scope, Context, Command/Patch, responsive inheritance, design-token analysis, Widget Registry, Inspector/UI Registry, dependency policy và migration.
+3. **Application** điều phối scoped export, transaction preview/commit, render preview, save, history và component workflow.
+4. **Rendering** là ranh giới HTML/CSS duy nhất. `RenderEngine` dùng `WebsiteRendererV2`, `WebsiteBuilderCssCompiler`, `WidgetPartStyleCompiler` và `ComponentStyleCompiler` trên cùng normalized Session/Architecture snapshot.
+5. **Modules** như Theme, Loop, Forms, WooCommerce, Components và AI đăng ký capability thay vì sửa Core contract.
+6. **WordPress infrastructure** phụ trách storage, REST, media, users/capabilities, WP_Query, WooCommerce và ACF integration.
+7. **Editor presentation** là client của Application/Core; không mutate persisted Session trực tiếp ngoài validated command/transaction hoặc compatibility save path được phê duyệt.
 
-Dependency direction is Contracts -> Core -> Application -> Modules/Infrastructure/Presentation. Core must not depend on editor DOM, AI providers, WooCommerce, or a specific WordPress screen.
+Hướng dependency:
 
-## Core Platform v2 consolidation
+```text
+Contracts -> Core -> Application -> Modules / Infrastructure / Presentation
+```
 
-`WebsiteBuilderCorePlatform` is the current consolidation boundary. It is deliberately **not** a new parallel builder. It makes one set of existing Core services authoritative while legacy services remain available as compatibility adapters.
+Core không phụ thuộc editor DOM, AI provider, WooCommerce hoặc một WordPress screen cụ thể.
 
-For Page frontend requests, Core Platform v2 removes the old competing Cresco render/CSS callbacks before rendering and becomes the only Cresco Page frontend owner. The final output is produced by `RenderEngine/v2` and carries style contract `authoritative-v5`. Theme, REST, storage and editor compatibility functions remain registered independently where they still own behavior.
+## Core Platform v2
 
-The Core Platform manifest exposes:
+`WebsiteBuilderCorePlatform` là consolidation boundary hiện tại. Đây **không phải builder mới**. Nó làm cho một tập Core service hiện có trở thành authoritative trong khi legacy service tiếp tục tồn tại dưới dạng compatibility adapter.
 
-- the canonical widget catalog and schema-driven Inspector contract;
-- `cresco-responsive/v2`, shared by root and part-style compilers;
-- `cresco-design-system/v2` plus token-usage counts;
-- Widget Architecture v2 capabilities (parts, bindings, nested component slots, Loop/Form engines);
-- transaction preview/commit endpoints with optimistic checksum concurrency;
-- a privacy-safe system-status endpoint and document budgets;
-- an editor facade with an O(1) node-id index and shared responsive style resolver.
+Với Page frontend, Core Platform v2 loại competing Cresco render/CSS callback cũ trước khi render và trở thành owner Cresco Page frontend duy nhất. Output cuối đi qua `RenderEngine/v2` và style contract authoritative hiện hành.
 
-Compatibility classes may still exist during migration, but they must not own a second Page frontend pipeline.
+Core Platform manifest công bố:
 
-## One document model
+- widget catalog canonical và Inspector contract theo schema;
+- `cresco-responsive/v2` dùng chung cho root/part compiler;
+- `cresco-design-system/v2` và token usage count;
+- Widget Architecture v2 capability như parts, bindings, nested component slot, Loop/Form engine;
+- transaction preview/commit với optimistic checksum concurrency;
+- privacy-safe system status và document budget;
+- editor facade có node-id index O(1) và shared responsive style resolver.
 
-Existing storage remains `cresco-session/v1` for backward compatibility. `cresco-document/v1` is a stable envelope that adds `documentType` without forcing a destructive migration. Supported types include Page, Header, Footer, Single, Archive, Search, 404, Loop Item, Component, Woo Single, Woo Archive, and Popup.
+Compatibility class có thể còn tồn tại trong migration nhưng không được sở hữu Page frontend pipeline thứ hai.
 
-The same Session node tree is therefore rendered regardless of where the document is used. Widget Architecture v2 remains a sidecar so existing `cresco-session/v1` documents do not require destructive schema migration.
+## Một document model
 
-## One mutation path
+Storage hiện tại vẫn dùng `cresco-session/v1` để giữ backward compatibility. `cresco-document/v1` là envelope ổn định thêm `documentType` mà không ép destructive migration.
 
-All editor/AI mutations should resolve to `cresco-command/v1` and, when several changes belong together, `cresco-transaction/v1`:
+Các document type có thể gồm Page, Header, Footer, Single, Archive, Search, 404, Loop Item, Component, Woo Single, Woo Archive và Popup.
 
-`UI / AI / Import / Clipboard / Component -> CommandBus -> PatchValidator -> candidate Session -> Diff -> TransactionManager -> verified repository save -> History`
+Cùng một Session node tree được render dù document được dùng ở đâu. Widget Architecture v2 là sidecar nên document `cresco-session/v1` cũ không cần destructive schema migration.
 
-The command bus and transaction preview are pure in-memory operations. Persistence is owned by `DocumentRepository`; the WordPress adapter writes slash-safe JSON and verifies the persisted checksum. Transaction commit accepts an optional `ifMatch` checksum and rejects stale writes with a conflict instead of silently overwriting newer work.
+## Một mutation path
+
+Mutation editor/AI nên quy về `cresco-command/v1`; nhiều thay đổi cùng một intent dùng `cresco-transaction/v1`:
+
+```text
+UI / AI / Import / Clipboard / Component
+  -> CommandBus
+  -> PatchValidator
+  -> candidate Session
+  -> Diff
+  -> TransactionManager
+  -> verified repository save
+  -> History
+```
+
+Command bus và transaction preview chạy in-memory. Persistence thuộc `DocumentRepository`; WordPress adapter ghi slash-safe JSON và verify persisted checksum.
+
+Transaction commit có thể nhận `ifMatch` checksum và phải reject stale write thay vì silent overwrite.
 
 ## Responsive contract
 
-`ResponsiveResolver` is the single breakpoint/inheritance authority for Core Platform v2. The default model is desktop-first downward inheritance:
+`ResponsiveResolver` là breakpoint/inheritance authority duy nhất của Core Platform v2.
 
-`wide base -> desktop -> laptop -> tablet -> mobile`
+```text
+wide base -> desktop -> laptop -> tablet -> mobile
+```
 
-A smaller viewport receives all larger override buckets in source order, followed by its more specific bucket. `WebsiteBuilderCssCompiler` and `WidgetPartStyleCompiler` both use this resolver, eliminating separate breakpoint calculations. The manifest also publishes preview widths and effective-style cascade information to Studio and AI clients.
+Viewport nhỏ nhận override bucket lớn hơn theo thứ tự rồi nhận bucket cụ thể hơn. `WebsiteBuilderCssCompiler` và `WidgetPartStyleCompiler` phải dùng cùng resolver.
 
-## Design System and Inspector
+Manifest cũng publish preview width và effective-style cascade cho Studio/AI client.
 
-`DesignSystemAnalyzer` publishes the current token catalog and counts token references across the Session and Architecture sidecar. This gives future Inspector tooling enough information for usage indicators, safe token replacement, cleanup, and contrast/preset workflows without scanning arbitrary HTML.
+## Design System và Inspector
 
-`InspectorSchema` derives its widget tabs, controls, Parts, States and style-property capabilities from `WidgetCatalog::all()`. The goal is to remove widget-specific Inspector duplication: a visible control must exist because the widget contract declares it, and render/validation code must consume that same contract.
+`DesignSystemAnalyzer` publish token catalog hiện tại và đếm token reference trong Session/Architecture sidecar. Điều này hỗ trợ usage indicator, safe token replacement, cleanup, contrast/preset workflow mà không scan HTML tùy tiện.
 
-## Canonical rendering and WYSIWYG
+`InspectorSchema` lấy tab, control, Part, State và style capability từ `WidgetCatalog::all()`.
 
-The canonical render path is:
+Nguyên tắc: control nhìn thấy trên UI phải tồn tại vì widget contract khai báo nó, và render/validation code phải tiêu thụ cùng contract đó.
 
-`Session + Architecture v2 -> RenderEngine/v2 -> WebsiteRendererV2 + root styles + Part styles + Component styles -> HTML/CSS`
+Shared controls hiện tại có thể bao gồm responsive property UI, dimension/unit, Border/Radius, state tabs và Typography popup. Các lớp presentation này chỉ tổ chức/proxy canonical controls; không được tạo model/state thứ hai.
 
-The Studio canonical iframe consumes the same `/website-builder/render/{postId}` endpoint used by application tooling. The legacy React canvas remains mounted only as an interaction/state adapter during migration (selection, drag/drop, undo/redo and Inspector ownership); it is not the visual authority when the canonical renderer is available.
+## Rendering canonical và WYSIWYG
 
-Frontend Page output is bound to CSS compiled from the same saved Session/Architecture snapshot. Form placeholders are repaired at the render boundary and component-backed nested/loop templates include their component CSS in the same render result.
+```text
+Session + Architecture v2
+  -> RenderEngine/v2
+  -> WebsiteRendererV2
+  -> root styles + Part styles + Component styles
+  -> HTML/CSS
+```
+
+Studio canonical preview phải dùng cùng normalized state với application/frontend. Legacy React canvas nếu còn dùng trong migration chỉ là interaction/state adapter, không được trở thành visual authority khác với canonical renderer.
+
+Frontend Page CSS phải compile từ cùng saved Session/Architecture snapshot.
 
 ## Scoped AI
 
-`ScopeEngine` exposes four stable public scopes:
+`ScopeEngine` công bố bốn public scope ổn định:
 
-- `widget`: exactly one widget; only props/style/responsive/scoped Custom CSS may change.
-- `subtree`: one section/container plus all descendants.
-- `selection`: one or more explicitly selected nodes with minimal ancestry context.
-- `document`: the complete current document.
+- `widget`: đúng một widget; chỉ props/style/responsive/scoped Custom CSS.
+- `subtree`: target container/section và descendants.
+- `selection`: các node được chọn với ancestry context tối thiểu.
+- `document`: toàn bộ document.
 
-`ContextEngine` emits `cresco-ai-context/v2`. Optimized mode includes only required widget contracts, token dependencies, media descriptors, ancestry, and the selected content. Full mode is reserved for create/redesign-document workflows. AI should return `cresco-patch/v1`; the server rejects operations outside the exported boundary.
+`ContextEngine` phát `cresco-ai-context/v2`. Optimized mode chỉ chứa widget contract, token dependency, media descriptor, ancestry và selected content cần thiết. Full mode dành cho create/redesign document.
 
-## Editor UX shell
+AI nên trả `cresco-patch/v1`; server reject operation vượt exported boundary.
 
-The long-lived shell contains six stable zones:
+## Studio UX shell
 
-- Top Bar: document actions only (undo/redo, viewport, zoom, preview, save/publish).
-- Activity Rail: Add, Navigator, Components, Data, Site, AI, Settings.
-- Context Panel: resource selection/navigation, never node styling.
-- Canvas: canonical visual result and selection surface.
-- Inspector: Content, Layout, Style, Advanced.
-- Status Bar: breadcrumb, selection, document type, diagnostics/command access.
+Các vùng dài hạn:
 
-Feature modules extend the UI through the registry contract (`activity.register`, `panel.register`, `inspector.registerSection`, `contextMenu.register`, `command.register`, `diagnostics.register`) rather than appending arbitrary UI to the shell.
+- **Top Bar:** document actions như undo/redo, viewport, zoom, preview, save/publish.
+- **Activity Rail:** Add, Inspector/Edit, Components, Global/Site, Page, Data, AI, Theme, Team, History tùy runtime hiện hành.
+- **Context Panel:** chọn/navigate resource, không sở hữu node styling.
+- **Canvas:** visual result và selection surface.
+- **Inspector:** Content, Layout, Style, Advanced.
+- **Structure:** Session tree/navigator canonical cho node management.
 
-The checked-in architecture runtime exposes `window.crescoBuilderArchitecture` with a browser registry, command palette (`Ctrl/Cmd+K`), scoped-AI dialog, status/breadcrumb layer, authoritative renderer preview, and compatibility bridge hooks. Core Platform v2 additionally exposes `window.crescoBuilderCoreV2` for the manifest, node index, effective responsive style, and transaction helpers.
+Feature module nên extend qua registry/SDK thay vì append UI tùy tiện vào shell.
+
+`window.CrescoStudioSDK` cung cấp command, panel, Inspector section, context action và document adapter registration.
 
 ## Runtime consolidation boundary
 
-Website Builder browser startup has one server-side policy surface:
+Website Builder browser startup có một policy surface phía server:
 
-- `WebsiteBuilderRuntimeContext` resolves and authorizes Page/Theme editor requests and diagnostics/isolation flags.
-- `WebsiteBuilderEditorConfig` owns the shared editor endpoint/configuration contract.
-- `WebsiteBuilderAsset` owns content-addressed asset paths, versions, and reports.
-- `WebsiteBuilderModuleRegistry` is the authoritative catalog for required and optional browser modules.
-- `WebsiteBuilderBootstrapResilience` owns startup request middleware/state publication and observer boot guards.
-- `WebsiteBuilderRuntimeGuard` owns final module policy and the only user-facing fatal startup recovery panel.
-- `WebsiteBuilderDiagnostics` consumes the same registry/config contracts and remains usable outside a frozen editor tab.
+- `WebsiteBuilderRuntimeContext`: resolve/authorize editor request và isolation flag.
+- `WebsiteBuilderEditorConfig`: shared endpoint/config contract.
+- `WebsiteBuilderAsset`: content-addressed asset path/version/report.
+- `WebsiteBuilderModuleRegistry`: required/optional browser module catalog.
+- `WebsiteBuilderBootstrapResilience`: startup request middleware/state và observer boot guard.
+- `WebsiteBuilderRuntimeGuard`: final module policy và fatal startup recovery owner.
+- `WebsiteBuilderDiagnostics`: diagnostics dựa trên cùng registry/config contract.
 
-Required modules must never depend on optional presentation modules. Normal mode may quarantine an unstable optional module without blocking the core editor. Diagnostic isolation modes must be derived from the same module registry rather than hard-coded in a second system.
+Optional runtime dùng `MutationObserver` phải coalesce work, tránh no-op mutation, có teardown/guard và có diagnostic evidence.
 
-Every optional runtime using `MutationObserver` must coalesce work, avoid no-op writes, provide teardown/guard behavior, and expose diagnostic evidence. An optional module failure must degrade the feature, not prevent Session loading or core editor mount.
+Optional module lỗi phải degrade feature, không ngăn Session load hoặc Studio mount.
 
 ## Compatibility policy
 
-Professional UX V2 and Comprehensive V3 remain compatibility adapters while their capabilities are migrated behind Core APIs. New features must not create `V4`, `V5`, or another standalone builder layer. Versioning belongs in contracts and migrations, not service names.
+Professional UX V2 và Comprehensive V3 là compatibility adapter trong quá trình migration. Feature mới không được tạo `V4`, `V5` hoặc builder layer độc lập khác.
 
-Compatibility adapters may translate old handles, payloads, events, routes, or stored values, but they must not become the permanent authority for editor configuration, runtime policy, persistence, or rendering. Core Platform v2 explicitly centralizes Page frontend ownership while those adapters are retired incrementally.
+Versioning thuộc contract/migration, không thuộc service name.
 
-## Release gates
+Compatibility adapter được phép translate handle, payload, event, route hoặc stored value cũ nhưng không trở thành owner lâu dài của editor config, runtime policy, persistence hoặc rendering.
 
-`npm run check:architecture` verifies contract JSON, PHP/JS syntax, source/build equality, Core Platform registration, shared responsive resolution, schema Inspector/Design System contracts, transaction/persistence boundaries, unified V2 rendering, release-package ownership, scoped AI contracts, and documentation. `npm run check:runtime-modules` verifies the consolidated runtime module contract and dependency direction.
+## Release gate
 
-Source checks are not release evidence. Hosted clean-build, exact-ZIP install, compatibility matrix, browser, accessibility, performance, security/integration and upgrade/rollback evidence remains required before declaring a stable commercial release.
+`npm run check:architecture` kiểm tra contract, syntax, source/build equality, Core Platform registration, responsive resolver, Inspector/Design System contract, transaction/persistence boundary, unified rendering, release ownership và scoped AI.
+
+`npm run check:runtime-modules` kiểm tra runtime module contract và dependency direction.
+
+Source check không phải release evidence. Clean build, exact-ZIP install, compatibility matrix, browser, accessibility, performance, security/integration và upgrade/rollback vẫn cần bằng chứng riêng trước stable commercial release.
 
 ## WordPress persistence port
 
-Core application code reads/writes visual documents through `DocumentRepository`. `WordPressDocumentRepository` is the current adapter for post meta and builder-version metadata. It stores WordPress-safe escaped JSON and verifies the persisted checksum before a save is reported successful. This prevents future cloud storage, collaboration, revision, or external document services from leaking WordPress persistence calls across the editor/application layer.
+Core/Application đọc/ghi visual document qua `DocumentRepository`. `WordPressDocumentRepository` là adapter hiện tại cho post meta và builder metadata.
+
+Mục tiêu của port này là ngăn WordPress-specific persistence leak qua editor/application layer và giữ đường mở cho cloud storage, collaboration hoặc external document service trong tương lai.
 
 ## Document Manager
 
-The architecture endpoint exposes a normalized document index for builder-owned Pages and Theme Templates. The editor command palette opens **Cresco Documents**, where Page/Header/Footer/Single/Archive documents are treated as one family and route back into the appropriate compatibility editor. As Loop Item and other document types graduate to Session-native storage, they can join this index without introducing another builder shell.
+Architecture endpoint có thể cung cấp document index normalized cho builder-owned Page/Theme document. Page/Header/Footer/Single/Archive là cùng một document family và route về editor phù hợp.
+
+Khi Loop Item và document type khác dùng Session-native storage đầy đủ, chúng có thể gia nhập index mà không cần builder shell mới.

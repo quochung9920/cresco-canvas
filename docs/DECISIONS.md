@@ -1,20 +1,33 @@
-# Architecture Decisions
+# Quyết định kiến trúc
 
-> **Current Studio scope:** this file contains decisions from multiple Cresco Canvas architecture generations. ADR-013 supersedes ADR-011 and ADR-012 for **Studio-owned Website Builder documents** and also narrows earlier Gutenberg-only assumptions where they conflict with the current Session-native Studio runtime. The older ADRs remain historical and may still describe the legacy/native Gutenberg path. For runtime/DOM/CSS/schema ownership rules, see `docs/STUDIO_RUNTIME_OWNERSHIP_AND_CONFLICT_PREVENTION.md`.
+> **Scope Studio hiện tại:** File này chứa ADR từ nhiều thế hệ kiến trúc Cresco Canvas. ADR-013 supersede ADR-011/ADR-012 đối với **Studio-owned Website Builder documents** và thu hẹp các giả định Gutenberg-only cũ khi chúng xung đột với Session-native Studio runtime hiện tại. ADR cũ vẫn được giữ làm lịch sử.
 
-| ID | Decision | Rationale | Consequence |
+| ID | Quyết định | Lý do | Hệ quả |
 | --- | --- | --- | --- |
-| ADR-001 | Keep native block markup in `post_content` | Preserves WordPress interoperability and readable content after deactivation | Historical foundation rule for the Gutenberg-native path. Studio-owned Website Builder documents use the Session-native architecture defined by ADR-013; do not use ADR-001 to remove or bypass the current Studio Session model. |
-| ADR-002 | Implement only milestone 0.2 in the foundation PR | The audited repository was a 0.1.1 MVP and foundations were missing | Native entity reliability followed in milestone 0.3 |
-| ADR-003 | Use `@wordpress/scripts` and exact npm versions | Aligns compilation/linting with WordPress while retaining deterministic resolution | Upstream development-only advisories must be monitored |
-| ADR-004 | Use Composer PSR-4 plus a restricted fallback loader | Release ZIPs get optimized autoloading; source checkouts still fail safely | The release builder requires `vendor/autoload.php` |
-| ADR-005 | Retain a transitional custom Page REST route for 0.2 only | Kept the foundation PR reviewable | Historical statement about the retired foundation Page-document route. Current Studio services may expose dedicated permissioned routes such as Page Settings and Website Builder Session routes under ADR-013. |
-| ADR-006 | Scope and condition all Cresco frontend assets | Prevents theme/plugin collisions and unrelated-page cost | Legacy Container detection is retained for backward compatibility |
-| ADR-007 | Default editor selection to remember/native fallback in 0.2 | Reduced takeover risk before native integration existed | Superseded by ADR-011 for the old Gutenberg-only generation and by ADR-013 for Studio-owned Website Builder documents |
-| ADR-008 | Make uninstall deletion opt-in and content-preserving | Destructive cleanup must be explicit and recoverable | Orphaned native block markup can remain if users request metadata cleanup |
-| ADR-009 | Build deterministic ZIPs from an allowlist | Prevents accidental credentials/source/test inclusion and makes artifacts comparable | Composer and production build outputs must exist before packaging |
-| ADR-010 | Treat compatibility/nightly and manual UX claims separately | A configured test is not evidence that it passed | Documentation uses `NOT TESTED`/`NOT VERIFIED` until CI or a human records evidence |
-| ADR-011 | **SUPERSEDED FOR STUDIO:** Make standard Gutenberg the only Page editor | Core provides reliable native document workflows and this was the correct constraint for the earlier Gutenberg-native architecture | Retained as history/legacy-path guidance only. It must not be used to remove, replace, or bypass the current Cresco Studio Website Builder runtime. Superseded by ADR-013 for Studio-owned documents. |
-| ADR-012 | **SUPERSEDED FOR STUDIO:** Save Page enablement through revision-enabled native post meta | In the Gutenberg-native generation, Page content and styling state traveled through one Core save/revision boundary | Retained for the legacy/native path. Studio-owned Website Builder documents use the current Session/Page Settings persistence contracts. Superseded by ADR-013 where the scopes conflict. |
-| ADR-013 | Make Cresco Studio the canonical Website Builder runtime for Studio-owned documents while retaining Gutenberg/native interoperability as a separate legacy/native path | A single runtime owner, a single Session document model, and explicit compatibility boundaries prevent dual-editor/runtime takeover and state divergence | `WebsiteBuilderStudio` owns the active Studio shell and canonical Website Builder handle; `cresco-session/v1` remains authoritative for Studio documents; optional modules extend Studio additively; Gutenberg-only ADRs cannot override Studio ownership in this scope |
-| ADR-014 | Require explicit runtime, DOM, CSS, state, schema, build and branch ownership contracts for Studio changes | Recent regressions were semantic ownership conflicts rather than ordinary textual merge conflicts: stale branches, multiple UI surfaces, React DOM takeover risk, CSS cascade overlap, and UI/schema drift | All Studio changes follow `docs/STUDIO_RUNTIME_OWNERSHIP_AND_CONFLICT_PREVENTION.md`; persisted Page Settings changes evolve backend/UI/tests atomically; React-owned DOM is extended through SDK/bridges/portals; source/build mirrors and long-lived branches must stay synchronized |
+| ADR-001 | Giữ native block markup trong `post_content` | Giữ interoperability với WordPress và readable content sau deactivation | Foundation lịch sử cho Gutenberg-native path. Không dùng ADR-001 để xóa/bypass Session model hiện tại. |
+| ADR-002 | Chỉ triển khai milestone 0.2 trong foundation PR | Repository 0.1.1 khi audit còn thiếu foundation | Native entity reliability tiếp tục ở milestone 0.3. |
+| ADR-003 | Dùng `@wordpress/scripts` và npm version xác định | Đồng bộ build/lint với WordPress và deterministic resolution | Development-only advisory phải được theo dõi. |
+| ADR-004 | Composer PSR-4 + restricted fallback loader | Release ZIP dùng optimized autoload; source checkout vẫn fail-safe | Release builder cần `vendor/autoload.php`. |
+| ADR-005 | Giữ custom Page REST route tạm thời cho 0.2 | Giữ foundation PR dễ review | Historical; current Studio có dedicated permissioned routes theo ADR-013. |
+| ADR-006 | Scope/condition toàn bộ Cresco frontend asset | Giảm collision và cost trên Page không dùng Cresco | Legacy Container detection có thể còn vì backward compatibility. |
+| ADR-007 | Editor selection mặc định nhớ/native fallback ở 0.2 | Giảm takeover risk trước native integration | Superseded bởi ADR-011 ở thế hệ Gutenberg và ADR-013 cho Studio. |
+| ADR-008 | Uninstall deletion là opt-in và bảo toàn content | Cleanup phá dữ liệu phải explicit/recoverable | Native/orphan content có thể còn nếu user chỉ xóa metadata. |
+| ADR-009 | Build deterministic ZIP từ allowlist | Ngăn secret/source/test lọt vào artifact và giúp so sánh build | Composer/production build output phải tồn tại trước package. |
+| ADR-010 | Tách compatibility/nightly và manual UX claim | Configured test không phải bằng chứng đã pass | Dùng `NOT TESTED`/`NOT VERIFIED` đến khi có evidence. |
+| ADR-011 | **SUPERSEDED FOR STUDIO:** Gutenberg là Page editor duy nhất | Đúng với kiến trúc Gutenberg-native trước đây | Chỉ giữ làm history/legacy guidance; không dùng để remove current Studio runtime. |
+| ADR-012 | **SUPERSEDED FOR STUDIO:** Page enablement qua revision-enabled native post meta | Với thế hệ Gutenberg-native, content/style đi qua một Core save boundary | Chỉ áp dụng legacy/native path khi không xung đột ADR-013. |
+| ADR-013 | Cresco Studio là Website Builder runtime canonical cho Studio-owned document, vẫn giữ Gutenberg/native interoperability như path riêng | Một runtime owner + một Session model + compatibility boundary rõ ngăn dual-editor/state divergence | `WebsiteBuilderStudio` sở hữu active shell/handle; `cresco-session/v1` authoritative; optional module extend additively. |
+| ADR-014 | Bắt buộc contract ownership cho runtime, DOM, CSS, state, schema, build và branch | Regression gần đây chủ yếu là semantic ownership conflict | Studio change phải theo ownership contract; persisted setting đổi atomic; React DOM dùng SDK/bridge/portal; source/build và branch phải sync. |
+
+## Cách thêm ADR mới
+
+Không xóa ADR cũ chỉ vì kiến trúc đã tiến hóa. ADR mới phải:
+
+1. ghi rõ vấn đề;
+2. ghi scope;
+3. nêu quyết định;
+4. nêu consequence/compatibility;
+5. ghi ADR nào bị supersede nếu có;
+6. link contract/source canonical liên quan.
+
+Khi một ADR lịch sử mâu thuẫn Studio hiện tại, ưu tiên current executable code, ADR áp dụng rõ cho Studio và `STUDIO_RUNTIME_OWNERSHIP_AND_CONFLICT_PREVENTION.md`.

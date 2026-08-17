@@ -1,75 +1,89 @@
-# Cresco Studio Editor Experience 2.0
+# Trải nghiệm Cresco Studio Editor 2.0
 
-Baseline: `c77fbd0eb166f9cfb9d9bd202ec4e6464cd5511b`
+Baseline gốc: `c77fbd0eb166f9cfb9d9bd202ec4e6464cd5511b`
 
-This release keeps `cresco-session/v1` and the existing renderer/storage contracts while replacing the active Website Builder browser shell with a unified Session-native Studio runtime. It does not introduce another numbered builder generation.
+Studio 2.0 giữ `cresco-session/v1` và các contract storage/render hiện có, đồng thời thay active Website Builder browser shell bằng một Session-native Studio runtime thống nhất. Nó không tạo thêm một builder generation được đánh số.
 
-> **Architecture authority:** this document describes the Studio 2.0 feature experience and its release baseline. For current runtime ownership, React DOM extension rules, CSS cascade ownership, Page Settings schema/UI parity, branch synchronization, source/build parity, diagnostics, troubleshooting and pre-merge conflict checks, use `docs/STUDIO_RUNTIME_OWNERSHIP_AND_CONFLICT_PREVENTION.md`. Historical Gutenberg-only architecture statements do not override that contract for Studio-owned Website Builder documents.
+> **Authority kiến trúc:** File này mô tả feature/UX của Studio 2.0. Với ownership runtime, React DOM, CSS cascade, Page Settings schema/UI parity, branch synchronization, source/build parity và troubleshooting hiện tại, dùng `docs/STUDIO_RUNTIME_OWNERSHIP_AND_CONFLICT_PREVENTION.md`.
 
-## P0 - Runtime, Architecture and Diagnostics
+## P0 — Runtime, kiến trúc và diagnostics
 
-- `WebsiteBuilderStudio` replaces the core browser script on the existing `cresco-canvas-website-builder` handle, preserving optional-module dependency compatibility.
-- The Studio consumes `WebsiteBuilderRuntimeContext`, `WebsiteBuilderEditorConfig`, `WebsiteBuilderAsset` and `WebsiteBuilderModuleRegistry`.
-- Critical Session loading remains first; optional context/settings/platform requests use bounded asynchronous requests.
-- Runtime diagnostics record request durations, editor events, event-loop stalls, persisted heartbeat and recovery state.
-- Local crash recovery and dirty-document protection are built into the Studio.
-- Architecture remains quarantined by default until browser evidence supports enabling it normally.
-- Tools -> Cresco Diagnostics remains the independent troubleshooting surface.
+- `WebsiteBuilderStudio` sở hữu core browser script qua handle `cresco-canvas-website-builder` để giữ dependency compatibility.
+- Studio dùng `WebsiteBuilderRuntimeContext`, `WebsiteBuilderEditorConfig`, `WebsiteBuilderAsset` và `WebsiteBuilderModuleRegistry`.
+- Critical Session load đi trước; context/settings/platform request phụ dùng bounded async request.
+- Runtime diagnostics ghi request duration, editor event, event-loop stall, heartbeat và recovery state.
+- Local crash recovery và dirty-document protection nằm trong Studio.
+- Architecture/compatibility module có thể bị quarantine theo policy runtime.
+- Tools -> Cresco Diagnostics là troubleshooting surface độc lập.
 
-## P1 - Editor experience
+## P1 — Trải nghiệm editor
 
 ### Structure Navigator 2.0
 
-The Structure panel is a real Session tree rather than a flattened visual list. It supports per-node expand/collapse, expand/collapse all, search with ancestor reveal, keyboard navigation, inline rename, multi-select, lock/visibility indicators, quick actions, context menu actions and validated before/inside/after drag/drop. Closed containers auto-expand during drag hover.
+Structure là Session tree thật, không phải visual list phẳng. Nó hỗ trợ expand/collapse, search có ancestor reveal, keyboard navigation, inline rename, multi-select, lock/visibility indicator, quick action, context menu và validated drag/drop trước/trong/sau. Closed container có thể auto-expand khi drag hover.
 
 ### Widget Controls 2.0
 
-The Inspector is schema-driven from `WidgetCatalog`. Content controls, shared layout/style/advanced properties, spacing, units, responsive overrides, state overrides, tokens and scoped Custom CSS use one interaction model. Bulk style editing is supported for multi-selection.
+Inspector lấy schema từ `WidgetCatalog`. Content, Layout, Style, Advanced, spacing, dimension/unit, responsive override, state override, token và scoped Custom CSS dùng cùng interaction model.
+
+Multi-selection hỗ trợ bulk style; content editing vẫn ưu tiên single-selection.
+
+Các enhancement hiện tại như Dimension/Border controls, responsive property grouping, Widget State Tabs và Typography popup phải proxy canonical control/Session state thay vì giữ state cạnh tranh.
+
+### Typography popup
+
+Typography được trình bày như một popup/popover nhẹ từ nhóm Style. Popup chỉ thay đổi presentation của các control canonical như Family, Size, Weight, Transform, Style, Decoration, Line Height, Letter Spacing, Text Color và Alignment.
+
+Responsive selector, unit, reset, state và persistence vẫn đi qua Inspector/Session owner hiện tại. Popup không được reimplement một typography model riêng.
 
 ### Page Settings 2.0
 
-The Page panel exposes the existing hardened Page Settings schema using visual controls for shell/layout, title/header/footer, classic and gradient backgrounds, background media, responsive body spacing, scroll snap and page-scoped Custom CSS.
+Page rail expose backend `PageSettings` model hiện có: shell/layout, title/header/footer, classic/gradient background, background media, responsive body spacing, scroll snap và page-scoped Custom CSS.
 
-The Page panel is a **view over the canonical `PageSettings` backend model**. A similarly named standalone or Pro Page Settings enhancement does not automatically replace this Studio panel. Any new persisted Page Settings control must remain within the backend schema or update defaults, sanitization, compiler, every relevant editing surface and tests atomically as required by the ownership contract.
+Page panel chỉ là **view của canonical `PageSettings` backend model**. UI khác có cùng tên không tự động thay thế panel này.
+
+Persisted Page Settings control mới phải đồng thời cập nhật backend schema, defaults, sanitizer, compiler, các editing surface liên quan và test.
 
 ### Responsive 2.0
 
-Wide/Desktop/Laptop/Tablet/Mobile previews share the same Session. Widget styles inherit from base into breakpoint overrides; individual properties and entire breakpoint overrides can be reset. Previous breakpoint values can be copied forward. Visibility is editable per breakpoint.
+Wide/Desktop/Laptop/Tablet/Mobile cùng dùng một Session. Widget style inherit từ base qua breakpoint override. Property hoặc breakpoint override có thể reset; previous breakpoint có thể copy forward; visibility có thể thay đổi theo breakpoint.
 
-## P2 - Professional workflow
+## P2 — Professional workflow
 
-- Reusable Components: create from selection, insert, synchronize current-document instances, detach and delete.
-- Clipboard: copy/paste nodes with recursive ID remapping, copy/paste style data and paste before/inside/after.
-- Dynamic Data: insert safe Dynamic Field, Loop Grid and Woo product widgets using existing widget contracts.
-- Command Palette: Ctrl/Cmd+K commands for navigation, save/history, devices and widget insertion; extension commands can be registered.
-- History & Recovery: local undo/redo, server revisions, autosave, dirty-state guard, crash recovery and same-browser edit warnings.
-- Canvas: synchronized selection, quick actions, responsive preview and context menus.
+- **Reusable Components:** tạo từ selection, insert, sync instance trong document, detach/delete theo capability hiện hành.
+- **Clipboard:** copy/paste node với recursive ID remap, copy/paste style, paste before/inside/after.
+- **Dynamic Data:** Dynamic Field, Loop Grid và Woo product widget dùng widget contract hiện có.
+- **Command Palette:** `Ctrl/Cmd+K` cho navigation, save/history, device và insert command; extension command có thể register.
+- **History & Recovery:** undo/redo local, server revisions, autosave, dirty guard, crash recovery và same-browser warning.
+- **Canvas:** selection đồng bộ, quick action, responsive preview và context menu.
 
-## P3 - AI, Theme, Loop and WooCommerce
+## P3 — AI, Theme, Loop và WooCommerce
 
-AI uses the existing interchange boundary. Scope can be `widget`, `subtree`, `selection`, `selection-subtrees` or the whole document. `selection-subtrees` exports multiple selected roots together with all descendants while automatically collapsing overlapping ancestor/child selections so the same node is never duplicated in an AI package.
+AI dùng interchange boundary hiện có. Scope có thể gồm `widget`, `subtree`, `selection`, compatibility `selection-subtrees` hoặc toàn document khi resolver hỗ trợ.
 
-Exported `cresco-interchange/v1` packages can be processed externally; imported Session/interchange payloads are validated and previewed before applying to the editor. Applying never directly saves the document.
+`cresco-interchange/v1` package được xử lý bên ngoài; imported Session/interchange phải validate/preview trước Apply. Apply không tự Save.
 
-Theme Builder remains a shared domain service while the Studio provides the same shell for Theme-document routes supplied by canonical editor config. Loop Grid and WooCommerce widgets use the same Inspector/responsive/style contracts rather than separate presentation systems.
+Theme Builder dùng shared domain service; Studio cung cấp cùng shell cho Theme-document route từ canonical editor config.
 
-## P4 - Ecosystem foundation
+Loop Grid và WooCommerce widget dùng cùng Inspector/responsive/style contract, không tạo presentation system riêng.
 
-`window.CrescoStudioSDK` exposes stable registration points for commands, panels, Inspector sections, context actions and document adapters. Registered panels and Inspector sections render directly in the Studio.
+## P4 — Ecosystem foundation
 
-`WebsiteBuilderPlatform` provides a provider-neutral extension manifest, document-adapter registry, lightweight presence and document/node comments. The built-in WordPress adapter describes the current persistence capabilities. External cloud providers are expected to register adapters rather than modify Core.
+`window.CrescoStudioSDK` cung cấp registration point cho command, panel, Inspector section, context action và document adapter.
 
-Collaboration in this release is intentionally a foundation: presence, comments and same-browser coordination are implemented. It is not a CRDT or Google-Docs-style concurrent document merge engine.
+`WebsiteBuilderPlatform` có provider-neutral extension manifest, document adapter registry, lightweight presence và comments.
 
-## Release invariants
+Collaboration ở mốc này chỉ là foundation; không phải CRDT hoặc Google-Docs-style concurrent merge engine.
 
-- One `cresco-session/v1` document model remains authoritative.
-- AI/import never bypass server sanitization/validation.
-- Optional runtime modules may degrade without blocking core startup.
-- Studio source/build runtime files must remain byte-identical.
-- New browser runtime assets are part of the release allowlist and build ownership manifest.
-- Architecture remains quarantined until real browser testing is completed.
+## Release invariant
+
+- Một `cresco-session/v1` document model authoritative.
+- AI/import không bypass server validation/sanitization.
+- Optional module có thể degrade mà không block core startup.
+- Source/build runtime mirror phải đồng bộ theo contract.
+- Browser runtime asset mới phải thuộc release allowlist/build ownership.
+- Architecture/runtime claim chỉ được nâng mức khi có browser/release evidence tương ứng.
 
 ## Verification
 
-Static checks can verify PHP/JavaScript syntax, source/build parity and contract tokens. Full release verification still requires a real WordPress environment for save/reload, browser interaction, accessibility, drag/drop, performance, exact ZIP installation and historical upgrade testing.
+Static check có thể chứng minh syntax, source/build parity và contract token. Release đầy đủ vẫn cần WordPress thực để verify save/reload, browser interaction, accessibility, drag/drop, performance, exact-ZIP install và historical upgrade.

@@ -1,97 +1,97 @@
-# Release Checklist — 1.0.0
+# Checklist Release — 1.0.0
 
-This checklist applies to `1.0.0-rc.1` and the future stable `1.0.0`. A checked source file is not evidence that a runtime gate passed.
+Checklist này áp dụng cho `1.0.0-rc.1` và stable `1.0.0` tương lai. Source tồn tại hoặc checkbox source-level được tick **không phải bằng chứng runtime gate đã pass**.
 
-## Version and documentation
+## Version và documentation
 
-- [x] Plugin header and package version are `1.0.0-rc.1`.
-- [x] README reflects the current product scope.
-- [x] Commercial hardening plan exists.
-- [x] Security, privacy, and upgrade/rollback policies are included in the production ZIP allowlist.
-- [ ] Changelog is complete through the release commit.
-- [ ] Architecture and known-limitations documents match the current code.
-- [ ] No documentation claims stable or commercial readiness before approval.
+- [x] Plugin/package version là `1.0.0-rc.1`.
+- [x] README phản ánh product scope hiện tại.
+- [x] Có commercial hardening plan.
+- [x] Security/privacy/upgrade-rollback policy nằm trong production ZIP allowlist.
+- [ ] Changelog hoàn chỉnh tới release commit.
+- [ ] Architecture và known limitations khớp current code.
+- [ ] Không docs nào claim stable/commercial readiness trước approval.
 
-## Data and migration
+## Data và migration
 
-- [x] Settings schema version is 4.
-- [x] Schema 4 migration sanitizes fluid settings and stores a pre-migration backup.
-- [x] Uninstall preserves data by default.
-- [x] Opt-in uninstall cleanup includes known Cresco schedules, settings, submissions, uploads, and metadata.
-- [ ] Clean install and activation pass on a real WordPress site.
+- [x] Settings schema version là 4.
+- [x] Schema 4 migration sanitize fluid settings và tạo pre-migration backup.
+- [x] Uninstall mặc định preserve data.
+- [x] Opt-in uninstall cleanup bao phủ Cresco schedules/settings/submissions/uploads/metadata đã biết.
+- [ ] Clean install/activation pass trên WordPress thực.
 - [ ] Historical upgrade fixtures pass.
-- [ ] Migration failure and retry pass in the release environment.
-- [ ] Downgrade and rollback behavior are exercised against a real database/backup.
-- [ ] Single-site and multisite lifecycle tests pass in the release environment.
+- [ ] Migration failure/retry pass trong release environment.
+- [ ] Downgrade/rollback được exercise trên real DB/backup.
+- [ ] Single-site/multisite lifecycle pass.
 
-## Build and packaging
+## Build và packaging
 
-- [ ] `package-lock.json` is valid and `npm ci` passes from a clean checkout.
-- [ ] Composer install produces an optimized release autoloader.
-- [ ] All checked-in runtime files have authoritative source files.
-- [ ] Removing `build/` and rebuilding reproduces the required runtime.
-- [ ] TypeScript, lint, JavaScript unit tests, PHP syntax, PHPCS, and PHPUnit pass.
-- [x] `check:production-hardening` is part of `check:quality` and protects critical source-level security/lifecycle contracts.
-- [ ] Two clean package builds produce the same checksum.
-- [ ] Release ZIP contents and SHA-256 are reviewed.
-- [ ] Exact release ZIP installs and activates on a clean site.
+- [ ] `package-lock.json` hợp lệ và `npm ci` pass từ clean checkout.
+- [ ] Composer install tạo optimized release autoloader.
+- [ ] Checked-in runtime có authoritative source owner.
+- [ ] Xóa `build/` rồi rebuild tái tạo required runtime.
+- [ ] TypeScript, lint, JS unit, PHP syntax/PHPCS/PHPUnit pass.
+- [x] `check:production-hardening` thuộc `check:quality` và bảo vệ critical source contract.
+- [ ] Hai clean package build cho cùng checksum.
+- [ ] Review release ZIP + SHA-256.
+- [ ] Exact release ZIP install/activate trên clean site.
 
-## Editor and persistence
+## Studio editor và persistence
 
-- [ ] Unified left workspace works in Page Editor, Post Editor, and Site Editor.
-- [ ] List View remains usable on the right where supported.
-- [ ] Workspace fallback preserves the native editor when DOM adapters do not match.
-- [ ] Every visible widget control renders in editor and frontend.
-- [ ] Unsupported controls are hidden rather than silently ignored.
-- [ ] Save/reload, undo/redo, autosave, revisions, copy/paste, duplicate, patterns, and locking pass.
-- [ ] Unknown and third-party blocks remain intact.
+- [ ] Canonical Studio runtime mở đúng trên supported document flow.
+- [ ] Không có competing legacy runtime/root.
+- [ ] Structure, Canvas, Inspector, Page/Global surface dùng đúng canonical owner.
+- [ ] Visible control có matching model/render path; unsupported control bị hide/reject thay vì silently ignored.
+- [ ] Dimension/unit, Border/Radius, Typography popup và state/responsive control sống qua save/reload + frontend render.
+- [ ] Save/reload, undo/redo, autosave, revision, clipboard, duplicate, locking/component flow pass theo scope hỗ trợ.
+- [ ] Legacy-compatible content không bị phá ngoài migration contract.
 
-## Feature smoke tests
+## Feature smoke
 
-- [ ] Global Design save/reset/import/export and fluid tokens pass.
-- [ ] Templates/components/site-kit flows pass.
-- [ ] Theme Builder display conditions pass.
-- [ ] Dynamic fields, loops, filters, facets, load-more, and history sync pass.
-- [ ] Interactions pass keyboard and reduced-motion review.
-- [ ] Forms pass validation, conditional logic, calculations, steps, upload, CAPTCHA adapter, storage, export, email, and webhook flows.
+- [ ] Global Design save/reset/import/export và token flow pass.
+- [ ] Template/component/site-kit flow pass.
+- [ ] Theme Builder display condition pass.
+- [ ] Dynamic field/loop/filter/facet/load-more/history sync pass khi feature được ship.
+- [ ] Interaction pass keyboard/reduced-motion review.
+- [ ] Forms pass validation, conditional logic, upload, CAPTCHA adapter, storage, export, email, webhook theo scope ship.
 
-## Security and privacy
+## Security và privacy
 
-- [x] REST route inventory and the intended anonymous-route modules are documented and protected by a source-level regression gate.
-- [x] Source-level upload, webhook, CSV, privacy, migration, downgrade, and uninstall invariants have regression coverage.
-- [ ] REST permission review passes against the exact release artifact/environment.
-- [ ] Upload security passes real web-server storage/download and hostile-file verification.
-- [ ] Webhook SSRF, DNS rebinding/TOCTOU, retry, logging, and secret review pass production-like egress testing.
-- [ ] CSV formula injection and bounded large-export behavior pass integration verification.
-- [ ] Query/facet resource limits and cache behavior are verified under production-like data/traffic.
-- [ ] Import/export and CSS token sanitization are verified against hostile payloads.
-- [ ] Privacy exporter, eraser, retention, and uninstall behavior pass on real WordPress data.
-- [ ] Logs and diagnostics exclude private submission values and secrets in production flows.
+- [x] REST route inventory/public-route intent được document và có source-level regression gate.
+- [x] Upload/webhook/CSV/privacy/migration/downgrade/uninstall invariant có source coverage.
+- [ ] REST permission review pass trên exact artifact/environment.
+- [ ] Upload security pass real web-server hostile-file/storage/download test.
+- [ ] Webhook SSRF/DNS/TOCTOU/retry/log/secret review pass production-like egress test.
+- [ ] CSV formula injection và bounded large-export pass integration test.
+- [ ] Query/facet cost/cache behavior verified dưới realistic load.
+- [ ] Import/export và CSS/token sanitizer verified với hostile payload.
+- [ ] Privacy exporter/eraser/retention/uninstall pass trên real WordPress data.
+- [ ] Log/diagnostics không leak private data/secret.
 
 ## Compatibility
 
-- [ ] WordPress minimum, latest-minus-one, and latest pass.
-- [ ] PHP 8.1, 8.2, 8.3, and 8.4 pass.
-- [ ] Block and classic themes pass.
-- [ ] Chrome, Firefox, WebKit/Safari, and Edge pass critical flows.
-- [ ] ACF and WooCommerce compatibility pass.
-- [ ] Multisite, object cache, page cache, security, and optimization-plugin smoke tests pass.
+- [ ] WordPress minimum/latest-minus-one/latest pass.
+- [ ] PHP 8.1/8.2/8.3/8.4 pass.
+- [ ] Block + classic theme pass.
+- [ ] Chrome/Firefox/WebKit-Safari/Edge critical flow pass.
+- [ ] ACF/WooCommerce pass.
+- [ ] Multisite/cache/security/optimization smoke pass theo matrix.
 
-## Accessibility and performance
+## Accessibility và performance
 
-- [ ] Keyboard-only, NVDA, VoiceOver, RTL, forced-colors, 200%/400% zoom, and reduced-motion review pass.
-- [ ] axe reports no serious or critical violations in critical flows.
-- [ ] Modal/off-canvas focus management passes.
-- [ ] Slider and AJAX result announcements pass.
-- [ ] Form error summary and field focus pass.
-- [ ] 50-, 200-, and 500-block editor performance is measured.
-- [ ] Frontend assets are conditionally loaded and performance budgets pass.
+- [ ] Keyboard-only, NVDA, VoiceOver, RTL, forced-colors, 200%/400% zoom, reduced-motion review pass.
+- [ ] axe không có serious/critical violation ở critical flow.
+- [ ] Modal/off-canvas focus management pass.
+- [ ] Slider/AJAX announcement pass nếu feature được ship.
+- [ ] Form error summary/focus pass.
+- [ ] 50/200/500-node editor performance được đo.
+- [ ] Frontend asset conditional loading và performance budget pass.
 
 ## Commercial release approval
 
-- [ ] No unresolved P0 defects.
-- [ ] P1 defects are fixed or explicitly accepted with owners and dates.
-- [ ] Beta and RC validation are complete.
-- [ ] Support, update, rollback, privacy, and security policies are published.
-- [ ] Human reviewer approves the exact release commit and artifact.
-- [ ] Version is changed from `1.0.0-rc.1` to `1.0.0` only after all required gates pass.
+- [ ] Không còn unresolved P0.
+- [ ] P1 được fix hoặc accepted có owner/date.
+- [ ] Beta/RC validation hoàn tất.
+- [ ] Support/update/rollback/privacy/security policy được publish.
+- [ ] Human reviewer approve đúng release commit + artifact.
+- [ ] Chỉ đổi `1.0.0-rc.1` sang `1.0.0` sau khi required gate pass.

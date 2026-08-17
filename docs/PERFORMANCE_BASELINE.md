@@ -1,51 +1,53 @@
 # Performance Gate — 1.0.0-rc.1
 
-The previous Gutenberg-era static measurements are not a valid baseline for the current standalone Cresco Session editor. This document intentionally resets the release baseline rather than carrying forward unrelated numbers.
+Static measurement từ thời Gutenberg không phải baseline hợp lệ cho standalone Cresco Session Studio hiện tại. Tài liệu này reset release baseline thay vì mang số liệu không liên quan sang kiến trúc mới.
 
 ## Automated benchmark
 
-`tests/performance/editor-performance.spec.ts` runs on Chromium through `playwright.performance.config.ts` and creates three document sizes:
+`tests/performance/editor-performance.spec.ts` chạy Chromium qua `playwright.performance.config.ts` và tạo ba kích thước document:
 
-- 50 nodes;
-- 200 nodes;
-- 500 nodes.
+- 50 node;
+- 200 node;
+- 500 node.
 
-For each size it records:
+Mỗi kích thước ghi:
 
-| Metric | Meaning |
+| Metric | Ý nghĩa |
 | --- | --- |
-| `editorLoadMs` | navigation until the editor and expected node count are usable |
-| `selectionMs` | click a representative widget until its Inspector is visible |
-| `inspectorTabMs` | switch to the Inspector Style tab |
-| `settingsTabMs` | open the Settings Center |
-| `saveMs` | Update until the saved state is acknowledged |
+| `editorLoadMs` | navigation tới khi editor và expected node count usable |
+| `selectionMs` | click widget tới khi Inspector visible |
+| `inspectorTabMs` | chuyển sang Inspector Style |
+| `settingsTabMs` | mở Settings surface theo test hiện hành |
+| `saveMs` | Update tới khi saved state được acknowledge |
 
-The test writes `CRESCO_PERF_METRIC` JSON to the job log and attaches per-size JSON evidence.
+Test ghi `CRESCO_PERF_METRIC` JSON vào log và attach evidence per-size.
 
 ## Initial safety ceilings
 
-Before an evidence-based baseline exists, the test only rejects obvious freezes:
+Trước khi có evidence-based baseline, test chỉ reject freeze rõ ràng:
 
-- editor load: 30 seconds;
-- selection: 5 seconds;
-- Inspector tab: 5 seconds;
-- Settings tab: 5 seconds;
-- save: 10 seconds.
+- editor load: 30 giây;
+- selection: 5 giây;
+- Inspector tab: 5 giây;
+- Settings tab: 5 giây;
+- save: 10 giây.
 
-These are anti-freeze ceilings, **not** commercial performance targets.
+Đây là **anti-freeze ceiling**, không phải commercial performance target.
 
 ## Regression baseline rule
 
-Status before the first successful controlled release run: **NOT RUN**.
+Trước first successful controlled release run: **NOT RUN**.
 
-After the first successful run on the release runner, record its commit, runner class, browser, WordPress/PHP versions, and metric artifacts. Only then establish a regression threshold. The threshold should be based on repeated measurements and normal CI variance; it must not be invented retroactively to make a release pass.
+Sau run đầu tiên, record commit, runner class, browser, WordPress/PHP và metric artifacts. Chỉ sau đó mới thiết lập regression threshold dựa trên repeated measurement/CI variance.
+
+Không invent threshold ngược để làm release pass.
 
 ## Frontend review
 
-The package verifier provides the exact production file inventory. Release review must additionally confirm:
+Package verifier cung cấp production file inventory. Release review còn phải confirm:
 
-- editor/admin-only modules are not enqueued on unrelated frontend requests;
-- Cresco frontend assets remain conditional on relevant Cresco content;
-- no new unconditional module or stylesheet is introduced without justification.
+- editor/admin-only module không enqueue trên unrelated frontend request;
+- Cresco frontend asset vẫn conditional theo relevant content;
+- không thêm unconditional module/stylesheet nếu không có justification.
 
-Asset-count/per-request measurements are still **NOT RUN** for this commit until workflow evidence is produced.
+Asset-count/per-request measurement vẫn `NOT RUN` cho tới khi có workflow evidence.
