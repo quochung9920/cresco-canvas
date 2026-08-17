@@ -17,9 +17,12 @@ if ( ! defined( 'ABSPATH' ) ) {
  * second persistence model.
  */
 final class StudioGlobalDesignPro {
-	const HANDLE = 'cresco-canvas-studio-global-design-pro';
-	const SCRIPT = 'build/studio-global-design-pro.js';
-	const STYLE  = 'assets/css/studio-global-design-pro.css';
+	const HANDLE          = 'cresco-canvas-studio-global-design-pro';
+	const SCRIPT          = 'build/studio-global-design-pro.js';
+	const STYLE           = 'assets/css/studio-global-design-pro.css';
+	const WORKFLOW_HANDLE = 'cresco-canvas-studio-global-design-workflows';
+	const WORKFLOW_SCRIPT = 'build/studio-global-design-workflows.js';
+	const WORKFLOW_STYLE  = 'assets/css/studio-global-design-workflows.css';
 
 	public function register() {
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue' ), 1430 );
@@ -30,6 +33,7 @@ final class StudioGlobalDesignPro {
 		if ( ! $context || ! WebsiteBuilderModuleRegistry::is_enabled( 'core', $context ) ) return;
 		if ( ! current_user_can( 'edit_theme_options' ) ) return;
 		if ( ! WebsiteBuilderAsset::readable( self::SCRIPT ) || ! WebsiteBuilderAsset::readable( self::STYLE ) ) return;
+		if ( ! WebsiteBuilderAsset::readable( self::WORKFLOW_SCRIPT ) || ! WebsiteBuilderAsset::readable( self::WORKFLOW_STYLE ) ) return;
 
 		$style_deps = array( 'cresco-canvas-website-builder-studio' );
 		if ( wp_style_is( StudioUxPro::HANDLE, 'enqueued' ) ) $style_deps[] = StudioUxPro::HANDLE;
@@ -41,8 +45,37 @@ final class StudioGlobalDesignPro {
 			$style_deps,
 			WebsiteBuilderAsset::version( self::STYLE )
 		);
+		wp_enqueue_style(
+			self::WORKFLOW_HANDLE,
+			WebsiteBuilderAsset::url( self::WORKFLOW_STYLE ),
+			array( self::HANDLE ),
+			WebsiteBuilderAsset::version( self::WORKFLOW_STYLE )
+		);
 
-		$script_deps = array( WebsiteBuilderStudio::HANDLE, 'wp-api-fetch' );
+		$workflow_deps = array( WebsiteBuilderStudio::HANDLE, 'wp-api-fetch' );
+		if ( wp_script_is( StudioUxPro::HANDLE, 'enqueued' ) ) $workflow_deps[] = StudioUxPro::HANDLE;
+		wp_enqueue_script(
+			self::WORKFLOW_HANDLE,
+			WebsiteBuilderAsset::url( self::WORKFLOW_SCRIPT ),
+			$workflow_deps,
+			WebsiteBuilderAsset::version( self::WORKFLOW_SCRIPT ),
+			true
+		);
+
+		$config = array(
+			'schema'       => 'cresco-global-design-pro/v1',
+			'settingsPath' => '/cresco-canvas/v1/settings',
+			'tokensPath'   => '/cresco-canvas/v1/design-tokens',
+			'resetPath'    => '/cresco-canvas/v1/settings/reset',
+			'postId'       => $context->post_id(),
+		);
+		wp_add_inline_script(
+			self::WORKFLOW_HANDLE,
+			'window.crescoGlobalDesignProSettings=' . wp_json_encode( $config ) . ';',
+			'before'
+		);
+
+		$script_deps = array( WebsiteBuilderStudio::HANDLE, 'wp-api-fetch', self::WORKFLOW_HANDLE );
 		if ( wp_script_is( StudioUxPro::HANDLE, 'enqueued' ) ) $script_deps[] = StudioUxPro::HANDLE;
 		wp_enqueue_script(
 			self::HANDLE,
@@ -50,20 +83,6 @@ final class StudioGlobalDesignPro {
 			$script_deps,
 			WebsiteBuilderAsset::version( self::SCRIPT ),
 			true
-		);
-
-		wp_add_inline_script(
-			self::HANDLE,
-			'window.crescoGlobalDesignProSettings=' . wp_json_encode(
-				array(
-					'schema'       => 'cresco-global-design-pro/v1',
-					'settingsPath' => '/cresco-canvas/v1/settings',
-					'tokensPath'   => '/cresco-canvas/v1/design-tokens',
-					'resetPath'    => '/cresco-canvas/v1/settings/reset',
-					'postId'       => $context->post_id(),
-				)
-			) . ';',
-			'before'
 		);
 	}
 }
