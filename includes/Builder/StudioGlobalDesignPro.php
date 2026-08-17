@@ -30,10 +30,6 @@ final class StudioGlobalDesignPro {
 	const COMPACT_STYLE             = 'assets/css/studio-global-design-compact.css';
 	const FONT_SEARCH_FIX_HANDLE    = 'cresco-canvas-studio-global-design-font-search-fix';
 	const FONT_SEARCH_FIX_STYLE     = 'assets/css/studio-global-design-font-search-fix.css';
-	const TYPE_SIZE_STYLE_HANDLE    = 'cresco-canvas-studio-global-design-type-size-picker';
-	const TYPE_SIZE_STYLE           = 'assets/css/studio-global-design-type-size-picker.css';
-	const TYPE_SIZE_SCRIPT_HANDLE   = 'cresco-canvas-studio-global-design-type-size-picker-runtime';
-	const TYPE_SIZE_SCRIPT          = 'build/studio-global-design-type-size-picker.js';
 	const SHARED_STYLE_HANDLE       = 'cresco-canvas-studio-global-design-shared-controls';
 	const SHARED_STYLE              = 'assets/css/studio-global-design-shared-controls.css';
 	const SHARED_SCRIPT_HANDLE      = 'cresco-canvas-studio-global-design-shared-controls-runtime';
@@ -52,7 +48,6 @@ final class StudioGlobalDesignPro {
 		if ( ! WebsiteBuilderAsset::readable( self::WORKFLOW_SCRIPT ) || ! WebsiteBuilderAsset::readable( self::WORKFLOW_STYLE ) ) return;
 		if ( ! WebsiteBuilderAsset::readable( self::COMPACT_SCRIPT ) || ! WebsiteBuilderAsset::readable( self::COMPACT_STYLE ) ) return;
 		if ( ! WebsiteBuilderAsset::readable( self::FONT_SEARCH_FIX_STYLE ) ) return;
-		if ( ! WebsiteBuilderAsset::readable( self::TYPE_SIZE_STYLE ) || ! WebsiteBuilderAsset::readable( self::TYPE_SIZE_SCRIPT ) ) return;
 		if ( ! WebsiteBuilderAsset::readable( self::SHARED_STYLE ) || ! WebsiteBuilderAsset::readable( self::SHARED_SCRIPT ) ) return;
 
 		$style_deps = array( 'cresco-canvas-website-builder-studio' );
@@ -84,15 +79,9 @@ final class StudioGlobalDesignPro {
 			WebsiteBuilderAsset::version( self::FONT_SEARCH_FIX_STYLE )
 		);
 		wp_enqueue_style(
-			self::TYPE_SIZE_STYLE_HANDLE,
-			WebsiteBuilderAsset::url( self::TYPE_SIZE_STYLE ),
-			array( self::FONT_SEARCH_FIX_HANDLE ),
-			WebsiteBuilderAsset::version( self::TYPE_SIZE_STYLE )
-		);
-		wp_enqueue_style(
 			self::SHARED_STYLE_HANDLE,
 			WebsiteBuilderAsset::url( self::SHARED_STYLE ),
-			array( self::TYPE_SIZE_STYLE_HANDLE ),
+			array( self::FONT_SEARCH_FIX_HANDLE ),
 			WebsiteBuilderAsset::version( self::SHARED_STYLE )
 		);
 
@@ -146,16 +135,9 @@ final class StudioGlobalDesignPro {
 			true
 		);
 		wp_enqueue_script(
-			self::TYPE_SIZE_SCRIPT_HANDLE,
-			WebsiteBuilderAsset::url( self::TYPE_SIZE_SCRIPT ),
-			array( self::COMPACT_HANDLE ),
-			WebsiteBuilderAsset::version( self::TYPE_SIZE_SCRIPT ),
-			true
-		);
-		wp_enqueue_script(
 			self::SHARED_SCRIPT_HANDLE,
 			WebsiteBuilderAsset::url( self::SHARED_SCRIPT ),
-			array( self::TYPE_SIZE_SCRIPT_HANDLE ),
+			array( self::COMPACT_HANDLE ),
 			WebsiteBuilderAsset::version( self::SHARED_SCRIPT ),
 			true
 		);
