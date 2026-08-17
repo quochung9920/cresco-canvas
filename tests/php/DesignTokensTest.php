@@ -23,11 +23,28 @@ final class DesignTokensTest extends TestCase {
 		self::assertArrayHasKey( 'lg', $tokens['containers'] );
 		self::assertArrayHasKey( 'normal', $tokens['transitions'] );
 		self::assertSame( '1000', $tokens['zIndex']['modal'] );
+		self::assertArrayHasKey( 'button', $tokens );
+		self::assertSame( '#635bff', $tokens['button']['background'] );
+		self::assertSame( '#ffffff', $tokens['button']['text'] );
+		self::assertSame( '600', $tokens['button']['fontWeight'] );
+		// Existing documents may still resolve legacy radius paths.
+		self::assertArrayHasKey( 'radius', $tokens );
 	}
 
-	public function test_css_variables_publish_semantic_container_transition_and_layer_tokens(): void {
+	public function test_css_variables_publish_semantic_container_transition_layer_and_button_tokens(): void {
 		$css = DesignTokens::css_variables( GlobalStyles::defaults() );
-		foreach ( array( '--cc-surface:', '--cc-container-sm:', '--cc-container-lg:', '--cc-transition:', '--cc-z-modal:' ) as $token ) {
+		foreach ( array(
+			'--cc-surface:',
+			'--cc-container-sm:',
+			'--cc-container-lg:',
+			'--cc-transition:',
+			'--cc-z-modal:',
+			'--cc-button-bg:',
+			'--cc-button-text:',
+			'--cc-button-hover-bg:',
+			'--cc-button-radius:',
+			'--cc-button-font-weight:',
+		) as $token ) {
 			self::assertStringContainsString( $token, $css );
 		}
 	}
