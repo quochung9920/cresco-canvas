@@ -69,6 +69,8 @@ final class GlobalStyles {
 				'text' => '#ffffff',
 				'hoverBackground' => '#635bff',
 				'hoverText' => '#ffffff',
+				'activeBackground' => '#635bff',
+				'activeText' => '#ffffff',
 				'borderColor' => 'transparent',
 				'borderWidth' => '0px',
 				'radius' => 'clamp(0.5rem, 0.4rem + 0.25vw, 0.75rem)',
@@ -116,6 +118,8 @@ final class GlobalStyles {
 			'text' => '#ffffff',
 			'hoverBackground' => $primary,
 			'hoverText' => '#ffffff',
+			'activeBackground' => $primary,
+			'activeText' => '#ffffff',
 			'borderColor' => 'transparent',
 			'borderWidth' => '0px',
 			'radius' => $fluid['radiusMd'],
@@ -207,6 +211,7 @@ final class GlobalStyles {
 			'%1$s .wp-block-cresco-container .wp-block-button__link:not(.has-background),%1$s .cresco-widget-button,%1$s .cresco-form button[type="submit"]{background-color:var(--cc-button-bg);}' .
 			'%1$s .wp-block-cresco-container .wp-block-button__link:not(.has-text-color),%1$s .cresco-widget-button,%1$s .cresco-form button[type="submit"]{color:var(--cc-button-text);}' .
 			'%1$s .wp-block-cresco-container .wp-block-button__link:hover,%1$s .cresco-widget-button:hover,%1$s .cresco-form button[type="submit"]:hover{background-color:var(--cc-button-hover-bg);color:var(--cc-button-hover-text);}' .
+			'%1$s .wp-block-cresco-container .wp-block-button__link:active,%1$s .cresco-widget-button:active,%1$s .cresco-form button[type="submit"]:active{background-color:var(--cc-button-active-bg);color:var(--cc-button-active-text);}' .
 			'%1$s .cresco-widget-image img{border-radius:var(--cc-radius-md);}' .
 			'%1$s .cresco-form{color:var(--cc-text);font-family:var(--cc-font);}' .
 			'%1$s .cresco-form-field input,%1$s .cresco-form-field textarea,%1$s .cresco-form-field select{min-height:var(--cc-control-height);border-radius:var(--cc-radius-sm);background:var(--cc-background);color:var(--cc-text);}' .
@@ -277,11 +282,18 @@ final class GlobalStyles {
 		$font_weight = (string) ( $value['fontWeight'] ?? $fallback['fontWeight'] );
 		if ( ! preg_match( '/^[1-9]00$/', $font_weight ) ) $font_weight = (string) $fallback['fontWeight'];
 
+		$hover_background = self::sanitize_color_value( $value['hoverBackground'] ?? '' ) ?: $fallback['hoverBackground'];
+		$hover_text = self::sanitize_color_value( $value['hoverText'] ?? '' ) ?: $fallback['hoverText'];
+
 		return array(
 			'background' => self::sanitize_color_value( $value['background'] ?? '' ) ?: $fallback['background'],
 			'text' => self::sanitize_color_value( $value['text'] ?? '' ) ?: $fallback['text'],
-			'hoverBackground' => self::sanitize_color_value( $value['hoverBackground'] ?? '' ) ?: $fallback['hoverBackground'],
-			'hoverText' => self::sanitize_color_value( $value['hoverText'] ?? '' ) ?: $fallback['hoverText'],
+			'hoverBackground' => $hover_background,
+			'hoverText' => $hover_text,
+			// Older saved button objects did not have an Active state. In that case,
+			// inherit Hover so upgrading does not introduce a new visual press state.
+			'activeBackground' => self::sanitize_color_value( $value['activeBackground'] ?? '' ) ?: $hover_background,
+			'activeText' => self::sanitize_color_value( $value['activeText'] ?? '' ) ?: $hover_text,
 			'borderColor' => self::sanitize_color_value( $value['borderColor'] ?? '' ) ?: $fallback['borderColor'],
 			'borderWidth' => self::sanitize_fluid_value( $value['borderWidth'] ?? $fallback['borderWidth'], $fallback['borderWidth'] ),
 			'radius' => self::sanitize_fluid_value( $value['radius'] ?? $fallback['radius'], $fallback['radius'] ),
