@@ -20,3 +20,35 @@
 .cc-gd-loading,.cc-gd-error{min-height:220px;display:grid;place-items:center;align-content:center;gap:9px;text-align:center;color:var(--cc-color-text-muted)}.cc-gd-error strong{color:var(--cc-color-danger)}.cc-global-design-toast{position:fixed;right:20px;bottom:20px;z-index:99999;max-width:360px;padding:10px 14px;border:1px solid #d0d5dd;border-radius:10px;background:#fff;color:#172033;box-shadow:0 14px 40px rgba(16,24,40,.18);font:600 12px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.cc-global-design-toast.is-success{border-color:#86d3b5}.cc-global-design-toast.is-warning{border-color:#e5c274}.cc-global-design-toast.is-error{border-color:#eba4a4}
 @media(max-width:1240px){.cc-gd-palette{grid-template-columns:1fr 1fr}.cc-gd-summary{grid-template-columns:1fr}.cc-gd-add{grid-template-columns:1fr}.cc-gd-row{grid-template-columns:22px minmax(0,1fr) auto}.cc-gd-row>button:first-of-type,.cc-gd-row>em{display:none}}
 }
+/* Global Design workspace v2. Every selector below is scoped to the workspace
+   host so nothing here can reach the Canvas, the session root, or the rendered
+   website. Studio chrome only. */
+.cc-global-design-pro .cc-gd-hero{display:flex;align-items:center;gap:16px;padding:20px;border-radius:12px;background:var(--cc-ux-surface-2,#f4f6fa);border:1px solid var(--cc-ux-border,#dbe1e8);margin-bottom:14px}
+.cc-global-design-pro .cc-gd-hero-score{display:flex;align-items:baseline;gap:4px}
+.cc-global-design-pro .cc-gd-hero-score strong{font-size:34px;font-weight:800;line-height:1;color:var(--cc-ux-text,#111827)}
+.cc-global-design-pro .cc-gd-hero-score small{font-size:13px;color:var(--cc-ux-text-muted,#6b7280)}
+.cc-global-design-pro .cc-gd-hero-copy{display:flex;flex-direction:column;gap:2px;flex:1;min-width:0}
+.cc-global-design-pro .cc-gd-hero-copy strong{font-size:14px;font-weight:700}
+.cc-global-design-pro .cc-gd-hero-copy small{font-size:12.5px;color:var(--cc-ux-text-muted,#6b7280)}
+.cc-global-design-pro .cc-gd-hero-cta{flex:none;padding:8px 14px;border-radius:8px;border:1px solid var(--cc-ux-border,#dbe1e8);background:#fff;font-weight:600;font-size:12.5px;cursor:pointer}
+.cc-global-design-pro .cc-gd-hero-cta:hover{background:var(--cc-ux-surface-2,#f4f6fa)}
+.cc-global-design-pro .cc-gd-card{border:1px solid var(--cc-ux-border,#dbe1e8);border-radius:12px;padding:16px;margin-bottom:12px;background:#fff}
+.cc-global-design-pro .cc-gd-card.is-advanced{background:var(--cc-ux-surface-2,#f4f6fa)}
+.cc-global-design-pro .cc-gd-swatches{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.cc-global-design-pro .cc-gd-swatches i{width:28px;height:28px;border-radius:50%;border:1px solid rgba(0,0,0,.12);display:block}
+.cc-global-design-pro .cc-gd-contrast{list-style:none;margin:12px 0 0;padding:0;display:flex;flex-direction:column;gap:6px}
+.cc-global-design-pro .cc-gd-contrast li{display:grid;grid-template-columns:1fr auto auto;align-items:center;gap:10px;padding:8px 10px;border-radius:8px;background:var(--cc-ux-surface-2,#f4f6fa);font-size:12.5px}
+.cc-global-design-pro .cc-gd-contrast li b{font-variant-numeric:tabular-nums;font-weight:600}
+/* Status is carried by the label text as well as colour, so it survives for
+   users who cannot distinguish the hues. */
+.cc-global-design-pro .cc-gd-contrast li small{font-weight:700;padding:2px 8px;border-radius:999px}
+.cc-global-design-pro .cc-gd-contrast li.is-pass small{background:#dcfce7;color:#14532d}
+.cc-global-design-pro .cc-gd-contrast li.is-warn small{background:#fef3c7;color:#78350f}
+.cc-global-design-pro .cc-gd-contrast li.is-fail small{background:#fee2e2;color:#7f1d1d}
+.cc-global-design-pro .cc-gd-contrast li.is-unknown small{background:#e5e7eb;color:#374151}
+.cc-global-design-pro .cc-gd-contrast.is-compact li{background:transparent;padding:4px 0}
+.cc-global-design-pro .cc-gd-more{display:flex;flex-direction:column}
+.cc-global-design-pro :focus-visible{outline:2px solid var(--cc-ux-accent,#635bff);outline-offset:2px}
+@media (prefers-reduced-motion: reduce){
+ .cc-global-design-pro *{animation-duration:.001s!important;transition-duration:.001s!important}
+}

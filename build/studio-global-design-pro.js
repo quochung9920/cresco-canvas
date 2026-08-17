@@ -8,7 +8,7 @@ var S={settings:null,saved:null,session:null,host:null,panel:null,tab:'overview'
 var COLOR=[['primary','Primary','Main actions, links and active states'],['text','Text','Primary readable text'],['muted','Muted','Secondary copy and labels'],['background','Background','Default page and surface color']];
 var TYPE=[['h1','H1','A healthier, drier home starts here'],['h2','H2','From diagnosis to a lasting fix'],['h3','H3','Mould cleaning & remediation'],['h4','H4','Professional survey process'],['h5','H5','What we check'],['h6','H6','Coverage area'],['fontBase','Body','Professional damp and mould treatment for healthier homes.'],['fontSm','Small','Response within 24 hours'],['fontXs','Caption','Fully insured & accredited']];
 var SPACE=[['space2xs','2XS'],['spaceXs','XS'],['spaceSm','SM'],['spaceMd','MD'],['spaceLg','LG'],['spaceXl','XL'],['space2xl','2XL'],['space3xl','3XL'],['sectionBlock','Section'],['containerGutter','Gutter'],['gridGap','Grid gap']];
-var TABS=[['overview','Overview'],['colors','Colors'],['typography','Typography'],['spacing','Spacing'],['layout','Shape & Layout'],['usage','Usage'],['advanced','Advanced']];
+var TABS=[['overview','Overview'],['colors','Colors'],['typography','Typography'],['layout','Layout'],['more','More']];var LEGACY_TABS={spacing:'layout',usage:'more',advanced:'more'};
 var TYPE_PRESETS={
  compact:{fontXs:'0.75rem',fontSm:'0.8125rem',fontBase:'clamp(0.9375rem,0.9rem + .14vw,1rem)',fontLg:'1.125rem',fontXl:'1.25rem',h1:'clamp(2rem,1.45rem + 2.2vw,3.75rem)',h2:'clamp(1.75rem,1.35rem + 1.45vw,2.75rem)',h3:'clamp(1.375rem,1.12rem + .9vw,2rem)',h4:'1.375rem',h5:'1.125rem',h6:'1rem'},
  balanced:{fontXs:'clamp(.75rem,.72rem + .12vw,.8125rem)',fontSm:'clamp(.875rem,.84rem + .15vw,.9375rem)',fontBase:'clamp(1rem,.95rem + .2vw,1.125rem)',fontLg:'clamp(1.125rem,1.04rem + .35vw,1.3125rem)',fontXl:'clamp(1.25rem,1.12rem + .55vw,1.625rem)',h1:'clamp(2.25rem,1.45rem + 3.1vw,4.75rem)',h2:'clamp(1.875rem,1.35rem + 2vw,3.375rem)',h3:'clamp(1.5rem,1.15rem + 1.35vw,2.5rem)',h4:'clamp(1.25rem,1.05rem + .85vw,1.875rem)',h5:'clamp(1.125rem,1rem + .5vw,1.5rem)',h6:'clamp(1rem,.94rem + .25vw,1.1875rem)'},
@@ -46,7 +46,125 @@ function spacing(){var f=S.settings.fluidTokens;return '<section class="cc-gd-se
 function layout(){var f=S.settings.fluidTokens,b=S.settings.breakpoints;return '<section class="cc-gd-section"><div class="cc-gd-head"><div><strong>Radius</strong><small>Shape personality across cards and controls</small></div></div><div class="cc-gd-radius-presets"><button data-radius="0" style="border-radius:0">0</button><button data-radius="6" style="border-radius:6px">6</button><button data-radius="12" style="border-radius:12px">12</button><button data-radius="20" style="border-radius:20px">20</button></div><label class="cc-gd-field"><span>Base radius</span><input type="number" data-number="radius" value="'+esc(S.settings.radius)+'"></label>'+[['radiusSm','Small'],['radiusMd','Medium'],['radiusLg','Large']].map(function(r){return '<label class="cc-gd-field"><span>'+r[1]+'</span><input data-fluid="'+r[0]+'" value="'+esc(f[r[0]])+'"></label>'}).join('')+'</section><section class="cc-gd-section"><div class="cc-gd-head"><div><strong>Content widths</strong><small>Global layout boundaries</small></div></div><div class="cc-gd-two"><label class="cc-gd-field"><span>Container max</span><input type="number" data-number="containerMax" value="'+S.settings.containerMax+'"></label><label class="cc-gd-field"><span>Content max</span><input type="number" data-number="contentMax" value="'+S.settings.contentMax+'"></label></div></section><section class="cc-gd-section"><div class="cc-gd-head"><div><strong>Breakpoints</strong><small>Responsive thresholds used across Studio</small></div></div><div class="cc-gd-breakpoints">'+['mobile','tablet','laptop','desktop','wide'].map(function(k){return '<label><span>'+k+'</span><div><input type="number" data-breakpoint="'+k+'" value="'+esc(b[k])+'"><b>px</b></div></label>'}).join('')+'</div></section>'}
 function usage(a){var c=catalog(S.settings),q=S.query.toLowerCase(),ts=tokens(c).filter(function(t){return !q||(t.path+' '+t.value).toLowerCase().indexOf(q)>=0}),raw=Object.keys(a.raw);return health(a)+'<section class="cc-gd-section"><div class="cc-gd-head"><div><strong>Token usage</strong><small>Find where the design system is carrying the page</small></div></div><input type="search" data-usage-search value="'+esc(S.query)+'" placeholder="Search tokens"><div class="cc-gd-token-usage">'+ts.map(function(t){return '<button data-copy="'+esc(t.path)+'"><span><strong>'+esc(t.path)+'</strong><small>'+esc(t.value)+'</small></span><b>'+(a.usage[t.path]||0)+'</b></button>'}).join('')+'</div></section><section class="cc-gd-section"><div class="cc-gd-head"><div><strong>Literal colors</strong><small>Values bypassing reusable tokens</small></div></div>'+(raw.length?'<div class="cc-gd-literals">'+raw.map(function(v){return '<div><i style="background:'+esc(v)+'"></i><code>'+esc(v)+'</code><b>'+a.raw[v]+' uses</b></div>'}).join('')+'</div>':'<div class="cc-gd-success"><span class="dashicons dashicons-yes-alt"></span><span><strong>No literal colors detected</strong><small>Color usage is token-friendly.</small></span></div>')+'</section><div class="cc-gd-summary"><div><small>Spacing values</small><strong>'+Object.keys(a.spaces).length+'</strong><span>Unique</span></div><div><small>Radii</small><strong>'+Object.keys(a.radii).length+'</strong><span>Unique</span></div><div><small>Custom CSS</small><strong>'+a.css+'</strong><span>Widgets</span></div><div><small>Token refs</small><strong>'+a.refs+'</strong><span>Document</span></div></div>'}
 function advanced(){var json=JSON.stringify(S.settings,null,2);return '<section class="cc-gd-section"><div class="cc-gd-head"><div><strong>Token Explorer</strong><small>Technical paths for developer workflows</small></div></div><div class="cc-gd-explorer">'+tokens(catalog(S.settings)).map(function(t){return '<button data-copy="'+esc(t.path)+'"><code>'+esc(t.path)+'</code><span>'+esc(t.value)+'</span></button>'}).join('')+'</div></section><section class="cc-gd-section"><div class="cc-gd-head"><div><strong>Import & export</strong><small>Portable Cresco Global Design settings</small></div></div><div class="cc-gd-actions"><button data-export>Export JSON</button><label class="cc-studio-button">Import JSON<input type="file" accept="application/json,.json" data-import hidden></label><button class="is-danger" data-reset>Reset defaults</button></div><details class="cc-gd-json"><summary>View settings JSON</summary><textarea readonly rows="18">'+esc(json)+'</textarea></details></section>'}
-function draw(){if(!S.host||!S.settings)return;var a=audit(),content=S.tab==='overview'?overview(a):S.tab==='colors'?colors(a):S.tab==='typography'?typography():S.tab==='spacing'?spacing():S.tab==='layout'?layout():S.tab==='usage'?usage(a):advanced();S.host.innerHTML='<div class="cc-gd-shell"><nav class="cc-gd-tabs">'+TABS.map(function(t){return '<button data-tab="'+t[0]+'" class="'+(S.tab===t[0]?'is-active':'')+'">'+t[1]+'</button>'}).join('')+'</nav><main class="cc-gd-main">'+content+'</main><footer class="cc-gd-footer"><div><i class="cc-gd-status-dot '+(S.dirty?'is-dirty':'')+'"></i><span>'+(S.dirty?'Unsaved Global Design changes':'Global Design is saved')+'</span></div><div><button data-discard '+(!S.dirty?'disabled':'')+'>Discard</button><button class="is-primary" data-save '+(!S.dirty||S.busy?'disabled':'')+'>'+(S.busy?'Saving…':'Save globally')+'</button></div></footer></div>';bind()}
+
+/* WCAG relative luminance. Returns null rather than guessing when the value is
+   not a form we can resolve exactly — an invented ratio is worse than none. */
+function rgbOf(value){
+ var v=String(value||'').trim();
+ var m=v.match(/^#([0-9a-f]{3,8})$/i);
+ if(m){var h=m[1];
+  if(h.length===3||h.length===4)h=h.slice(0,3).split('').map(function(c){return c+c}).join('');
+  if(h.length===8)h=h.slice(0,6);
+  if(h.length!==6)return null;
+  return [parseInt(h.slice(0,2),16),parseInt(h.slice(2,4),16),parseInt(h.slice(4,6),16)];}
+ m=v.match(/^rgba?\(\s*([0-9.]+)\s*[, ]\s*([0-9.]+)\s*[, ]\s*([0-9.]+)/i);
+ if(m)return [Math.round(+m[1]),Math.round(+m[2]),Math.round(+m[3])];
+ return null;
+}
+function luminance(rgb){
+ var c=rgb.map(function(x){x=x/255;return x<=0.03928?x/12.92:Math.pow((x+0.055)/1.055,2.4)});
+ return 0.2126*c[0]+0.7152*c[1]+0.0722*c[2];
+}
+function contrastRatio(a,b){
+ var x=rgbOf(a),y=rgbOf(b);
+ if(!x||!y)return null;
+ var l1=luminance(x),l2=luminance(y);
+ return (Math.max(l1,l2)+0.05)/(Math.min(l1,l2)+0.05);
+}
+function wcagLevel(ratio,large){
+ if(ratio===null)return {label:'Unable to evaluate',cls:'is-unknown'};
+ if(ratio>=7)return {label:'AAA',cls:'is-pass'};
+ if(ratio>=4.5)return {label:'AA',cls:'is-pass'};
+ if(ratio>=3)return {label:large?'AA Large':'AA Large only',cls:'is-warn'};
+ return {label:'Fail',cls:'is-fail'};
+}
+function contrastRow(label,fg,bg,large){
+ var r=contrastRatio(fg,bg),lv=wcagLevel(r,large);
+ return '<li class="'+lv.cls+'"><span>'+esc(label)+'</span><b>'+(r===null?'—':r.toFixed(2)+' : 1')+'</b><small>'+esc(lv.label)+'</small></li>';
+}
+/* Every combination the semantic palette actually promises to produce. */
+function contrastPairs(){
+ var c=S.settings;
+ return [
+  ['Text on Background',c.text,c.background,false],
+  ['Muted on Background',c.muted,c.background,false],
+  ['Primary on Background',c.primary,c.background,false],
+  ['White on Primary','#ffffff',c.primary,false],
+  ['Black on Primary','#000000',c.primary,false]
+ ];
+}
+function contrastFailures(){
+ return contrastPairs().filter(function(p){
+  var r=contrastRatio(p[1],p[2]);
+  return r!==null&&r<4.5;
+ });
+}
+function contrastPanel(){
+ return '<section class="cc-gd-section"><div class="cc-gd-head"><div><strong>Accessibility</strong>'+
+  '<small>Contrast of the combinations this palette produces</small></div></div>'+
+  '<ul class="cc-gd-contrast">'+contrastPairs().map(function(p){return contrastRow(p[0],p[1],p[2],p[3])}).join('')+'</ul></section>';
+}
+
+function healthBand(score){
+ if(score>=90)return 'Excellent consistency';
+ if(score>=75)return 'Good, with room to tighten';
+ if(score>=55)return 'Inconsistent in places';
+ return 'Needs attention';
+}
+function overviewPro(a){
+ var c=catalog(S.settings),score=(a&&typeof a.score==='number')?a.score:100;
+ var recs=(a&&a.issues&&a.issues.length)||0;
+ var fails=contrastFailures().length;
+ var custom=(S.settings.customColors||[]).length;
+ return ''+
+ '<section class="cc-gd-hero">'+
+  '<div class="cc-gd-hero-score"><strong>'+score+'</strong><small>/ 100</small></div>'+
+  '<div class="cc-gd-hero-copy"><strong>Design System</strong><small>'+esc(healthBand(score))+'</small></div>'+
+  (recs?'<button class="cc-gd-hero-cta" data-tab="more">Review '+recs+' recommendation'+(recs===1?'':'s')+'</button>':'')+
+ '</section>'+
+
+ '<section class="cc-gd-card"><div class="cc-gd-head"><div><strong>Colors</strong>'+
+  '<small>'+(COLOR.length+custom)+' reusable color'+((COLOR.length+custom)===1?'':'s')+'</small></div>'+
+  '<button data-tab="colors">Edit</button></div>'+
+  '<div class="cc-gd-swatches">'+COLOR.map(function(f){
+    return '<i style="background:'+esc(S.settings[f[0]])+'" title="'+esc(f[1])+'"></i>'}).join('')+
+   (S.settings.customColors||[]).slice(0,4).map(function(cc){
+    return '<i style="background:'+esc(cc.value||'#ffffff')+'" title="'+esc(cc.label||cc.key||'')+'"></i>'}).join('')+
+  '</div></section>'+
+
+ '<section class="cc-gd-card"><div class="cc-gd-head"><div><strong>Typography</strong>'+
+  '<small>'+esc(String(S.settings.fontFamily).split(',')[0].replace(/["\']/g,''))+'</small></div>'+
+  '<button data-tab="typography">Edit</button></div>'+
+  '<div class="cc-gd-type-preview" style="font-family:'+esc(S.settings.fontFamily)+'">'+
+   '<strong style="font-size:'+esc(c.typography.sizes.h3)+'">Aa Build better websites</strong>'+
+   '<p style="font-size:'+esc(c.typography.sizes.base)+'">Clear hierarchy and reusable type tokens.</p></div></section>'+
+
+ '<section class="cc-gd-card"><div class="cc-gd-head"><div><strong>Layout</strong>'+
+  '<small>'+esc(S.settings.radius)+'px radius · '+esc(S.settings.contentMax)+'px content</small></div>'+
+  '<button data-tab="layout">Edit</button></div>'+
+  '<div class="cc-gd-bars">'+['2xs','xs','sm','md','lg','xl','2xl'].map(function(k,i){
+   return '<i style="width:'+(18+i*13)+'px" title="'+esc(k)+'"></i>'}).join('')+'</div></section>'+
+
+ '<section class="cc-gd-card"><div class="cc-gd-head"><div><strong>Accessibility</strong>'+
+  '<small>'+(fails?fails+' combination'+(fails===1?'':'s')+' below AA':'All key combinations pass')+'</small></div>'+
+  '<button data-tab="colors">Review</button></div>'+
+  '<ul class="cc-gd-contrast is-compact">'+contrastPairs().slice(0,3).map(function(p){
+    return contrastRow(p[0],p[1],p[2],p[3])}).join('')+'</ul></section>';
+}
+
+/* Spacing, radius, widths and breakpoints are one decision surface for a user,
+   even though they are four groups of tokens underneath. */
+function layoutAll(){return spacing()+layout()}
+function morePanel(a){
+ return '<div class="cc-gd-more">'+
+  '<section class="cc-gd-card"><div class="cc-gd-head"><div><strong>Usage &amp; Health</strong>'+
+   '<small>Where tokens are used, and what is inconsistent</small></div></div></section>'+
+  usage(a)+
+  '<section class="cc-gd-card is-advanced"><div class="cc-gd-head"><div><strong>Advanced</strong>'+
+   '<small>Token explorer, aliases, raw JSON, import, export and reset</small></div></div></section>'+
+  advanced()+'</div>';
+}
+function draw(){if(!S.host||!S.settings)return;if(LEGACY_TABS[S.tab])S.tab=LEGACY_TABS[S.tab];var a=audit(),content=S.tab==='overview'?overviewPro(a):S.tab==='colors'?(colors(a)+contrastPanel()):S.tab==='typography'?typography():S.tab==='layout'?layoutAll():S.tab==='more'?morePanel(a):overviewPro(a);S.host.innerHTML='<div class="cc-gd-shell"><nav class="cc-gd-tabs">'+TABS.map(function(t){return '<button data-tab="'+t[0]+'" class="'+(S.tab===t[0]?'is-active':'')+'">'+t[1]+'</button>'}).join('')+'</nav><main class="cc-gd-main">'+content+'</main><footer class="cc-gd-footer"><div><i class="cc-gd-status-dot '+(S.dirty?'is-dirty':'')+'"></i><span>'+(S.dirty?'Unsaved Global Design changes':'Global Design is saved')+'</span></div><div><button data-discard '+(!S.dirty?'disabled':'')+'>Discard</button><button class="is-primary" data-save '+(!S.dirty||S.busy?'disabled':'')+'>'+(S.busy?'Saving…':'Save globally')+'</button></div></footer></div>';bind()}
 function copy(path){var v='{'+path+'}';if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(v);toast('Copied '+v,'success')}
 function bind(){if(!S.host)return;S.host.querySelectorAll('[data-tab]').forEach(function(n){n.onclick=function(){S.tab=this.dataset.tab;draw()}});S.host.querySelectorAll('[data-bind]').forEach(function(n){n.oninput=function(){change(this.dataset.bind,this.value)}});S.host.querySelectorAll('[data-number]').forEach(function(n){n.onchange=function(){var v=parseInt(this.value,10);if(!isNaN(v))change(this.dataset.number,v)}});S.host.querySelectorAll('[data-fluid]').forEach(function(n){n.onchange=function(){S.settings.fluidTokens[this.dataset.fluid]=this.value;mark(false)}});S.host.querySelectorAll('[data-breakpoint]').forEach(function(n){n.onchange=function(){var v=parseInt(this.value,10);if(!isNaN(v)){S.settings.breakpoints[this.dataset.breakpoint]=v;mark(false)}}});S.host.querySelectorAll('[data-type]').forEach(function(n){n.onclick=function(){preset('type',this.dataset.type)}});S.host.querySelectorAll('[data-space]').forEach(function(n){n.onclick=function(){preset('space',this.dataset.space)}});S.host.querySelectorAll('[data-radius]').forEach(function(n){n.onclick=function(){S.settings.radius=parseInt(this.dataset.radius,10);mark(true)}});S.host.querySelectorAll('[data-copy]').forEach(function(n){n.onclick=function(){copy(this.dataset.copy)}});S.host.querySelectorAll('[data-remove-color]').forEach(function(n){n.onclick=function(){delete S.settings.customColors[this.dataset.removeColor];mark(true)}});S.host.querySelectorAll('[data-remove-alias]').forEach(function(n){n.onclick=function(){delete S.settings.aliases[this.dataset.removeAlias];mark(true)}});var ac=S.host.querySelector('[data-add-color]');if(ac)ac.onclick=function(){var k=S.host.querySelector('[data-color-name]'),v=S.host.querySelector('[data-color-value]'),slug=String(k.value||'').toLowerCase().replace(/[^a-z0-9_-]+/g,'-').replace(/^-+|-+$/g,'');if(!slug||!/^(?:#[0-9a-f]{3,8}|rgba?\(|hsla?\(|oklch\()/i.test(v.value)){toast('Enter a valid color name and value.','warning');return}S.settings.customColors[slug]=v.value;mark(true)};var aa=S.host.querySelector('[data-add-alias]');if(aa)aa.onclick=function(){var k=S.host.querySelector('[data-alias-name]'),v=S.host.querySelector('[data-alias-target]'),slug=String(k.value||'').toLowerCase().replace(/[^a-z0-9_-]+/g,'-').replace(/^-+|-+$/g,'');if(!slug||!v.value){toast('Enter an alias name and target.','warning');return}S.settings.aliases[slug]=v.value;mark(true)};var sv=S.host.querySelector('[data-save]');if(sv)sv.onclick=save;var ds=S.host.querySelector('[data-discard]');if(ds)ds.onclick=function(){S.settings=clone(S.saved);S.dirty=false;draw();preview()};var q=S.host.querySelector('[data-usage-search]');if(q)q.oninput=function(){S.query=this.value;clearTimeout(q._t);q._t=setTimeout(draw,120)};var ex=S.host.querySelector('[data-export]');if(ex)ex.onclick=exportJson;var im=S.host.querySelector('[data-import]');if(im)im.onchange=function(){importJson(this.files&&this.files[0]);this.value=''};var rs=S.host.querySelector('[data-reset]');if(rs)rs.onclick=reset}
 function save(){if(!S.dirty||S.busy)return;S.busy=true;draw();api(cfg.settingsPath,{method:'POST',data:S.settings}).then(function(r){S.settings=shape(r);S.saved=clone(S.settings);S.dirty=false;toast('Global Design saved across the website.','success');preview()},function(e){toast(String(e&&e.message||e),'error')}).finally(function(){S.busy=false;draw()})}
