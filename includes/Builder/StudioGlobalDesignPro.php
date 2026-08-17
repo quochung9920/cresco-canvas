@@ -17,17 +17,19 @@ if ( ! defined( 'ABSPATH' ) ) {
  * second persistence model.
  */
 final class StudioGlobalDesignPro {
-	const HANDLE                = 'cresco-canvas-studio-global-design-pro';
-	const SCRIPT                = 'build/studio-global-design-pro.js';
-	const STYLE                 = 'assets/css/studio-global-design-pro.css';
-	const WORKFLOW_GUARD_HANDLE = 'cresco-canvas-studio-global-design-workflows-guard';
-	const WORKFLOW_GUARD_SCRIPT = 'build/studio-global-design-workflows-guard.js';
-	const WORKFLOW_HANDLE       = 'cresco-canvas-studio-global-design-workflows';
-	const WORKFLOW_SCRIPT       = 'build/studio-global-design-workflows.js';
-	const WORKFLOW_STYLE        = 'assets/css/studio-global-design-workflows.css';
-	const COMPACT_HANDLE        = 'cresco-canvas-studio-global-design-compact';
-	const COMPACT_SCRIPT        = 'build/studio-global-design-compact.js';
-	const COMPACT_STYLE         = 'assets/css/studio-global-design-compact.css';
+	const HANDLE                 = 'cresco-canvas-studio-global-design-pro';
+	const SCRIPT                 = 'build/studio-global-design-pro.js';
+	const STYLE                  = 'assets/css/studio-global-design-pro.css';
+	const WORKFLOW_GUARD_HANDLE  = 'cresco-canvas-studio-global-design-workflows-guard';
+	const WORKFLOW_GUARD_SCRIPT  = 'build/studio-global-design-workflows-guard.js';
+	const WORKFLOW_HANDLE        = 'cresco-canvas-studio-global-design-workflows';
+	const WORKFLOW_SCRIPT        = 'build/studio-global-design-workflows.js';
+	const WORKFLOW_STYLE         = 'assets/css/studio-global-design-workflows.css';
+	const COMPACT_HANDLE         = 'cresco-canvas-studio-global-design-compact';
+	const COMPACT_SCRIPT         = 'build/studio-global-design-compact.js';
+	const COMPACT_STYLE          = 'assets/css/studio-global-design-compact.css';
+	const FONT_SEARCH_FIX_HANDLE = 'cresco-canvas-studio-global-design-font-search-fix';
+	const FONT_SEARCH_FIX_STYLE  = 'assets/css/studio-global-design-font-search-fix.css';
 
 	public function register() {
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue' ), 1430 );
@@ -41,6 +43,7 @@ final class StudioGlobalDesignPro {
 		if ( ! WebsiteBuilderAsset::readable( self::WORKFLOW_GUARD_SCRIPT ) ) return;
 		if ( ! WebsiteBuilderAsset::readable( self::WORKFLOW_SCRIPT ) || ! WebsiteBuilderAsset::readable( self::WORKFLOW_STYLE ) ) return;
 		if ( ! WebsiteBuilderAsset::readable( self::COMPACT_SCRIPT ) || ! WebsiteBuilderAsset::readable( self::COMPACT_STYLE ) ) return;
+		if ( ! WebsiteBuilderAsset::readable( self::FONT_SEARCH_FIX_STYLE ) ) return;
 
 		$style_deps = array( 'cresco-canvas-website-builder-studio' );
 		if ( wp_style_is( StudioUxPro::HANDLE, 'enqueued' ) ) $style_deps[] = StudioUxPro::HANDLE;
@@ -63,6 +66,12 @@ final class StudioGlobalDesignPro {
 			WebsiteBuilderAsset::url( self::COMPACT_STYLE ),
 			array( self::WORKFLOW_HANDLE ),
 			WebsiteBuilderAsset::version( self::COMPACT_STYLE )
+		);
+		wp_enqueue_style(
+			self::FONT_SEARCH_FIX_HANDLE,
+			WebsiteBuilderAsset::url( self::FONT_SEARCH_FIX_STYLE ),
+			array( self::COMPACT_HANDLE ),
+			WebsiteBuilderAsset::version( self::FONT_SEARCH_FIX_STYLE )
 		);
 
 		wp_enqueue_script(
