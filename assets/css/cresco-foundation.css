@@ -21,7 +21,7 @@
  * Migrate one file at a time; nothing needs to move at once.
  */
 
-@layer cresco.base, cresco.tokens, cresco.components, cresco.theme, cresco.overrides;
+@layer cresco.base, cresco.tokens, cresco.components, cresco.theme, cresco.overrides, cresco.motion;
 
 /**
  * cresco.tokens sits after cresco.base so canonical values take over from a
@@ -75,10 +75,21 @@
 		--cc-focus-ring-width: 2px;
 		--cc-focus-ring-offset: 2px;
 
-		/* Motion. Honours the reduced-motion block at the end of this file. */
-		--cc-motion-fast: 120ms;
+		/*
+		 * Motion. Keep timing centralized so every Studio surface feels like the
+		 * same product. The final cresco.motion layer owns interaction timing and
+		 * micro-motion; component layers continue to own appearance and layout.
+		 */
+		--cc-motion-instant: 90ms;
+		--cc-motion-fast: 140ms;
 		--cc-motion-base: 200ms;
-		--cc-motion-ease: cubic-bezier(0.2, 0, 0.13, 1.5);
+		--cc-motion-slow: 280ms;
+		--cc-motion-ease-standard: cubic-bezier(0.2, 0, 0, 1);
+		--cc-motion-ease-enter: cubic-bezier(0, 0, 0.2, 1);
+		--cc-motion-ease-exit: cubic-bezier(0.4, 0, 1, 1);
+		--cc-motion-ease-emphasized: cubic-bezier(0.2, 0.8, 0.2, 1);
+		--cc-motion-ease: var(--cc-motion-ease-standard);
+		--cc-motion-press-scale: 0.98;
 
 		/* Alias: bare set, previously defined dark by website-builder-studio.css
 		   and redefined light by website-builder-ui-correction.css. */
@@ -229,6 +240,124 @@
 		border-radius: var(--cc-radius-sm);
 		outline: var(--cc-focus-ring-width) solid var(--cc-focus-ring-color);
 		outline-offset: var(--cc-focus-ring-offset);
+	}
+}
+
+/**
+ * Canonical Studio micro-motion.
+ *
+ * This final layer owns timing and interaction feedback only. It deliberately
+ * avoids layout and semantic colors. Generic chrome selectors exclude rendered
+ * site content inside .cc-studio-canvas; explicit canvas-node selectors animate
+ * only editor selection chrome around that content.
+ */
+@layer cresco.motion {
+
+	.cc-studio-app :where(button, .cc-studio-button, [role="button"], [role="tab"], a[href], summary):not(.cc-studio-canvas *),
+	.cc-studio-app :where(.cc-studio-tree-select, .cc-studio-tree-toggle) {
+		scale: 1;
+		transition-property: background-color, border-color, color, box-shadow, opacity, filter, scale;
+		transition-duration: var(--cc-motion-fast);
+		transition-timing-function: var(--cc-motion-ease-standard);
+	}
+
+	.cc-studio-app :where(button, .cc-studio-button, [role="button"], [role="tab"], a[href], summary):not(.cc-studio-canvas *):not(:disabled):not([aria-disabled="true"]):active,
+	.cc-studio-app :where(.cc-studio-tree-select, .cc-studio-tree-toggle):active {
+		scale: var(--cc-motion-press-scale);
+		transition-duration: var(--cc-motion-instant);
+	}
+
+	.cc-studio-app :where(input, select, textarea, .cc-studio-search):not(.cc-studio-canvas *) {
+		transition-property: background-color, border-color, color, box-shadow, opacity;
+		transition-duration: var(--cc-motion-fast);
+		transition-timing-function: var(--cc-motion-ease-standard);
+	}
+
+	.cc-studio-app :where(
+		.cc-studio-card,
+		.cc-studio-tree-row,
+		.cc-studio-device-toolbar,
+		.cc-studio-state-tabs,
+		.cc-studio-inspector-tabs,
+		.cc-studio-property-device,
+		.cc-studio-frame,
+		.cc-studio-extension-section,
+		.cc-studio-settings-section
+	) {
+		transition-property: background-color, border-color, color, box-shadow, opacity, filter, transform;
+		transition-duration: var(--cc-motion-base);
+		transition-timing-function: var(--cc-motion-ease-standard);
+	}
+
+	.cc-studio-canvas-node {
+		transition-property: background-color, border-color, outline-color, box-shadow, opacity, filter;
+		transition-duration: var(--cc-motion-fast);
+		transition-timing-function: var(--cc-motion-ease-standard);
+	}
+
+	.cc-studio-app :where(.cc-studio-context-menu, .cc-studio-command-dialog, .cc-studio-canvas-toolbar, .cc-studio-tree-actions) {
+		animation: cc-motion-popover-in var(--cc-motion-base) var(--cc-motion-ease-enter) both;
+		transform-origin: top center;
+	}
+
+	.cc-studio-command-overlay {
+		animation: cc-motion-fade-in var(--cc-motion-fast) var(--cc-motion-ease-enter) both;
+	}
+
+	.cc-studio-app :where(.cc-studio-notice, .cc-studio-toast) {
+		animation: cc-motion-notice-in var(--cc-motion-base) var(--cc-motion-ease-enter) both;
+	}
+
+	.cc-studio-left details[open] > :not(summary),
+	.cc-studio-structure details[open] > :not(summary),
+	.cc-studio-panel details[open] > :not(summary) {
+		animation: cc-motion-reveal var(--cc-motion-base) var(--cc-motion-ease-enter) both;
+	}
+
+	@keyframes cc-motion-popover-in {
+		from {
+			opacity: 0;
+			transform: translateY(-4px) scale(0.985);
+		}
+
+		to {
+			opacity: 1;
+			transform: translateY(0) scale(1);
+		}
+	}
+
+	@keyframes cc-motion-fade-in {
+		from {
+			opacity: 0;
+		}
+
+		to {
+			opacity: 1;
+		}
+	}
+
+	@keyframes cc-motion-notice-in {
+		from {
+			opacity: 0;
+			transform: translateY(6px);
+		}
+
+		to {
+			opacity: 1;
+			transform: translateY(0);
+		}
+	}
+
+	@keyframes cc-motion-reveal {
+		from {
+			opacity: 0;
+			transform: translateY(-3px);
+		}
+
+		to {
+			opacity: 1;
+			transform: translateY(0);
+		}
 	}
 }
 

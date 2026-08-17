@@ -41,6 +41,7 @@
 		"check:studio": "node scripts/check-studio-experience.mjs",
 		"check:studio-ui": "node scripts/check-studio-ui-correction.mjs",
 		"check:studio-premium": "node scripts/check-studio-premium-polish.mjs",
+		"check:studio-motion": "node scripts/check-studio-motion.mjs",
 		"check:studio-unset-styles": "node scripts/check-studio-unset-styles.mjs",
 		"check:canonical-preview-owner": "node scripts/check-canonical-preview-owner.mjs",
 		"check:known-defects": "node scripts/check-known-defects.mjs",
@@ -48,7 +49,7 @@
 		"check:architecture": "node scripts/check-core-architecture.mjs",
 		"check:production-hardening": "node scripts/check-production-hardening.mjs",
 		"check:version": "node scripts/check-version.mjs && node scripts/check-stable-release.mjs",
-		"check:quality": "npm run check:hygiene && npm run lint:php && npm run lint:runtime && npm run check:editor-runtime && npm run check:website-builder && npm run check:startup-hardening && npm run check:runtime-modules && npm run check:studio && npm run check:studio-ui && npm run check:studio-premium && npm run check:studio-unset-styles && npm run check:canonical-preview-owner && npm run check:known-defects && npm run check:comprehensive-v3 && npm run check:architecture && npm run check:production-hardening && npm run check:i18n && npm run typecheck && npm run lint:js && npm run lint:css && npm run lint:md && npm run test:unit && npm run check:version",
+		"check:quality": "npm run check:hygiene && npm run lint:php && npm run lint:runtime && npm run check:editor-runtime && npm run check:website-builder && npm run check:startup-hardening && npm run check:runtime-modules && npm run check:studio && npm run check:studio-ui && npm run check:studio-premium && npm run check:studio-motion && npm run check:studio-unset-styles && npm run check:canonical-preview-owner && npm run check:known-defects && npm run check:comprehensive-v3 && npm run check:architecture && npm run check:production-hardening && npm run check:i18n && npm run typecheck && npm run lint:js && npm run lint:css && npm run lint:md && npm run test:unit && npm run check:version",
 		"check:commercial-readiness": "node scripts/commercial-readiness-verify.mjs",
 		"package": "npm run build && node scripts/build-release.mjs",
 		"package:verify": "node scripts/verify-package.mjs && node scripts/verify-reproducible-build.mjs"
