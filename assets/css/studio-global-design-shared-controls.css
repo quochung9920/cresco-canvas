@@ -2,17 +2,20 @@
 @layer cresco.overrides {
 .cc-global-design-pro.cc-gd-compact-controls .cc-gd-add .cc-gd-custom-color-picker{flex:0 0 34px;width:34px!important;height:32px!important;min-height:32px!important;padding:2px!important;border:1px solid var(--cc-color-border)!important;border-radius:7px!important;background:var(--cc-color-surface-raised)!important;cursor:pointer}
 .cc-global-design-pro.cc-gd-compact-controls .cc-gd-add input[data-color-value]{min-width:0;flex:1 1 92px}
-.cc-global-design-pro.cc-gd-compact-controls .cc-gd-dimension-picker,
-.cc-global-design-pro.cc-gd-compact-controls .cc-gd-number-picker{display:grid;gap:4px;min-width:0;width:100%}
-.cc-global-design-pro.cc-gd-compact-controls .cc-gd-dimension-select{width:100%;min-width:0;height:30px!important;min-height:30px!important;padding:4px 24px 4px 7px!important;font-size:9px!important}
-.cc-global-design-pro.cc-gd-compact-controls .cc-gd-dimension-custom,
-.cc-global-design-pro.cc-gd-compact-controls .cc-gd-number-picker>input{height:30px!important;min-height:30px!important;font-family:ui-monospace,SFMono-Regular,Menlo,monospace!important;font-size:8.7px!important}
-.cc-global-design-pro.cc-gd-compact-controls .cc-gd-dimension-custom[hidden],
-.cc-global-design-pro.cc-gd-compact-controls .cc-gd-number-picker>input[hidden]{display:none!important}
-.cc-global-design-pro.cc-gd-compact-controls .cc-gd-space-list label:has(.cc-gd-dimension-picker){grid-template-columns:68px minmax(0,1fr)}
-.cc-global-design-pro.cc-gd-compact-controls .cc-gd-space-list label:has(.cc-gd-dimension-picker)>.cc-gd-dimension-picker{grid-column:2}
-.cc-global-design-pro.cc-gd-compact-controls .cc-gd-field:has(.cc-gd-dimension-picker),
-.cc-global-design-pro.cc-gd-compact-controls .cc-gd-field:has(.cc-gd-number-picker){align-items:stretch}
-.cc-global-design-pro.cc-gd-compact-controls .cc-gd-breakpoints label>div:has(.cc-gd-number-picker){display:grid;grid-template-columns:minmax(0,1fr) auto;gap:5px;align-items:center}
-.cc-global-design-pro.cc-gd-compact-controls .cc-gd-breakpoints .cc-gd-number-picker{grid-column:1}
+.cc-global-design-pro.cc-gd-compact-controls .cc-gd-unit-control{display:grid;grid-template-columns:minmax(0,1fr) 62px;gap:5px;align-items:center;min-width:0;width:100%}
+.cc-global-design-pro.cc-gd-compact-controls .cc-gd-unit-value,
+.cc-global-design-pro.cc-gd-compact-controls .cc-gd-unit-select{height:30px!important;min-height:30px!important;min-width:0!important}
+.cc-global-design-pro.cc-gd-compact-controls .cc-gd-unit-value{width:100%;padding:4px 7px!important}
+.cc-global-design-pro.cc-gd-compact-controls .cc-gd-unit-select{width:62px;padding:4px 22px 4px 7px!important;font-size:9px!important;text-transform:none}
+.cc-global-design-pro.cc-gd-compact-controls .cc-gd-unit-control.is-custom{grid-template-columns:minmax(0,1fr) 72px}
+.cc-global-design-pro.cc-gd-compact-controls .cc-gd-unit-control.is-custom .cc-gd-unit-value{font-family:ui-monospace,SFMono-Regular,Menlo,monospace!important;font-size:8.7px!important}
+.cc-global-design-pro.cc-gd-compact-controls .cc-gd-unit-source[hidden]{display:none!important}
+.cc-global-design-pro.cc-gd-compact-controls .cc-gd-control-row--type:has(.cc-gd-unit-control){grid-template-columns:52px minmax(0,1fr)}
+.cc-global-design-pro.cc-gd-compact-controls .cc-gd-control-row--type .cc-gd-unit-control{grid-column:2}
+.cc-global-design-pro.cc-gd-compact-controls .cc-gd-space-list label:has(.cc-gd-unit-control){grid-template-columns:68px minmax(0,1fr)}
+.cc-global-design-pro.cc-gd-compact-controls .cc-gd-space-list label:has(.cc-gd-unit-control)>.cc-gd-unit-control{grid-column:2}
+.cc-global-design-pro.cc-gd-compact-controls .cc-gd-field:has(.cc-gd-unit-control){align-items:stretch}
+.cc-global-design-pro.cc-gd-compact-controls .cc-gd-breakpoints label>div:has(.cc-gd-unit-control){display:block}
+.cc-global-design-pro.cc-gd-compact-controls .cc-gd-breakpoints label>div:has(.cc-gd-unit-control)>b{display:none}
+@media(max-width:860px){.cc-global-design-pro.cc-gd-compact-controls .cc-gd-control-row--type:has(.cc-gd-unit-control){grid-template-columns:46px minmax(0,1fr)}.cc-global-design-pro.cc-gd-compact-controls .cc-gd-unit-control{grid-template-columns:minmax(0,1fr) 58px}}
 }
