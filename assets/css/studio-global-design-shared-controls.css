@@ -12,10 +12,13 @@
 .cc-global-design-pro.cc-gd-compact-controls .cc-gd-unit-source[hidden]{display:none!important}
 .cc-global-design-pro.cc-gd-compact-controls .cc-gd-control-row--type:has(.cc-gd-unit-control){grid-template-columns:52px minmax(0,1fr)}
 .cc-global-design-pro.cc-gd-compact-controls .cc-gd-control-row--type .cc-gd-unit-control{grid-column:2}
-.cc-global-design-pro.cc-gd-compact-controls .cc-gd-space-list label:has(.cc-gd-unit-control){grid-template-columns:68px minmax(0,1fr)}
-.cc-global-design-pro.cc-gd-compact-controls .cc-gd-space-list label:has(.cc-gd-unit-control)>.cc-gd-unit-control{grid-column:2}
+.cc-global-design-pro.cc-gd-compact-controls .cc-gd-space-list label:has(.cc-gd-unit-control){grid-template-columns:68px minmax(0,1fr);align-items:center}
+.cc-global-design-pro.cc-gd-compact-controls .cc-gd-space-list label:has(.cc-gd-unit-control)>.cc-gd-unit-control{grid-column:2;grid-row:1}
+.cc-global-design-pro.cc-gd-compact-controls .cc-gd-space-list label:has(.cc-gd-unit-control)>.cc-gd-unit-control>.cc-gd-unit-value{grid-column:1!important;grid-row:1!important;width:100%!important}
+.cc-global-design-pro.cc-gd-compact-controls .cc-gd-space-list label:has(.cc-gd-unit-control)>.cc-gd-unit-control>.cc-gd-unit-select{grid-column:2!important;grid-row:1!important;width:62px!important}
+.cc-global-design-pro.cc-gd-compact-controls .cc-gd-space-list label:has(.cc-gd-unit-control)>.cc-gd-unit-control.is-custom>.cc-gd-unit-select{width:72px!important}
 .cc-global-design-pro.cc-gd-compact-controls .cc-gd-field:has(.cc-gd-unit-control){align-items:stretch}
 .cc-global-design-pro.cc-gd-compact-controls .cc-gd-breakpoints label>div:has(.cc-gd-unit-control){display:block}
 .cc-global-design-pro.cc-gd-compact-controls .cc-gd-breakpoints label>div:has(.cc-gd-unit-control)>b{display:none}
-@media(max-width:860px){.cc-global-design-pro.cc-gd-compact-controls .cc-gd-control-row--type:has(.cc-gd-unit-control){grid-template-columns:46px minmax(0,1fr)}.cc-global-design-pro.cc-gd-compact-controls .cc-gd-unit-control{grid-template-columns:minmax(0,1fr) 58px}}
+@media(max-width:860px){.cc-global-design-pro.cc-gd-compact-controls .cc-gd-control-row--type:has(.cc-gd-unit-control){grid-template-columns:46px minmax(0,1fr)}.cc-global-design-pro.cc-gd-compact-controls .cc-gd-unit-control{grid-template-columns:minmax(0,1fr) 58px}.cc-global-design-pro.cc-gd-compact-controls .cc-gd-space-list label:has(.cc-gd-unit-control)>.cc-gd-unit-control>.cc-gd-unit-select{width:58px!important}.cc-global-design-pro.cc-gd-compact-controls .cc-gd-space-list label:has(.cc-gd-unit-control)>.cc-gd-unit-control.is-custom>.cc-gd-unit-select{width:68px!important}}
 }
