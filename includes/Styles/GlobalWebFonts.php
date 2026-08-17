@@ -51,8 +51,12 @@ final class GlobalWebFonts {
 		);
 
 		$out = array();
+		$seen = array();
 		foreach ( $groups as $category => $families ) {
-			foreach ( array_values( array_unique( $families ) ) as $family ) {
+			foreach ( $families as $family ) {
+				$key = strtolower( $family );
+				if ( isset( $seen[ $key ] ) ) continue;
+				$seen[ $key ] = true;
 				$out[] = array(
 					'family'   => $family,
 					'category' => $category,
@@ -88,6 +92,8 @@ final class GlobalWebFonts {
 	}
 
 	public function enqueue_selected_font() {
+		$global_styles = new GlobalStyles();
+		if ( ! $global_styles->is_canvas_page() ) return;
 		$settings = GlobalStyles::get_settings();
 		$family = self::family_from_stack( $settings['fontFamily'] ?? '' );
 		$url = self::google_css_url( $family );
