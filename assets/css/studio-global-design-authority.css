@@ -1,0 +1,42 @@
+@layer cresco.overrides {
+#cresco-canvas-standalone-editor .cc-global-design-authority-status {
+ display:flex;
+ align-items:center;
+ gap:8px;
+ min-height:38px;
+ margin:0 10px 8px;
+ padding:8px 10px;
+ border:1px solid var(--cc-color-border,#e2e7ee);
+ border-radius:8px;
+ background:var(--cc-color-surface,#fff);
+ color:var(--cc-color-text-subtle,#667085);
+ font-size:12px;
+ line-height:1.35;
+}
+#cresco-canvas-standalone-editor .cc-global-design-authority-status .spinner {
+ float:none;
+ margin:0;
+ flex:0 0 20px;
+}
+#cresco-canvas-standalone-editor .cc-global-design-authority-status.is-error {
+ align-items:flex-start;
+ flex-wrap:wrap;
+ color:#b42318;
+ background:#fff7f6;
+ border-color:#fecdca;
+}
+#cresco-canvas-standalone-editor .cc-global-design-authority-status button {
+ min-height:28px;
+ margin-left:auto;
+ padding:4px 9px;
+ border:1px solid var(--cc-color-border,#d0d5dd);
+ border-radius:6px;
+ background:#fff;
+ color:var(--cc-color-text,#172033);
+ cursor:pointer;
+}
+#cresco-canvas-standalone-editor .cc-global-design-authority-status button:focus-visible {
+ outline:2px solid var(--cc-color-accent,#5b5cf6);
+ outline-offset:2px;
+}
+}
