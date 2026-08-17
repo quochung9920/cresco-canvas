@@ -52,7 +52,7 @@ function sync(){
  Array.prototype.slice.call(tabs.querySelectorAll('button')).forEach(function(button){
   var state=String(button.dataset.crescoWidgetState||button.textContent||'').trim().toLowerCase();
   if(ORDER.indexOf(state)===-1)return;
-  button.dataset.crescoWidgetState=state;button.textContent=LABELS[state];button.setAttribute('role','tab');button.setAttribute('title','Edit '+LABELS[state]+' state');
+  button.dataset.crescoWidgetState=state;if(String(button.textContent||'').trim()!==LABELS[state])button.textContent=LABELS[state];button.setAttribute('role','tab');button.setAttribute('title','Edit '+LABELS[state]+' state');
   var supported=allowed.indexOf(state)!==-1;button.hidden=!supported;
   var active=button.classList.contains('is-active');button.setAttribute('aria-selected',active&&supported?'true':'false');button.tabIndex=active&&supported?0:-1;
   if(active)activeButton=button;if(state==='normal')normalButton=button;
@@ -72,5 +72,5 @@ new MutationObserver(schedule).observe(root,{childList:true,subtree:true,attribu
 window.addEventListener('cresco:studio-session-change',function(event){if(event.detail&&event.detail.session)session=event.detail.session;schedule()});
 window.addEventListener('cresco:studio-ready',function(){loadContracts();schedule()});
 loadContracts();schedule();
-window.CrescoStudioWidgetStateTabs={version:'1.0.0',states:ORDER.slice(),sync:sync};
+window.CrescoStudioWidgetStateTabs={version:'1.0.1',states:ORDER.slice(),sync:sync};
 })(window.wp,window,document);
