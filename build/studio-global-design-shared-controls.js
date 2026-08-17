@@ -1,0 +1,1 @@
+(function(window,document){'use strict';var root=document.getElementById('cresco-canvas-standalone-editor');if(!root)return;window.CrescoGlobalDesignSharedControls={version:'1.0.0'};})(window,document);
