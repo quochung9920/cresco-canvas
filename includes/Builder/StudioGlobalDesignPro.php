@@ -17,23 +17,27 @@ if ( ! defined( 'ABSPATH' ) ) {
  * second persistence model.
  */
 final class StudioGlobalDesignPro {
-	const HANDLE                   = 'cresco-canvas-studio-global-design-pro';
-	const SCRIPT                   = 'build/studio-global-design-pro.js';
-	const STYLE                    = 'assets/css/studio-global-design-pro.css';
-	const WORKFLOW_GUARD_HANDLE    = 'cresco-canvas-studio-global-design-workflows-guard';
-	const WORKFLOW_GUARD_SCRIPT    = 'build/studio-global-design-workflows-guard.js';
-	const WORKFLOW_HANDLE          = 'cresco-canvas-studio-global-design-workflows';
-	const WORKFLOW_SCRIPT          = 'build/studio-global-design-workflows.js';
-	const WORKFLOW_STYLE           = 'assets/css/studio-global-design-workflows.css';
-	const COMPACT_HANDLE           = 'cresco-canvas-studio-global-design-compact';
-	const COMPACT_SCRIPT           = 'build/studio-global-design-compact.js';
-	const COMPACT_STYLE            = 'assets/css/studio-global-design-compact.css';
-	const FONT_SEARCH_FIX_HANDLE   = 'cresco-canvas-studio-global-design-font-search-fix';
-	const FONT_SEARCH_FIX_STYLE    = 'assets/css/studio-global-design-font-search-fix.css';
-	const TYPE_SIZE_STYLE_HANDLE   = 'cresco-canvas-studio-global-design-type-size-picker';
-	const TYPE_SIZE_STYLE          = 'assets/css/studio-global-design-type-size-picker.css';
-	const TYPE_SIZE_SCRIPT_HANDLE  = 'cresco-canvas-studio-global-design-type-size-picker-runtime';
-	const TYPE_SIZE_SCRIPT         = 'build/studio-global-design-type-size-picker.js';
+	const HANDLE                    = 'cresco-canvas-studio-global-design-pro';
+	const SCRIPT                    = 'build/studio-global-design-pro.js';
+	const STYLE                     = 'assets/css/studio-global-design-pro.css';
+	const WORKFLOW_GUARD_HANDLE     = 'cresco-canvas-studio-global-design-workflows-guard';
+	const WORKFLOW_GUARD_SCRIPT     = 'build/studio-global-design-workflows-guard.js';
+	const WORKFLOW_HANDLE           = 'cresco-canvas-studio-global-design-workflows';
+	const WORKFLOW_SCRIPT           = 'build/studio-global-design-workflows.js';
+	const WORKFLOW_STYLE            = 'assets/css/studio-global-design-workflows.css';
+	const COMPACT_HANDLE            = 'cresco-canvas-studio-global-design-compact';
+	const COMPACT_SCRIPT            = 'build/studio-global-design-compact.js';
+	const COMPACT_STYLE             = 'assets/css/studio-global-design-compact.css';
+	const FONT_SEARCH_FIX_HANDLE    = 'cresco-canvas-studio-global-design-font-search-fix';
+	const FONT_SEARCH_FIX_STYLE     = 'assets/css/studio-global-design-font-search-fix.css';
+	const TYPE_SIZE_STYLE_HANDLE    = 'cresco-canvas-studio-global-design-type-size-picker';
+	const TYPE_SIZE_STYLE           = 'assets/css/studio-global-design-type-size-picker.css';
+	const TYPE_SIZE_SCRIPT_HANDLE   = 'cresco-canvas-studio-global-design-type-size-picker-runtime';
+	const TYPE_SIZE_SCRIPT          = 'build/studio-global-design-type-size-picker.js';
+	const SHARED_STYLE_HANDLE       = 'cresco-canvas-studio-global-design-shared-controls';
+	const SHARED_STYLE              = 'assets/css/studio-global-design-shared-controls.css';
+	const SHARED_SCRIPT_HANDLE      = 'cresco-canvas-studio-global-design-shared-controls-runtime';
+	const SHARED_SCRIPT             = 'build/studio-global-design-shared-controls.js';
 
 	public function register() {
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue' ), 1430 );
@@ -49,6 +53,7 @@ final class StudioGlobalDesignPro {
 		if ( ! WebsiteBuilderAsset::readable( self::COMPACT_SCRIPT ) || ! WebsiteBuilderAsset::readable( self::COMPACT_STYLE ) ) return;
 		if ( ! WebsiteBuilderAsset::readable( self::FONT_SEARCH_FIX_STYLE ) ) return;
 		if ( ! WebsiteBuilderAsset::readable( self::TYPE_SIZE_STYLE ) || ! WebsiteBuilderAsset::readable( self::TYPE_SIZE_SCRIPT ) ) return;
+		if ( ! WebsiteBuilderAsset::readable( self::SHARED_STYLE ) || ! WebsiteBuilderAsset::readable( self::SHARED_SCRIPT ) ) return;
 
 		$style_deps = array( 'cresco-canvas-website-builder-studio' );
 		if ( wp_style_is( StudioUxPro::HANDLE, 'enqueued' ) ) $style_deps[] = StudioUxPro::HANDLE;
@@ -83,6 +88,12 @@ final class StudioGlobalDesignPro {
 			WebsiteBuilderAsset::url( self::TYPE_SIZE_STYLE ),
 			array( self::FONT_SEARCH_FIX_HANDLE ),
 			WebsiteBuilderAsset::version( self::TYPE_SIZE_STYLE )
+		);
+		wp_enqueue_style(
+			self::SHARED_STYLE_HANDLE,
+			WebsiteBuilderAsset::url( self::SHARED_STYLE ),
+			array( self::TYPE_SIZE_STYLE_HANDLE ),
+			WebsiteBuilderAsset::version( self::SHARED_STYLE )
 		);
 
 		wp_enqueue_script(
@@ -139,6 +150,13 @@ final class StudioGlobalDesignPro {
 			WebsiteBuilderAsset::url( self::TYPE_SIZE_SCRIPT ),
 			array( self::COMPACT_HANDLE ),
 			WebsiteBuilderAsset::version( self::TYPE_SIZE_SCRIPT ),
+			true
+		);
+		wp_enqueue_script(
+			self::SHARED_SCRIPT_HANDLE,
+			WebsiteBuilderAsset::url( self::SHARED_SCRIPT ),
+			array( self::TYPE_SIZE_SCRIPT_HANDLE ),
+			WebsiteBuilderAsset::version( self::SHARED_SCRIPT ),
 			true
 		);
 	}
