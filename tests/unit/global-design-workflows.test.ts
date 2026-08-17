@@ -3,6 +3,7 @@ import { readFileSync } from 'fs';
 import { join } from 'path';
 
 const ROOT = join( __dirname, '..', '..' );
+const GUARD = readFileSync( join( ROOT, 'build/studio-global-design-workflows-guard.js' ), 'utf8' );
 const JS = readFileSync( join( ROOT, 'build/studio-global-design-workflows.js' ), 'utf8' );
 const CSS = readFileSync( join( ROOT, 'assets/css/studio-global-design-workflows.css' ), 'utf8' );
 const PHP = readFileSync( join( ROOT, 'includes/Builder/StudioGlobalDesignPro.php' ), 'utf8' );
@@ -17,8 +18,9 @@ function functionSource( name: string, nextName: string ) {
 
 describe( 'workflow loading boundary', () => {
 	it( 'loads the workflow prelude before the main Global Design runtime', () => {
-		expect( PHP ).toContain( "const WORKFLOW_SCRIPT = 'build/studio-global-design-workflows.js'" );
-		expect( PHP ).toContain( "const WORKFLOW_STYLE  = 'assets/css/studio-global-design-workflows.css'" );
+		expect( PHP ).toContain( "const WORKFLOW_GUARD_SCRIPT = 'build/studio-global-design-workflows-guard.js'" );
+		expect( PHP ).toContain( "const WORKFLOW_SCRIPT       = 'build/studio-global-design-workflows.js'" );
+		expect( PHP ).toContain( "'assets/css/studio-global-design-workflows.css'" );
 		expect( PHP ).toContain( 'self::WORKFLOW_HANDLE' );
 		const workflowEnqueue = PHP.indexOf( 'WebsiteBuilderAsset::url( self::WORKFLOW_SCRIPT )' );
 		const mainEnqueue = PHP.lastIndexOf( 'WebsiteBuilderAsset::url( self::SCRIPT )' );
@@ -27,6 +29,8 @@ describe( 'workflow loading boundary', () => {
 	} );
 
 	it( 'keeps canonical settings and session paths rather than inventing persistence', () => {
+		expect( GUARD ).toContain( 'Apply or discard Global Design changes before normalizing the page.' );
+		expect( GUARD ).toContain( 'path===studio.sessionPath' );
 		expect( JS ).toContain( 'cfg.settingsPath' );
 		expect( JS ).toContain( 'cfg.resetPath' );
 		expect( JS ).toContain( 'studio.sessionPath' );
