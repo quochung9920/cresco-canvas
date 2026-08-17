@@ -6,9 +6,11 @@ const ROOT = join( __dirname, '..', '..' );
 const JS = readFileSync( join( ROOT, 'build/studio-global-design-compact.js' ), 'utf8' );
 const CSS = readFileSync( join( ROOT, 'assets/css/studio-global-design-compact.css' ), 'utf8' );
 const PHP = readFileSync( join( ROOT, 'includes/Builder/StudioGlobalDesignPro.php' ), 'utf8' );
+const WEB_FONTS = readFileSync( join( ROOT, 'includes/Styles/GlobalWebFonts.php' ), 'utf8' );
+const BOOT = readFileSync( join( ROOT, 'cresco-canvas.php' ), 'utf8' );
 
 describe( 'compact Global Design UI', () => {
-	it( 'loads after the canonical Global Design runtime without creating persistence', () => {
+	it( 'loads after the canonical Global Design runtime without creating design persistence', () => {
 		expect( PHP ).toContain( "const COMPACT_SCRIPT        = 'build/studio-global-design-compact.js'" );
 		expect( PHP ).toContain( "const COMPACT_STYLE         = 'assets/css/studio-global-design-compact.css'" );
 		const main = PHP.lastIndexOf( 'WebsiteBuilderAsset::url( self::SCRIPT )' );
@@ -26,6 +28,30 @@ describe( 'compact Global Design UI', () => {
 		expect( JS ).toContain( "input.setAttribute('aria-label',label+' global size')" );
 		expect( JS ).not.toContain( 'fontWeight' );
 		expect( JS ).not.toContain( 'lineHeight' );
+	} );
+
+	it( 'provides a searchable categorized font picker and preserves the canonical fontFamily input', () => {
+		expect( PHP ).toContain( "'fonts'        => \\CrescoCanvas\\Styles\\GlobalWebFonts::catalog()" );
+		expect( PHP ).toContain( "'systemFonts'  => \\CrescoCanvas\\Styles\\GlobalWebFonts::system_fonts()" );
+		expect( JS ).toContain( "input[data-bind=\"fontFamily\"]" );
+		expect( JS ).toContain( 'Search '+"'"+'+fonts.length+'+"'"+' fonts...' );
+		expect( JS ).toContain( "data-gd-font-category=\"sans\"" );
+		expect( JS ).toContain( "data-gd-font-category=\"serif\"" );
+		expect( JS ).toContain( "data-gd-font-category=\"display\"" );
+		expect( JS ).toContain( "data-gd-font-category=\"mono\"" );
+		expect( JS ).toContain( "original.dispatchEvent(new Event('input',{bubbles:true}))" );
+		expect( JS ).toContain( 'fonts.googleapis.com/css2?family=' );
+	} );
+
+	it( 'ships a broad web-font catalog and loads the selected family on the frontend', () => {
+		expect( WEB_FONTS ).toContain( "'Inter'" );
+		expect( WEB_FONTS ).toContain( "'Plus Jakarta Sans'" );
+		expect( WEB_FONTS ).toContain( "'Playfair Display'" );
+		expect( WEB_FONTS ).toContain( "'JetBrains Mono'" );
+		expect( WEB_FONTS ).toContain( "'Dancing Script'" );
+		expect( WEB_FONTS ).toContain( 'fonts.googleapis.com/css2?family=' );
+		expect( WEB_FONTS ).toContain( "wp_enqueue_style( self::HANDLE, $url, array(), null )" );
+		expect( BOOT ).toContain( '( new CrescoCanvas\\Styles\\GlobalWebFonts() )->register();' );
 	} );
 
 	it( 'removes decorative preview surfaces and keeps the Canvas as the preview', () => {
