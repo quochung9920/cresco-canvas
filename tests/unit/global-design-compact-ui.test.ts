@@ -5,6 +5,7 @@ import { join } from 'path';
 const ROOT = join( __dirname, '..', '..' );
 const JS = readFileSync( join( ROOT, 'build/studio-global-design-compact.js' ), 'utf8' );
 const CSS = readFileSync( join( ROOT, 'assets/css/studio-global-design-compact.css' ), 'utf8' );
+const SHARED_CSS = readFileSync( join( ROOT, 'assets/css/studio-global-design-shared-controls.css' ), 'utf8' );
 const PHP = readFileSync( join( ROOT, 'includes/Builder/StudioGlobalDesignPro.php' ), 'utf8' );
 const WEB_FONTS = readFileSync( join( ROOT, 'includes/Styles/GlobalWebFonts.php' ), 'utf8' );
 const BOOT = readFileSync( join( ROOT, 'cresco-canvas.php' ), 'utf8' );
@@ -61,9 +62,9 @@ describe( 'compact Global Design UI', () => {
 		expect( CSS ).toContain( 'display:none' );
 	} );
 
-	it( 'keeps the tab strip compact instead of stretching into unused vertical space', () => {
+	it( 'keeps the six-tab strip compact instead of stretching into unused vertical space', () => {
 		expect( CSS ).toContain( 'grid-template-rows:auto minmax(0,1fr) auto' );
-		expect( CSS ).toContain( 'grid-template-columns:repeat(5,minmax(0,1fr))' );
+		expect( SHARED_CSS ).toContain( 'grid-template-columns:repeat(6,minmax(0,1fr))' );
 		expect( CSS ).toContain( 'height:34px;min-height:34px' );
 		expect( CSS ).toContain( 'height:28px!important;min-height:28px!important' );
 	} );
