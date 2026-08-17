@@ -58,4 +58,50 @@ final class GlobalStylesTest extends TestCase {
 		self::assertSame( 'oklab(98% 0.002 -0.003)', $settings['background'] );
 		self::assertSame( 'oklch(99% 0.002 250)', $settings['customColors']['surface'] );
 	}
+
+	public function test_global_button_settings_are_sanitized_and_legacy_sites_keep_their_existing_look(): void {
+		$legacy = GlobalStyles::sanitize_settings(
+			array(
+				'primary' => '#123456',
+			)
+		);
+
+		self::assertSame( '#123456', $legacy['button']['background'] );
+		self::assertSame( '#123456', $legacy['button']['hoverBackground'] );
+		self::assertSame( '#ffffff', $legacy['button']['text'] );
+		self::assertSame( $legacy['fluidTokens']['radiusMd'], $legacy['button']['radius'] );
+		self::assertSame( $legacy['fluidTokens']['controlHeight'], $legacy['button']['height'] );
+		self::assertSame( $legacy['fluidTokens']['buttonPadding'], $legacy['button']['paddingInline'] );
+
+		$settings = GlobalStyles::sanitize_settings(
+			array(
+				'button' => array(
+					'background' => '#102030',
+					'text' => '#fefefe',
+					'hoverBackground' => '#203040',
+					'hoverText' => '#ffffff',
+					'borderColor' => '#334455',
+					'borderWidth' => '2px',
+					'radius' => '18px',
+					'height' => '48px',
+					'paddingInline' => '24px',
+					'fontWeight' => '700',
+				),
+			)
+		);
+
+		self::assertSame( '#102030', $settings['button']['background'] );
+		self::assertSame( '#203040', $settings['button']['hoverBackground'] );
+		self::assertSame( '2px', $settings['button']['borderWidth'] );
+		self::assertSame( '18px', $settings['button']['radius'] );
+		self::assertSame( '48px', $settings['button']['height'] );
+		self::assertSame( '24px', $settings['button']['paddingInline'] );
+		self::assertSame( '700', $settings['button']['fontWeight'] );
+
+		$css = GlobalStyles::visual_css( '.cresco-canvas-scope' );
+		self::assertStringContainsString( 'var(--cc-button-bg)', $css );
+		self::assertStringContainsString( 'var(--cc-button-radius)', $css );
+		self::assertStringContainsString( 'var(--cc-button-hover-bg)', $css );
+		self::assertStringContainsString( 'var(--cc-button-font-weight)', $css );
+	}
 }
