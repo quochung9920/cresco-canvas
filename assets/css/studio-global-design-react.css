@@ -14,28 +14,147 @@
   .cc-studio-rail:has(> button[title="Global Design"]) > button:nth-child(10) { order: 10; }
 
   .cc-studio-extension-panel:has(.cc-global-design-react) {
+    min-width: 0;
+    max-width: 100%;
     padding: 14px 12px 0;
     overflow-x: hidden;
   }
   .cc-studio-extension-panel:has(.cc-global-design-react) > .cc-studio-panel-head {
+    min-width: 0;
     margin: 0 2px 2px;
   }
   .cc-studio-extension-panel:has(.cc-global-design-react) > .cc-studio-panel-head strong {
     font-size: 15px;
     letter-spacing: -.015em;
   }
+
+  /*
+   * Global Design lives inside a narrow Studio sidebar. Make that sidebar the
+   * responsive authority instead of the browser viewport; fluid website tokens
+   * such as clamp(... + vw ...) must never size the editor chrome itself.
+   */
   .cc-global-design-react {
+    container-type: inline-size;
+    width: 100%;
     min-width: 0;
+    max-width: 100%;
+    overflow-x: clip;
   }
+  .cc-global-design-react,
+  .cc-global-design-react * {
+    box-sizing: border-box;
+  }
+  .cc-global-design-react :is(.cc-gd-main,.cc-gd-section,.cc-gd-health,.cc-gd-summary,.cc-gd-palette,.cc-gd-type-preview,.cc-gd-font-preview,.cc-gd-color-grid,.cc-gd-color-card,.cc-gd-type-list,.cc-gd-space-list,.cc-gd-breakpoints,.cc-gd-token-usage,.cc-gd-explorer,.cc-gd-actions,.cc-gd-footer) {
+    min-width: 0;
+    max-width: 100%;
+  }
+  .cc-global-design-react :is(strong,small,p,span,code,em) {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
   .cc-gd-react-subtitle {
     margin: 0 2px 12px;
     color: var(--cc-color-text-muted);
     font-size: 10.5px;
     line-height: 1.45;
   }
+
+  /* Navigation: two compact rows instead of a clipped horizontal strip. */
+  .cc-global-design-react .cc-gd-tabs {
+    display: grid;
+    grid-template-columns: repeat(3,minmax(0,1fr));
+    gap: 4px;
+    width: 100%;
+    max-width: 100%;
+    overflow: visible;
+    padding: 3px;
+  }
+  .cc-global-design-react .cc-gd-tabs button {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    padding-inline: 5px !important;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* Health card must not reserve a third column outside the sidebar. */
+  .cc-global-design-react .cc-gd-health {
+    grid-template-columns: auto minmax(0,1fr);
+    align-items: center;
+  }
+  .cc-global-design-react .cc-gd-health > button {
+    grid-column: 1 / -1;
+    width: 100%;
+    justify-self: stretch;
+  }
+
+  /* Color cards remain readable at ~300px inspector widths. */
+  .cc-global-design-react .cc-gd-palette {
+    grid-template-columns: repeat(2,minmax(0,1fr));
+  }
+  .cc-global-design-react .cc-gd-palette button {
+    width: 100%;
+    min-width: 0;
+  }
+
+  /*
+   * Website typography tokens intentionally contain viewport units. They are
+   * valid for the website but too large for an editor sidebar preview. Scope a
+   * container-relative preview size here without changing the saved tokens.
+   */
+  .cc-global-design-react .cc-gd-type-preview {
+    width: 100%;
+    max-width: 100%;
+    overflow: hidden;
+  }
+  .cc-global-design-react .cc-gd-type-preview strong {
+    font-size: clamp(1.75rem,12cqi,2.5rem) !important;
+    line-height: 1.08 !important;
+    letter-spacing: -.035em;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+  .cc-global-design-react .cc-gd-type-preview p {
+    font-size: clamp(.875rem,4.5cqi,1rem) !important;
+    line-height: 1.55 !important;
+  }
+  .cc-global-design-react .cc-gd-type-list article {
+    min-width: 0;
+    overflow: hidden;
+  }
+  .cc-global-design-react .cc-gd-type-list article strong {
+    max-width: 100%;
+    font-size: clamp(.95rem,6cqi,1.5rem) !important;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+
+  /* Compact system summary and forms instead of allowing intrinsic overflow. */
+  .cc-global-design-react .cc-gd-summary {
+    grid-template-columns: repeat(2,minmax(0,1fr));
+  }
+  .cc-global-design-react :is(input,select,textarea,button) {
+    max-width: 100%;
+    min-width: 0;
+  }
+  .cc-global-design-react .cc-gd-two,
+  .cc-global-design-react .cc-gd-add {
+    min-width: 0;
+    max-width: 100%;
+  }
+  .cc-global-design-react .cc-gd-add {
+    grid-template-columns: minmax(0,1fr) minmax(0,1fr);
+  }
+  .cc-global-design-react .cc-gd-add > button {
+    grid-column: 1 / -1;
+    width: 100%;
+  }
+
   .cc-gd-react-notice {
     position: sticky;
-    bottom: 51px;
+    bottom: 58px;
     z-index: 19;
     margin: 0 -2px 8px;
     padding: 8px 10px;
@@ -68,5 +187,53 @@
   }
   .cc-global-design-react .cc-gd-actions .is-danger {
     color: var(--cc-color-danger);
+  }
+
+  /* Footer stays entirely inside the left panel and remains usable while narrow. */
+  .cc-global-design-react .cc-gd-footer {
+    display: grid;
+    grid-template-columns: minmax(0,1fr) auto;
+    align-items: center;
+    width: auto;
+    max-width: none;
+    margin-inline: -12px;
+    padding-inline: 12px;
+    overflow: hidden;
+  }
+  .cc-global-design-react .cc-gd-footer > div {
+    min-width: 0;
+  }
+  .cc-global-design-react .cc-gd-footer > div:last-child {
+    justify-content: flex-end;
+  }
+  .cc-global-design-react .cc-gd-footer button {
+    min-width: 0;
+    white-space: nowrap;
+  }
+
+  @container (max-width: 330px) {
+    .cc-global-design-react .cc-gd-tabs {
+      grid-template-columns: repeat(2,minmax(0,1fr));
+    }
+    .cc-global-design-react .cc-gd-summary,
+    .cc-global-design-react .cc-gd-two,
+    .cc-global-design-react .cc-gd-add {
+      grid-template-columns: 1fr;
+    }
+    .cc-global-design-react .cc-gd-palette {
+      grid-template-columns: repeat(2,minmax(0,1fr));
+    }
+    .cc-global-design-react .cc-gd-footer {
+      grid-template-columns: 1fr;
+      gap: 7px;
+    }
+    .cc-global-design-react .cc-gd-footer > div:last-child {
+      width: 100%;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+    }
+    .cc-global-design-react .cc-gd-footer button {
+      width: 100%;
+    }
   }
 }
