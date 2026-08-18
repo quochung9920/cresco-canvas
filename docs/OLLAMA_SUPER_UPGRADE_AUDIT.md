@@ -1,121 +1,139 @@
-# Ollama Super Upgrade — Architecture Audit
+# Ollama Super Upgrade — Audit kiến trúc
 
-Branch: `ollama-super-upgrade-20260812`
-Starting SHA: `ceeb120e0e3c367ae977b34892543f5797f5d55d`
+> **Tài liệu lịch sử.**  
+> Branch: `ollama-super-upgrade-20260812`  
+> Starting SHA: `ceeb120e0e3c367ae977b34892543f5797f5d55d`
 
-This audit records ownership discovered during the Super Upgrade sprint. It is intentionally about contracts and competing authority, not feature count.
+Audit này ghi lại ownership được phát hiện trong Super Upgrade sprint. Trọng tâm là contract và competing authority, không phải số lượng feature.
 
-## Canonical runtime map
+## Canonical runtime map tại thời điểm audit
 
-### Studio bootstrap and runtime ownership
+### Studio bootstrap và runtime ownership
 
-- `WebsiteBuilderRuntimeOwner` is the primary browser-runtime owner and claims the Studio/consistency/bootstrap handles.
-- `WebsiteBuilderStudio` attaches configuration and support assets to the existing Studio handle; it does not create another editor generation.
-- `WebsiteBuilderModuleRegistry` defines core, core-extension, transitional and quarantined modules.
-- `WebsiteBuilderSessionIsolation` blocks the legacy Session API from the canonical Website Builder page editor.
-- Transitional Professional UX / Comprehensive modules remain opt-in and should not regain core ownership.
+- `WebsiteBuilderRuntimeOwner` là primary browser-runtime owner và claim các Studio/consistency/bootstrap handles.
+- `WebsiteBuilderStudio` gắn configuration/support assets vào Studio handle hiện có; không tạo editor generation khác.
+- `WebsiteBuilderModuleRegistry` định nghĩa core, core-extension, transitional và quarantined modules.
+- `WebsiteBuilderSessionIsolation` chặn legacy Session API khỏi canonical Website Builder Page editor.
+- Transitional Professional UX / Comprehensive modules vẫn opt-in và không được lấy lại core ownership.
 
-### Document model and validation
+### Document model và validation
 
-- `WebsiteBuilder::sanitize_session()` is the canonical Session boundary for Website Builder documents.
-- `Document` provides portable document/session/checksum behavior.
-- `PatchValidator` uses the canonical Website Builder sanitizer before returning a candidate Session.
-- `WidgetCatalog` is shared by REST context, editor, AI contracts and rendering.
+- `WebsiteBuilder::sanitize_session()` là canonical Session boundary cho Website Builder documents.
+- `Document` cung cấp portable document/session/checksum behavior.
+- `PatchValidator` dùng canonical Website Builder sanitizer trước khi trả candidate Session.
+- `WidgetCatalog` được share cho REST context, editor, AI contracts và rendering.
 
 ### Browser document state
 
-Before this sprint, React Studio owned Session/history/dirty state while `website-builder-consistency-guard.js` independently owned revision/checksum/recovery/in-flight-save state.
+Trước sprint này, React Studio sở hữu Session/history/dirty state trong khi `website-builder-consistency-guard.js` độc lập sở hữu revision/checksum/recovery/in-flight-save state.
 
-The sprint adds `website-builder-document-store.js` as the canonical browser-side revision/persistence/recovery boundary. The consistency guard now delegates revision, document, checksum, save lifecycle, conflict and recovery state to that store instead of incrementing its own revision.
+Sprint thêm `website-builder-document-store.js` làm canonical browser-side revision/persistence/recovery boundary. Consistency guard chuyển sang delegate revision, document, checksum, save lifecycle, conflict và recovery state cho store thay vì tự tăng revision.
 
-Remaining integration work: Studio still owns React Session, selection and its immediate undo/redo snapshots. The store exposes selection/transaction/history APIs and compatibility events, but Studio must be migrated to call those APIs directly before the browser state can be called fully single-owner.
+**Remaining integration work tại thời điểm đó:** Studio vẫn sở hữu React Session, selection và immediate undo/redo snapshots. Store đã expose selection/transaction/history APIs và compatibility events, nhưng Studio cần migrate sang gọi trực tiếp các API đó trước khi browser state thật sự single-owner.
 
 ### Mutation path
 
-- `CommandBus` is the canonical validated mutation vocabulary.
-- `TransactionManager` groups multiple commands into one validated candidate/diff/history unit.
-- AI patch application must use validated patch/command flow; it must not persist directly.
-- Pointer drag is the document-movement owner; responsive-properties is explicitly UI-only for drag behavior.
+- `CommandBus` là canonical validated mutation vocabulary.
+- `TransactionManager` nhóm nhiều command thành một validated candidate/diff/history unit.
+- AI patch application phải đi qua validated patch/command flow; không persist trực tiếp.
+- Pointer drag là document-movement owner; responsive-properties chỉ UI-only cho drag behavior.
 
-Remaining integration work: the current Studio React runtime still performs several local clone/map mutations before emitting `cresco:studio-session-change`. Canvas, Structure and Inspector should be migrated incrementally to dispatch canonical commands rather than gaining a second mutation implementation.
+**Remaining integration work:** Studio React runtime khi đó vẫn thực hiện một số local clone/map mutations trước khi emit `cresco:studio-session-change`. Canvas, Structure và Inspector nên migrate dần sang canonical commands thay vì tạo mutation implementation thứ hai.
 
-### Persistence and concurrency
+### Persistence và concurrency
 
-- `WordPressDocumentRepository` is the canonical storage adapter and now owns canonical persisted checksum/verification helpers.
-- `WebsiteBuilderConcurrencyGuard` applies the same optimistic precondition + mutex to legacy Session, Website Builder Session and Theme Session writes.
-- Missing `baseChecksum` fails closed with 428; stale writes fail with 409; concurrent lock contention fails with 423.
-- Successful Session responses are verified against persisted checksum before being treated as successful.
+- `WordPressDocumentRepository` là canonical storage adapter và sở hữu persisted checksum/verification helpers.
+- `WebsiteBuilderConcurrencyGuard` áp cùng optimistic precondition + mutex cho legacy Session, Website Builder Session và Theme Session writes.
+- Thiếu `baseChecksum` fail closed với 428; stale write fail 409; concurrent lock contention fail 423.
+- Successful Session response được verify với persisted checksum trước khi coi là thành công.
 
-Remaining ownership conflict: `SessionManager`, `WebsiteBuilder` and history restore paths still contain direct post-meta writes. They are protected by the concurrency boundary but should converge on `DocumentRepository::save()` so persistence implementation itself has one owner.
+**Ownership conflict còn lại tại thời điểm audit:** `SessionManager`, `WebsiteBuilder` và history restore paths vẫn có direct post-meta writes. Dù đã nằm sau concurrency boundary, chúng nên hội tụ vào `DocumentRepository::save()` để persistence implementation có một owner.
 
-### History and recovery
+### History và recovery
 
-- Server revision history remains in `HistoryManager`.
-- Browser crash recovery is now represented in the document store as `cresco-recovery/v1` with document ID, revision, timestamp, title and Session.
-- An older in-flight save cannot clear a newer local recovery snapshot because `markPersisted()` only clears dirty/recovery when its start revision still equals the current revision.
+- Server revision history vẫn ở `HistoryManager`.
+- Browser crash recovery được đại diện trong document store bằng `cresco-recovery/v1` gồm document ID, revision, timestamp, title và Session.
+- In-flight save cũ không thể clear recovery snapshot mới hơn vì `markPersisted()` chỉ clear dirty/recovery khi start revision vẫn bằng current revision.
 
-Remaining work: migrate Studio undo/redo to store transactions so undo, redo, AI apply, component operations and typing/drag gestures share one revision model.
+Remaining work là migrate Studio undo/redo sang store transactions để undo, redo, AI apply, component operations và typing/drag gestures dùng cùng revision model.
 
-### Responsive and style resolution
+### Responsive và style resolution
 
-- Canonical breakpoint order is `wide -> desktop -> laptop -> tablet -> mobile`.
-- `StyleCascade` resolves sparse overrides across token/global/component/local layers and reports property provenance (`value`, `source`, `breakpoint`, `state`, inheritance and previous explicit breakpoint).
-- `StyleCascade::fluid()` provides a validated first-class clamp foundation without requiring raw clamp syntax in UI.
-- Design Tokens now expose semantic colors, typography, space, radius, shadow, containers, transitions and z-index while retaining legacy token aliases.
+- Canonical breakpoint order: `wide -> desktop -> laptop -> tablet -> mobile`.
+- `StyleCascade` resolve sparse overrides qua token/global/component/local layers và report property provenance (`value`, `source`, `breakpoint`, `state`, inheritance và previous explicit breakpoint).
+- `StyleCascade::fluid()` cung cấp validated first-class clamp foundation mà UI không cần raw clamp syntax.
+- Design Tokens expose semantic colors, typography, space, radius, shadow, containers, transitions và z-index, đồng thời giữ legacy token aliases.
 
-Remaining work: wire provenance/status into Inspector controls and migrate existing responsive UI to consume one cascade helper instead of locally re-deriving inheritance.
+Remaining work là wire provenance/status vào Inspector controls và migrate responsive UI sang một cascade helper thay vì local re-derive inheritance.
 
-### Renderer and core widgets
+### Renderer và core widgets
 
-- `RenderEngine` routes canonical Session through `WebsiteRenderer` and renderer parity completion.
-- Text rich content is sanitized with WordPress allow-listing.
-- Button new-tab links normalize safe `noopener noreferrer` behavior.
-- Image rendering defaults to lazy loading and async decoding.
-- Container layout props compile through the same frontend CSS compiler as the canonical renderer.
+- `RenderEngine` route canonical Session qua `WebsiteRenderer` và renderer parity completion.
+- Text rich content được sanitize bằng WordPress allow-list.
+- Button new-tab links normalize `noopener noreferrer` an toàn.
+- Image rendering mặc định lazy loading và async decoding.
+- Container layout props compile qua cùng frontend CSS compiler với canonical renderer.
 
-Gaps to close together (catalog + sanitizer + renderer + Inspector): semantic `article` container support; richer image decorative/loading/priority/object-position contract; button accessible-label/disabled foundation; deeper Divider/Icon/Spacer responsive controls. Do not add Inspector controls until frontend parity exists.
+Các gap cần đóng **đồng thời catalog + sanitizer + renderer + Inspector**:
 
-### Accessibility and design diagnostics
+- semantic `article` container support;
+- richer image decorative/loading/priority/object-position contract;
+- button accessible-label/disabled foundation;
+- deeper Divider/Icon/Spacer responsive controls.
 
-`DocumentDiagnostics` now performs non-mutating document checks with locatable `nodeId`/path output for:
+Không thêm Inspector control trước khi frontend parity tồn tại.
 
-- multiple H1 headings;
-- heading level skips;
-- image missing alt unless explicitly decorative;
-- button missing accessible name;
-- deeply nested layout;
-- excessive local styles;
+### Accessibility và design diagnostics
+
+`DocumentDiagnostics` thực hiện non-mutating document checks với locatable `nodeId`/path output cho:
+
+- nhiều H1 headings;
+- heading-level skip;
+- image thiếu alt trừ khi explicit decorative;
+- button thiếu accessible name;
+- nested layout quá sâu;
+- quá nhiều local styles;
 - redundant responsive overrides;
-- safe new-tab rel normalization information.
+- thông tin safe new-tab rel normalization.
 
-Remaining work: expose these results in one Inspector/diagnostics surface and add keyboard/axe browser coverage when the WordPress test environment is available.
+Remaining work: expose kết quả trong một Inspector/diagnostics surface và thêm keyboard/axe browser coverage khi WordPress test environment khả dụng.
 
 ### Security
 
-Current hardening preserved:
+Hardening được giữ gồm:
 
-- canonical Session validation and node bounds;
+- canonical Session validation và node bounds;
 - allow-listed custom CSS values/scoping;
-- safe rich-text rendering and temporary Studio preview sanitization;
+- safe rich-text rendering và temporary Studio preview sanitization;
 - URL sanitization;
 - REST capability checks;
 - optimistic concurrency + write verification;
-- no direct Session POST fallback added to extensions.
+- không thêm direct Session POST fallback cho extensions.
 
-## High-priority remaining ownership defects
+## Các ownership defect ưu tiên cao tại thời điểm audit
 
-1. Studio React local mutation/history must migrate to `crescoDocumentStore` + `CommandBus` rather than remain a parallel mutation owner.
-2. Direct Session post-meta writes in legacy/canonical/history services must converge on `DocumentRepository`.
-3. Selection must be emitted/consumed through the store; do not infer it using MutationObserver or DOM surgery.
-4. Responsive Inspector must consume `StyleCascade` provenance instead of duplicating inheritance rules.
-5. Core widget catalog changes must ship with sanitizer + frontend renderer parity in the same milestone.
+1. Studio React local mutation/history cần migrate sang `crescoDocumentStore` + `CommandBus`, không tiếp tục là parallel mutation owner.
+2. Direct Session post-meta writes trong legacy/canonical/history services cần hội tụ vào `DocumentRepository`.
+3. Selection phải emit/consume qua store; không infer bằng MutationObserver hoặc DOM surgery.
+4. Responsive Inspector phải consume `StyleCascade` provenance thay vì duplicate inheritance rules.
+5. Core widget catalog changes phải ship cùng sanitizer + frontend renderer parity trong cùng milestone.
 
 ## Performance observations
 
-The current Studio still uses recursive tree helpers for several mutations and selections. With the hard document limit at 1000 nodes this is bounded, but repeated full-tree clone/map operations during high-frequency typing/drag remain a structural performance target. Prefer indexed node lookup and transaction batching before adding virtualization.
+Studio khi đó vẫn dùng recursive tree helpers cho một số mutation/selection. Với hard document limit 1000 nodes, chi phí được bounded, nhưng repeated full-tree clone/map trong high-frequency typing/drag vẫn là structural performance target.
 
-## Test environment status
+Ưu tiên indexed node lookup và transaction batching trước khi thêm virtualization.
 
-GitHub Actions created a run for this branch but the job did not start. GitHub's check annotation reports: account locked due to a billing issue. Therefore that run is not evidence of code test failure or success.
+## Trạng thái test environment
 
-Local shell in this session cannot resolve `github.com`, so a full checkout-based npm/PHP/Playwright suite cannot be executed here. JavaScript syntax checks were executed on the new document-store and revised consistency-guard files before they were published. Repository quality gates were strengthened so they will run once CI capacity is restored.
+GitHub Actions đã tạo run cho branch nhưng job không start. Check annotation của GitHub ghi account bị lock do billing issue. Vì vậy run đó **không phải evidence pass hoặc fail của code**.
+
+Local shell trong session audit không resolve được `github.com`, nên không thể chạy full checkout-based npm/PHP/Playwright suite.
+
+JavaScript syntax checks đã chạy cho document-store mới và consistency-guard được sửa trước khi publish. Repository quality gates được tăng cường để chạy khi CI capacity trở lại.
+
+## Cách dùng audit này hiện nay
+
+File này rất hữu ích để hiểu quá trình hợp nhất runtime/state/persistence ownership. Tuy nhiên mọi “remaining work” ở trên là finding của đúng branch/SHA được ghi đầu file.
+
+Trước khi thực hiện một finding cũ, kiểm tra current `main`, current `PROJECT_RULES.md` và current ownership docs để biết nó đã được xử lý hay chưa.
