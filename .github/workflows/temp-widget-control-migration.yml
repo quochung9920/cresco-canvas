@@ -1,0 +1,74 @@
+name: Temporary Widget Control Migration
+
+on:
+  push:
+    branches: [agent/widget-control-integrity]
+
+permissions:
+  contents: write
+
+jobs:
+  migrate-and-verify:
+    if: ${{ !contains(github.event.head_commit.message, '[widget-control-applied]') }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/widget-control-integrity
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          tools: composer:v2, phpunit:10.5
+          coverage: none
+      - name: Apply canonical Inspector migration
+        run: node scripts/apply-widget-control-integrity.mjs
+      - name: Register quality gate and docs index
+        shell: bash
+        run: |
+          node <<'NODE'
+          const fs = require('fs');
+          const p = JSON.parse(fs.readFileSync('package.json','utf8'));
+          p.scripts['check:widget-controls'] = 'node scripts/check-widget-control-contract.mjs';
+          if (!p.scripts['check:quality'].includes('check:widget-controls')) {
+            p.scripts['check:quality'] = p.scripts['check:quality'].replace('npm run check:size-modes', 'npm run check:size-modes && npm run check:widget-controls');
+          }
+          fs.writeFileSync('package.json', JSON.stringify(p, null, 2) + '\n');
+          const readmePath = 'docs/README.md';
+          let readme = fs.readFileSync(readmePath,'utf8');
+          const link = '- [`STUDIO_WIDGET_CONTROL_CONTRACT.md`](STUDIO_WIDGET_CONTROL_CONTRACT.md) — contract WidgetCatalog → Inspector, loại control/tab/group không được widget hỗ trợ.\n';
+          if (!readme.includes('STUDIO_WIDGET_CONTROL_CONTRACT.md')) readme += '\n' + link;
+          fs.writeFileSync(readmePath, readme);
+          NODE
+      - run: npm ci --no-audit --no-fund
+      - run: composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist
+      - name: Targeted syntax and contract checks
+        run: |
+          node --check runtime-src/build/website-builder-studio.js
+          node --check runtime-src/build/studio-dimension-controls.js
+          node --check scripts/check-widget-control-contract.mjs
+          php -l tests/php/WidgetCatalogControlContractTest.php
+          npm run check:widget-controls
+          npm run check:react-dom-ownership
+          npm run check:size-modes
+          npm run check:build-integrity
+          phpunit -c phpunit.xml.dist tests/php/WidgetCatalogControlContractTest.php
+      - name: Full quality gate
+        run: npm run check:quality
+      - name: Commit verified migration
+        shell: bash
+        run: |
+          rm -f scripts/apply-widget-control-integrity.mjs .github/workflows/temp-widget-control-migration.yml
+          git config user.name "Cresco Control Auditor"
+          git config user.email "actions@users.noreply.github.com"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "No generated changes to commit"
+            exit 0
+          fi
+          git commit -m "fix: align all widget controls with catalog [widget-control-applied]"
+          git push origin HEAD:agent/widget-control-integrity
