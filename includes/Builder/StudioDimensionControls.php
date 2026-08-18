@@ -1,6 +1,6 @@
 <?php
 /**
- * Canonical Cresco Studio dimension and border controls.
+ * React-native Cresco Studio dimension controls.
  *
  * @package CrescoCanvas
  */
@@ -11,6 +11,10 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+/**
+ * Registers the React SDK sizing inspector. Historical DOM proxy/sync behavior
+ * stays retired; the canonical React fields remain mounted as the state bridge.
+ */
 final class StudioDimensionControls {
 	const SCRIPT      = 'build/studio-dimension-controls.js';
 	const SYNC_SCRIPT = 'build/studio-dimension-controls-sync.js';
@@ -28,33 +32,18 @@ final class StudioDimensionControls {
 		if ( ! wp_script_is( WebsiteBuilderStudio::HANDLE, 'enqueued' ) ) return;
 		if ( ! WebsiteBuilderAsset::readable( self::SCRIPT ) ) return;
 
-		$script_dependencies = array( WebsiteBuilderStudio::HANDLE );
-		if ( wp_script_is( 'cresco-canvas-website-builder-responsive-properties', 'enqueued' ) ) {
-			$script_dependencies[] = 'cresco-canvas-website-builder-responsive-properties';
-		}
-
 		wp_enqueue_script(
 			self::HANDLE,
 			WebsiteBuilderAsset::url( self::SCRIPT ),
-			$script_dependencies,
+			array( WebsiteBuilderStudio::HANDLE, 'wp-element' ),
 			WebsiteBuilderAsset::version( self::SCRIPT ),
 			true
 		);
 
-		if ( WebsiteBuilderAsset::readable( self::SYNC_SCRIPT ) ) {
-			wp_enqueue_script(
-				self::SYNC_HANDLE,
-				WebsiteBuilderAsset::url( self::SYNC_SCRIPT ),
-				array( self::HANDLE ),
-				WebsiteBuilderAsset::version( self::SYNC_SCRIPT ),
-				true
-			);
-		}
-
 		if ( WebsiteBuilderAsset::readable( self::STYLE ) ) {
-			$style_dependencies = array();
-			if ( wp_style_is( 'cresco-canvas-website-builder-studio', 'enqueued' ) ) {
-				$style_dependencies[] = 'cresco-canvas-website-builder-studio';
+			$style_dependencies = array( 'cresco-canvas-website-builder-studio' );
+			if ( wp_style_is( 'cresco-canvas-website-builder-premium-polish', 'enqueued' ) ) {
+				$style_dependencies[] = 'cresco-canvas-website-builder-premium-polish';
 			}
 			wp_enqueue_style(
 				self::HANDLE,

@@ -25,6 +25,28 @@ assert(proSource.includes('ownsDom:false'), 'Global Design Pro must explicitly d
   assert(!proSource.includes(token), `React-native Global Design must not imperatively mutate React children (${token}).`);
 });
 
+const dimensionSource = read('runtime-src/build/studio-dimension-controls.js');
+const dimensionBuild = read('build/studio-dimension-controls.js');
+assert(dimensionSource === dimensionBuild, 'React-native dimension controls source/build parity is required.');
+assert(dimensionSource.includes("mode: 'react-sdk-inspector'"), 'Dimension controls must run through the Studio React SDK.');
+assert(dimensionSource.includes("owner: 'WebsiteBuilderStudio.React'"), 'Dimension controls must declare the canonical React owner.');
+assert(dimensionSource.includes('ownsDom: false'), 'Dimension controls must not own the Studio DOM.');
+assert(dimensionSource.includes("label: 'Custom CSS'"), 'Every native dimension control must retain Custom CSS mode.');
+assert(dimensionSource.includes("['100%', 'Full (100%)']"), 'Box dimensions must expose the Full 100% semantic preset.');
+assert(dimensionSource.includes("['fit-content', 'Fit content']"), 'Box dimensions must expose fit-content.');
+assert(dimensionSource.includes("register('native-dimensions-layout'"), 'Layout sizing inspector must be registered.');
+assert(dimensionSource.includes("register('native-dimensions-style'"), 'Style sizing inspector must be registered.');
+assert(dimensionSource.includes("register('native-dimensions-advanced'"), 'Advanced spacing/offset inspector must be registered.');
+assert(dimensionSource.includes("register('native-dimensions-content'"), 'Schema-driven Content sizing inspector must be registered.');
+['document.createElement(', '.insertBefore(', '.appendChild(', '.replaceChildren(', '.removeChild(', '.replaceWith(', 'innerHTML=', 'outerHTML='].forEach((token) => {
+  assert(!dimensionSource.includes(token), `React-native dimension controls must not mutate React child structure (${token}).`);
+});
+
+const dimensionPhp = read('includes/Builder/StudioDimensionControls.php');
+assert(dimensionPhp.includes('React-native Cresco Studio dimension controls'), 'Dimension service must document React-native ownership.');
+assert(dimensionPhp.includes("array( WebsiteBuilderStudio::HANDLE, 'wp-element' )"), 'Dimension SDK runtime must load after the canonical Studio owner.');
+assert(!dimensionPhp.includes('WebsiteBuilderAsset::url( self::SYNC_SCRIPT )'), 'Historical DOM synchronization runtime must stay retired.');
+
 const proPhp = read('includes/Builder/StudioGlobalDesignPro.php');
 assert(proPhp.includes('React-native professional Global Design workspace'), 'Global Design PHP boundary must document React-native ownership.');
 assert(proPhp.includes("array( WebsiteBuilderStudio::HANDLE, 'wp-element', 'wp-api-fetch' )"), 'Global Design React runtime must load after the canonical Studio owner.');
@@ -49,7 +71,6 @@ const retiredHandles = [
   'cresco-canvas-website-builder-ui-correction',
   'cresco-canvas-website-builder-unset-styles',
   'cresco-canvas-website-builder-architecture-v2',
-  'cresco-canvas-studio-dimension-controls',
   'cresco-canvas-studio-dimension-controls-sync',
   'cresco-canvas-studio-typography-popup',
   'cresco-canvas-studio-widget-state-tabs',
@@ -61,11 +82,14 @@ retiredHandles.forEach((handle) => {
   assert(ownershipPhp.includes(`'${handle}'`), `DOM-mutating Studio runtime must stay retired from the final queue: ${handle}`);
 });
 assert(!retiredHandles.includes('cresco-canvas-studio-global-design-pro'), 'React-native Global Design must stay in the final queue.');
+assert(!retiredHandles.includes('cresco-canvas-studio-dimension-controls'), 'React-native dimension controls must stay in the final queue.');
+assert(!ownershipPhp.includes("\t\t'cresco-canvas-studio-dimension-controls',"), 'Ownership guard must not dequeue the React-native dimension handle.');
 assert(ownershipPhp.includes('wp_dequeue_script( $handle )'), 'Ownership guard must remove retired runtimes from the final script queue.');
 assert(ownershipPhp.includes('widget-filter'), 'Ownership migration must clear the legacy widget filter that can hide the entire library.');
 assert(ownershipPhp.includes(':focus'), 'Ownership migration must clear the legacy focus-mode state.');
 
 const plugin = read('cresco-canvas.php');
 assert(plugin.includes('StudioReactOwnershipGuard()'), 'Plugin bootstrap must register the late React ownership guard.');
+assert(plugin.includes('StudioDimensionControls()'), 'Plugin bootstrap must register the React-native dimension service.');
 
 console.log('Studio React DOM ownership contract: PASS');

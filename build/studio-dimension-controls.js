@@ -1,111 +1,391 @@
-(function(window,document){
-'use strict';
-var root=document.getElementById('cresco-canvas-standalone-editor');
-if(!root)return;
-var scheduled=false;
-var VERSION='1.0.0';
-var ALL_UNITS=['px','%','em','rem','vw','vh','vmin','vmax','ch'];
-var BORDER_STYLES=['none','solid','dashed','dotted','double','groove','ridge','inset','outset'];
-var DIMENSION_KEYS={width:1,maxWidth:1,minWidth:1,height:1,maxHeight:1,minHeight:1,gap:1,columnGap:1,rowGap:1,fontSize:1,lineHeight:1,letterSpacing:1,flexBasis:1,top:1,right:1,bottom:1,left:1,inset:1};
-var KEYWORDS={width:['auto','fit-content','min-content','max-content'],height:['auto','fit-content','min-content','max-content'],minWidth:['auto','fit-content','min-content','max-content'],minHeight:['auto','fit-content','min-content','max-content'],maxWidth:['none','fit-content','min-content','max-content'],maxHeight:['none','fit-content','min-content','max-content'],flexBasis:['auto','content','fit-content','min-content','max-content'],lineHeight:['normal']};
-var PROP_KEY_PATTERN=/(width|height|gap|spacing|size|thickness|radius|offset|inset)$/i;
-var stats=window.crescoStudioDimensionControls={version:VERSION,enhancements:0,lastRun:0,mode:'studio-native-proxy'};
-function all(selector,scope){return Array.prototype.slice.call((scope||root).querySelectorAll(selector));}
-function one(selector,scope){return(scope||root).querySelector(selector);}
-function text(node){return node?String(node.textContent||'').replace(/\s+/g,' ').trim():'';}
-function normalize(value){return String(value||'').replace(/\s+/g,' ').trim().toLowerCase();}
-function nativeValue(input,value,dispatch){if(!input)return;var proto=input instanceof window.HTMLTextAreaElement?window.HTMLTextAreaElement.prototype:input instanceof window.HTMLSelectElement?window.HTMLSelectElement.prototype:window.HTMLInputElement.prototype;var descriptor=Object.getOwnPropertyDescriptor(proto,'value');if(descriptor&&descriptor.set)descriptor.set.call(input,String(value==null?'':value));else input.value=String(value==null?'':value);if(dispatch!==false){input.dispatchEvent(new window.Event('input',{bubbles:true}));input.dispatchEvent(new window.Event('change',{bubbles:true}));}}
-function ensureOption(select,value,label){if(!select||!value)return;var exists=all('option',select).some(function(option){return option.value===value;});if(exists)return;var option=document.createElement('option');option.value=value;option.textContent=label||value;select.appendChild(option);}
-function splitCss(value){var input=String(value||'').trim(),parts=[],buf='',depth=0,quote='';for(var i=0;i<input.length;i++){var ch=input[i];if(quote){buf+=ch;if(ch===quote&&input[i-1]!=='\\')quote='';continue;}if(ch==='"'||ch==="'"){quote=ch;buf+=ch;continue;}if(ch==='('){depth++;buf+=ch;continue;}if(ch===')'){if(depth>0)depth--;buf+=ch;continue;}if(/\s/.test(ch)&&depth===0){if(buf.trim()){parts.push(buf.trim());buf='';}continue;}buf+=ch;}if(buf.trim())parts.push(buf.trim());return parts;}
-function expandBox(value){var parts=splitCss(value);if(!parts.length)return['','','',''];if(parts.length===1)return[parts[0],parts[0],parts[0],parts[0]];if(parts.length===2)return[parts[0],parts[1],parts[0],parts[1]];if(parts.length===3)return[parts[0],parts[1],parts[2],parts[1]];return parts.slice(0,4);}
-function parseSimple(value,key){var raw=String(value||'').trim();if(!raw)return null;var match=raw.match(/^(-?(?:\d+|\d*\.\d+))(px|%|em|rem|vw|vh|vmin|vmax|ch)$/i);if(match)return{number:match[1],unit:match[2].toLowerCase()};if(/^-?(?:\d+|\d*\.\d+)$/.test(raw)){if(key==='lineHeight')return{number:raw,unit:'unitless'};if(Number(raw)===0)return{number:raw,unit:defaultUnit(key)};}return null;}
-function defaultUnit(key){return key==='lineHeight'?'unitless':'px';}
-function unitsFor(key){if(key==='fontSize')return['px','em','rem','vw','vh','vmin','vmax'];if(key==='letterSpacing')return['px','em','rem'];if(key==='lineHeight')return['unitless','px','%','em','rem'];if(key==='borderWidth')return['px','em','rem'];if(key==='borderRadius')return['px','%','em','rem'];return ALL_UNITS.slice();}
-function keywordValues(key){return KEYWORDS[key]||[];}
-function isKeyword(key,value){return keywordValues(key).indexOf(String(value||'').trim())!==-1;}
-function serialize(number,mode){var value=String(number==null?'':number).trim();if(!value)return'';return mode==='unitless'?value:value+mode;}
-function styleFieldKey(field){if(!field)return'';if(field.dataset.crescoPropertyKey)return field.dataset.crescoPropertyKey;var label=one('.cc-studio-style-field__label',field),span=label&&one(':scope > span',label);if(span&&span.dataset.crescoPropertyKey)return span.dataset.crescoPropertyKey;return span?text(span):'';}
-function sourceControl(field){if(!field)return null;var candidates=all('input,select,textarea',field).filter(function(input){return!input.closest('[data-cresco-dimension-ui]')&&!input.classList.contains('cc-studio-property-device-select')&&!input.classList.contains('cc-studio-dimension-proxy')&&!input.classList.contains('cc-studio-dimension-unit');});if(styleFieldKey(field)==='borderColor'){var textInput=candidates.find(function(input){return input.tagName==='INPUT'&&input.type!=='color';});return textInput||candidates[0]||null;}return candidates[0]||null;}
-function currentDevice(){var buttons=all('.cc-studio-device-toolbar button',root),active=buttons.find(function(button){return button.classList.contains('is-active');});if(!active)return'wide';return normalize(active.getAttribute('aria-label')||active.getAttribute('title')||text(active))||'wide';}
-function currentState(){var active=one('.cc-studio-state-tabs .is-active',root);return normalize(text(active))||'normal';}
-function widgetId(){var panels=all('.cc-studio-panel',root),panel=panels.find(function(item){var strong=one('.cc-studio-panel-head strong',item);return/^Edit\s+/i.test(text(strong));});return text(panel&&one('.cc-studio-panel-head small',panel))||'widget';}
-function storageKey(kind){var settings=window.crescoWebsiteBuilderSettings||{};return['cresco-studio-dimension-link',settings.postId||'page',widgetId(),currentDevice(),currentState(),kind].join(':');}
-function linkedState(kind,fallback){try{var raw=window.sessionStorage.getItem(storageKey(kind));if(raw==='1')return true;if(raw==='0')return false;}catch(error){}return!!fallback;}
-function setLinkedState(kind,value){try{window.sessionStorage.setItem(storageKey(kind),value?'1':'0');}catch(error){}}
-function breakpointSelect(){var select=document.createElement('select');select.className='cc-studio-dimension-breakpoint';select.setAttribute('data-cresco-dimension-ui','1');select.setAttribute('aria-label','Responsive breakpoint');['wide','desktop','laptop','tablet','mobile'].forEach(function(device){var option=document.createElement('option');option.value=device;option.textContent=device==='wide'?'Wide':device.charAt(0).toUpperCase()+device.slice(1);select.appendChild(option);});select.value=currentDevice();select.addEventListener('change',function(){var target=all('.cc-studio-device-toolbar button',root).find(function(button){return normalize(button.getAttribute('aria-label')||button.getAttribute('title')||text(button))===select.value;});if(target)target.click();});return select;}
-function setModeInput(input,mode,current,key){var parsed=parseSimple(current,key),custom=mode==='custom',keyword=keywordValues(key).indexOf(mode)!==-1;input.type=custom?'text':'number';input.step='any';input.hidden=keyword;input.disabled=keyword;if(custom){input.value=String(current||'');input.placeholder='calc(), clamp(), min(), max(), var()';}else if(keyword){input.value='';}else{input.value=parsed?parsed.number:(String(current||'').match(/^-?(?:\d+|\d*\.\d+)/)||[''])[0];input.placeholder='0';}}
-function dimensionMode(key,value){var raw=String(value||'').trim();if(isKeyword(key,raw))return raw;var parsed=parseSimple(raw,key),units=unitsFor(key);if(parsed&&units.indexOf(parsed.unit)!==-1)return parsed.unit;if(!raw)return defaultUnit(key);return'custom';}
-function buildDimensionProxy(source,key){var wrap=document.createElement('div');wrap.className='cc-studio-dimension-control';wrap.setAttribute('data-cresco-dimension-ui','1');var valueInput=document.createElement('input');valueInput.className='cc-studio-dimension-proxy';var unit=document.createElement('select');unit.className='cc-studio-dimension-unit';unit.setAttribute('aria-label','Unit');var modes=unitsFor(key).concat(keywordValues(key)).concat(['custom']);modes.forEach(function(mode){var option=document.createElement('option');option.value=mode;option.textContent=mode==='custom'?'Custom':mode;unit.appendChild(option);});var mode=dimensionMode(key,source.value);if(modes.indexOf(mode)===-1)mode='custom';unit.value=mode;setModeInput(valueInput,mode,source.value,key);function apply(){var selected=unit.value;if(selected==='custom')nativeValue(source,valueInput.value);else if(keywordValues(key).indexOf(selected)!==-1)nativeValue(source,selected);else nativeValue(source,serialize(valueInput.value,selected));}
-unit.addEventListener('change',function(){var old=String(source.value||''),selected=unit.value;setModeInput(valueInput,selected,old,key);if(selected!=='custom'&&keywordValues(key).indexOf(selected)===-1){var parsed=parseSimple(old,key);if(parsed)valueInput.value=parsed.number;}apply();});valueInput.addEventListener('input',apply);valueInput.addEventListener('change',apply);wrap.appendChild(valueInput);wrap.appendChild(unit);source.classList.add('cc-studio-dimension-source');source.parentNode.insertBefore(wrap,source.nextSibling);stats.enhancements++;}
-function genericStyleDimensions(){all('.cc-studio-style-field',root).forEach(function(field){if(field.classList.contains('cc-studio-border-source')||field.classList.contains('cc-studio-border-editor'))return;var key=styleFieldKey(field);if(!DIMENSION_KEYS[key]||field.querySelector('.cc-studio-dimension-control'))return;var source=sourceControl(field);if(!source||source.tagName==='SELECT')return;buildDimensionProxy(source,key);});}
-function selectedInspectorPanel(){return all('.cc-studio-panel',root).find(function(panel){return/^Edit\s+/i.test(text(one('.cc-studio-panel-head strong',panel)));})||null;}
-function selectedDefinition(panel){var settings=window.crescoWebsiteBuilderSettings||{},catalog=settings.widgetCatalog||{},heading=text(one('.cc-studio-panel-head strong',panel)).replace(/^Edit\s+/i,''),types=Object.keys(catalog);for(var i=0;i<types.length;i++){if(catalog[types[i]]&&catalog[types[i]].label===heading)return catalog[types[i]];}return null;}
-function propLooksDimensional(key,schema){if(!schema||schema.type!=='css'||key==='aspectRatio'||/ratio/i.test(key))return false;return PROP_KEY_PATTERN.test(key)||/(width|height|gap|spacing|size|thickness|radius|offset|inset)/i.test(schema.label||'');}
-function propDimensions(){var panel=selectedInspectorPanel();if(!panel)return;var def=selectedDefinition(panel);if(!def||!def.props)return;var keys=Object.keys(def.props),fields=all('.cc-studio-fields > .cc-studio-field',panel);fields.forEach(function(field,index){var key=keys[index],schema=key&&def.props[key];if(!key||!propLooksDimensional(key,schema)||field.querySelector('.cc-studio-dimension-control'))return;var source=all('input,textarea',field).find(function(input){return!input.closest('[data-cresco-dimension-ui]');});if(source)buildDimensionProxy(source,key);});}
-function spacingMode(inputs,key){var raw=inputs.map(function(input){return String(input.value||'').trim();}).filter(Boolean);if(!raw.length)return defaultUnit(key);var parsed=raw.map(function(value){return parseSimple(value,key);});if(parsed.every(Boolean)){var unit=parsed[0].unit;if(parsed.every(function(item){return item.unit===unit;})&&unitsFor(key).indexOf(unit)!==-1)return unit;}return'custom';}
-function batchNativeValues(pairs){pairs.forEach(function(pair){nativeValue(pair[0],pair[1],false);});pairs.forEach(function(pair){pair[0].dispatchEvent(new window.Event('input',{bubbles:true}));pair[0].dispatchEvent(new window.Event('change',{bubbles:true}));});}
-function enhanceSpacing(){all('.cc-studio-spacing',root).forEach(function(section){var title=one(':scope > strong',section),kind=normalize(text(title));if(kind!=='margin'&&kind!=='padding')return;var labels=all(':scope > .cc-studio-spacing__grid > label',section),sources=labels.map(function(label){return all('input',label).find(function(input){return!input.closest('[data-cresco-dimension-ui]');});});if(sources.length!==4||sources.some(function(input){return!input;})||(section.dataset.crescoDimensionReady==='1'&&section.querySelector('.cc-studio-spacing-tools')))return;section.dataset.crescoDimensionReady='1';var key=kind==='margin'?'marginTop':'paddingTop',mode=spacingMode(sources,key),tools=document.createElement('div');tools.className='cc-studio-spacing-tools';tools.setAttribute('data-cresco-dimension-ui','1');var link=document.createElement('button');link.type='button';link.className='cc-studio-dimension-link';var inferred=sources.every(function(input){return input.value===sources[0].value;}),linked=linkedState(kind,inferred);function paintLink(){link.classList.toggle('is-linked',linked);link.setAttribute('aria-pressed',linked?'true':'false');link.textContent=linked?'Linked':'Individual';link.title=linked?'All four sides change together':'Edit each side independently';}paintLink();var unit=document.createElement('select');unit.className='cc-studio-dimension-unit is-group-unit';unit.setAttribute('aria-label',kind+' unit');unitsFor(key).concat(['custom']).forEach(function(value){var option=document.createElement('option');option.value=value;option.textContent=value==='custom'?'Custom':value;unit.appendChild(option);});unit.value=mode;tools.appendChild(link);tools.appendChild(unit);section.insertBefore(tools,one(':scope > .cc-studio-spacing__grid',section));var proxies=[];labels.forEach(function(label,index){var source=sources[index],proxy=document.createElement('input');proxy.className='cc-studio-spacing-proxy';proxy.setAttribute('data-cresco-dimension-ui','1');source.classList.add('cc-studio-dimension-source');var parsed=parseSimple(source.value,key);proxy.type=mode==='custom'?'text':'number';proxy.step='any';proxy.value=mode==='custom'?String(source.value||''):(parsed?parsed.number:'');proxy.placeholder=mode==='custom'?'Custom':'0';label.appendChild(proxy);proxies.push(proxy);proxy.addEventListener('input',function(){var raw=unit.value==='custom'?proxy.value:serialize(proxy.value,unit.value);if(linked){proxies.forEach(function(other){if(other!==proxy)other.value=proxy.value;});batchNativeValues(sources.map(function(input){return[input,raw];}));}else nativeValue(source,raw);});});link.addEventListener('click',function(){linked=!linked;setLinkedState(kind,linked);if(linked){var sourceProxy=proxies.find(function(input){return String(input.value||'').trim()!=='';})||proxies[0];proxies.forEach(function(input){input.value=sourceProxy.value;});var raw=unit.value==='custom'?sourceProxy.value:serialize(sourceProxy.value,unit.value);batchNativeValues(sources.map(function(input){return[input,raw];}));}paintLink();});unit.addEventListener('change',function(){var next=unit.value;proxies.forEach(function(proxy,index){var old=String(sources[index].value||''),parsed=parseSimple(old,key);proxy.type=next==='custom'?'text':'number';proxy.value=next==='custom'?old:(parsed?parsed.number:(old.match(/^-?(?:\d+|\d*\.\d+)/)||[''])[0]);proxy.placeholder=next==='custom'?'Custom':'0';});batchNativeValues(sources.map(function(source,index){return[source,next==='custom'?proxies[index].value:serialize(proxies[index].value,next)];}));});stats.enhancements++;});}
-function borderField(key){return all('.cc-studio-style-field',root).find(function(field){return styleFieldKey(field)===key&&!field.classList.contains('cc-studio-border-editor');})||null;}
-function borderSourceInput(field,key){if(!field)return null;if(key==='borderColor')return all('input',field).find(function(input){return input.type!=='color'&&!input.closest('[data-cresco-dimension-ui]');})||null;return sourceControl(field);}
-function buildColorEditor(source){var wrap=document.createElement('div');wrap.className='cc-studio-border-color';wrap.setAttribute('data-border-dependent','1');var picker=document.createElement('input');picker.type='color';var raw=String(source.value||''),match=raw.match(/^#[0-9a-f]{6}$/i);picker.value=match?match[0]:'#000000';var input=document.createElement('input');input.type='text';input.value=raw;input.placeholder='#000000 or {colors.primary}';picker.addEventListener('input',function(){input.value=picker.value;nativeValue(source,picker.value);});input.addEventListener('input',function(){nativeValue(source,input.value);var next=String(input.value||'').match(/^#[0-9a-f]{6}$/i);if(next)picker.value=next[0];});wrap.appendChild(picker);wrap.appendChild(input);return wrap;}
-function boxMode(values,key){var nonempty=values.filter(Boolean);if(!nonempty.length)return defaultUnit(key);var parsed=nonempty.map(function(value){return parseSimple(value,key);});if(parsed.every(Boolean)){var unit=parsed[0].unit;if(parsed.every(function(item){return item.unit===unit;})&&unitsFor(key).indexOf(unit)!==-1)return unit;}return'custom';}
-function buildBoxEditor(title,source,labels,key,linkKind,dependent){var section=document.createElement('section');section.className='cc-studio-border-box';if(dependent)section.setAttribute('data-border-dependent','1');var head=document.createElement('div');head.className='cc-studio-border-box-head';var strong=document.createElement('strong');strong.textContent=title;var actions=document.createElement('div');actions.className='cc-studio-border-box-actions';var raw=String(source.value||''),parts=splitCss(raw),values=expandBox(raw),linked=linkedState(linkKind,parts.length<=1),mode=boxMode(values,key);var link=document.createElement('button');link.type='button';link.className='cc-studio-dimension-link';function paintLink(){link.classList.toggle('is-linked',linked);link.setAttribute('aria-pressed',linked?'true':'false');link.textContent=linked?'Linked':'Individual';}paintLink();var unit=document.createElement('select');unit.className='cc-studio-dimension-unit is-group-unit';unit.setAttribute('aria-label',title+' unit');unitsFor(key).concat(['custom']).forEach(function(value){var option=document.createElement('option');option.value=value;option.textContent=value==='custom'?'Custom':value;unit.appendChild(option);});unit.value=mode;actions.appendChild(link);actions.appendChild(unit);head.appendChild(strong);head.appendChild(actions);section.appendChild(head);var grid=document.createElement('div');grid.className='cc-studio-border-box-grid';var proxies=[];labels.forEach(function(label,index){var wrap=document.createElement('label'),small=document.createElement('small'),input=document.createElement('input');small.textContent=label;input.type=mode==='custom'?'text':'number';input.step='any';var parsed=parseSimple(values[index],key);input.value=mode==='custom'?values[index]:(parsed?parsed.number:'');input.placeholder=mode==='custom'?'Custom':'0';wrap.appendChild(small);wrap.appendChild(input);grid.appendChild(wrap);proxies.push(input);});section.appendChild(grid);function serializeValues(){var next=proxies.map(function(input){return unit.value==='custom'?String(input.value||'').trim():serialize(input.value,unit.value);});if(linked)return next.find(Boolean)||'';return next.map(function(value){return value||'0';}).join(' ');}function write(){nativeValue(source,serializeValues());}proxies.forEach(function(input){input.addEventListener('input',function(){if(linked)proxies.forEach(function(other){if(other!==input)other.value=input.value;});write();});input.addEventListener('change',write);});link.addEventListener('click',function(){linked=!linked;setLinkedState(linkKind,linked);if(linked){var first=proxies.find(function(input){return String(input.value||'').trim()!=='';})||proxies[0];proxies.forEach(function(input){input.value=first.value;});}paintLink();write();});unit.addEventListener('change',function(){var next=unit.value,current=expandBox(source.value);proxies.forEach(function(input,index){var old=current[index],parsed=parseSimple(old,key);input.type=next==='custom'?'text':'number';input.value=next==='custom'?old:(parsed?parsed.number:(String(old||'').match(/^-?(?:\d+|\d*\.\d+)/)||[''])[0]);input.placeholder=next==='custom'?'Custom':'0';});write();});return section;}
-function updateBorderDisabled(editor,value){var disabled=String(value||'')==='none';all('[data-border-dependent="1"] input,[data-border-dependent="1"] select,[data-border-dependent="1"] button',editor).forEach(function(control){control.disabled=disabled;});all('[data-border-dependent="1"]',editor).forEach(function(node){node.classList.toggle('is-disabled',disabled);});}
-/* Composite Border control.
-   Capability comes from the native fields' crescoCapabilityHidden flag, which the
-   responsive-properties module already computed from the canonical widget contract.
-   Reading it here keeps one capability authority instead of two that can diverge.
-   The composite therefore renders exactly the members the widget really supports,
-   and hides its native sources only after it is safely in the DOM. */
-var BORDER_MEMBERS=[{key:'borderStyle'},{key:'borderColor'},{key:'borderWidth'},{key:'borderRadius'}];
-function borderMemberAllowed(field){return !!field&&field.dataset.crescoCapabilityHidden!=='1';}
-function collectBorderMembers(){var found={},order=[];BORDER_MEMBERS.forEach(function(member){var field=borderField(member.key);if(!field||!borderMemberAllowed(field))return;var source=borderSourceInput(field,member.key);if(!source)return;found[member.key]={field:field,source:source};order.push(member.key);});return {map:found,keys:order};}
-function releaseBorderSources(){all('.cc-studio-border-source',root).forEach(function(field){field.classList.remove('cc-studio-border-source');});}
-function enhanceBorder(){
-var members=collectBorderMembers(),keys=members.keys,map=members.map;
-var existing=one('.cc-studio-border-editor',root);
-/* No supported Border property: drop any stale composite and give the native
-   fields back, so the group is either populated or absent — never empty. */
-if(!keys.length){if(existing)existing.remove();releaseBorderSources();return;}
-var anchor=map[keys[0]].field,grid=anchor.parentElement;if(!grid)return;
-var sources=keys.map(function(key){return map[key].source;});
-if(existing&&existing._crescoSources&&existing._crescoKeys===keys.join(',')&&existing.parentElement===grid&&existing._crescoSources.length===sources.length&&existing._crescoSources.every(function(source,index){return source===sources[index]&&source.isConnected;})){updateBorderDisabled(existing,map.borderStyle?map.borderStyle.source.value:'');return;}
-if(existing)existing.remove();
-var styleSource=map.borderStyle?map.borderStyle.source:null;
-var editor=document.createElement('section');
-editor.className='cc-studio-style-field cc-studio-border-editor';
-/* Not a style property. Declaring it as one made the capability system treat the
-   whole composite as borderWidth. It is a composite control and says so. */
-editor.setAttribute('data-cresco-composite-control','border');
-editor.setAttribute('data-cresco-composite-keys',keys.join(' '));
-editor.setAttribute('data-cresco-dimension-ui','1');
-editor._crescoSources=sources;editor._crescoKeys=keys.join(',');
-try{
-var head=document.createElement('div');head.className='cc-studio-border-editor-head';var title=document.createElement('strong');title.textContent='Border controls';head.appendChild(title);head.appendChild(breakpointSelect());editor.appendChild(head);
-if(styleSource){var styleWrap=document.createElement('label');styleWrap.className='cc-studio-border-row';var styleLabel=document.createElement('span');styleLabel.textContent='Border style';var styleSelect=document.createElement('select');styleSelect.className='cc-studio-border-style-select';var inherit=document.createElement('option');inherit.value='';inherit.textContent='Inherit';styleSelect.appendChild(inherit);BORDER_STYLES.forEach(function(value){ensureOption(styleSource,value,value.charAt(0).toUpperCase()+value.slice(1));var option=document.createElement('option');option.value=value;option.textContent=value.charAt(0).toUpperCase()+value.slice(1);styleSelect.appendChild(option);});styleSelect.value=String(styleSource.value||'');styleSelect.addEventListener('change',function(){ensureOption(styleSource,styleSelect.value,styleSelect.value);nativeValue(styleSource,styleSelect.value);updateBorderDisabled(editor,styleSelect.value);});styleWrap.appendChild(styleLabel);styleWrap.appendChild(styleSelect);editor.appendChild(styleWrap);}
-if(map.borderColor){var colorWrap=document.createElement('div');colorWrap.className='cc-studio-border-section';
-/* Colour and width follow Border style: none means there is nothing to paint.
-   Radius deliberately does not, because it still shapes the background. */
-if(styleSource)colorWrap.setAttribute('data-border-dependent','1');var colorTitle=document.createElement('strong');colorTitle.textContent='Border color';colorWrap.appendChild(colorTitle);colorWrap.appendChild(buildColorEditor(map.borderColor.source));editor.appendChild(colorWrap);}
-if(map.borderWidth){var widthBox=buildBoxEditor('Border width',map.borderWidth.source,['T','R','B','L'],'borderWidth','borderWidth',!!styleSource);editor.appendChild(widthBox);}
-if(map.borderRadius){editor.appendChild(buildBoxEditor('Corner radius',map.borderRadius.source,['TL','TR','BR','BL'],'borderRadius','borderRadius',false));}
-grid.insertBefore(editor,anchor);
-}catch(error){
-/* Fail-safe: a composite that cannot mount must not take the native controls with
-   it. Without this, the ReferenceError this function used to throw left the Border
-   group expanded and completely empty. */
-if(editor.parentElement)editor.remove();
-releaseBorderSources();
-if(window.console&&window.console.error)window.console.error('Cresco: border composite failed to mount; native controls kept.',error);
-return;
-}
-/* Only now that the replacement is in the DOM is it safe to hide the sources. */
-releaseBorderSources();
-keys.forEach(function(key){map[key].field.classList.add('cc-studio-border-source');});
-updateBorderDisabled(editor,styleSource?styleSource.value:'');
-stats.enhancements++;
-}
-function run(){scheduled=false;if(!root.querySelector('.cc-studio-app'))return;enhanceBorder();enhanceSpacing();genericStyleDimensions();propDimensions();stats.lastRun=Date.now();}
-function schedule(){if(scheduled)return;scheduled=true;window.requestAnimationFrame(run);}
-var observer=new MutationObserver(schedule);observer.observe(root,{childList:true,subtree:true});root.addEventListener('click',function(){window.setTimeout(schedule,0);});root.addEventListener('change',function(){window.setTimeout(schedule,0);});window.addEventListener('cresco:studio-extension-change',schedule);schedule();
-})(window,document);
+(function (wp, window, document) {
+  'use strict';
+
+  if (!wp || !wp.element || !window.CrescoStudioSDK) return;
+
+  var h = wp.element.createElement;
+  var useEffect = wp.element.useEffect;
+  var useMemo = wp.element.useMemo;
+  var useState = wp.element.useState;
+  var root = document.getElementById('cresco-canvas-standalone-editor');
+  if (!root) return;
+
+  var settings = window.crescoWebsiteBuilderSettings || {};
+  var catalog = settings.widgetCatalog || {};
+  var UNITS = ['px', '%', 'em', 'rem', 'vw', 'vh', 'vmin', 'vmax', 'ch'];
+  var GROUPS = {
+    layout: ['width', 'maxWidth', 'minWidth', 'height', 'minHeight', 'maxHeight', 'gap', 'columnGap', 'rowGap', 'flexBasis'],
+    style: ['fontSize', 'lineHeight', 'letterSpacing', 'borderWidth', 'borderRadius'],
+    advanced: ['top', 'right', 'bottom', 'left', 'inset']
+  };
+  var LABELS = {
+    width: 'Width', maxWidth: 'Max width', minWidth: 'Min width', height: 'Height', minHeight: 'Min height', maxHeight: 'Max height',
+    gap: 'Gap', columnGap: 'Column gap', rowGap: 'Row gap', flexBasis: 'Flex basis', fontSize: 'Font size', lineHeight: 'Line height',
+    letterSpacing: 'Letter spacing', borderWidth: 'Border width', borderRadius: 'Border radius', top: 'Top', right: 'Right', bottom: 'Bottom', left: 'Left', inset: 'Inset',
+    marginTop: 'Top', marginRight: 'Right', marginBottom: 'Bottom', marginLeft: 'Left', paddingTop: 'Top', paddingRight: 'Right', paddingBottom: 'Bottom', paddingLeft: 'Left'
+  };
+  var KEYWORDS = {
+    width: [['auto', 'Auto'], ['100%', 'Full (100%)'], ['fit-content', 'Fit content'], ['min-content', 'Min content'], ['max-content', 'Max content']],
+    maxWidth: [['none', 'None'], ['100%', 'Full (100%)'], ['fit-content', 'Fit content'], ['min-content', 'Min content'], ['max-content', 'Max content']],
+    minWidth: [['auto', 'Auto'], ['0', 'None (0)'], ['100%', 'Full (100%)'], ['fit-content', 'Fit content'], ['min-content', 'Min content'], ['max-content', 'Max content']],
+    height: [['auto', 'Auto'], ['100%', 'Full (100%)'], ['fit-content', 'Fit content'], ['min-content', 'Min content'], ['max-content', 'Max content']],
+    maxHeight: [['none', 'None'], ['100%', 'Full (100%)'], ['fit-content', 'Fit content'], ['min-content', 'Min content'], ['max-content', 'Max content']],
+    minHeight: [['auto', 'Auto'], ['0', 'None (0)'], ['100%', 'Full (100%)'], ['fit-content', 'Fit content'], ['min-content', 'Min content'], ['max-content', 'Max content']],
+    gap: [['normal', 'Normal'], ['0', 'None (0)']],
+    columnGap: [['normal', 'Normal'], ['0', 'None (0)']],
+    rowGap: [['normal', 'Normal'], ['0', 'None (0)']],
+    flexBasis: [['auto', 'Auto'], ['content', 'Content'], ['0', 'None (0)'], ['100%', 'Full (100%)'], ['fit-content', 'Fit content'], ['min-content', 'Min content'], ['max-content', 'Max content']],
+    lineHeight: [['normal', 'Normal']],
+    letterSpacing: [['normal', 'Normal']],
+    borderWidth: [['0', 'None (0)'], ['thin', 'Thin'], ['medium', 'Medium'], ['thick', 'Thick']],
+    borderRadius: [['0', 'None (0)']],
+    top: [['auto', 'Auto']], right: [['auto', 'Auto']], bottom: [['auto', 'Auto']], left: [['auto', 'Auto']], inset: [['auto', 'Auto']],
+    marginTop: [['auto', 'Auto'], ['0', 'None (0)']], marginRight: [['auto', 'Auto'], ['0', 'None (0)']], marginBottom: [['auto', 'Auto'], ['0', 'None (0)']], marginLeft: [['auto', 'Auto'], ['0', 'None (0)']],
+    paddingTop: [['0', 'None (0)']], paddingRight: [['0', 'None (0)']], paddingBottom: [['0', 'None (0)']], paddingLeft: [['0', 'None (0)']]
+  };
+  var SPECIAL_UNITS = {
+    lineHeight: ['unitless', 'px', '%', 'em', 'rem'],
+    letterSpacing: ['px', 'em', 'rem'],
+    fontSize: ['px', '%', 'em', 'rem', 'vw', 'vh', 'vmin', 'vmax'],
+    borderWidth: ['px', 'em', 'rem'],
+    borderRadius: ['px', '%', 'em', 'rem']
+  };
+  var DIMENSION_PROP_PATTERN = /(width|height|gap|spacing|size|thickness|radius|offset|inset)$/i;
+
+  function arr(value) { return Array.isArray(value) ? value : []; }
+  function obj(value) { return value && typeof value === 'object' && !Array.isArray(value) ? value : {}; }
+  function text(node) { return node ? String(node.textContent || '').replace(/\s+/g, ' ').trim() : ''; }
+  function all(selector, scope) { return Array.prototype.slice.call((scope || root).querySelectorAll(selector)); }
+  function hasOwn(source, key) { return !!source && Object.prototype.hasOwnProperty.call(source, key); }
+  function unitsFor(key) { return (SPECIAL_UNITS[key] || UNITS).slice(); }
+  function keywordPairs(key) { return (KEYWORDS[key] || []).slice(); }
+  function keywordLabel(key, value) {
+    var pair = keywordPairs(key).find(function (item) { return item[0] === value; });
+    return pair ? pair[1] : value;
+  }
+  function defaultUnit(key) { return key === 'lineHeight' ? 'unitless' : 'px'; }
+  function parseSimple(raw, key) {
+    var value = String(raw == null ? '' : raw).trim();
+    if (!value) return null;
+    if (key === 'lineHeight' && /^-?(?:\d+|\d*\.\d+)$/.test(value)) return { number: value, unit: 'unitless' };
+    var match = value.match(/^(-?(?:\d+|\d*\.\d+))(px|%|em|rem|vw|vh|vmin|vmax|ch)$/i);
+    return match ? { number: match[1], unit: match[2].toLowerCase() } : null;
+  }
+  function isKeyword(key, value) {
+    return keywordPairs(key).some(function (item) { return item[0] === String(value == null ? '' : value).trim(); });
+  }
+  function inferMode(key, value) {
+    var raw = String(value == null ? '' : value).trim();
+    if (isKeyword(key, raw)) return raw;
+    var parsed = parseSimple(raw, key);
+    if (parsed && unitsFor(key).indexOf(parsed.unit) !== -1) return parsed.unit;
+    if (!raw) return defaultUnit(key);
+    return 'custom';
+  }
+  function effective(node, device, state) {
+    var out = Object.assign({}, obj(node && node.style));
+    var order = ['desktop', 'laptop', 'tablet', 'mobile'];
+    if (device !== 'wide') {
+      for (var i = 0; i < order.length; i++) {
+        Object.assign(out, obj(obj(node && node.responsive)[order[i]]));
+        if (order[i] === device) break;
+      }
+    }
+    if (state && state !== 'normal') Object.assign(out, obj(obj(node && node.states)[state]));
+    return out;
+  }
+  function owns(node, key, device, state) {
+    if (!node) return false;
+    if (state && state !== 'normal') return hasOwn(obj(node.states)[state], key);
+    if (device === 'wide') return hasOwn(node.style, key);
+    return hasOwn(obj(node.responsive)[device], key);
+  }
+  function inspectorPanel() {
+    return all('.cc-studio-panel', root).find(function (panel) {
+      var heading = panel.querySelector('.cc-studio-panel-head strong');
+      return /^Edit\s+/i.test(text(heading));
+    }) || null;
+  }
+  function styleField(key) {
+    var panel = inspectorPanel();
+    if (!panel) return null;
+    return all('.cc-studio-style-field', panel).find(function (field) {
+      var span = field.querySelector('.cc-studio-style-field__label > span');
+      return text(span) === key;
+    }) || null;
+  }
+  function sourceControl(key) {
+    var field = styleField(key);
+    if (!field) return null;
+    return all('input,select,textarea', field).find(function (control) { return control.type !== 'color'; }) || null;
+  }
+  function spacingSection(kind) {
+    var panel = inspectorPanel();
+    if (!panel) return null;
+    return all('.cc-studio-spacing', panel).find(function (section) {
+      return text(section.querySelector(':scope > strong')).toLowerCase() === kind;
+    }) || null;
+  }
+  function spacingSource(kind, index) {
+    var section = spacingSection(kind);
+    if (!section) return null;
+    var labels = all(':scope > .cc-studio-spacing__grid > label', section);
+    return labels[index] ? labels[index].querySelector('input') : null;
+  }
+  function definition(node) { return node && catalog[node.type] ? catalog[node.type] : null; }
+  function dimensionProps(node) {
+    var def = definition(node);
+    var props = obj(def && def.props);
+    return Object.keys(props).filter(function (key) {
+      var schema = props[key];
+      if (!schema || schema.type !== 'css' || key === 'aspectRatio' || /ratio/i.test(key)) return false;
+      return DIMENSION_PROP_PATTERN.test(key) || /(width|height|gap|spacing|size|thickness|radius|offset|inset)/i.test(schema.label || '');
+    });
+  }
+  function propField(node, key) {
+    var def = definition(node);
+    if (!def) return null;
+    var keys = Object.keys(obj(def.props));
+    var index = keys.indexOf(key);
+    var panel = inspectorPanel();
+    if (index < 0 || !panel) return null;
+    var fields = all('.cc-studio-fields > .cc-studio-field', panel);
+    return fields[index] || null;
+  }
+  function propSource(node, key) {
+    var field = propField(node, key);
+    if (!field) return null;
+    return all('input,textarea', field).find(function (control) { return control.type !== 'color'; }) || null;
+  }
+  function nativeValue(control, value) {
+    if (!control) return false;
+    var proto = control instanceof window.HTMLTextAreaElement ? window.HTMLTextAreaElement.prototype : control instanceof window.HTMLSelectElement ? window.HTMLSelectElement.prototype : window.HTMLInputElement.prototype;
+    var descriptor = Object.getOwnPropertyDescriptor(proto, 'value');
+    if (descriptor && descriptor.set) descriptor.set.call(control, String(value == null ? '' : value));
+    else control.value = String(value == null ? '' : value);
+    control.dispatchEvent(new window.Event(control instanceof window.HTMLSelectElement ? 'change' : 'input', { bubbles: true }));
+    return true;
+  }
+  function applyStyle(key, value) { return nativeValue(sourceControl(key), value); }
+  function applySpacing(kind, index, value) { return nativeValue(spacingSource(kind, index), value); }
+  function applyProp(node, key, value) { return nativeValue(propSource(node, key), value); }
+  function mark(tab, node) {
+    var marked = [];
+    function tag(target) {
+      if (!target) return;
+      target.setAttribute('data-cresco-dimension-source', '1');
+      marked.push(target);
+    }
+    if (tab === 'content') dimensionProps(node).forEach(function (key) { tag(propField(node, key)); });
+    else {
+      arr(GROUPS[tab]).forEach(function (key) { tag(styleField(key)); });
+      if (tab === 'advanced') {
+        tag(spacingSection('margin'));
+        tag(spacingSection('padding'));
+      }
+    }
+    return function () {
+      marked.forEach(function (target) {
+        if (target && target.isConnected) target.removeAttribute('data-cresco-dimension-source');
+      });
+    };
+  }
+  function optionList(key) {
+    var units = unitsFor(key).map(function (unit) { return { value: unit, label: unit === 'unitless' ? 'Unitless' : unit }; });
+    var keywords = keywordPairs(key).map(function (item) { return { value: item[0], label: item[1] }; });
+    return units.concat(keywords).concat([{ value: 'custom', label: 'Custom CSS' }]);
+  }
+  function modeIsKeyword(key, mode) { return keywordPairs(key).some(function (item) { return item[0] === mode; }); }
+  function serial(number, mode) {
+    var value = String(number == null ? '' : number).trim();
+    if (!value) return '';
+    return mode === 'unitless' ? value : value + mode;
+  }
+
+  function DimensionControl(props) {
+    var raw = String(props.value == null ? '' : props.value);
+    var initial = inferMode(props.keyName, raw);
+    var modeState = useState(initial);
+    var mode = modeState[0];
+    var setMode = modeState[1];
+    var draftState = useState(function () {
+      var parsed = parseSimple(raw, props.keyName);
+      return initial === 'custom' ? raw : (parsed ? parsed.number : '');
+    });
+    var draft = draftState[0];
+    var setDraft = draftState[1];
+
+    useEffect(function () {
+      var next = inferMode(props.keyName, props.value);
+      var parsed = parseSimple(props.value, props.keyName);
+      setMode(next);
+      setDraft(next === 'custom' ? String(props.value == null ? '' : props.value) : (parsed ? parsed.number : ''));
+    }, [props.keyName, String(props.value == null ? '' : props.value), props.device, props.state]);
+
+    var keyword = modeIsKeyword(props.keyName, mode);
+
+    function changeMode(event) {
+      var next = event.target.value;
+      var parsed = parseSimple(props.value, props.keyName);
+      setMode(next);
+      if (next === 'custom') {
+        setDraft(inferMode(props.keyName, props.value) === 'custom' ? String(props.value || '') : '');
+        return;
+      }
+      if (modeIsKeyword(props.keyName, next)) {
+        setDraft('');
+        props.onApply(next);
+        return;
+      }
+      var number = parsed ? parsed.number : draft;
+      if (number) {
+        setDraft(number);
+        props.onApply(serial(number, next));
+      } else {
+        setDraft('');
+      }
+    }
+
+    function changeValue(event) {
+      var next = event.target.value;
+      setDraft(next);
+      props.onApply(mode === 'custom' ? next : serial(next, mode));
+    }
+
+    return h('article', { className: 'cc-studio-native-dimension' + (props.compact ? ' is-compact' : '') },
+      h('div', { className: 'cc-studio-native-dimension__head' },
+        h('span', null, props.label || LABELS[props.keyName] || props.keyName),
+        props.owned ? h('button', {
+          type: 'button',
+          className: 'cc-studio-native-dimension__reset',
+          title: 'Reset override',
+          'aria-label': 'Reset ' + (props.label || props.keyName),
+          onClick: function () { props.onApply(props.resetValue == null ? '' : props.resetValue); }
+        }, h('span', { className: 'dashicons dashicons-undo', 'aria-hidden': 'true' })) : null
+      ),
+      h('div', { className: 'cc-studio-native-dimension__control', 'data-keyword': keyword ? '1' : '0' },
+        h('input', {
+          type: mode === 'custom' ? 'text' : 'number',
+          step: 'any',
+          value: keyword ? '' : draft,
+          disabled: keyword,
+          placeholder: mode === 'custom' ? 'clamp(), calc(), var(), token' : '0',
+          onChange: changeValue
+        }),
+        h('select', {
+          value: mode,
+          'aria-label': (props.label || props.keyName) + ' size mode',
+          onChange: changeMode
+        }, optionList(props.keyName).map(function (option) {
+          return h('option', { key: option.value, value: option.value }, option.label);
+        })),
+        keyword ? h('small', { className: 'cc-studio-native-dimension__keyword' }, keywordLabel(props.keyName, mode)) : null
+      )
+    );
+  }
+
+  function BoxGroup(props) {
+    var sides = ['Top', 'Right', 'Bottom', 'Left'];
+    var style = effective(props.node, props.device, props.state);
+    return h('section', { className: 'cc-studio-native-box' },
+      h('div', { className: 'cc-studio-native-box__title' },
+        h('strong', null, props.title),
+        h('small', null, 'Each side has its own unit / keyword / custom mode')
+      ),
+      h('div', { className: 'cc-studio-native-box__grid' }, sides.map(function (side, index) {
+        var key = props.kind + side;
+        return h(DimensionControl, {
+          key: key,
+          keyName: key,
+          label: side,
+          value: style[key] || '',
+          owned: owns(props.node, key, props.device, props.state),
+          device: props.device,
+          state: props.state,
+          compact: true,
+          onApply: function (value) { applySpacing(props.kind.toLowerCase(), index, value); }
+        });
+      }))
+    );
+  }
+
+  function NativeSizing(props) {
+    useEffect(function () { return mark(props.tab, props.node); }, [props.tab, props.node && props.node.id, props.device, props.state]);
+    var style = useMemo(function () { return effective(props.node, props.device, props.state); }, [props.node, props.device, props.state]);
+    var keys = props.tab === 'content' ? dimensionProps(props.node) : arr(GROUPS[props.tab]);
+
+    return h('div', { className: 'cc-studio-size-system', 'data-tab': props.tab },
+      h('div', { className: 'cc-studio-size-system__meta' },
+        h('span', null, (props.device || 'wide') + ' · ' + (props.state || 'normal')),
+        h('small', null, 'Preset/unit dropdown + Custom CSS')
+      ),
+      props.tab === 'advanced' ? h('div', { className: 'cc-studio-native-boxes' },
+        h(BoxGroup, { title: 'Margin', kind: 'margin', node: props.node, device: props.device, state: props.state }),
+        h(BoxGroup, { title: 'Padding', kind: 'padding', node: props.node, device: props.device, state: props.state })
+      ) : null,
+      h('div', { className: 'cc-studio-native-dimension-list' }, keys.map(function (key) {
+        if (props.tab === 'content') {
+          var def = definition(props.node);
+          var schema = obj(def && def.props)[key] || {};
+          var value = obj(props.node.props)[key];
+          var resetValue = schema.default == null ? '' : schema.default;
+          var owned = String(value == null ? '' : value) !== String(resetValue);
+          return h(DimensionControl, {
+            key: key,
+            keyName: key,
+            label: schema.label || LABELS[key] || key,
+            value: value == null ? '' : value,
+            owned: owned,
+            device: props.device,
+            state: props.state,
+            resetValue: resetValue,
+            onApply: function (next) { applyProp(props.node, key, next); }
+          });
+        }
+        var current = style[key] || '';
+        return h(DimensionControl, {
+          key: key,
+          keyName: key,
+          label: LABELS[key] || key,
+          value: current,
+          owned: owns(props.node, key, props.device, props.state),
+          device: props.device,
+          state: props.state,
+          onApply: function (next) { applyStyle(key, next); }
+        });
+      }))
+    );
+  }
+
+  function register(id, label, tab, when) {
+    window.CrescoStudioSDK.registerInspectorSection({
+      id: id,
+      label: label,
+      when: function (context) {
+        if (!context || context.tab !== tab || !context.node) return false;
+        return when ? when(context) : true;
+      },
+      render: function (context) {
+        return h(NativeSizing, { tab: tab, node: context.node, device: context.device, state: context.state });
+      }
+    });
+  }
+
+  register('native-dimensions-content', 'Sizing', 'content', function (context) { return dimensionProps(context.node).length > 0; });
+  register('native-dimensions-layout', 'Size & gaps', 'layout');
+  register('native-dimensions-style', 'Text & border sizes', 'style');
+  register('native-dimensions-advanced', 'Spacing & offsets', 'advanced');
+
+  window.setTimeout(function () {
+    try { window.dispatchEvent(new CustomEvent('cresco:studio-extension-change', { detail: { bucket: 'inspectorSections' } })); } catch (error) {}
+  }, 0);
+
+  window.crescoStudioDimensionControls = {
+    version: '2.0.0',
+    mode: 'react-sdk-inspector',
+    owner: 'WebsiteBuilderStudio.React',
+    ownsDom: false,
+    childDomMutations: false,
+    sourceBridge: 'native-input-event'
+  };
+})(window.wp, window, document);

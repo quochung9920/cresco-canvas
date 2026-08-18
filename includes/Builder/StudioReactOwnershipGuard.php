@@ -18,7 +18,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * removed from the final queue.
  */
 final class StudioReactOwnershipGuard {
-	const VERSION = '1.0.0';
+	const VERSION = '1.1.0';
 
 	/** @var string[] */
 	private const RETIRED_SCRIPT_HANDLES = array(
@@ -26,7 +26,6 @@ final class StudioReactOwnershipGuard {
 		'cresco-canvas-website-builder-ui-correction',
 		'cresco-canvas-website-builder-unset-styles',
 		'cresco-canvas-website-builder-architecture-v2',
-		'cresco-canvas-studio-dimension-controls',
 		'cresco-canvas-studio-dimension-controls-sync',
 		'cresco-canvas-studio-typography-popup',
 		'cresco-canvas-studio-widget-state-tabs',
@@ -55,6 +54,7 @@ final class StudioReactOwnershipGuard {
 			'owner'            => 'WebsiteBuilderStudio.React',
 			'reactOwnsDom'     => true,
 			'retiredScripts'   => self::RETIRED_SCRIPT_HANDLES,
+			'reactExtensions'  => array( 'cresco-canvas-studio-dimension-controls', 'cresco-canvas-studio-global-design-pro' ),
 			'legacyUiStateKey' => 'cresco-studio-react-owner-v1:' . $post_id,
 		);
 
