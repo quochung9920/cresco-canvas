@@ -1,51 +1,55 @@
-# Cresco AI Context v2
+# Cresco AI Context v2 — One-Shot compatibility profile
 
-One-Shot authoring package. Additive to v1: v1 remains the compatibility interchange profile for existing integrations, while v2 adds enough authoring context for a model to build inside the selected scope in one exchange.
+> V2 là One-Shot authoring package bổ sung trên V1. V1 vẫn là compatibility interchange profile cho integration cũ; V2 thêm đủ authoring context để model có thể build trong selected scope trong một lần trao đổi.
+>
+> Với workflow mặc định hiện tại, kiểm tra `CRESCO_AI_CONTEXT_V3.md`. Tên schema, JSON key, route và literal contract trong file này được giữ nguyên.
 
-## Why v2 exists
+## Vì sao V2 tồn tại
 
-v1 answers *what is here*. That is enough to edit something, and not enough to build something.
+V1 trả lời câu hỏi: **“ở đây đang có gì?”**. Điều đó đủ để chỉnh một thứ đã tồn tại nhưng chưa đủ để tự xây một thứ mới.
 
-Ask v1 to redesign an empty Container and it exports one widget contract — the container itself — plus whatever design tokens that container already references, which is usually none. A model reading that package has nothing to build with. It invents widget names and property names, the patch fails validation, and the user pays for a second exchange to be told what was available all along.
+Ví dụ: yêu cầu V1 redesign một Container rỗng thường chỉ export contract của chính Container và các design token mà Container đó đang reference — thường là không có. Model không biết những widget/property nào được phép tạo, dễ invent tên widget/property và làm patch fail validation.
 
-v2 answers *what may be built here*. Three additions carry that:
+V2 trả lời thêm câu hỏi: **“được phép xây gì ở đây?”**.
 
-| Addition | Problem it removes |
+Ba bổ sung chính:
+
+| Bổ sung | Vấn đề được giải quyết |
 | --- | --- |
-| `contracts.creationCatalog` | Every widget type the model may create, not just the ones present |
-| `designSystem.available` | The whole token palette, present even when the scope references none |
-| `returnContract.template` | The exact reply object, pre-filled with the resolved target |
+| `contracts.creationCatalog` | Cung cấp mọi widget type model được phép tạo, không chỉ type đã có trong scope |
+| `designSystem.available` | Cung cấp toàn bộ token palette ngay cả khi scope chưa reference token nào |
+| `returnContract.template` | Cung cấp exact reply object đã điền sẵn resolved target |
 
-The goal is not "the model never makes mistakes". It is to eliminate failures caused by missing Cresco knowledge and format ambiguity — the two classes Cresco can fix without judgement.
+Mục tiêu không phải “model sẽ không bao giờ sai”, mà là loại bỏ lỗi do thiếu kiến thức về Cresco và do mơ hồ format — hai nhóm lỗi Cresco có thể chủ động tránh.
 
-## Difference from v1
+## Khác biệt với V1
 
-| | v1 | v2 |
+| | V1 | V2 |
 | --- | --- | --- |
 | Schema | `cresco-ai-context/v1` | `cresco-ai-context/v2` |
 | Shape | Flat envelope | `scopePackage` + `authoringPolicy` + `returnContract` |
-| Contracts | Scope types only (optimized) | `current` **and** `creationCatalog` |
-| Design system | Dependency-optimized only | `available` **and** `used` |
-| Visual | Opt-in, default off | Default on |
+| Contracts | Scope types only trong optimized mode | `current` **và** `creationCatalog` |
+| Design system | Dependency-optimized | `available` **và** `used` |
+| Visual | Opt-in, mặc định tắt | Mặc định bật |
 | Purpose | — | `edit`, `redesign`, `create`, `content`, `style`, `import` |
-| Return shape | Prose instructions | Machine-readable contract with a filled target template |
-| Session revision lock | None | None |
+| Return shape | Prose instructions | Machine-readable contract với target template đã điền |
+| Session revision lock | Không | Không |
 
-Both profiles are checksum-free for AI interchange. A patch is validated against the current Session's target, scope, contracts, IDs, and canonical Session rules rather than being bound to the exact Session revision that was exported.
+Cả hai profile đều checksum-free cho AI interchange. Patch được validate với target, scope, contracts, IDs và canonical Session rules của **current Session**, thay vì bị khóa vào đúng revision đã export.
 
 ## One-Shot flow
 
-1. Select a Container, or select nothing to work on the whole page.
-2. Type a request in ordinary language.
-3. Press **Copy for AI**.
-4. Paste into any external assistant, attaching reference images if you have them.
-5. The reply is one `cresco-patch/v1` object.
-6. Paste it back.
-7. Cresco normalizes → validates against the current Session → previews the diff → applies.
+1. Chọn một Container, hoặc không chọn gì để làm trên toàn page.
+2. Nhập yêu cầu bằng ngôn ngữ tự nhiên.
+3. Nhấn **Copy for AI**.
+4. Paste sang external assistant và đính kèm reference image nếu cần.
+5. AI trả về một `cresco-patch/v1` object.
+6. Paste kết quả lại Cresco.
+7. Cresco normalize → validate với current Session → preview diff → apply.
 
-No second prompt is needed to explain Cresco's schema, property names, responsive model, or Custom CSS rules. All of it travels in the package.
+Không cần prompt thứ hai để giải thích schema, property names, responsive model hay Custom CSS rules vì package đã mang các contract đó.
 
-## Example: subtree package
+## Ví dụ subtree package
 
 ```json
 {
@@ -70,91 +74,109 @@ No second prompt is needed to explain Cresco's schema, property names, responsiv
 }
 ```
 
-## creationCatalog semantics
+## `creationCatalog` semantics
 
-`contracts.creationCatalog` is `ContractRegistry::all()`, which is generated from `WidgetCatalog`. There is no second hand-maintained list of widgets for AI, and there must never be one: a list that drifts from the validator produces packages that promise what the validator refuses.
+`contracts.creationCatalog` là `ContractRegistry::all()`, được generate từ `WidgetCatalog`.
 
-`contracts.current` stays scoped to the types actually present, so a model editing an existing section is not forced to read the whole catalog to find them.
+Không được có một danh sách widget AI thứ hai do con người duy trì riêng. Danh sách riêng sẽ drift khỏi validator và tạo package hứa những gì validator từ chối.
 
-## designSystem.available vs designSystem.used
+`contracts.current` vẫn scope theo các type thật sự xuất hiện để model chỉnh section hiện có không phải đọc toàn catalog chỉ để tìm widget đang dùng.
 
-- `used` — dependency-optimized, the tokens the scope actually references.
-- `available` — the complete catalogue, for authoring.
+## `designSystem.available` và `designSystem.used`
 
-Both are present. `used` tells the model what the design already commits to; `available` tells it what it is allowed to reach for.
+- `used` — dependency-optimized: các token scope đang thực sự reference.
+- `available` — complete catalogue: các token có thể dùng khi authoring.
+
+Cả hai cùng tồn tại. `used` cho model biết thiết kế hiện tại đang cam kết với gì; `available` cho biết được phép dùng gì.
 
 ## Visual context
 
-`scopePackage.visual` comes from `VisualContext::build()`, which uses the same `WebsiteRenderer` that produces the saved public page. It carries rendered HTML, compiled CSS, breakpoint starts, max-width boundaries and truncation flags.
+`scopePackage.visual` đến từ `VisualContext::build()`, dùng cùng `WebsiteRenderer` tạo saved public page ở thế hệ V2 này. Nó mang rendered HTML, compiled CSS, breakpoint starts, max-width boundaries và truncation flags.
 
-There is one renderer. A second one would drift, and the whole value of the visual block is that it shows what the page really looks like.
+Ý tưởng cốt lõi là chỉ có một render authority. Visual block chỉ có giá trị khi nó phản ánh output thật của page.
 
-It defaults on for v2 because a One-Shot request is usually about appearance, which the semantic tree cannot express. It can still be switched off for payload reasons.
+V2 bật visual mặc định vì One-Shot request thường liên quan appearance — điều semantic tree không mô tả đủ. Có thể tắt khi cần giảm payload.
 
 ## Authoring decision order
 
-`authoringPolicy.decisionOrder` states the ladder:
+`authoringPolicy.decisionOrder` dùng ladder:
 
-```
+```text
 widgetProps → structuredStyle → responsiveStyle → states → customCSS
 ```
 
-Custom CSS is the last resort, not the first tool. The policy also carries the reference-image priority: explicit text request, then image intent, then existing design semantics, then contracts as a hard technical boundary. An image may influence design; it cannot authorize a widget type the contracts do not declare.
+Custom CSS là phương án cuối, không phải công cụ đầu tiên.
 
-### The responsive model, stated twice on purpose
+Policy cũng mô tả priority khi có reference image: explicit text request → image intent → existing design semantics → contracts như hard technical boundary. Ảnh có thể ảnh hưởng design nhưng không cấp quyền tạo widget type mà contract không cho phép.
 
-`capabilities.responsiveDevices` lists **four** buckets: `desktop`, `laptop`, `tablet`, `mobile`. `wide` is deliberately absent — it is the base, written to `node.style`, and `responsive.wide` fails validation. This is the single most common source of invalid output, so it appears in `capabilities.responsiveModel` and again in the prompt prose.
+### Responsive model được lặp lại có chủ ý
 
-## returnContract
+`capabilities.responsiveDevices` liệt kê **bốn** bucket: `desktop`, `laptop`, `tablet`, `mobile`.
 
-The model should never infer what Cresco expects back.
+`wide` cố ý không có trong danh sách vì nó là base, ghi vào `node.style`; `responsive.wide` fail validation.
 
-`template` arrives pre-filled with the resolved `target`. The model fills `operations` and changes nothing else. No checksum is required or emitted.
+Đây là một nguồn lỗi output phổ biến nên rule xuất hiện cả trong `capabilities.responsiveModel` và prompt prose.
 
-`preferredOperationForRedesign` is `replaceSubtree` when redesigning a whole selected section, and a minimal operation otherwise. It is guidance, not a requirement: forcing `replaceSubtree` for a colour change would be worse output, not better.
+## `returnContract`
 
-## Current-Session validation instead of checksum locking
+Model không nên tự suy đoán Cresco cần trả về gì.
 
-AI interchange deliberately does not use a Session checksum or stale-revision gate. This keeps the copy/paste workflow usable even if another part of the page changes between export and import.
+`template` được gửi kèm với resolved `target` đã điền. Model chỉ điền `operations` và không đổi phần còn lại. Không cần/emitted checksum.
 
-Safety remains structural and scope-based:
+`preferredOperationForRedesign` là `replaceSubtree` khi redesign toàn selected section và dùng operation tối thiểu hơn cho thay đổi nhỏ. Đây là guidance, không phải bắt buộc tuyệt đối.
 
-- the target node must still exist in the current Session;
-- every operation must remain inside the exported target scope;
-- widget types, props, styles, responsive buckets, states, and Custom CSS must match the current contracts;
-- structural destinations must still be legal;
-- the resulting candidate must pass the canonical Website Builder Session sanitizer;
-- the user still reviews the Diff and explicitly applies the candidate;
-- persistence still requires the normal **Update** action.
+## Validate current Session thay vì checksum locking
 
-Older AI output may contain a `baseChecksum` field. The current validator ignores that legacy field instead of rejecting the patch as stale.
+AI interchange cố ý không dùng Session checksum/stale-revision gate để copy/paste workflow vẫn hữu dụng nếu một phần khác của page thay đổi giữa export và import.
+
+Safety vẫn dựa trên structure và scope:
+
+- target node phải còn tồn tại trong current Session;
+- operation phải nằm trong exported target scope;
+- widget types, props, styles, responsive buckets, states và Custom CSS phải khớp current contracts;
+- structural destinations phải còn hợp lệ;
+- candidate result phải pass canonical Website Builder Session sanitizer;
+- người dùng review Diff và explicitly Apply;
+- persistence vẫn yêu cầu normal **Update** action.
+
+AI output cũ có thể chứa `baseChecksum`; current validator bỏ qua legacy field này thay vì reject patch chỉ vì stale checksum.
 
 ## Security boundary
 
-The package carries design data only. `ContextSanitizer` runs over the finished envelope and strips secret-bearing keys recursively — nonces, passwords, cookies, authorization headers, API and licence keys, webhook and client secrets, access and refresh tokens, private form submissions.
+Package chỉ mang design data.
 
-v2 grants no new capability. It does not add API connectivity, does not store keys, does not let AI mutate the DOM, and does not persist anything: applying a validated patch stages a candidate that the normal editor save still has to commit.
+`ContextSanitizer` chạy trên envelope hoàn chỉnh và recursively loại secret-bearing keys như nonces, passwords, cookies, authorization headers, API/licence keys, webhook/client secrets, access/refresh tokens và private form submissions.
+
+V2 không thêm API connectivity, không lưu key, không cho AI mutate DOM và không tự persist. Apply một validated patch chỉ stage candidate; editor save thông thường vẫn phải commit.
 
 ## Import normalization
 
-`AIResultNormalizer` removes formatting noise that has nothing to do with safety: surrounding whitespace, a UTF-8 BOM, and a Markdown fence when the entire response is exactly one fenced block.
+`AIResultNormalizer` loại formatting noise không liên quan safety:
 
-It refuses to guess. It will not scan prose for the first `{`, will not choose among several JSON objects, and will not repair malformed JSON — each of those turns "the model returned something unclear" into "Cresco applied something nobody reviewed". Ambiguity returns an error.
+- surrounding whitespace;
+- UTF-8 BOM;
+- Markdown fence khi toàn response chính xác là một fenced block.
 
-Normalization is server-side and authoritative. The editor may guess a schema to label the paste box; that guess never decides validity. Everything that survives normalization goes through `PatchValidator` unchanged.
+Normalizer **không đoán**. Nó không scan prose để tìm `{` đầu tiên, không tự chọn giữa nhiều JSON object và không repair malformed JSON. Ambiguity phải trả lỗi.
+
+Normalization phía server là authoritative. UI có thể đoán schema để label paste box, nhưng guess đó không quyết định validity. Mọi thứ sống sót qua normalization đi qua `PatchValidator` nguyên vẹn.
 
 ## Backward compatibility
 
-One endpoint serves both profiles:
+Một endpoint phục vụ cả hai profile:
 
 `POST /cresco-canvas/v1/ai-interchange/{postId}/context`
 
-- No `version` and no `profile` → v1 compatibility profile.
-- `version: 2` → v2 package.
-- `profile: "one-shot"` → v2 package plus a ready-to-paste `prompt`, and `includeVisual` defaults true.
+- Không có `version` và không có `profile` → V1 compatibility profile.
+- `version: 2` → V2 package.
+- `profile: "one-shot"` → V2 package + ready-to-paste `prompt`, `includeVisual` mặc định true.
 
-`cresco-patch/v1` remains the targeted patch schema, but revision checksum enforcement has been removed from AI interchange. Scope enforcement, target existence checks, contract validation, ID remapping, canonical Session validation, Diff review, Undo, and normal Update persistence remain authoritative.
+`cresco-patch/v1` vẫn là targeted patch schema. Revision checksum enforcement đã bị loại khỏi AI interchange, nhưng scope enforcement, target existence, contract validation, ID remapping, canonical Session validation, Diff review, Undo và normal Update persistence vẫn authoritative.
 
 ## Reference images
 
-Cresco does not encode external screenshots into the package. The prompt tells the model to treat attached images as visual direction while contracts remain authoritative for what can actually be built.
+Cresco không encode external screenshot vào package. Prompt yêu cầu model coi attached images như visual direction trong khi contracts vẫn quyết định hard boundary của những gì có thể build.
+
+## Ghi chú compatibility
+
+V2 rất quan trọng khi duy trì integration One-Shot cũ, nhưng không nên được dùng để phủ định contract V3/current implementation. Khi sửa workflow mới, đọc current code và V3 trước.
