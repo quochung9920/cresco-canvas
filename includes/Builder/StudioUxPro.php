@@ -52,6 +52,14 @@ final class StudioUxPro {
 			$style_deps,
 			WebsiteBuilderAsset::version( self::STYLE )
 		);
+		wp_add_inline_style(
+			self::HANDLE,
+			'#cresco-canvas-standalone-editor .cc-studio-ux-source.is-override{display:none!important}' .
+			'#cresco-canvas-standalone-editor .cc-studio-property-header-row{width:100%!important;min-width:0!important;justify-content:flex-start!important}' .
+			'#cresco-canvas-standalone-editor .cc-studio-property-header-row>.cc-studio-ux-source{order:10!important;margin-left:6px!important;margin-right:0!important;flex:0 0 auto!important}' .
+			'#cresco-canvas-standalone-editor .cc-studio-property-header-row>.cc-studio-property-device-select{order:90!important;margin-left:auto!important;flex:0 0 auto!important}' .
+			'#cresco-canvas-standalone-editor .cc-studio-property-header-row>button{order:100!important;margin-left:0!important;flex:0 0 auto!important}'
+		);
 		wp_enqueue_script(
 			self::HANDLE,
 			WebsiteBuilderAsset::url( self::SCRIPT ),
