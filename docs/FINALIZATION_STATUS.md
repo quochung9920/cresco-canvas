@@ -1,7 +1,17 @@
-# Cresco Canvas finalization status
+# Trạng thái finalization của Cresco Canvas
 
-This branch exists to execute the automated Release Hardening workflow against the current finalization candidate.
+> **Tài liệu trạng thái lịch sử.** Nội dung mô tả finalization candidate của branch tại thời điểm file được viết, không tự động phản ánh `main` hiện tại.
 
-The stable `1.0.0` version must not be declared certified until all automated gates pass and the repository contains objective manual evidence required by `scripts/check-stable-release.mjs`, including accessibility manual verification and the exact artifact SHA-256.
+Branch này tồn tại để chạy automated **Release Hardening** workflow với current finalization candidate của thời điểm đó.
 
-Commercial readiness implemented by this candidate includes provider-backed license activation/deactivation, authenticated update manifests with stable/beta channels, copy-safe Site Health diagnostics, onboarding completion state, and previous-version metadata for rollback support.
+Stable `1.0.0` không được tuyên bố certified cho tới khi toàn bộ automated gates pass và repository có objective manual evidence mà `scripts/check-stable-release.mjs` yêu cầu, bao gồm manual accessibility verification và exact artifact SHA-256.
+
+Commercial-readiness capability được candidate này triển khai gồm:
+
+- provider-backed license activation/deactivation;
+- authenticated update manifests với stable/beta channels;
+- copy-safe Site Health diagnostics;
+- onboarding completion state;
+- previous-version metadata để hỗ trợ rollback.
+
+Khi đánh giá trạng thái hiện tại, hãy kiểm tra current release docs, current source và evidence của đúng commit/artifact thay vì dùng file snapshot này như certification.
