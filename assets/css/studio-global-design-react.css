@@ -1,0 +1,72 @@
+/** React-native Global Design routing and workspace polish. */
+@layer cresco.overrides {
+  /* Hide the raw legacy Design rail only when the React extension is present. */
+  .cc-studio-rail:has(> button[title="Global Design"]) > button:nth-child(4) { display: none; }
+  .cc-studio-rail:has(> button[title="Global Design"]) > button:nth-child(1) { order: 1; }
+  .cc-studio-rail:has(> button[title="Global Design"]) > button:nth-child(2) { order: 2; }
+  .cc-studio-rail:has(> button[title="Global Design"]) > button:nth-child(3) { order: 3; }
+  .cc-studio-rail:has(> button[title="Global Design"]) > button[title="Global Design"] { order: 4; }
+  .cc-studio-rail:has(> button[title="Global Design"]) > button:nth-child(5) { order: 5; }
+  .cc-studio-rail:has(> button[title="Global Design"]) > button:nth-child(6) { order: 6; }
+  .cc-studio-rail:has(> button[title="Global Design"]) > button:nth-child(7) { order: 7; }
+  .cc-studio-rail:has(> button[title="Global Design"]) > button:nth-child(8) { order: 8; }
+  .cc-studio-rail:has(> button[title="Global Design"]) > button:nth-child(9) { order: 9; }
+  .cc-studio-rail:has(> button[title="Global Design"]) > button:nth-child(10) { order: 10; }
+
+  .cc-studio-extension-panel:has(.cc-global-design-react) {
+    padding: 14px 12px 0;
+    overflow-x: hidden;
+  }
+  .cc-studio-extension-panel:has(.cc-global-design-react) > .cc-studio-panel-head {
+    margin: 0 2px 2px;
+  }
+  .cc-studio-extension-panel:has(.cc-global-design-react) > .cc-studio-panel-head strong {
+    font-size: 15px;
+    letter-spacing: -.015em;
+  }
+  .cc-global-design-react {
+    min-width: 0;
+  }
+  .cc-gd-react-subtitle {
+    margin: 0 2px 12px;
+    color: var(--cc-color-text-muted);
+    font-size: 10.5px;
+    line-height: 1.45;
+  }
+  .cc-gd-react-notice {
+    position: sticky;
+    bottom: 51px;
+    z-index: 19;
+    margin: 0 -2px 8px;
+    padding: 8px 10px;
+    border: 1px solid var(--cc-color-border);
+    border-radius: 8px;
+    background: var(--cc-color-surface-raised);
+    color: var(--cc-color-text-subtle);
+    box-shadow: var(--cc-shadow-subtle);
+    font-size: 10px;
+    line-height: 1.45;
+  }
+  .cc-global-design-react .cc-gd-main > .cc-gd-section textarea {
+    width: 100%;
+    min-height: 150px;
+    resize: vertical;
+  }
+  .cc-global-design-react .cc-gd-presets button.is-active {
+    border-color: var(--cc-color-accent);
+    background: var(--cc-color-accent-wash);
+    color: var(--cc-color-accent);
+  }
+  .cc-global-design-react .cc-studio-button.is-primary {
+    width: 100%;
+    justify-content: center;
+    margin: 2px 0 12px;
+  }
+  .cc-global-design-react .cc-gd-field > small {
+    color: var(--cc-color-text-muted);
+    font-size: 9px;
+  }
+  .cc-global-design-react .cc-gd-actions .is-danger {
+    color: var(--cc-color-danger);
+  }
+}
