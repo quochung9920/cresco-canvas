@@ -23,8 +23,40 @@ jobs:
           php-version: '8.3'
           tools: composer:v2, phpunit:10.5
           coverage: none
+      - name: Prepare WidgetCatalog-driven Inspector patch
+        if: github.head_ref == 'agent/widget-control-integrity-v2' || github.ref_name == 'agent/widget-control-integrity-v2'
+        shell: bash
+        run: |
+          node scripts/apply-widget-control-integrity.mjs
+          node <<'NODE'
+          const fs = require('fs');
+          const p = JSON.parse(fs.readFileSync('package.json','utf8'));
+          p.scripts['check:widget-controls'] = 'node scripts/check-widget-control-contract.mjs';
+          if (!p.scripts['check:quality'].includes('check:widget-controls')) {
+            p.scripts['check:quality'] = p.scripts['check:quality'].replace('npm run check:size-modes', 'npm run check:size-modes && npm run check:widget-controls');
+          }
+          fs.writeFileSync('package.json', JSON.stringify(p, null, 2) + '\n');
+          const readmePath = 'docs/README.md';
+          let readme = fs.readFileSync(readmePath,'utf8');
+          const link = '- [`STUDIO_WIDGET_CONTROL_CONTRACT.md`](STUDIO_WIDGET_CONTROL_CONTRACT.md) — contract WidgetCatalog → Inspector, loại control/tab/group không được widget hỗ trợ.\n';
+          if (!readme.includes('STUDIO_WIDGET_CONTROL_CONTRACT.md')) readme += '\n' + link;
+          fs.writeFileSync(readmePath, readme);
+          NODE
+          rm -f scripts/apply-widget-control-integrity.mjs .github/workflows/temp-widget-control-migration.yml
       - run: npm ci --no-audit --no-fund
       - run: composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist
+      - name: Widget control targeted gates
+        if: github.head_ref == 'agent/widget-control-integrity-v2' || github.ref_name == 'agent/widget-control-integrity-v2'
+        run: |
+          node --check runtime-src/build/website-builder-studio.js
+          node --check runtime-src/build/studio-dimension-controls.js
+          node --check scripts/check-widget-control-contract.mjs
+          php -l tests/php/WidgetCatalogControlContractTest.php
+          npm run check:widget-controls
+          npm run check:react-dom-ownership
+          npm run check:size-modes
+          npm run check:build-integrity
+          phpunit -c phpunit.xml.dist tests/php/WidgetCatalogControlContractTest.php
       - run: npm run check:quality
       - name: Clean source build
         shell: bash
@@ -35,3 +67,20 @@ jobs:
       - run: phpunit -c phpunit.xml.dist
       - run: npm run package
       - run: node scripts/verify-package.mjs
+      - name: Upload verified WidgetCatalog Inspector patch
+        if: github.head_ref == 'agent/widget-control-integrity-v2' || github.ref_name == 'agent/widget-control-integrity-v2'
+        uses: actions/upload-artifact@v4
+        with:
+          name: widget-control-integrity-patch
+          if-no-files-found: error
+          path: |
+            runtime-src/build/website-builder-studio.js
+            build/website-builder-studio.js
+            runtime-src/build/studio-dimension-controls.js
+            build/studio-dimension-controls.js
+            assets/css/website-builder-studio.css
+            package.json
+            docs/README.md
+            docs/STUDIO_WIDGET_CONTROL_CONTRACT.md
+            scripts/check-widget-control-contract.mjs
+            tests/php/WidgetCatalogControlContractTest.php
