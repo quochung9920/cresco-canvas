@@ -62,6 +62,7 @@ final class WebsiteBuilderStudio {
 		);
 		wp_set_script_translations( self::HANDLE, 'cresco-canvas' );
 		$this->enqueue_support_assets();
+		$this->install_canvas_visibility_recovery();
 		$this->install_structure_ownership();
 	}
 
@@ -168,6 +169,37 @@ final class WebsiteBuilderStudio {
 			);
 		}
 		$this->enqueue_responsive_inheritance();
+	}
+
+	/** Keep a populated Studio document editable when its local preview resolves fully invisible. */
+	private function install_canvas_visibility_recovery() {
+		$handle = wp_script_is( 'cresco-canvas-website-builder-unset-styles', 'enqueued' )
+			? 'cresco-canvas-website-builder-unset-styles'
+			: self::HANDLE;
+		$guard = <<<'JS'
+(function(window,document){
+'use strict';
+var root=document.getElementById('cresco-canvas-standalone-editor');
+if(!root||window.crescoStudioCanvasVisibilityRecovery)return;
+var scheduled=false,recovered=new Map(),props=['display','visibility','opacity','position','top','right','bottom','left','inset','transform','width','min-width','height','min-height'];
+var stats=window.crescoStudioCanvasVisibilityRecovery={version:'1.0.0',active:false,recoveries:0,reason:'',recoveredNodes:0,lastRun:0};
+function all(selector,scope){return Array.prototype.slice.call((scope||root).querySelectorAll(selector));}
+function one(selector,scope){return(scope||root).querySelector(selector);}
+function visible(node,viewport){if(!node||!viewport)return false;var style=window.getComputedStyle(node),opacity=parseFloat(style.opacity||'1'),rect=node.getBoundingClientRect();if(style.display==='none'||style.visibility==='hidden'||style.visibility==='collapse'||(!isNaN(opacity)&&opacity<=0.01))return false;if(rect.width<=1||rect.height<=1)return false;return rect.bottom>viewport.top&&rect.top<viewport.bottom&&rect.right>viewport.left&&rect.left<viewport.right;}
+function leaves(canvas){var nodes=all('.cc-studio-canvas-node',canvas),leaf=nodes.filter(function(node){return!one('.cc-studio-canvas-node',node);});return leaf.length?leaf:nodes;}
+function hasVisibleLeaf(canvas){var viewport=canvas&&canvas.getBoundingClientRect();return!!viewport&&leaves(canvas).some(function(node){return visible(node,viewport);});}
+function remember(node){if(recovered.has(node))return;var saved={};props.forEach(function(property){saved[property]={value:node.style.getPropertyValue(property),priority:node.style.getPropertyPriority(property)};});recovered.set(node,saved);}
+function restore(){recovered.forEach(function(saved,node){if(!node||!node.style)return;props.forEach(function(property){var previous=saved[property]||{value:'',priority:''};node.style.removeProperty(property);if(previous.value)node.style.setProperty(property,previous.value,previous.priority||'');});if(node.dataset)delete node.dataset.crescoCanvasRecovered;});recovered.clear();stats.active=false;stats.reason='';stats.recoveredNodes=0;}
+function recoverNode(node,viewport){if(!node||visible(node,viewport))return false;var style=window.getComputedStyle(node),rect=node.getBoundingClientRect(),opacity=parseFloat(style.opacity||'1'),outside=rect.bottom<=viewport.top||rect.top>=viewport.bottom||rect.right<=viewport.left||rect.left>=viewport.right,changed=false;remember(node);if(style.display==='none'){node.style.setProperty('display','block','important');changed=true;}if(style.visibility==='hidden'||style.visibility==='collapse'){node.style.setProperty('visibility','visible','important');changed=true;}if(!isNaN(opacity)&&opacity<=0.01){node.style.setProperty('opacity','1','important');changed=true;}if(rect.width<=1){node.style.setProperty('width','100%','important');node.style.setProperty('min-width','4px','important');changed=true;}if(rect.height<=1){node.style.setProperty('min-height','24px','important');changed=true;}if(outside||style.position==='fixed'||(style.position==='absolute'&&(rect.width<=1||rect.height<=1))){node.style.setProperty('position','relative','important');node.style.setProperty('inset','auto','important');node.style.setProperty('top','auto','important');node.style.setProperty('right','auto','important');node.style.setProperty('bottom','auto','important');node.style.setProperty('left','auto','important');node.style.setProperty('transform','none','important');changed=true;}if(changed&&node.dataset)node.dataset.crescoCanvasRecovered='1';return changed;}
+function run(){scheduled=false;stats.lastRun=Date.now();var canvas=one('.cc-studio-canvas',root),nodes=canvas?all('.cc-studio-canvas-node',canvas):[];if(!canvas||!nodes.length){if(recovered.size)restore();return;}if(stats.active&&hasVisibleLeaf(canvas))return;if(stats.active)restore();if(hasVisibleLeaf(canvas)){stats.reason='';return;}var viewport=canvas.getBoundingClientRect(),changed=0;nodes.forEach(function(node){if(recoverNode(node,viewport))changed++;});if(changed&&hasVisibleLeaf(canvas)){stats.active=true;stats.recoveries++;stats.reason='session-nodes-rendered-invisible';stats.recoveredNodes=changed;stats.recoveredAt=Date.now();return;}if(recovered.size)restore();stats.reason='blank-canvas-unresolved';}
+function schedule(){if(scheduled)return;scheduled=true;window.requestAnimationFrame(function(){window.setTimeout(run,0);});}
+function resetAndSchedule(){if(recovered.size)restore();schedule();}
+root.addEventListener('input',resetAndSchedule,true);root.addEventListener('change',resetAndSchedule,true);root.addEventListener('click',function(event){var target=event.target&&event.target.closest?event.target.closest('.cc-studio-device-toolbar button,.cc-studio-state-tabs button'):null;if(target)resetAndSchedule();else schedule();},true);
+window.addEventListener('cresco:studio-session-change',resetAndSchedule);window.addEventListener('cresco:studio-ready',schedule);window.addEventListener('resize',schedule);
+schedule();
+})(window,document);
+JS;
+		wp_add_inline_script( $handle, $guard, 'after' );
 	}
 
 	/**
