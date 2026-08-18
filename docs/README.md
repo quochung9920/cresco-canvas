@@ -133,7 +133,9 @@ Không sửa status/checklist lịch sử chỉ để tài liệu trông mới h
 
 ## 8. Machine-facing prompt và literal contract
 
-`CODEX_MASTER_IMPLEMENTATION_PROMPT.md` là prompt/machine-facing artifact lịch sử. Phần instruction literal có thể giữ tiếng Anh nếu dịch có nguy cơ thay semantic của agent command.
+`CODEX_MASTER_IMPLEMENTATION_PROMPT.md` là prompt/machine-facing artifact lịch sử. Phần instruction literal được giữ tiếng Anh để không vô tình thay semantic của agent command.
+
+Người đọc nên mở [`CODEX_MASTER_IMPLEMENTATION_PROMPT_VI.md`](CODEX_MASTER_IMPLEMENTATION_PROMPT_VI.md) trước để xem bản diễn giải tiếng Việt, phần nào còn giá trị và phần assumption nào đã bị current Studio architecture supersede.
 
 Khi dịch/chỉnh tài liệu machine-facing, luôn giữ nguyên:
 
