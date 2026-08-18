@@ -84,6 +84,7 @@ Nếu code và canonical docs lệch nhau ngoài ý muốn, coi đó là defect 
 | `GLOBAL_CONFIG_IMPORT.md` | Import/export Global Design config |
 | `PAGE_SETTINGS_FINALIZATION.md` | Page Settings contract/finalization |
 | `STUDIO_SIZE_CONTROL_SYSTEM.md` | DimensionControl canonical, size mode, Custom CSS, responsive/state và giới hạn Page Settings |
+| `STUDIO_WIDGET_CONTROL_CONTRACT.md` | Contract WidgetCatalog → Inspector: chỉ render control/style/state thực sự được widget hỗ trợ; không có tab/group rỗng; control type phải đúng semantic |
 | `PROFESSIONAL_WIDGETS.md` | Professional widgets và style capability |
 | `WEBSITE_BUILDER_V3.md` | Compatibility/workflow layer V3 |
 
