@@ -16,21 +16,28 @@ assert(consistencySource.includes("safePreviewBoundary:'explicit-sanitizer'"), '
 
 const proSource = read('runtime-src/build/studio-global-design-pro.js');
 const proBuild = read('build/studio-global-design-pro.js');
-assert(proSource === proBuild, 'Global Design compatibility source/build parity is required.');
-assert(proSource.includes("mode:'retired-react-native-global-panel'"), 'DOM-driven Global Design Pro must remain retired.');
-assert(proSource.includes('ownsDom:false'), 'Retired Global Design layer must explicitly declare that it does not own DOM.');
-['.insertBefore(', '.appendChild(', '.replaceChildren(', '.removeChild(', 'innerHTML='].forEach((token) => {
-  assert(!proSource.includes(token), `Retired Global Design compatibility runtime must not mutate React children (${token}).`);
+assert(proSource === proBuild, 'Global Design React source/build parity is required.');
+assert(proSource.includes("registerPanel({id:'global-design-react'"), 'Professional Global Design must register through the Studio React SDK.');
+assert(proSource.includes("mode:'react-sdk-panel'"), 'Global Design Pro must declare the React SDK mode.');
+assert(proSource.includes("owner:'WebsiteBuilderStudio.React'"), 'Global Design Pro must declare the canonical React owner.');
+assert(proSource.includes('ownsDom:false'), 'Global Design Pro must explicitly declare that it does not own DOM.');
+['document.createElement(', '.insertBefore(', '.appendChild(', '.replaceChildren(', '.removeChild(', '.replaceWith(', 'innerHTML=', 'outerHTML='].forEach((token) => {
+  assert(!proSource.includes(token), `React-native Global Design must not imperatively mutate React children (${token}).`);
 });
 
 const proPhp = read('includes/Builder/StudioGlobalDesignPro.php');
-assert(proPhp.includes('WebsiteBuilderStudio::globalPanel()'), 'PHP compatibility boundary must name the canonical React Global Design owner.');
-assert(!/wp_enqueue_(?:script|style)\s*\(/.test(proPhp), 'Retired Global Design Pro service must not enqueue DOM-mutating legacy assets.');
+assert(proPhp.includes('React-native professional Global Design workspace'), 'Global Design PHP boundary must document React-native ownership.');
+assert(proPhp.includes("array( WebsiteBuilderStudio::HANDLE, 'wp-element', 'wp-api-fetch' )"), 'Global Design React runtime must load after the canonical Studio owner.');
+assert(proPhp.includes("'cresco-global-design-pro/v2'"), 'Global Design React config must use the v2 contract marker.');
+assert(!proPhp.includes('WebsiteBuilderAsset::url( self::AUTHORITY_SCRIPT )'), 'Historical Global Design authority runtime must stay retired.');
+assert(!proPhp.includes('WebsiteBuilderAsset::url( self::WORKFLOW_SCRIPT )'), 'Historical Global Design workflow runtime must stay retired.');
+assert(!proPhp.includes('WebsiteBuilderAsset::url( self::COMPACT_SCRIPT )'), 'Historical Global Design compact runtime must stay retired.');
+assert(!proPhp.includes('WebsiteBuilderAsset::url( self::SHARED_SCRIPT )'), 'Historical Global Design shared-control runtime must stay retired.');
 
 const studioSource = read('runtime-src/build/website-builder-studio.js');
 const studioBuild = read('build/website-builder-studio.js');
 assert(studioSource === studioBuild, 'Canonical Studio source/build parity is required.');
-assert(studioSource.includes('function globalPanel()'), 'Canonical Studio must retain its React-native Global Design panel.');
+assert(studioSource.includes('function globalPanel()'), 'Canonical Studio must retain its safe fallback Global Design panel.');
 assert(studioSource.includes("className:'cc-studio-widget-grid'"), 'Canonical Studio must own the widget library grid.');
 assert(studioSource.includes("className:'cc-studio-canvas-node'"), 'Canonical Studio must own canvas nodes.');
 
@@ -53,6 +60,7 @@ const retiredHandles = [
 retiredHandles.forEach((handle) => {
   assert(ownershipPhp.includes(`'${handle}'`), `DOM-mutating Studio runtime must stay retired from the final queue: ${handle}`);
 });
+assert(!retiredHandles.includes('cresco-canvas-studio-global-design-pro'), 'React-native Global Design must stay in the final queue.');
 assert(ownershipPhp.includes('wp_dequeue_script( $handle )'), 'Ownership guard must remove retired runtimes from the final script queue.');
 assert(ownershipPhp.includes('widget-filter'), 'Ownership migration must clear the legacy widget filter that can hide the entire library.');
 assert(ownershipPhp.includes(':focus'), 'Ownership migration must clear the legacy focus-mode state.');
