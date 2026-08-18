@@ -1,36 +1,39 @@
-# Cresco Canvas — Runtime Consolidation & Development Continuation Report
+# Cresco Canvas — Báo cáo Runtime Consolidation và tiếp tục phát triển
 
-**Branch:** `refactor/runtime-consolidation`  
-**Base:** `main` at `d44d289f27b99ba42586f9ac801d10d8f468f3f1`  
-**Plugin version:** `1.0.0-rc.1`  
-**Date:** 2026-08-11
+> **Tài liệu lịch sử theo branch/snapshot.**  
+> **Branch:** `refactor/runtime-consolidation`  
+> **Base:** `main` tại `d44d289f27b99ba42586f9ac801d10d8f468f3f1`  
+> **Plugin version:** `1.0.0-rc.1`  
+> **Date:** 2026-08-11
 
-## 1. Objective
+## 1. Mục tiêu
 
-This refactor makes Cresco Canvas easier to reason about and safer to extend without replacing the existing `cresco-session/v1` document format or removing compatibility behavior prematurely.
+Refactor này làm Cresco Canvas dễ hiểu hơn và an toàn hơn khi mở rộng mà không thay `cresco-session/v1` hoặc xóa compatibility behavior quá sớm.
 
-The core design objective is:
+Mục tiêu kiến trúc cốt lõi:
 
-> one document model, one mutation path, one render authority, one editor core, one runtime registry, and optional modules that can fail without taking down the core editor.
+> một document model, một mutation path, một render authority, một editor core, một runtime registry và các optional module có thể lỗi mà không làm sập core editor.
 
-“Perfect” is treated as an engineering target, not a release claim. Stable 1.0 still requires browser, accessibility, performance, upgrade, package, and clean WordPress evidence.
+“Perfect” được coi là engineering target, không phải release claim. Stable 1.0 vẫn cần browser, accessibility, performance, upgrade, package và clean WordPress evidence.
 
-## 2. What changed
+---
 
-### New shared runtime infrastructure
+## 2. Những gì thay đổi
 
-Four canonical PHP contracts were added:
+### Shared runtime infrastructure mới
+
+Bốn canonical PHP contracts được thêm:
 
 - `WebsiteBuilderRuntimeContext`
 - `WebsiteBuilderAsset`
 - `WebsiteBuilderEditorConfig`
 - `WebsiteBuilderModuleRegistry`
 
-These replace repeated decisions that were previously scattered across bootstrap, diagnostics, runtime guard, professional UX, workflow, and compatibility-oriented modules.
+Chúng thay các quyết định lặp từng bị rải trong bootstrap, diagnostics, runtime guard, professional UX, workflow và compatibility modules.
 
 ### Runtime context
 
-`WebsiteBuilderRuntimeContext` is now the standard source for:
+`WebsiteBuilderRuntimeContext` trở thành nguồn chuẩn cho:
 
 - current Cresco editor screen;
 - document ID;
@@ -42,7 +45,7 @@ These replace repeated decisions that were previously scattered across bootstrap
 - safe/isolation mode;
 - Architecture debug override.
 
-Supported isolation modes are:
+Supported isolation modes:
 
 - `normal`
 - `core`
@@ -51,24 +54,24 @@ Supported isolation modes are:
 - `architecture`
 - `all`
 
-`cresco-safe-mode=1` resolves to `core`.
+`cresco-safe-mode=1` resolve thành `core`.
 
 ### Asset contract
 
-`WebsiteBuilderAsset` owns:
+`WebsiteBuilderAsset` sở hữu:
 
 - plugin-relative absolute paths;
 - browser URLs;
 - readability checks;
 - content-addressed cache versions;
 - SHA-256/size diagnostics;
-- refreshing registered WordPress script/style versions.
+- refresh version cho registered WordPress script/style.
 
-This eliminates another source of stale-cache inconsistencies.
+Mục tiêu là loại một nguồn stale-cache inconsistency khác.
 
 ### Editor configuration
 
-`WebsiteBuilderEditorConfig` produces one shared Page/Theme configuration shape for:
+`WebsiteBuilderEditorConfig` tạo một shared Page/Theme configuration shape cho:
 
 - Session REST;
 - validation;
@@ -85,14 +88,14 @@ This eliminates another source of stale-cache inconsistencies.
 - permissions;
 - builder/plugin versions.
 
-`WebsiteBuilderRuntimeGuard` writes this canonical config before the core editor runtime, so the effective browser configuration no longer depends on which compatibility service happened to construct settings first.
+`WebsiteBuilderRuntimeGuard` ghi canonical config trước core editor runtime, để effective browser configuration không còn phụ thuộc compatibility service nào tình cờ build settings trước.
 
 ### Module registry
 
-`WebsiteBuilderModuleRegistry` is the authoritative server-side catalog for:
+`WebsiteBuilderModuleRegistry` là authoritative server-side catalog cho runtime modules tại thời điểm refactor:
 
 | Module | Required | Default policy |
-|---|---:|---|
+| --- | ---: | --- |
 | bootstrap | yes | enabled |
 | core | yes | enabled |
 | controls | no | enabled |
@@ -101,172 +104,184 @@ This eliminates another source of stale-cache inconsistencies.
 | comprehensive-v3 | no | enabled, transitional |
 | workflow | no | enabled |
 
-Architecture remains quarantined by default until runtime/browser evidence proves the observer fix is stable under real editor usage.
+Architecture được quarantine mặc định cho tới khi runtime/browser evidence chứng minh observer fix ổn định trong real editor usage.
 
-## 3. Startup ownership after refactor
+---
 
-Startup responsibilities are now divided deliberately.
+## 3. Startup ownership sau refactor
 
 ### `WebsiteBuilderBootstrapResilience`
 
-Owns:
+Sở hữu:
 
 - bootstrap middleware asset;
 - critical/optional request timeouts;
-- emergency `wp.apiFetch` guard when bootstrap middleware cannot install;
-- lightweight startup state publication;
-- temporary observer boot guards for optional modules.
+- emergency `wp.apiFetch` guard khi bootstrap middleware không install được;
+- lightweight startup-state publication;
+- temporary observer boot guards cho optional modules.
 
-It no longer owns a competing fatal recovery UI.
+Nó không còn sở hữu competing fatal recovery UI.
 
 ### `WebsiteBuilderRuntimeGuard`
 
-Owns:
+Sở hữu:
 
 - final content-hash refresh;
 - canonical browser editor config injection;
 - central optional-module enable/dequeue policy;
 - Architecture quarantine policy;
-- the only user-facing fatal startup recovery panel.
+- user-facing fatal startup recovery panel duy nhất.
 
-This is an important simplification. Multiple recovery surfaces should not race to rewrite the same editor root.
+Đây là simplification quan trọng: nhiều recovery surface không nên race để rewrite cùng editor root.
 
 ### Browser runtime state
 
-The browser receives a small `window.crescoRuntimeState` state object with phases such as:
+Browser nhận `window.crescoRuntimeState` nhỏ với các phase như:
 
 - `CORE_LOADED`
 - `SESSION_PENDING`
 - `READY`
 - `FAILED`
 
-Diagnostics can read the same state instead of inferring everything from DOM text.
+Diagnostics có thể đọc cùng state thay vì infer toàn bộ từ DOM text.
 
-## 4. Diagnostics after refactor
+---
 
-`Tools -> Cresco Diagnostics` remains intentionally independent from the editor tab.
+## 4. Diagnostics sau refactor
 
-It now consumes the same runtime contracts used by production startup.
+`Tools -> Cresco Diagnostics` được giữ độc lập với editor tab.
 
-The diagnostics page reports:
+Diagnostics dùng cùng runtime contracts mà production startup dùng và report:
 
 - WP, PHP, plugin versions;
 - document context;
 - Session presence, bytes, JSON validity, sanitizer result;
-- every registered runtime module;
+- mọi registered runtime module;
 - asset readability, bytes, SHA-256, effective cache version;
 - MutationObserver/static scheduling signals;
 - default module quarantine state;
-- REST endpoint results and timings;
+- REST endpoint results/timings;
 - last persisted browser heartbeat.
 
-The editor probe tracks:
+Editor probe theo dõi:
 
 - browser global errors;
 - unhandled promise rejections;
-- `wp.apiFetch` request lifecycle and duration;
+- `wp.apiFetch` request lifecycle/duration;
 - core readiness;
 - startup state;
 - module script presence;
 - Architecture observer diagnostics;
 - event-loop stalls;
-- last heartbeat in localStorage.
+- last heartbeat trong localStorage.
 
-Use `&cresco-debug=1` to open the browser diagnostics overlay automatically.
+Dùng `&cresco-debug=1` để tự mở browser diagnostics overlay.
 
-## 5. Module isolation workflow
+---
 
-Use the diagnostics page first instead of repeatedly editing PHP to disable modules.
+## 5. Workflow cô lập module
 
-Recommended order:
+Ưu tiên diagnostics page thay vì liên tục sửa PHP để disable modules.
+
+Thứ tự được khuyến nghị tại thời điểm đó:
 
 1. Core only.
 2. Core + Controls.
 3. Core + Professional UX.
-4. Architecture alone with explicit Architecture debug flag.
-5. All modules only after the smaller combinations are stable.
+4. Architecture riêng với explicit Architecture debug flag.
+5. All modules chỉ sau khi các tổ hợp nhỏ ổn định.
 
-If Core-only freezes, investigate Session/bootstrap/core dependencies before optional UX modules.
+Nếu Core-only freeze, điều tra Session/bootstrap/core dependencies trước optional UX modules.
 
-If Core-only is stable and another combination freezes, fix the owning module rather than adding another global watchdog.
+Nếu Core-only ổn nhưng tổ hợp khác freeze, sửa module sở hữu lỗi thay vì thêm global watchdog khác.
 
-## 6. MutationObserver rule
+---
 
-The Architecture freeze proved that observer feedback loops can starve the browser main thread before REST startup settles.
+## 6. Quy tắc `MutationObserver`
 
-Every optional runtime that uses `MutationObserver` should obey these rules:
+Architecture freeze chứng minh observer feedback loop có thể làm nghẽn browser main thread trước khi REST startup ổn định.
 
-1. coalesce callbacks using a scheduler such as `requestAnimationFrame`;
-2. avoid DOM writes when the value is already correct;
-3. ignore or isolate self-owned mutations;
-4. provide lifecycle disconnect behavior;
-5. expose diagnostics counters;
-6. trip a guard under runaway mutation volume.
+Optional runtime dùng `MutationObserver` nên:
 
-The Architecture runtime already contains the fixed `scheduleShell` observer and observer statistics in both `build/` and `runtime-src/build/`.
+1. coalesce callback bằng scheduler như `requestAnimationFrame`;
+2. tránh DOM write khi value đã đúng;
+3. ignore/isolate self-owned mutations;
+4. có lifecycle disconnect behavior;
+5. expose diagnostic counters;
+6. có guard khi mutation volume runaway.
 
-## 7. Workflow and V3 decoupling
+Architecture runtime đã có fixed `scheduleShell` observer và observer statistics trong cả `build/` và `runtime-src/build/` tại thời điểm report.
 
-`WebsiteBuilderWorkflowExtensions` no longer depends on the Comprehensive V3 presentation script.
+---
 
-New stable route:
+## 7. Workflow và V3 decoupling
+
+`WebsiteBuilderWorkflowExtensions` không còn phụ thuộc Comprehensive V3 presentation script.
+
+Stable route mới:
 
 `/cresco-canvas/v1/website-builder/woocommerce/templates/single`
 
-Legacy compatibility alias retained:
+Legacy compatibility alias được giữ:
 
 `/cresco-canvas/v1/website-builder/v3/woo-single-template`
 
-The runtime now receives the stable feature route.
+Runtime nhận stable feature route.
 
-This is the desired migration pattern: introduce stable capability-oriented ownership, keep the old route temporarily, then delete the alias only after compatibility evidence exists.
+Đây là migration pattern mong muốn: đưa vào capability-oriented stable owner, giữ old route tạm thời, chỉ xóa alias sau khi có compatibility evidence.
 
-## 8. Comprehensive V3 status
+---
 
-`WebsiteBuilderComprehensiveV3` is explicitly treated as transitional compatibility code.
+## 8. Trạng thái Comprehensive V3
 
-New stable document diagnostics route:
+`WebsiteBuilderComprehensiveV3` được coi rõ là transitional compatibility code.
+
+Stable document diagnostics route mới:
 
 `/cresco-canvas/v1/website-builder/document-diagnostics/{postId}`
 
-Legacy compatibility alias retained:
+Legacy compatibility alias được giữ:
 
 `/cresco-canvas/v1/website-builder/v3/diagnostics/{postId}`
 
-The module still handles transitional frontend CSS replacement and V3 presentation compatibility. Do not build a V4/V5 replacement.
+Module vẫn xử lý transitional frontend CSS replacement/V3 presentation compatibility. Report nhấn mạnh: **không xây V4/V5 replacement**.
+
+---
 
 ## 9. Repository quality gate
 
-New command:
+Command mới:
 
 `npm run check:runtime-modules`
 
-It verifies:
+Nó verify:
 
-- all four runtime infrastructure files exist;
-- expected module keys are present;
-- Architecture remains explicit in policy;
-- RuntimeGuard uses the module registry and canonical editor config;
-- Bootstrap uses canonical bootstrap paths;
-- Diagnostics consumes registry asset reports;
-- stable Workflow and document-diagnostics routes exist;
-- Workflow no longer depends on the V3 presentation script;
-- Architecture source/build retain `new MutationObserver(scheduleShell)` and observer stats;
-- no new `WebsiteBuilder*V4` through `V9` service is introduced.
+- bốn runtime infrastructure files tồn tại;
+- expected module keys có mặt;
+- Architecture vẫn explicit trong policy;
+- RuntimeGuard dùng module registry và canonical editor config;
+- Bootstrap dùng canonical bootstrap paths;
+- Diagnostics consume registry asset reports;
+- stable Workflow/document-diagnostics routes tồn tại;
+- Workflow không còn phụ thuộc V3 presentation script;
+- Architecture source/build giữ `new MutationObserver(scheduleShell)` và observer stats;
+- không tạo mới service `WebsiteBuilder*V4` đến `V9`.
 
-`check:runtime-modules` is included in `check:quality`.
+`check:runtime-modules` được đưa vào `check:quality`.
 
-## 10. Validation completed for this change
+---
 
-Before publication, the refactor files were checked with:
+## 10. Validation đã hoàn tất cho change này
 
-- `php -l` for every new/replaced PHP file;
+Trước khi publish, refactor files được check bằng:
+
+- `php -l` cho mọi PHP file mới/thay;
 - `node --check scripts/check-runtime-modules.mjs`;
-- JSON parse validation for `package.json`.
+- JSON parse validation cho `package.json`.
 
-These are syntax/contract checks only.
+Đây chỉ là syntax/contract checks.
 
-The following still require the real repository/WordPress environment:
+Những phần vẫn cần real repository/WordPress environment:
 
 - full `npm run check:quality`;
 - exact source/build gates;
@@ -279,174 +294,198 @@ The following still require the real repository/WordPress environment:
 - performance;
 - package install/upgrade.
 
-## 11. Remaining transitional code
+---
 
-This refactor intentionally does not delete all old compatibility code in one step.
+## 11. Transitional code còn lại tại thời điểm report
 
-Important remaining targets:
+Refactor cố ý không xóa mọi compatibility code trong một lần.
 
 ### `WebsiteBuilderCompatibility`
 
-Still contains legacy handle removal, fallback bootstrap behavior, contract bridging, and frontend compatibility work.
+Vẫn chứa legacy handle removal, fallback bootstrap behavior, contract bridging và frontend compatibility.
 
-Next objective:
+Mục tiêu tiếp theo được ghi:
 
-- move permanent behavior out;
-- keep only old-handle/payload/route/token translation;
-- delete fallback runtime recreation only after core startup evidence is reliable.
+- chuyển permanent behavior ra ngoài;
+- chỉ giữ old-handle/payload/route/token translation;
+- chỉ xóa fallback runtime recreation sau khi core startup evidence đủ tin cậy.
 
 ### `ThemeSessionBridge`
 
-Still reconstructs editor settings and optional asset loading in its own class.
+Vẫn tự reconstruct editor settings và optional asset loading.
 
-Next objective:
+Mục tiêu tiếp theo:
 
-- consume `WebsiteBuilderEditorConfig` directly;
-- consume `WebsiteBuilderAsset` for all runtime asset versions;
-- use Module Registry for optional Theme-editor presentation modules.
+- consume `WebsiteBuilderEditorConfig` trực tiếp;
+- dùng `WebsiteBuilderAsset` cho runtime asset versions;
+- dùng Module Registry cho optional Theme-editor presentation modules.
 
 ### `BuilderArchitecture`
 
-Application/core behavior is valid, but its editor enqueue function still contains local screen/version logic.
+Application/core behavior được coi hợp lệ nhưng editor enqueue vẫn có local screen/version logic.
 
-Next objective:
+Mục tiêu:
 
 - consume RuntimeContext;
 - consume Asset helper;
-- let Module Registry be the only optional-module policy owner.
+- để Module Registry là optional-module policy owner duy nhất.
 
 ### `WebsiteBuilder`
 
-Core Website Builder remains the authoritative Session/component service. Its existing Page editor settings array is retained for compatibility, while RuntimeGuard now injects the canonical effective config before browser execution.
+Core Website Builder vẫn là authoritative Session/component service. Existing Page editor settings array được giữ cho compatibility, trong khi RuntimeGuard inject canonical effective config trước browser execution.
 
-After browser verification, the duplicate server-side settings construction can be removed safely.
+Sau browser verification, duplicate server-side settings construction có thể được remove an toàn.
+
+---
 
 ## 12. Rendering rule
 
-The long-term invariant remains:
+Long-term invariant được ghi rõ:
 
-`Session -> sanitize -> RenderEngine -> WebsiteRenderer HTML + WebsiteBuilderCssCompiler CSS`
+```text
+Session -> sanitize -> RenderEngine -> WebsiteRenderer HTML + WebsiteBuilderCssCompiler CSS
+```
 
-No optional presentation module should become a second final renderer or CSS authority.
+Optional presentation module không được trở thành final renderer/CSS authority thứ hai.
 
-Compatibility modules may remove historical fragments, but they should not invent a parallel final CSS pipeline.
+Compatibility module có thể loại historical fragments nhưng không được invent parallel final CSS pipeline.
+
+---
 
 ## 13. Performance policy
 
-Do not optimize by intuition. Measure first.
+Không optimize bằng intuition; đo trước.
 
-Recommended target budgets after a baseline exists:
+Target budgets được đề xuất sau khi có baseline:
 
-- editor shell visible: under 1 second on controlled local reference hardware;
-- critical Session REST: under 500 ms local, under 1.5 seconds production target;
-- core ready after Session: under 300 ms;
-- node selection: under 50 ms median;
-- Inspector tab switch: under 100 ms;
-- idle optional observers: near-zero mutation work;
-- optional module failure: must not block core;
-- public frontend JavaScript: zero unless the rendered feature actually requires it.
+- editor shell visible: dưới 1 giây trên controlled local reference hardware;
+- critical Session REST: dưới 500 ms local, dưới 1.5 giây production target;
+- core ready sau Session: dưới 300 ms;
+- node selection: dưới 50 ms median;
+- Inspector tab switch: dưới 100 ms;
+- idle optional observers: gần zero mutation work;
+- optional module failure: không block core;
+- public frontend JavaScript: zero trừ khi rendered feature thực sự cần.
 
-## 14. P0 continuation work
+Đây là target của report, không phải current measured guarantee.
 
-Before another broad feature expansion:
+---
 
-1. pull the consolidated `main`;
-2. open a known Page with normal policy and `cresco-debug=1`;
-3. run Tools -> Cresco Diagnostics REST tests;
-4. verify Core-only repeatedly;
+## 14. P0 continuation work được đề xuất
+
+Trước broad feature expansion tiếp theo:
+
+1. pull consolidated `main`;
+2. mở known Page với normal policy và `cresco-debug=1`;
+3. chạy Tools -> Cresco Diagnostics REST tests;
+4. verify Core-only lặp lại;
 5. verify Controls;
 6. verify Professional UX;
-7. verify Architecture explicitly;
+7. verify Architecture explicit;
 8. verify All modules;
 9. save/reload Session;
 10. verify frontend render parity;
-11. run `npm run check:quality`;
+11. chạy `npm run check:quality`;
 12. capture browser/performance evidence.
 
-## 15. P1 cleanup work
+---
 
-After P0 evidence passes:
+## 15. P1 cleanup work được đề xuất
+
+Sau P0 evidence:
 
 - slim `WebsiteBuilderCompatibility`;
-- migrate ThemeSessionBridge to shared runtime contracts;
-- migrate BuilderArchitecture enqueue logic;
+- migrate `ThemeSessionBridge` sang shared runtime contracts;
+- migrate `BuilderArchitecture` enqueue logic;
 - remove duplicate asset-version helpers;
 - remove duplicate editor config builders;
-- move diagnostics presentation JS/CSS from inline PHP into reviewed assets if useful;
-- replace V3 route usage inside remaining clients with stable feature routes;
-- keep compatibility aliases for a documented deprecation period.
+- chuyển diagnostics presentation JS/CSS khỏi inline PHP sang reviewed assets nếu hợp lý;
+- thay V3 route usage trong remaining clients bằng stable feature routes;
+- giữ compatibility aliases trong documented deprecation period.
 
-## 16. P2 product evolution
+---
 
-Only after runtime consolidation is stable:
+## 16. P2 product evolution được đề xuất
 
-- Session-native Theme documents where appropriate;
+Chỉ sau khi runtime consolidation ổn định:
+
+- Session-native Theme documents khi phù hợp;
 - synchronized reusable components;
 - visual Loop/template designer;
 - deeper WooCommerce template controls;
 - richer responsive controls;
-- extension SDK around registries/contracts;
-- collaboration/cloud storage adapters through `DocumentRepository` rather than direct editor coupling.
+- extension SDK quanh registries/contracts;
+- collaboration/cloud storage adapters qua `DocumentRepository`, không direct editor coupling.
 
-## 17. Non-negotiable invariants
+---
 
-Future work should preserve:
+## 17. Các invariant không thương lượng
 
-- `cresco-session/v1` readability until a deliberate migration exists;
+Future work nên giữ:
+
+- `cresco-session/v1` readability cho tới khi có deliberate migration;
 - user-authored `post_content` preservation;
-- Core independence from editor DOM;
-- Core independence from a specific AI provider or WooCommerce runtime;
+- Core independence khỏi editor DOM;
+- Core independence khỏi specific AI provider/WooCommerce runtime;
 - optional module failure isolation;
-- one final rendering authority;
+- một final rendering authority;
 - server-authoritative command/patch validation;
 - scoped sanitized Custom CSS;
-- no arbitrary executable Session content;
-- no new numbered parallel builder generation;
-- compatibility code with an explicit exit strategy.
+- không có arbitrary executable Session content;
+- không tạo numbered parallel builder generation mới;
+- compatibility code phải có explicit exit strategy.
 
-## 18. Definition of Done for future refactors
+---
 
-A refactor is done only when:
+## 18. Definition of Done cho future refactor
 
-1. behavior is preserved or intentionally documented;
-2. source/build runtime pairs are synchronized;
-3. PHP/JS syntax passes;
+Refactor chỉ xong khi:
+
+1. behavior được preserve hoặc intentionally document;
+2. source/build runtime pairs synchronized;
+3. PHP/JS syntax pass;
 4. static architecture/runtime gates pass;
 5. unit tests pass;
 6. clean WordPress editor starts;
-7. save/reload preserves Session;
-8. frontend matches authoritative render;
-9. diagnostics show no new fatal/degraded condition;
-10. no hidden dependency on retired compatibility modules is introduced;
-11. documentation changes in the same branch.
+7. save/reload preserve Session;
+8. frontend match authoritative render;
+9. diagnostics không có new fatal/degraded condition;
+10. không tạo hidden dependency vào retired compatibility modules;
+11. docs đổi trong cùng branch.
 
-## 19. Debugging runbook
+---
 
-When a user reports a freeze:
+## 19. Debugging runbook cho freeze
 
-1. Open `Tools -> Cresco Diagnostics`.
-2. Enter the document ID.
+1. Mở `Tools -> Cresco Diagnostics`.
+2. Nhập document ID.
 3. Run REST tests.
-4. Open Core-only.
-5. Add one module at a time.
-6. Inspect the persisted heartbeat.
-7. Copy the full diagnostics report.
-8. Identify the smallest failing module combination.
-9. Fix that module.
-10. Add a regression gate.
-11. Remove temporary quarantine only after runtime evidence passes.
+4. Mở Core-only.
+5. Thêm từng module một.
+6. Inspect persisted heartbeat.
+7. Copy full diagnostics report.
+8. Xác định smallest failing module combination.
+9. Sửa module đó.
+10. Thêm regression gate.
+11. Chỉ bỏ temporary quarantine sau khi runtime evidence pass.
 
-## 20. Final architecture objective
+---
 
-A future developer should be able to answer each of these questions with one owner:
+## 20. Mục tiêu kiến trúc cuối cùng
 
-- Who owns document persistence?
-- Who owns rendering?
-- Who owns editor configuration?
-- Who owns module loading?
-- Who owns startup state?
-- Who owns fatal recovery UI?
-- Who owns diagnostics?
-- Who owns legacy compatibility?
+Một developer tương lai cần trả lời được mỗi câu hỏi bằng **một owner**:
 
-For the runtime layer, this refactor establishes that direction without performing a risky big-bang deletion of compatibility code.
+- Ai sở hữu document persistence?
+- Ai sở hữu rendering?
+- Ai sở hữu editor configuration?
+- Ai sở hữu module loading?
+- Ai sở hữu startup state?
+- Ai sở hữu fatal recovery UI?
+- Ai sở hữu diagnostics?
+- Ai sở hữu legacy compatibility?
+
+Refactor này thiết lập hướng đó cho runtime layer mà không thực hiện big-bang deletion đầy rủi ro.
+
+## Cách dùng report hiện nay
+
+Report mô tả branch/base/date ghi ở đầu file. Một số transitional target có thể đã được xử lý trên `main` sau đó. Luôn kiểm tra current source và canonical ownership docs trước khi tiếp tục một item cũ.
