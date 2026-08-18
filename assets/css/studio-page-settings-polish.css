@@ -1,0 +1,313 @@
+/**
+ * Page Settings 2.0 presentation layer.
+ *
+ * React remains the sole owner of Page Settings markup/state. This stylesheet
+ * only upgrades visual hierarchy and control ergonomics while the Page rail is
+ * active; no DOM mutation or duplicate persistence path is introduced.
+ */
+@layer cresco.overrides {
+  .cc-studio-app:has(.cc-studio-rail > button[title="Page"].is-active) .cc-studio-left {
+    container-type: inline-size;
+  }
+
+  .cc-studio-app:has(.cc-studio-rail > button[title="Page"].is-active) .cc-studio-left > .cc-studio-panel {
+    min-width: 0;
+    padding: 14px 12px 76px;
+    overflow-x: hidden;
+    background:
+      linear-gradient(180deg, rgba(99, 91, 255, 0.025), transparent 120px),
+      var(--cc-color-surface);
+  }
+
+  .cc-studio-app:has(.cc-studio-rail > button[title="Page"].is-active) .cc-studio-panel-head {
+    margin: 0 2px 14px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+  }
+
+  .cc-studio-app:has(.cc-studio-rail > button[title="Page"].is-active) .cc-studio-panel-head strong {
+    font-size: 15px;
+    line-height: 1.25;
+    letter-spacing: -0.015em;
+  }
+
+  .cc-studio-app:has(.cc-studio-rail > button[title="Page"].is-active) .cc-studio-panel-head small {
+    margin-top: 3px;
+    color: var(--cc-color-text-muted);
+    font-size: 10.5px;
+    line-height: 1.45;
+  }
+
+  /* Page shell: visually combine the first Layout field and shell visibility grid. */
+  .cc-studio-app:has(.cc-studio-rail > button[title="Page"].is-active) .cc-studio-panel > .cc-studio-field {
+    position: relative;
+    display: grid;
+    gap: 6px;
+    margin: 0;
+    padding: 36px 12px 8px;
+    border: 1px solid var(--cc-color-border);
+    border-bottom: 0;
+    border-radius: 12px 12px 0 0;
+    background: var(--cc-color-surface-raised);
+    box-shadow: var(--cc-shadow-subtle);
+  }
+
+  .cc-studio-app:has(.cc-studio-rail > button[title="Page"].is-active) .cc-studio-panel > .cc-studio-field::before {
+    content: "Page shell";
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    color: var(--cc-color-text);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+
+  .cc-studio-app:has(.cc-studio-rail > button[title="Page"].is-active) .cc-studio-panel > .cc-studio-two-col {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    margin: 0 0 12px;
+    padding: 4px 12px 12px;
+    border: 1px solid var(--cc-color-border);
+    border-top: 0;
+    border-radius: 0 0 12px 12px;
+    background: var(--cc-color-surface-raised);
+    box-shadow: var(--cc-shadow-subtle);
+  }
+
+  .cc-studio-app:has(.cc-studio-rail > button[title="Page"].is-active) .cc-studio-two-col > .cc-studio-field:nth-child(3) {
+    grid-column: 1 / -1;
+  }
+
+  .cc-studio-app:has(.cc-studio-rail > button[title="Page"].is-active) .cc-studio-settings-section {
+    min-width: 0;
+    margin: 0 0 12px;
+    padding: 12px;
+    border: 1px solid var(--cc-color-border);
+    border-radius: 12px;
+    background: var(--cc-color-surface-raised);
+    box-shadow: var(--cc-shadow-subtle);
+  }
+
+  .cc-studio-app:has(.cc-studio-rail > button[title="Page"].is-active) .cc-studio-settings-section > h3 {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0 0 12px;
+    color: var(--cc-color-text);
+    font-size: 12px;
+    line-height: 1.3;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    text-transform: capitalize;
+  }
+
+  .cc-studio-app:has(.cc-studio-rail > button[title="Page"].is-active) .cc-studio-settings-section > h3::before {
+    content: "";
+    width: 7px;
+    height: 7px;
+    flex: 0 0 7px;
+    border-radius: 999px;
+    background: var(--cc-color-accent);
+    box-shadow: 0 0 0 4px var(--cc-color-accent-wash);
+  }
+
+  .cc-studio-app:has(.cc-studio-rail > button[title="Page"].is-active) .cc-studio-field {
+    min-width: 0;
+    gap: 6px;
+    margin: 0 0 10px;
+  }
+
+  .cc-studio-app:has(.cc-studio-rail > button[title="Page"].is-active) .cc-studio-field:last-child {
+    margin-bottom: 0;
+  }
+
+  .cc-studio-app:has(.cc-studio-rail > button[title="Page"].is-active) .cc-studio-field__label,
+  .cc-studio-app:has(.cc-studio-rail > button[title="Page"].is-active) .cc-studio-switch-row > span {
+    color: var(--cc-color-text-subtle);
+    font-size: 10.5px;
+    font-weight: 600;
+    line-height: 1.35;
+  }
+
+  .cc-studio-app:has(.cc-studio-rail > button[title="Page"].is-active) :is(select, textarea, input:not([type="checkbox"]):not([type="color"]):not([type="range"])) {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    min-height: 38px;
+    box-sizing: border-box;
+    padding: 7px 10px;
+    border: 1px solid var(--cc-color-border-strong);
+    border-radius: 8px;
+    background: var(--cc-color-surface);
+    color: var(--cc-color-text);
+    font: inherit;
+    font-size: 11.5px;
+    line-height: 1.35;
+    box-shadow: inset 0 1px 0 rgba(16, 24, 40, 0.02);
+  }
+
+  .cc-studio-app:has(.cc-studio-rail > button[title="Page"].is-active) :is(select, textarea, input):focus-visible {
+    outline: var(--cc-focus-ring-width) solid var(--cc-focus-ring-color);
+    outline-offset: 1px;
+    border-color: var(--cc-color-accent);
+  }
+
+  .cc-studio-app:has(.cc-studio-rail > button[title="Page"].is-active) textarea {
+    min-height: 146px;
+    resize: vertical;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+    font-size: 10.5px;
+    line-height: 1.55;
+    background: var(--cc-color-surface-sunken);
+  }
+
+  .cc-studio-app:has(.cc-studio-rail > button[title="Page"].is-active) input[type="color"] {
+    width: 100%;
+    height: 38px;
+    box-sizing: border-box;
+    padding: 4px;
+    border: 1px solid var(--cc-color-border-strong);
+    border-radius: 8px;
+    background: var(--cc-color-surface);
+    cursor: pointer;
+  }
+
+  .cc-studio-app:has(.cc-studio-rail > button[title="Page"].is-active) input[type="color"]::-webkit-color-swatch-wrapper {
+    padding: 0;
+  }
+
+  .cc-studio-app:has(.cc-studio-rail > button[title="Page"].is-active) input[type="color"]::-webkit-color-swatch {
+    border: 0;
+    border-radius: 5px;
+  }
+
+  .cc-studio-app:has(.cc-studio-rail > button[title="Page"].is-active) input[type="range"] {
+    width: 100%;
+    accent-color: var(--cc-color-accent);
+  }
+
+  .cc-studio-app:has(.cc-studio-rail > button[title="Page"].is-active) .cc-studio-input-action {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 38px;
+    align-items: center;
+    gap: 7px;
+    min-width: 0;
+    margin: 0 0 10px;
+  }
+
+  .cc-studio-app:has(.cc-studio-rail > button[title="Page"].is-active) .cc-studio-input-action .cc-studio-icon-btn {
+    width: 38px;
+    min-width: 38px;
+    height: 38px;
+    border: 1px solid var(--cc-color-border);
+    border-radius: 8px;
+    background: var(--cc-color-surface);
+    color: var(--cc-color-text-subtle);
+    box-shadow: var(--cc-shadow-subtle);
+  }
+
+  .cc-studio-app:has(.cc-studio-rail > button[title="Page"].is-active) .cc-studio-spacing__grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 6px;
+    min-width: 0;
+    padding: 10px;
+    border: 1px solid var(--cc-color-border);
+    border-radius: 10px;
+    background: var(--cc-color-surface-sunken);
+  }
+
+  .cc-studio-app:has(.cc-studio-rail > button[title="Page"].is-active) .cc-studio-spacing__grid label {
+    display: grid;
+    gap: 5px;
+    min-width: 0;
+    text-align: center;
+  }
+
+  .cc-studio-app:has(.cc-studio-rail > button[title="Page"].is-active) .cc-studio-spacing__grid small {
+    color: var(--cc-color-text-muted);
+    font-size: 8.5px;
+    font-weight: 700;
+    line-height: 1;
+  }
+
+  .cc-studio-app:has(.cc-studio-rail > button[title="Page"].is-active) .cc-studio-spacing__grid input {
+    min-height: 36px;
+    padding-inline: 4px;
+    text-align: center;
+    background: var(--cc-color-surface);
+  }
+
+  .cc-studio-app:has(.cc-studio-rail > button[title="Page"].is-active) .cc-studio-settings-section > .cc-studio-spacing__grid + select {
+    margin-top: 8px;
+  }
+
+  .cc-studio-app:has(.cc-studio-rail > button[title="Page"].is-active) .cc-studio-switch-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    min-height: 42px;
+    margin: 0 0 10px;
+    padding: 0 2px;
+  }
+
+  .cc-studio-app:has(.cc-studio-rail > button[title="Page"].is-active) .cc-studio-switch-row input[type="checkbox"] {
+    appearance: none;
+    width: 36px;
+    height: 22px;
+    flex: 0 0 36px;
+    margin: 0;
+    border: 1px solid var(--cc-color-border-strong);
+    border-radius: 999px;
+    background:
+      radial-gradient(circle at 10px 50%, #fff 0 6px, transparent 6.5px),
+      #d0d5dd;
+    box-shadow: inset 0 0 0 1px rgba(16, 24, 40, 0.02);
+    cursor: pointer;
+  }
+
+  .cc-studio-app:has(.cc-studio-rail > button[title="Page"].is-active) .cc-studio-switch-row input[type="checkbox"]:checked {
+    border-color: var(--cc-color-accent);
+    background:
+      radial-gradient(circle at 26px 50%, #fff 0 6px, transparent 6.5px),
+      var(--cc-color-accent);
+  }
+
+  .cc-studio-app:has(.cc-studio-rail > button[title="Page"].is-active) .cc-studio-settings-section:last-child > .is-primary {
+    position: sticky;
+    bottom: 8px;
+    z-index: 8;
+    width: 100%;
+    min-height: 40px;
+    margin-top: 12px;
+    border: 1px solid var(--cc-color-accent);
+    border-radius: 9px;
+    background: var(--cc-color-accent);
+    color: #fff;
+    font-weight: 700;
+    box-shadow: 0 8px 22px rgba(99, 91, 255, 0.22);
+  }
+
+  .cc-studio-app:has(.cc-studio-rail > button[title="Page"].is-active) .cc-studio-settings-section:last-child > .is-primary:hover {
+    background: var(--cc-color-accent-hover);
+    border-color: var(--cc-color-accent-hover);
+  }
+
+  @container (max-width: 300px) {
+    .cc-studio-app:has(.cc-studio-rail > button[title="Page"].is-active) .cc-studio-panel > .cc-studio-two-col {
+      grid-template-columns: 1fr;
+    }
+
+    .cc-studio-app:has(.cc-studio-rail > button[title="Page"].is-active) .cc-studio-two-col > .cc-studio-field:nth-child(3) {
+      grid-column: auto;
+    }
+
+    .cc-studio-app:has(.cc-studio-rail > button[title="Page"].is-active) .cc-studio-spacing__grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+}
