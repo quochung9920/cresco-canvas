@@ -1,74 +1,101 @@
-# Baseline Audit
+# Baseline Audit — bản dịch tiếng Việt
 
-Audit date: 2026-08-03 (Asia/Ho_Chi_Minh)
+> **Tài liệu lịch sử.** Ngày audit: **2026-08-03** (`Asia/Ho_Chi_Minh`).
+>
+> Các commit SHA, version, severity và trạng thái bên dưới thuộc đúng baseline được audit; không dùng chúng như trạng thái hiện tại nếu `main` đã thay đổi.
 
-## Verified repository state
+## Trạng thái repository đã verify
 
-The audit used the private GitHub repository `quochung9920/cresco-canvas` as the source of truth.
+Audit dùng private GitHub repository `quochung9920/cresco-canvas` làm source of truth.
 
-| Item | Verified baseline |
+| Hạng mục | Baseline đã verify |
 | --- | --- |
 | Default branch | `main` |
 | Audited commit | `7e56722e76138b9b08af5ee5d8bc2b02789e77d9` |
 | Plugin version | `0.1.1` |
 | Production branches | `main`; documentation branch `docs/codex-master-roadmap` |
-| Open pull requests | PR #1, documentation-only, targeting `main` |
-| Tags/releases | No product release tag or release evidence was present |
-| Tracked production files | 14 files: one bootstrap, five PHP service files, three editor assets, and one Container block directory |
+| Open pull requests | PR #1, documentation-only, target `main` |
+| Tags/releases | Chưa có product release tag hoặc release evidence |
+| Tracked production files | 14 files: một bootstrap, năm PHP service files, ba editor assets và một Container block directory |
 
-Every tracked file on `main`, recent commit history, branches, and the open PR were inspected before implementation. The master implementation prompt was read from `docs/codex-master-roadmap` and treated as the only product specification.
+Trước khi triển khai, audit đã kiểm tra toàn bộ tracked files trên `main`, recent commit history, branches và open PR. Master implementation prompt được đọc từ `docs/codex-master-roadmap` và được dùng như product specification duy nhất tại thời điểm đó.
 
-## Baseline behavior
+## Behavior của baseline
 
-- Pages had a custom Canvas submenu and a single monolithic JavaScript editor.
-- All Page edit links were replaced by Canvas links without a configurable preference or signed recovery path.
-- A custom REST route loaded and saved Page content but had no concurrency token.
-- `cresco/container` stored native block markup and remained readable when the plugin was disabled.
-- Global settings produced CSS variables, but frontend CSS targeted the unscoped `body` and every `.wp-block-button__link`.
-- Frontend assets loaded on unrelated pages.
-- There was no package manifest, Composer manifest, lock file, build pipeline, automated test suite, CI workflow, migration runner, feature flag system, lifecycle policy, release script, changelog, or engineering documentation.
+- Pages có custom Canvas submenu và một monolithic JavaScript editor.
+- Toàn bộ Page edit links bị thay bằng Canvas links, không có configurable preference hoặc signed recovery path.
+- Custom REST route load/save Page content nhưng không có concurrency token.
+- `cresco/container` lưu native block markup và vẫn readable khi plugin bị disable.
+- Global settings tạo CSS variables nhưng frontend CSS target unscoped `body` và mọi `.wp-block-button__link`.
+- Frontend assets load trên các page không liên quan.
+- Chưa có package manifest, Composer manifest, lock file, build pipeline, automated test suite, CI workflow, migration runner, feature flag system, lifecycle policy, release script, changelog hoặc engineering documentation.
 
-No baseline command suite could be run because the repository did not define one. This absence is a finding, not a passing result.
+Không thể chạy baseline command suite vì repository khi đó chưa định nghĩa suite nào. **Sự vắng mặt của test suite là finding, không phải pass.**
 
-## Findings and disposition
+## Findings và cách xử lý
 
-| Severity | Finding | Baseline evidence | Milestone 0.2 disposition |
+| Severity | Finding | Baseline evidence | Cách xử lý milestone 0.2 |
 | --- | --- | --- | --- |
-| P0 | None reproduced | Full tracked-source and history audit | No known P0 remains; broader validation is still required |
-| P1 | Stale Canvas sessions could silently overwrite newer Page content | Save route accepted content without a persisted-state precondition | Fixed with exact revision tokens and a same-second conflict regression test |
-| P1 | Cresco styles affected unrelated site output | Unconditional frontend enqueue plus unscoped `body` and global button selectors | Fixed with Canvas-page detection, body scoping, conditional enqueue, and E2E assertions |
-| P2 | Every Page edit link was taken over with no user preference or reliable bypass | Unconditional `get_edit_post_link` filter | Fixed with global/per-Page/remember choices, explicit row actions, signed bypass, and Safe Mode |
-| P2 | Missing build, type, dependency, and release controls | No npm/Composer manifests, lock files, or packaging scripts | Fixed in 0.2; CI verification required |
-| P2 | No automated PHP, JavaScript, browser, accessibility, compatibility, or Plugin Check coverage | No tests or workflows | Test foundations and matrix workflow added; manual and hosted evidence remain distinct |
-| P2 | No migration lock, status, retry evidence, or schema version | Direct option use only | Version-one idempotent migration and failure state added; rollback matrix remains unverified |
-| P2 | No explicit activation, deactivation, or uninstall safety policy | No lifecycle hooks or uninstall file | Runtime checks, data-preserving deactivation, and opt-in cleanup added |
-| P2 | Monolithic untyped editor made failures and changes difficult to isolate | One global `assets/js/editor.js` file | Replaced by typed modules and an error boundary |
-| P2 | Upstream development toolchain reports unresolved advisories | Current `@wordpress/scripts` transitive graph | Production audit is clean; development-only advisories are visible and tracked in Known Limitations |
-| P3 | Product status, architecture, compatibility, and recovery were undocumented | README-only MVP | Required documentation and changelog added |
+| P0 | Không reproduce được | Full tracked-source và history audit | Không còn known P0 trong scope; vẫn cần broader validation |
+| P1 | Stale Canvas session có thể âm thầm ghi đè Page content mới hơn | Save route nhận content mà không có persisted-state precondition | Sửa bằng exact revision tokens và same-second conflict regression test |
+| P1 | Cresco styles ảnh hưởng unrelated site output | Unconditional frontend enqueue + unscoped `body`/global button selectors | Sửa bằng Canvas-page detection, body scoping, conditional enqueue và E2E assertions |
+| P2 | Mọi Page edit link bị takeover, không có user preference/reliable bypass | Unconditional `get_edit_post_link` filter | Sửa bằng global/per-Page/remember choices, explicit row actions, signed bypass và Safe Mode |
+| P2 | Thiếu build, type, dependency và release controls | Không có npm/Composer manifests, lock files hoặc packaging scripts | Được thêm trong 0.2; CI verification vẫn cần |
+| P2 | Không có automated PHP/JS/browser/accessibility/compatibility/Plugin Check coverage | Không có tests/workflows | Test foundations và matrix workflow được thêm; manual/hosted evidence vẫn tách riêng |
+| P2 | Không có migration lock/status/retry evidence/schema version | Chỉ direct option use | Thêm version-one idempotent migration và failure state; rollback matrix chưa verify |
+| P2 | Không có activation/deactivation/uninstall safety policy rõ ràng | Không có lifecycle hooks/uninstall file | Thêm runtime checks, data-preserving deactivation và opt-in cleanup |
+| P2 | Monolithic untyped editor làm khó cô lập lỗi/thay đổi | Một global `assets/js/editor.js` | Thay bằng typed modules và error boundary |
+| P2 | Upstream dev toolchain còn unresolved advisories | Current `@wordpress/scripts` transitive graph | Production audit sạch; dev-only advisories được ghi trong Known Limitations |
+| P3 | Product status, architecture, compatibility và recovery chưa được document | README-only MVP | Thêm documentation/changelog bắt buộc |
 
-## Scope decision
+## Quyết định scope
 
-The latest genuinely completed state was the pre-roadmap 0.1.1 MVP. Milestone 0.2 was therefore the next incomplete milestone. This branch repairs its baseline P1/P2 issues and implements only the 0.2 architecture and reliability foundation. It deliberately does not begin milestone 0.3.
+Trạng thái hoàn tất thật sự mới nhất được audit là pre-roadmap `0.1.1` MVP. Vì vậy milestone 0.2 là milestone chưa hoàn tất tiếp theo.
 
-## Milestone 0.3 re-audit
+Branch 0.2 sửa các P1/P2 baseline và chỉ xây **architecture/reliability foundation của 0.2**; cố ý không bắt đầu milestone 0.3 trong cùng scope.
 
-Re-audit date: 2026-08-04 (Asia/Ho_Chi_Minh).
+---
 
-The re-audit used merged `main` commit `724ad425ae5e578a782942e378852925b29f555f`, version `0.2.0-alpha.1`, as its immutable baseline. PRs #1 and #2 were merged. The latest Actions run still had `startup_failure` and allocated zero jobs, so hosted WordPress/runtime claims remained unavailable.
+## Re-audit milestone 0.3
 
-Clean baseline commands produced the following evidence before milestone 0.3 edits:
+Ngày re-audit: **2026-08-04** (`Asia/Ho_Chi_Minh`).
 
-| Check | Result |
+Re-audit dùng merged `main` commit `724ad425ae5e578a782942e378852925b29f555f`, version `0.2.0-alpha.1`, làm immutable baseline. PR #1 và #2 đã merge.
+
+Latest Actions run vẫn có `startup_failure` và allocated zero jobs, nên hosted WordPress/runtime claims vẫn chưa có evidence.
+
+### Clean baseline commands trước khi sửa milestone 0.3
+
+| Check | Kết quả |
 | --- | --- |
-| `npm ci` | PASS, with documented upstream peer/deprecation warnings |
-| TypeScript, JavaScript lint, CSS lint, unit tests, build, version check | PASS |
-| Markdown lint | FAIL: the newly merged authoritative prompt did not conform to the configured Markdown rules |
-| Production npm audit | PASS: zero production vulnerabilities |
-| Full npm audit | FAIL: 30 development-only transitive advisories |
-| Native PHP/Composer/WordPress/browser suite | NOT TESTED: required runtimes were unavailable locally |
+| `npm ci` | `PASS`, kèm documented upstream peer/deprecation warnings |
+| TypeScript, JavaScript lint, CSS lint, unit tests, build, version check | `PASS` |
+| Markdown lint | `FAIL`: authoritative prompt vừa merge không tuân configured Markdown rules |
+| Production npm audit | `PASS`: zero production vulnerabilities |
+| Full npm audit | `FAIL`: 30 development-only transitive advisories |
+| Native PHP/Composer/WordPress/browser suite | `NOT TESTED`: local environment thiếu runtime cần thiết |
 
-The central P1 product/UX finding was architectural: normal Page editing was split between **Edit in Canvas** and **WordPress Editor**, while Cresco duplicated Core Page loading, saving, conflict, navigation, and recovery behavior in a proprietary shell. This was difficult to use and prevented Core autosaves, revisions, locking, document settings, List View, media, and standard editor behavior from being the single source of truth.
+### Finding kiến trúc P1 trung tâm
 
-Milestone 0.3 therefore replaces the duplicate shell with a direct Gutenberg extension. The normal Edit action is untouched; Page content and revision-enabled Cresco metadata use Core's save boundary. The custom Page REST routes and editor-choice data are retired through schema version two. Site-wide design settings remain custom, permissioned data. Markdown lint is repaired with narrow inline exemptions for the authoritative prompt's intentionally long instructions and numbered top-level sections; all other Markdown rules and documents remain checked.
+Normal Page editing bị chia giữa **Edit in Canvas** và **WordPress Editor**, trong khi Cresco tự duplicate Core Page loading, saving, conflict, navigation và recovery trong proprietary shell.
 
-No Page content or public markup migration is performed. Hosted WordPress, browser, compatibility, accessibility, and release-artifact evidence remains mandatory before the milestone can be declared complete or production-ready.
+Điều này vừa khó dùng vừa khiến Core autosaves, revisions, locking, document settings, List View, media và standard editor behavior không còn là single source of truth.
+
+Milestone 0.3 vì vậy chuyển sang direct Gutenberg extension:
+
+- normal Edit action không bị thay;
+- Page content và revision-enabled Cresco metadata dùng Core save boundary;
+- custom Page REST routes và editor-choice data bị retire qua schema version 2;
+- site-wide design settings vẫn là custom permissioned data.
+
+Markdown lint được sửa bằng narrow inline exemptions cho intentionally long instruction/numbered top-level section của authoritative prompt; các Markdown rules/docs khác vẫn được check.
+
+Không có Page content/public markup migration. Hosted WordPress, browser, compatibility, accessibility và release-artifact evidence vẫn bắt buộc trước khi milestone được claim complete/production-ready.
+
+---
+
+## Cách sử dụng audit này hiện nay
+
+File này ghi lại **điểm xuất phát và quyết định của 0.1/0.2/0.3**, không mô tả Cresco Studio hiện tại.
+
+Khi một assumption trong audit mâu thuẫn current Studio source/ADR, giữ audit làm historical evidence và dùng current `PROJECT_RULES.md` + canonical docs để quyết định implementation.
