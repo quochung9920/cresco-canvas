@@ -1,35 +1,54 @@
-# Commercial Readiness
+# Mức độ sẵn sàng thương mại — assessment lịch sử
 
-Assessment date: 2026-08-04. Version: `0.3.0-alpha.1`.
+> **Tài liệu lịch sử.** Assessment date: **2026-08-04**. Version: `0.3.0-alpha.1`.
+>
+> Không dùng các tỷ lệ/status trong file này để kết luận release hiện tại nếu commit/version không khớp.
 
-This alpha is not commercially ready. The master roadmap continues through 1.0, and no legal, staging, beta, or release-candidate approval is claimed.
+Alpha tại thời điểm assessment này **chưa sẵn sàng thương mại**. Master roadmap khi đó vẫn tiếp tục đến 1.0 và tài liệu không claim đã có legal, staging, beta hoặc release-candidate approval.
 
-## Evidence-based progress
+## Tiến độ dựa trên evidence
 
-The feature matrix in `ROADMAP.md` assigns one point to `COMPLETE`, half a point to `PARTIAL`, and zero to `MISSING`/`BROKEN`; `NOT APPLICABLE` is excluded. The percentage is recalculated from that matrix after verification. It is product-scope progress, not probability, quality, or commercial readiness.
+Feature matrix trong `ROADMAP.md` tính:
 
-Current weighted product-scope readiness is **44.7%**: `(63 + 0.5 × 35) ÷ (63 + 35 + 82 + 0)`. Commercial readiness is **not established** because all eight release gates remain `NOT VERIFIED`.
+- `COMPLETE` = 1 điểm;
+- `PARTIAL` = 0.5 điểm;
+- `MISSING` / `BROKEN` = 0 điểm;
+- `NOT APPLICABLE` không tính.
 
-## Severity summary
+Tỷ lệ được tính lại từ matrix sau verification. Đây là **product-scope progress**, không phải xác suất thành công, chất lượng hay commercial readiness.
 
-| Severity | Open validated findings | Notes |
+Weighted product-scope readiness tại thời điểm đó là **44.7%**:
+
+```text
+(63 + 0.5 × 35) ÷ (63 + 35 + 82 + 0)
+```
+
+Commercial readiness **chưa được xác lập** vì cả tám release gates đều còn `NOT VERIFIED`.
+
+## Tóm tắt severity
+
+| Severity | Open validated findings | Ghi chú tại thời điểm assessment |
 | --- | ---: | --- |
-| P0 | 0 | None reproduced in the audited scope |
-| P1 | 0 after local fixes | Hosted CI and adversarial runtime validation pending |
-| P2 | Multiple | Hosted native-editor verification, manual accessibility/performance/compatibility, dev advisories, CI action pinning, and release operations |
-| P3 | Multiple | Later-milestone polish and documentation expansion |
+| P0 | 0 | Không reproduce được P0 trong audited scope |
+| P1 | 0 sau local fixes | Hosted CI và adversarial runtime validation còn chờ |
+| P2 | Nhiều | Hosted native-editor verification, manual accessibility/performance/compatibility, dev advisories, CI action pinning và release operations |
+| P3 | Nhiều | Polish và documentation expansion của milestone sau |
 
 ## Release gates
 
-| Gate | Status | Reason |
+| Gate | Status | Lý do tại thời điểm assessment |
 | --- | --- | --- |
-| 1 — Data safety | NOT VERIFIED | Core autosave/revision/locking architecture is restored, but rollback, concurrent-editor, and unknown-block runtime matrices have not passed |
-| 2 — Security | NOT VERIFIED | Threat model exists and local review is clean, but role integration, hosted CI, dependency provenance, and full product surface remain unverified |
-| 3 — Accessibility | NOT VERIFIED | Automated test configured; mandatory manual assistive-technology evidence absent |
-| 4 — Reliability | NOT VERIFIED | Hosted CI and full lifecycle/recovery workflows have not all passed |
-| 5 — Compatibility | NOT VERIFIED | Matrix is configured but not yet evidenced across supported environments |
-| 6 — Performance | NOT VERIFIED | Static CSS budget passes; runtime and 500-block benchmarks absent |
-| 7 — Product completeness | NOT VERIFIED | Milestone 0.3 runtime verification and milestones 0.4–1.0 remain incomplete |
-| 8 — Release and commercial operations | NOT VERIFIED | Artifact workflow exists; beta/RC/staging/legal/privacy/translation operations absent |
+| 1 — Data safety | `NOT VERIFIED` | Core autosave/revision/locking architecture đã được restore nhưng rollback, concurrent-editor và unknown-block runtime matrix chưa pass |
+| 2 — Security | `NOT VERIFIED` | Có threat model và local review sạch, nhưng role integration, hosted CI, dependency provenance và full product surface chưa verify |
+| 3 — Accessibility | `NOT VERIFIED` | Automated test đã cấu hình; chưa có mandatory manual assistive-technology evidence |
+| 4 — Reliability | `NOT VERIFIED` | Hosted CI và toàn bộ lifecycle/recovery workflow chưa pass hết |
+| 5 — Compatibility | `NOT VERIFIED` | Matrix đã cấu hình nhưng chưa có evidence trên toàn supported environment |
+| 6 — Performance | `NOT VERIFIED` | Static CSS budget pass; chưa có runtime và 500-block benchmark |
+| 7 — Product completeness | `NOT VERIFIED` | Milestone 0.3 runtime verification và milestone 0.4–1.0 còn chưa hoàn tất |
+| 8 — Release/commercial operations | `NOT VERIFIED` | Artifact workflow tồn tại; beta/RC/staging/legal/privacy/translation operations còn thiếu |
 
-Commercial declaration is prohibited while any gate is not verified.
+## Kết luận của assessment này
+
+Không được tuyên bố commercial readiness trong baseline này khi còn bất kỳ gate nào `NOT VERIFIED`.
+
+Để đánh giá Cresco Canvas hiện tại, không tái sử dụng trực tiếp tỷ lệ `44.7%`; hãy dùng current source, current canonical docs và exact-artifact evidence của release đang xét.
