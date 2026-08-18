@@ -1,6 +1,6 @@
 <?php
 /**
- * Professional Global Design workspace for Cresco Studio.
+ * Compatibility boundary for the retired DOM-driven Global Design Pro layer.
  *
  * @package CrescoCanvas
  */
@@ -12,9 +12,13 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * Adds a visual Design System workspace on top of the canonical Global Design
- * settings and token APIs. The Pro core owns the Global Design UI; workflow,
- * compact and shared-control layers are progressive enhancements.
+ * Global Design is owned by WebsiteBuilderStudio's React-native globalPanel().
+ *
+ * Historical Pro assets inserted and re-parented DOM nodes inside
+ * `.cc-studio-panel`. That violated React DOM ownership and could crash the
+ * complete Studio root when switching Global Design -> Edit widget. Keep this
+ * service registered as a compatibility boundary, but do not enqueue any of
+ * the retired DOM-mutating presentation or workflow assets.
  */
 final class StudioGlobalDesignPro {
 	const HANDLE                    = 'cresco-canvas-studio-global-design-pro';
@@ -42,135 +46,19 @@ final class StudioGlobalDesignPro {
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue' ), 1430 );
 	}
 
+	/**
+	 * Intentionally no-op in Studio 2.0.
+	 *
+	 * The canonical React runtime already owns Global Design, its settings API,
+	 * and the left-panel lifecycle. Re-enabling the historical assets here would
+	 * create a second DOM owner and reintroduce the removeChild crash.
+	 */
 	public function enqueue() {
 		$context = WebsiteBuilderRuntimeContext::from_request();
 		if ( ! $context || ! WebsiteBuilderModuleRegistry::is_enabled( 'core', $context ) ) return;
 		if ( ! current_user_can( 'edit_theme_options' ) ) return;
 
-		// Global Design Pro core is the only mandatory layer. A missing optional
-		// enhancement must never send Studio back to the legacy raw-token UI.
-		if ( ! WebsiteBuilderAsset::readable( self::SCRIPT ) || ! WebsiteBuilderAsset::readable( self::STYLE ) ) return;
-
-		$style_deps = array( 'cresco-canvas-website-builder-studio' );
-		if ( wp_style_is( StudioUxPro::HANDLE, 'enqueued' ) ) $style_deps[] = StudioUxPro::HANDLE;
-		if ( wp_style_is( StudioColorHarmony::LIGHT_HANDLE, 'enqueued' ) ) $style_deps[] = StudioColorHarmony::LIGHT_HANDLE;
-
-		wp_enqueue_style(
-			self::HANDLE,
-			WebsiteBuilderAsset::url( self::STYLE ),
-			$style_deps,
-			WebsiteBuilderAsset::version( self::STYLE )
-		);
-
-		$last_style = self::HANDLE;
-		$optional_styles = array(
-			array( self::AUTHORITY_HANDLE, self::AUTHORITY_STYLE ),
-			array( self::WORKFLOW_HANDLE, self::WORKFLOW_STYLE ),
-			array( self::COMPACT_HANDLE, self::COMPACT_STYLE ),
-			array( self::FONT_SEARCH_FIX_HANDLE, self::FONT_SEARCH_FIX_STYLE ),
-			array( self::SHARED_STYLE_HANDLE, self::SHARED_STYLE ),
-		);
-		foreach ( $optional_styles as $asset ) {
-			if ( ! WebsiteBuilderAsset::readable( $asset[1] ) ) continue;
-			wp_enqueue_style(
-				$asset[0],
-				WebsiteBuilderAsset::url( $asset[1] ),
-				array( $last_style ),
-				WebsiteBuilderAsset::version( $asset[1] )
-			);
-			$last_style = $asset[0];
-		}
-
-		$config = array(
-			'schema'       => 'cresco-global-design-pro/v1',
-			'settingsPath' => '/cresco-canvas/v1/settings',
-			'tokensPath'   => '/cresco-canvas/v1/design-tokens',
-			'resetPath'    => '/cresco-canvas/v1/settings/reset',
-			'postId'       => $context->post_id(),
-			'fonts'        => \CrescoCanvas\Styles\GlobalWebFonts::catalog(),
-			'systemFonts'  => \CrescoCanvas\Styles\GlobalWebFonts::system_fonts(),
-		);
-		$config_script = 'window.crescoGlobalDesignProSettings=' . wp_json_encode( $config ) . ';';
-
-		$authority_loaded = false;
-		if ( WebsiteBuilderAsset::readable( self::AUTHORITY_SCRIPT ) ) {
-			wp_enqueue_script(
-				self::AUTHORITY_HANDLE,
-				WebsiteBuilderAsset::url( self::AUTHORITY_SCRIPT ),
-				array( WebsiteBuilderStudio::HANDLE ),
-				WebsiteBuilderAsset::version( self::AUTHORITY_SCRIPT ),
-				true
-			);
-			wp_add_inline_script( self::AUTHORITY_HANDLE, $config_script, 'before' );
-			$authority_loaded = true;
-		}
-
-		$guard_loaded = false;
-		if ( WebsiteBuilderAsset::readable( self::WORKFLOW_GUARD_SCRIPT ) ) {
-			$guard_deps = array( WebsiteBuilderStudio::HANDLE, 'wp-api-fetch' );
-			if ( $authority_loaded ) $guard_deps[] = self::AUTHORITY_HANDLE;
-			wp_enqueue_script(
-				self::WORKFLOW_GUARD_HANDLE,
-				WebsiteBuilderAsset::url( self::WORKFLOW_GUARD_SCRIPT ),
-				$guard_deps,
-				WebsiteBuilderAsset::version( self::WORKFLOW_GUARD_SCRIPT ),
-				true
-			);
-			$guard_loaded = true;
-		}
-
-		$workflow_loaded = false;
-		if ( WebsiteBuilderAsset::readable( self::WORKFLOW_SCRIPT ) ) {
-			$workflow_deps = array( WebsiteBuilderStudio::HANDLE, 'wp-api-fetch' );
-			if ( $authority_loaded ) $workflow_deps[] = self::AUTHORITY_HANDLE;
-			if ( $guard_loaded ) $workflow_deps[] = self::WORKFLOW_GUARD_HANDLE;
-			if ( wp_script_is( StudioUxPro::HANDLE, 'enqueued' ) ) $workflow_deps[] = StudioUxPro::HANDLE;
-			wp_enqueue_script(
-				self::WORKFLOW_HANDLE,
-				WebsiteBuilderAsset::url( self::WORKFLOW_SCRIPT ),
-				$workflow_deps,
-				WebsiteBuilderAsset::version( self::WORKFLOW_SCRIPT ),
-				true
-			);
-			wp_add_inline_script( self::WORKFLOW_HANDLE, $config_script, 'before' );
-			$workflow_loaded = true;
-		}
-
-		$script_deps = array( WebsiteBuilderStudio::HANDLE, 'wp-api-fetch' );
-		if ( $authority_loaded ) $script_deps[] = self::AUTHORITY_HANDLE;
-		if ( $workflow_loaded ) $script_deps[] = self::WORKFLOW_HANDLE;
-		if ( wp_script_is( StudioUxPro::HANDLE, 'enqueued' ) ) $script_deps[] = StudioUxPro::HANDLE;
-		wp_enqueue_script(
-			self::HANDLE,
-			WebsiteBuilderAsset::url( self::SCRIPT ),
-			$script_deps,
-			WebsiteBuilderAsset::version( self::SCRIPT ),
-			true
-		);
-		// Attach config to the mandatory Pro handle as well. This guarantees the
-		// core can boot even when workflow/authority enhancements are unavailable.
-		wp_add_inline_script( self::HANDLE, $config_script, 'before' );
-
-		$compact_loaded = false;
-		if ( WebsiteBuilderAsset::readable( self::COMPACT_SCRIPT ) ) {
-			wp_enqueue_script(
-				self::COMPACT_HANDLE,
-				WebsiteBuilderAsset::url( self::COMPACT_SCRIPT ),
-				array( self::HANDLE ),
-				WebsiteBuilderAsset::version( self::COMPACT_SCRIPT ),
-				true
-			);
-			$compact_loaded = true;
-		}
-
-		if ( WebsiteBuilderAsset::readable( self::SHARED_SCRIPT ) ) {
-			wp_enqueue_script(
-				self::SHARED_SCRIPT_HANDLE,
-				WebsiteBuilderAsset::url( self::SHARED_SCRIPT ),
-				array( $compact_loaded ? self::COMPACT_HANDLE : self::HANDLE ),
-				WebsiteBuilderAsset::version( self::SHARED_SCRIPT ),
-				true
-			);
-		}
+		// Canonical owner: WebsiteBuilderStudio::globalPanel().
+		// Do not enqueue legacy Global Design Pro DOM/workflow assets.
 	}
 }
