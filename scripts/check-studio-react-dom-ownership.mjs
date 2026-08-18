@@ -63,6 +63,35 @@ assert(studioSource.includes('function globalPanel()'), 'Canonical Studio must r
 assert(studioSource.includes("className:'cc-studio-widget-grid'"), 'Canonical Studio must own the widget library grid.');
 assert(studioSource.includes("className:'cc-studio-canvas-node'"), 'Canonical Studio must own canvas nodes.');
 
+// Every box-model size property must offer a mode dropdown, not a bare text box.
+['width', 'minWidth', 'maxWidth', 'height', 'minHeight', 'maxHeight', 'flexBasis'].forEach((key) => {
+  assert(dimensionSource.includes(key + ': [['), `Size property must expose semantic keyword modes: ${key}.`);
+});
+assert(dimensionSource.includes('SPECIAL_UNITS'), 'Typography/border sizes must restrict units to the set their property supports.');
+assert(dimensionSource.includes("lineHeight: ['unitless'"), 'Line height must offer the unitless mode.');
+
+// Margin/Padding: four independent sides plus a presentation-only link toggle.
+assert(dimensionSource.includes('function BoxGroup(props)'), 'Margin/Padding must render through the shared box group.');
+assert(dimensionSource.includes("h(BoxGroup, { title: 'Margin'"), 'Margin box must be registered.');
+assert(dimensionSource.includes("h(BoxGroup, { title: 'Padding'"), 'Padding box must be registered.');
+assert(dimensionSource.includes('cc-studio-native-box__link'), 'Margin/Padding must expose a link toggle.');
+assert(dimensionSource.includes('for (var i = 0; i < sides.length; i++) applySpacing(kind, i, value);'), 'Linked spacing must write every side through the canonical control bridge.');
+assert(!dimensionSource.includes('linked:'), 'Widget spacing must not invent a persisted linked key; widget sides are four independent CSS strings.');
+
+// Responsive must read the canonical desktop-first cascade, not a second engine.
+assert(dimensionSource.includes("var order = ['desktop', 'laptop', 'tablet', 'mobile'];"), 'Dimension controls must use the canonical responsive inheritance order.');
+assert(dimensionSource.includes('function owns(node, key, device, state)'), 'Dimension controls must distinguish an explicit override from an inherited value.');
+
+// Page Settings ownership is unchanged: one shared unit for all four sides.
+const pageSettingsPhp = read('includes/Page/PageSettings.php');
+assert(pageSettingsPhp.includes("array( 'px', '%', 'em', 'rem', 'vh', 'vw' )"), 'Page Settings must keep its shared spacing unit enum.');
+['unitTop', 'unitRight', 'unitBottom', 'unitLeft'].forEach((key) => {
+  assert(!pageSettingsPhp.includes(key), `Page Settings must not gain per-side units without a full schema upgrade: ${key}.`);
+});
+assert(studioSource.includes("['px','%','em','rem','vh','vw']"), 'Page Settings UI must offer exactly the units the backend stores.');
+assert(studioSource.includes('cc-studio-spacing__link'), 'Page Settings spacing must expose its persisted link flag.');
+assert(studioSource.includes("target.linked)['top','right','bottom','left'].forEach"), 'Page Settings link toggle must drive values only, never per-side units.');
+
 const ownershipPhp = read('includes/Builder/StudioReactOwnershipGuard.php');
 assert(ownershipPhp.includes("'WebsiteBuilderStudio.React'"), 'React ownership guard must declare the canonical Studio owner.');
 assert(ownershipPhp.includes("add_action( 'admin_enqueue_scripts', array( $this, 'enforce' ), 99999 )"), 'React ownership guard must run after presentation services enqueue.');

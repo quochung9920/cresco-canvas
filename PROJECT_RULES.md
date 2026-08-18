@@ -237,6 +237,8 @@ Chỉ expose `px`, `%`, `em`, `rem`, `vw`, `vh`, `vmin`, `vmax`, `ch`, keyword h
 
 `custom` không được trở thành đường bypass sanitizer.
 
+Mọi property mang ngữ nghĩa kích thước dùng chung một primitive: `DimensionControl` trong `runtime-src/build/studio-dimension-controls.js`. Không viết control size riêng cho từng property và không lưu `{ value, unit, mode }` — Session giữ một CSS string canonical. Chi tiết trong `docs/STUDIO_SIZE_CONTROL_SYSTEM.md`.
+
 ### Border/Radius
 
 Widget Border/Radius dùng style key canonical. Shared Border UI có thể proxy control hiện có nhưng không tạo state riêng.

@@ -287,10 +287,32 @@
   function BoxGroup(props) {
     var sides = ['Top', 'Right', 'Bottom', 'Left'];
     var style = effective(props.node, props.device, props.state);
+    // Linked is presentation-only state. Widget spacing persists four independent
+    // CSS strings (marginTop/marginRight/...), so there is no 'linked' key in the
+    // Session to own. Linking writes the same value to all four sides through the
+    // same canonical control bridge an unlinked edit already uses.
+    var linkState = useState(false);
+    var linked = linkState[0];
+    var setLinked = linkState[1];
+    var kind = props.kind.toLowerCase();
+    function applySide(index, value) {
+      if (!linked) { applySpacing(kind, index, value); return; }
+      for (var i = 0; i < sides.length; i++) applySpacing(kind, i, value);
+    }
     return h('section', { className: 'cc-studio-native-box' },
       h('div', { className: 'cc-studio-native-box__title' },
         h('strong', null, props.title),
-        h('small', null, 'Each side has its own unit / keyword / custom mode')
+        h('button', {
+          type: 'button',
+          className: 'cc-studio-native-box__link' + (linked ? ' is-linked' : ''),
+          'aria-pressed': linked ? 'true' : 'false',
+          title: linked ? 'Linked: editing one side updates all four' : 'Link all four sides',
+          onClick: function () { setLinked(!linked); }
+        },
+          h('span', { className: 'dashicons dashicons-' + (linked ? 'admin-links' : 'editor-unlink'), 'aria-hidden': 'true' }),
+          h('span', null, linked ? 'Linked' : 'Link')
+        ),
+        h('small', null, linked ? 'One value applies to all four sides' : 'Each side has its own unit / keyword / custom mode')
       ),
       h('div', { className: 'cc-studio-native-box__grid' }, sides.map(function (side, index) {
         var key = props.kind + side;
@@ -303,7 +325,7 @@
           device: props.device,
           state: props.state,
           compact: true,
-          onApply: function (value) { applySpacing(props.kind.toLowerCase(), index, value); }
+          onApply: function (value) { applySide(index, value); }
         });
       }))
     );

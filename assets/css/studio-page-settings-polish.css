@@ -209,6 +209,37 @@
     box-shadow: var(--cc-shadow-subtle);
   }
 
+  .cc-studio-app:has(.cc-studio-rail > button[title="Page"].is-active) .cc-studio-spacing__link {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    margin: 0 0 6px;
+    padding: 3px 9px;
+    border: 1px solid var(--cc-color-border);
+    border-radius: 999px;
+    background: var(--cc-color-surface);
+    color: var(--cc-color-text-muted);
+    font-size: 10px;
+    font-weight: 650;
+    line-height: 1.4;
+    cursor: pointer;
+  }
+
+  .cc-studio-app:has(.cc-studio-rail > button[title="Page"].is-active) .cc-studio-spacing__link:hover {
+    border-color: var(--cc-color-border-strong);
+    color: var(--cc-color-text);
+  }
+
+  .cc-studio-app:has(.cc-studio-rail > button[title="Page"].is-active) .cc-studio-spacing__link.is-linked {
+    border-color: var(--cc-color-accent);
+    color: var(--cc-color-accent);
+  }
+
+  .cc-studio-app:has(.cc-studio-rail > button[title="Page"].is-active) .cc-studio-spacing__link:focus-visible {
+    outline: var(--cc-focus-ring-width) solid var(--cc-focus-ring-color);
+    outline-offset: var(--cc-focus-ring-offset);
+  }
+
   .cc-studio-app:has(.cc-studio-rail > button[title="Page"].is-active) .cc-studio-spacing__grid {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));

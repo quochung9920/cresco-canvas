@@ -83,6 +83,7 @@ Nếu code và canonical docs lệch nhau ngoài ý muốn, coi đó là defect 
 | `COLOR_HARMONY_WORKFLOW.md` | Color Harmony workflow |
 | `GLOBAL_CONFIG_IMPORT.md` | Import/export Global Design config |
 | `PAGE_SETTINGS_FINALIZATION.md` | Page Settings contract/finalization |
+| `STUDIO_SIZE_CONTROL_SYSTEM.md` | DimensionControl canonical, size mode, Custom CSS, responsive/state và giới hạn Page Settings |
 | `PROFESSIONAL_WIDGETS.md` | Professional widgets và style capability |
 | `WEBSITE_BUILDER_V3.md` | Compatibility/workflow layer V3 |
 
