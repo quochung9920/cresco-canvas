@@ -19,18 +19,36 @@ const expectParity = (source, build) => {
 	if (digest(read(source)) !== digest(read(build))) errors.push(`Source/build mismatch: ${source} -> ${build}`);
 };
 
-// Responsive properties now owns widget-aware presentation (accordion grouping,
-// per-property breakpoint controls and Grid helpers) but never document mutation
-// or drag persistence. The old responsive-ui-only token described an earlier
-// implementation and no longer matched the shipped behavior.
+// Responsive properties owns widget-aware presentation, including the Style
+// accordion. Typography must stay inline beside Background, Border and Effects;
+// the retired compatibility runtime may only clean stale popup markup left by
+// cached historical assets and must never become a second interaction owner.
 for (const token of [
 	"mode:'widget-aware-responsive-accordion'",
 	"dragOwnership:'pointer-drag-only'",
 	'function syncDeviceBars()',
 	'function enhanceGridColumns(field)',
 	'function enhanceInspectorGroups()',
+	"id:'typography',label:'Typography'",
 ]) expect('runtime-src/build/website-builder-responsive-properties.js', token);
 for (const token of ['dragSession', 'refreshDragSession', 'DRAG_MIME', "addEventListener('dragstart'", "method:'POST'"]) reject('runtime-src/build/website-builder-responsive-properties.js', token);
+
+for (const token of [
+	"mode:'retired-use-native-accordion'",
+	"data-cresco-typography-popup-hidden",
+	".cc-studio-accordion-heading[data-cresco-group=\"typography\"]",
+	"removeAttribute('aria-haspopup')",
+	"dashicons-arrow-down-alt2 cc-studio-accordion-heading__chevron",
+]) expect('runtime-src/build/studio-typography-popup.js', token);
+for (const token of [
+	"mode:'focused-popup-editor'",
+	'function openPopup()',
+	'stopImmediatePropagation',
+	'body.appendChild(field)',
+	"field.style.setProperty('display','none','important')",
+	"header.setAttribute('aria-haspopup','dialog')",
+]) reject('runtime-src/build/studio-typography-popup.js', token);
+expectParity('runtime-src/build/studio-typography-popup.js', 'build/studio-typography-popup.js');
 
 for (const token of [
 	"version:'6.0.0'",
@@ -128,4 +146,4 @@ if (errors.length) {
 	process.stderr.write(`${errors.join('\n')}\n`);
 	process.exit(1);
 }
-process.stdout.write('[known-defects] Save races, canonical document-store/recovery ownership, transaction cancellation, indexed node lookup, source/build parity, atomic persistence, legacy Session preconditions, widget-aware responsive presentation with single drag ownership, fail-closed startup, hidden preview, auxiliary dirty-state, and safe rich-text preview contracts verified.\n');
+process.stdout.write('[known-defects] Save races, canonical document-store/recovery ownership, transaction cancellation, indexed node lookup, source/build parity, atomic persistence, legacy Session preconditions, widget-aware responsive presentation with single drag ownership, inline Typography accordion ownership, fail-closed startup, hidden preview, auxiliary dirty-state, and safe rich-text preview contracts verified.\n');
