@@ -1,109 +1,115 @@
-# Cresco Canvas Roadmap Execution Status
+# Trạng thái thực thi Roadmap của Cresco Canvas
 
-Assessment date: 2026-08-05
+> **Tài liệu lịch sử.** Assessment date: **2026-08-05**.
+>
+> File này ghi implementation state trên `main` tại thời điểm assessment. Một milestone không được coi production-verified cho tới khi có hosted CI và WordPress runtime evidence tương ứng.
 
-This document records the implementation state on `main`. A milestone is not considered production-verified until hosted CI and WordPress runtime evidence exist.
+## Trình tự release
 
-## Release sequence
-
-1. `0.3.1` — Gutenberg and Cresco Elements stabilization.
-2. `0.4.0` — Layout, responsive inheritance, and preview.
+1. `0.3.1` — Gutenberg và Cresco Elements stabilization.
+2. `0.4.0` — Layout, responsive inheritance và preview.
 3. `0.5.0` — Global Design System.
-4. `0.6.0` — Templates, components, and site kits.
-5. `0.7.0` — Theme Builder and display conditions.
-6. `0.8.0` — Dynamic Data, ACF, Query Builder, and Loop Builder.
-7. `0.9.0` — Interactive components and form integrations.
-8. `1.0.0` — Production and commercial hardening.
+4. `0.6.0` — Templates, components và site kits.
+5. `0.7.0` — Theme Builder và display conditions.
+6. `0.8.0` — Dynamic Data, ACF, Query Builder và Loop Builder.
+7. `0.9.0` — Interactive components và form integrations.
+8. `1.0.0` — Production/commercial hardening.
 
-## Current implementation state
+## Trạng thái implementation tại thời điểm assessment
 
 ### `0.3.1-alpha.1` — SOURCE CANDIDATE, NOT VERIFIED
 
-Native Gutenberg integration, Cresco Elements, insertion safeguards, browser-state sanitation, and regression tests exist. Hosted CI and complete WordPress runtime evidence are still missing.
+Native Gutenberg integration, Cresco Elements, insertion safeguards, browser-state sanitation và regression tests đã tồn tại. Hosted CI và complete WordPress runtime evidence vẫn thiếu.
 
 ### `0.4.0-alpha.1` — SOURCE CANDIDATE, NOT VERIFIED
 
-Responsive Container controls, inheritance, five logical preview widths, and Live Frontend Preview runtime exist. Shared responsive controls for supported Core blocks and full runtime verification remain incomplete.
+Responsive Container controls, inheritance, năm logical preview widths và Live Frontend Preview runtime đã tồn tại. Shared responsive controls cho supported Core blocks và full runtime verification vẫn chưa complete.
 
 ### `0.5.0-alpha.1` — FUNCTIONAL SOURCE AND CHECKED-IN RUNTIME, NOT VERIFIED
 
-Implemented:
+Đã triển khai:
 
-- Structured global tokens for colors, typography, spacing, layout, radius, shadows, and motion.
-- Custom colors and aliases with server sanitization and dependency-aware deletion.
-- REST read/save/reset/catalog endpoints.
-- Import/export controls and schema version three migration.
-- Independent checked-in Gutenberg runtime and release-package requirements.
+- structured global tokens cho colors, typography, spacing, layout, radius, shadows và motion;
+- custom colors/aliases với server sanitization và dependency-aware deletion;
+- REST read/save/reset/catalog endpoints;
+- import/export controls và schema version 3 migration;
+- independent checked-in Gutenberg runtime và release-package requirements.
 
-Hosted CI, manual accessibility, browser, RTL, multisite, lifecycle, and performance evidence remain missing.
+Hosted CI, manual accessibility, browser, RTL, multisite, lifecycle và performance evidence vẫn thiếu.
 
 ### `0.6.0-alpha.1` — FUNCTIONAL SOURCE AND CHECKED-IN RUNTIME, NOT VERIFIED
 
-Implemented:
+Đã triển khai:
 
-- Native WordPress pattern categories and bundled templates.
-- Gutenberg Template Library search, filtering, and insertion.
-- Synced components using native `wp_block` entities.
-- Sanitized Site Kit import/export.
-- Checked-in runtime, stylesheet, manifest, packaging requirements, and regression test source.
+- native WordPress pattern categories và bundled templates;
+- Gutenberg Template Library search/filter/insertion;
+- synced components dùng native `wp_block` entities;
+- sanitized Site Kit import/export;
+- checked-in runtime, stylesheet, manifest, packaging requirements và regression test source.
 
-Important limitations include absent hosted CI/runtime evidence, limited component capture, no remote catalog, and no demonstrated reproducible `npm ci` build.
+Giới hạn quan trọng khi đó gồm thiếu hosted CI/runtime evidence, component capture còn hạn chế, chưa có remote catalog và chưa chứng minh reproducible `npm ci` build.
 
 ### `0.7.0-alpha.1` — FUNCTIONAL SOURCE AND CHECKED-IN RUNTIME, NOT VERIFIED
 
-Implemented:
+Đã triển khai:
 
-- Native `cresco_template` Theme Builder entities with Gutenberg editing and revisions.
-- Header, Footer, Single, Page, Archive, Search, and 404 template types.
-- Allow-listed include/exclude display conditions and priority-based resolution.
-- Frontend slot/document rendering, REST CRUD, Gutenberg controls, admin columns, and conflict diagnostics.
-- Checked-in runtime, renderer, packaging requirements, and regression test source.
+- native `cresco_template` Theme Builder entities với Gutenberg editing/revisions;
+- Header, Footer, Single, Page, Archive, Search và 404 template types;
+- allow-listed include/exclude display conditions và priority-based resolution;
+- frontend slot/document rendering, REST CRUD, Gutenberg controls, admin columns và conflict diagnostics;
+- checked-in runtime, renderer, packaging requirements và regression test source.
 
-Remaining evidence includes hosted CI, theme/plugin compatibility, accessibility, RTL, browser, multisite, role, revision, and frontend runtime verification.
+Evidence còn thiếu gồm hosted CI, theme/plugin compatibility, accessibility, RTL, browser, multisite, role, revision và frontend runtime verification.
 
 ### `0.8.0-alpha.5` — FUNCTIONAL SOURCE AND CHECKED-IN RUNTIME, NOT VERIFIED
 
-Implemented across alpha.1 through alpha.5:
+Đã triển khai trong alpha.1 → alpha.5:
 
-- Dynamic scalar fields for post, site, post meta, and ACF values.
-- Dynamic images for featured, meta, and ACF image return formats.
-- Bounded standard Loop queries, presets, pagination, and nested-loop protection.
-- Dynamic Gallery and Relationship Loop blocks for ACF/meta structured values.
-- ACF Repeater rendering with one native block template per row.
-- ACF Flexible Content rendering with layout-specific child templates and fallback mapping.
-- ACF Sub Field dot-path binding for scalar row values.
-- Permission-protected ACF field schema discovery without raw value exposure.
-- Advanced Loop queries for post type, author, parent, search, dates, include/exclude IDs, one meta clause, and up to three taxonomy clauses.
-- Filterable Loop with signed public AJAX rendering, search, up to three taxonomy facets, AJAX pagination, Load More, Infinite Scroll, URL/history synchronization, and no-JavaScript fallbacks.
-- WooCommerce presets for newest, featured, on-sale, in-stock, best-selling, and top-rated products.
-- Checked-in Gutenberg/editor/frontend runtimes, styles, manifests, release-package requirements, REST discovery/preview/render endpoints, and regression test source.
+- dynamic scalar fields cho post, site, post meta và ACF values;
+- dynamic images cho featured/meta/ACF image return formats;
+- bounded standard Loop queries, presets, pagination và nested-loop protection;
+- Dynamic Gallery/Relationship Loop cho ACF/meta structured values;
+- ACF Repeater với một native block template mỗi row;
+- ACF Flexible Content với layout-specific child templates và fallback mapping;
+- ACF Sub Field dot-path binding cho scalar row values;
+- permission-protected ACF field schema discovery không expose raw values;
+- Advanced Loop cho post type, author, parent, search, dates, include/exclude IDs, một meta clause và tối đa ba taxonomy clauses;
+- Filterable Loop với signed public AJAX rendering, search, tối đa ba taxonomy facets, AJAX pagination, Load More, Infinite Scroll, URL/history synchronization và no-JavaScript fallback;
+- WooCommerce presets cho newest, featured, on-sale, in-stock, best-selling và top-rated products;
+- checked-in Gutenberg/editor/frontend runtimes, styles, manifests, release-package requirements, REST discovery/preview/render endpoints và regression test source.
 
-Known limitations:
+Giới hạn đã biết tại thời điểm đó:
 
-- Taxonomy facets do not yet calculate live per-option counts.
-- Runtime meta facets, range filters, active-filter chips, and dependent facet counts are not implemented.
-- Repeater/Flexible Content currently bind scalar sub-fields; dedicated nested image/gallery/relationship/repeater row bindings remain future work.
-- Advanced Loop intentionally does not permit arbitrary nested meta/tax query groups or arbitrary SQL.
-- Multiple identical Filterable Loops should use unique Instance IDs to avoid URL-key collisions.
-- The dependency lock/build environment remains unavailable, so checked-in runtimes have not been reproduced from the TypeScript source pipeline.
-- Hosted CI and full WordPress/ACF/WooCommerce runtime, accessibility, RTL, multisite, browser, security, and performance evidence remain missing.
+- taxonomy facets chưa tính live per-option counts;
+- runtime meta facets, range filters, active-filter chips và dependent facet counts chưa implement;
+- Repeater/Flexible Content chủ yếu bind scalar sub-fields; dedicated nested image/gallery/relationship/repeater row bindings còn future work;
+- Advanced Loop cố ý không cho arbitrary nested meta/tax query groups hoặc arbitrary SQL;
+- nhiều Filterable Loop giống nhau nên dùng unique Instance IDs để tránh URL-key collision;
+- dependency lock/build environment chưa khả dụng nên checked-in runtimes chưa được reproduce từ TypeScript source pipeline;
+- hosted CI và full WordPress/ACF/WooCommerce runtime, accessibility, RTL, multisite, browser, security, performance evidence vẫn thiếu.
 
 ### `0.9.0` — NOT STARTED AS A COMPLETE MILESTONE
 
-Interactive Tabs, Accordion, Modal, Slider/Carousel, Form Builder, validation, submission handling, spam protection, external form integrations, and interaction controls remain future work.
+Tại assessment này, Interactive Tabs, Accordion, Modal, Slider/Carousel, Form Builder, validation, submission handling, spam protection, external form integrations và interaction controls vẫn được ghi là future work của complete milestone 0.9.
+
+> Lưu ý lịch sử: release notes sau đó cho thấy scope 0.9 tiếp tục được triển khai. Không dùng dòng này để kết luận trạng thái hiện tại.
 
 ### `1.0.0` — NOT COMPLETE
 
-Production hardening, complete CI/runtime matrices, reproducible packaging, migrations/rollback validation, accessibility and security certification, beta/RC gates, stable documentation, support policy, and commercial infrastructure remain future work.
+Production hardening, complete CI/runtime matrices, reproducible packaging, migration/rollback validation, accessibility/security certification, beta/RC gates, stable documentation, support policy và commercial infrastructure vẫn là future work tại thời điểm assessment.
 
-## Validation state
+## Trạng thái validation
 
-- Checked-in PHP, JavaScript, CSS, and asset manifests exist through `0.8.0-alpha.5`.
-- Regression test source exists for the main sanitization, catalog, resolver, query, structured-data, signature, public-filter, and template-safety boundaries.
-- No successful hosted workflow or complete WordPress runtime test result has been observed for the latest `main` commit.
-- No production or commercial readiness claim is permitted.
-- `0.9.0` and `1.0.0` release gates remain unverified.
+- Checked-in PHP, JavaScript, CSS và asset manifests tồn tại đến `0.8.0-alpha.5`.
+- Regression test source tồn tại cho main sanitization, catalog, resolver, query, structured-data, signature, public-filter và template-safety boundaries.
+- Chưa quan sát successful hosted workflow hoặc complete WordPress runtime result cho latest `main` commit tại thời điểm đó.
+- Không được claim production/commercial readiness.
+- `0.9.0` và `1.0.0` release gates còn unverified.
 
-## Direct-main policy
+## Direct-main policy tại thời điểm này
 
-Direct `main` updates were explicitly requested. Changes are committed in small coherent units. Every milestone must preserve native Gutenberg content, use capability checks, include migration and packaging considerations, and disclose missing evidence.
+Direct `main` updates đã được yêu cầu rõ. Changes được commit theo các coherent unit nhỏ. Mỗi milestone phải bảo toàn native Gutenberg content, dùng capability checks, cân nhắc migration/packaging và disclose evidence còn thiếu.
+
+## Cách dùng hiện nay
+
+Đây là snapshot ngày 2026-08-05, không phải current roadmap. Để quyết định implementation hiện tại, dùng current source, `PROJECT_RULES.md`, current ADR/canonical docs và release evidence mới nhất.
