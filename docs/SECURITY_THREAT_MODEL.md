@@ -1,47 +1,57 @@
-# Security Threat Model
+# Mô hình đe dọa bảo mật — milestone 0.3 (lịch sử)
 
-Last reviewed: 2026-08-04 for milestone 0.3.
+> **Tài liệu lịch sử.** Last reviewed: **2026-08-04** cho milestone 0.3.
+>
+> Với security contract hiện tại, ưu tiên `SECURITY.md`. File này chỉ mô tả threat model của baseline/milestone được ghi ở trên.
 
-## Protected assets
+## Tài sản cần bảo vệ
 
-- Page content, Cresco Page metadata, publication state, and draft privacy.
-- Site-wide Cresco design settings and feature flags.
-- WordPress authentication cookies and REST nonces.
-- Availability of Gutenberg and the public frontend.
-- Release artifact integrity and absence of developer/private files.
+- Page content, Cresco Page metadata, publication state và draft privacy.
+- Site-wide Cresco design settings và feature flags.
+- WordPress authentication cookies và REST nonces.
+- Khả dụng của Gutenberg và public frontend.
+- Tính toàn vẹn của release artifact và việc không chứa developer/private files.
 
 ## Trust boundaries
 
-WordPress Core owns the Page REST/entity boundary and document workflows. Cresco-owned browser input crosses one custom REST boundary for global settings. Page authors are not assumed to have site-design permission. Stored settings and legacy options are untrusted until normalized. Themes, plugins, blocks, and build dependencies may fail or conflict.
+Ở kiến trúc milestone 0.3, WordPress Core sở hữu Page REST/entity boundary và document workflows. Browser input do Cresco sở hữu đi qua một custom REST boundary cho global settings.
 
-## Threats and controls
+Page author không mặc định có site-design permission. Stored settings và legacy options phải được coi là untrusted cho tới khi normalize. Themes, plugins, blocks và build dependencies có thể lỗi hoặc conflict.
 
-| Threat | Control | Residual status |
+## Threats và controls
+
+| Threat | Control tại milestone 0.3 | Residual status tại thời điểm review |
 | --- | --- | --- |
-| Unauthorized Page content/meta write | Core Page endpoint plus `_cresco_canvas_enabled` `edit_post` authorization | Role and real WordPress integration matrix remains NOT VERIFIED |
-| Unauthorized publication/state transition | Delegated entirely to Core Page capabilities and editor workflow | Runtime role matrix remains NOT VERIFIED |
-| Cross-site request forgery | Core-configured REST nonce used by `apiFetch`; no custom editor-choice actions remain | Browser evidence pending |
-| Stale overwrite/concurrent editing | Native autosave, revisions, post locking, conflict notices, and Core save behavior | Two-user runtime test remains NOT VERIFIED |
-| Stored CSS injection | Hex sanitization, bounded numbers, strict font-stack grammar, and trusted internal selectors | Property/fuzz testing absent; arbitrary Custom CSS is not implemented |
-| Malicious settings REST values | `edit_theme_options`, response schema, normalization, bounds, and explicit property allowlist | Real REST permission integration test remains NOT VERIFIED |
-| Cross-site scripting in admin output | WordPress escaping plus `wp_json_encode` for bootstrap data; React escapes rendered text | Full manual payload review remains NOT VERIFIED |
-| Editor denial of service from missing assets | Missing Cresco build emits a non-blocking notice; Gutenberg continues without the extension | Real missing-build staging test remains NOT VERIFIED |
-| Redirect loop/open redirect | No Cresco editor router, takeover, redirect, or alternate Page URL exists | Static source regression and E2E absence checks configured |
-| Lifecycle data destruction | Deactivation preserves data; uninstall is explicit and never deletes posts/content | Multisite execution remains NOT VERIFIED |
-| Frontend style/script contamination | No public editor JS; frontend CSS is scoped and conditional | Third-party theme/block matrix remains NOT VERIFIED |
-| Artifact contamination | Deterministic allowlist ZIP, archive-content assertion, and SHA-256 output | Signing/provenance absent |
-| Dependency compromise | Exact locks, production audit gate, and visible full audit | Development toolchain retains 30 transitive advisories |
-| CI action tag mutation | Established major action tags | Commit-SHA pinning remains open P2 |
+| Unauthorized Page content/meta write | Core Page endpoint + `_cresco_canvas_enabled` `edit_post` authorization | Role và real WordPress integration matrix vẫn `NOT VERIFIED` |
+| Unauthorized publication/state transition | Delegate hoàn toàn cho Core Page capabilities/editor workflow | Runtime role matrix vẫn `NOT VERIFIED` |
+| Cross-site request forgery | REST nonce do Core cấu hình và `apiFetch` sử dụng; không còn custom editor-choice action | Browser evidence còn chờ |
+| Stale overwrite/concurrent editing | Native autosave, revisions, post locking, conflict notices và Core save behavior | Two-user runtime test vẫn `NOT VERIFIED` |
+| Stored CSS injection | Hex sanitization, bounded numbers, strict font-stack grammar và trusted internal selectors | Chưa có property/fuzz testing; arbitrary Custom CSS chưa được implement ở milestone này |
+| Malicious settings REST values | `edit_theme_options`, response schema, normalization, bounds và explicit property allowlist | Real REST permission integration test vẫn `NOT VERIFIED` |
+| Cross-site scripting trong admin output | WordPress escaping + `wp_json_encode` cho bootstrap data; React escape rendered text | Full manual payload review vẫn `NOT VERIFIED` |
+| Editor denial of service do thiếu asset | Thiếu Cresco build chỉ tạo non-blocking notice; Gutenberg tiếp tục chạy | Real missing-build staging test vẫn `NOT VERIFIED` |
+| Redirect loop/open redirect | Baseline này không có Cresco editor router/takeover/redirect/alternate Page URL | Static regression và E2E absence checks đã cấu hình |
+| Lifecycle data destruction | Deactivation giữ dữ liệu; uninstall explicit và không xóa posts/content | Multisite execution vẫn `NOT VERIFIED` |
+| Frontend style/script contamination | Không có public editor JS; frontend CSS scoped và conditional | Third-party theme/block matrix vẫn `NOT VERIFIED` |
+| Artifact contamination | Deterministic allowlist ZIP, archive-content assertion và SHA-256 output | Signing/provenance còn thiếu |
+| Dependency compromise | Exact locks, production audit gate và visible full audit | Development toolchain còn 30 transitive advisories tại thời điểm đó |
+| CI action tag mutation | Established major action tags | Commit-SHA pinning còn open P2 |
 
-## REST inventory
+## REST inventory tại milestone 0.3
 
 | Route | Method | Capability | Mutation |
 | --- | --- | --- | --- |
-| WordPress Core Page endpoint | Core methods | Core Page/post capabilities | Native Page content, status, and registered metadata |
-| `/cresco-canvas/v1/settings` | GET/POST | `edit_theme_options` | Validated Cresco option only |
+| WordPress Core Page endpoint | Core methods | Core Page/post capabilities | Native Page content, status và registered metadata |
+| `/cresco-canvas/v1/settings` | GET/POST | `edit_theme_options` | Chỉ validated Cresco option |
 
-The retired `/cresco-canvas/v1/pages` routes are intentionally absent and have E2E regression coverage.
+Retired `/cresco-canvas/v1/pages` routes được cố ý loại bỏ ở baseline này và có E2E regression coverage.
 
-## Security result
+## Kết quả security của assessment này
 
-No reproducible P0 or P1 security issue remains after static review and local JavaScript/PHP-source checks. This is not a passed security gate: native role integration, Plugin Check, hosted CI, penetration testing, provenance, and future product surfaces remain unverified.
+Static review và local JavaScript/PHP-source checks không còn reproduce P0/P1 security issue trong scope được audit.
+
+Điều đó **không đồng nghĩa security gate đã pass**. Native role integration, Plugin Check, hosted CI, penetration testing, provenance và future product surfaces vẫn chưa verify tại thời điểm tài liệu được viết.
+
+## Cách dùng hiện nay
+
+Dùng file này để hiểu threat model của giai đoạn Gutenberg-native/milestone 0.3. Không dùng route inventory hoặc ownership assumption của file này để phủ định current Studio architecture. Với code hiện tại, đọc `SECURITY.md`, `PROJECT_RULES.md` và current runtime/architecture docs.
