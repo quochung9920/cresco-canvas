@@ -19,19 +19,52 @@ const expectParity = (source, build) => {
 	if (digest(read(source)) !== digest(read(build))) errors.push(`Source/build mismatch: ${source} -> ${build}`);
 };
 
-// Responsive properties owns widget-aware presentation, including the Style
-// accordion. Typography must stay inline beside Background, Border and Effects;
-// the retired compatibility runtime may only clean stale popup markup left by
-// cached historical assets and must never become a second interaction owner.
+// Responsive properties owns widget-aware presentation, including every
+// Inspector accordion in Layout, Style and Advanced. Each group must be able
+// to open and close independently; a collapsed group must never be forced
+// back open by a fallback-to-first-group pass. Typography stays inline beside
+// Background, Border and Effects, and the retired popup runtime remains cleanup-only.
 for (const token of [
+	"version:'3.1.0'",
 	"mode:'widget-aware-responsive-accordion'",
+	"accordionBehavior:'independent-collapsible'",
 	"dragOwnership:'pointer-drag-only'",
+	"var inspectorGroupState={layout:{size:true},style:{typography:true},advanced:{spacing:true}}",
 	'function syncDeviceBars()',
 	'function enhanceGridColumns(field)',
+	'function groupState(tab)',
+	'function groupIsOpen(tab,id)',
+	'function toggleGroup(tab,id)',
+	'toggleGroup(tab,group.id);enhanceInspectorGroups();',
 	'function enhanceInspectorGroups()',
+	"id:'size',label:'Display & Size'",
+	"id:'gaps',label:'Spacing & Gaps'",
+	"id:'alignment',label:'Alignment'",
+	"id:'flexbox',label:'Flexbox'",
+	"id:'grid',label:'Grid'",
 	"id:'typography',label:'Typography'",
+	"id:'background',label:'Background'",
+	"id:'border',label:'Border'",
+	"id:'effects',label:'Effects'",
+	"id:'spacing',label:'Margin & Padding'",
+	"id:'position',label:'Position & Layer'",
+	"id:'overflow',label:'Overflow & Visibility'",
+	"id:'transform',label:'Transform & Effects'",
+	"id:'media',label:'Media & Cursor'",
+	"id:'custom-css',label:'Custom CSS'",
+	"open=allowed&&groupIsOpen(tab,group.id)",
+	"header.setAttribute('aria-expanded',open?'true':'false')",
 ]) expect('runtime-src/build/website-builder-responsive-properties.js', token);
-for (const token of ['dragSession', 'refreshDragSession', 'DRAG_MIME', "addEventListener('dragstart'", "method:'POST'"]) reject('runtime-src/build/website-builder-responsive-properties.js', token);
+for (const token of [
+	'dragSession',
+	'refreshDragSession',
+	'DRAG_MIME',
+	"addEventListener('dragstart'",
+	"method:'POST'",
+	"inspectorGroupState[tab]=inspectorGroupState[tab]===group.id?'':group.id",
+	"if(!inspectorGroupState[tab]&&available.length)inspectorGroupState[tab]=available[0]",
+]) reject('runtime-src/build/website-builder-responsive-properties.js', token);
+expectParity('runtime-src/build/website-builder-responsive-properties.js', 'build/website-builder-responsive-properties.js');
 
 for (const token of [
 	"mode:'retired-use-native-accordion'",
@@ -146,4 +179,4 @@ if (errors.length) {
 	process.stderr.write(`${errors.join('\n')}\n`);
 	process.exit(1);
 }
-process.stdout.write('[known-defects] Save races, canonical document-store/recovery ownership, transaction cancellation, indexed node lookup, source/build parity, atomic persistence, legacy Session preconditions, widget-aware responsive presentation with single drag ownership, inline Typography accordion ownership, fail-closed startup, hidden preview, auxiliary dirty-state, and safe rich-text preview contracts verified.\n');
+process.stdout.write('[known-defects] Save races, canonical document-store/recovery ownership, transaction cancellation, indexed node lookup, source/build parity, atomic persistence, legacy Session preconditions, widget-aware responsive presentation with independent collapsible Layout/Style/Advanced accordions, single drag ownership, inline Typography ownership, fail-closed startup, hidden preview, auxiliary dirty-state, and safe rich-text preview contracts verified.\n');
