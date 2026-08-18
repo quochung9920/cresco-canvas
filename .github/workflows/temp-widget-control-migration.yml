@@ -7,6 +7,8 @@ on:
 permissions:
   contents: write
 
+# This follow-up commit exists to trigger the workflow after the workflow file
+# itself is already present on the branch.
 jobs:
   migrate-and-verify:
     if: ${{ !contains(github.event.head_commit.message, '[widget-control-applied]') }}
